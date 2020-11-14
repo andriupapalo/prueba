@@ -1,0 +1,687 @@
+﻿@{
+    ViewBag.Title = " Inventario ";
+    ViewBag.Icono = "fa fa-th-list";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="principal active" onclick="ocultarBusqueda()"><a data-toggle="tab"><i class="fa fa-arrow-circle-o-right"></i>&nbsp;&nbsp;Grafica</a></li>
+                @*<li class="" onclick="ocultarGrafica()"><a data-toggle="tab" href=""><i class="fa fa-arrow-circle-o-right"></i>&nbsp;&nbsp;Busqueda </a></li>*@
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="hpanel">
+
+        <div class="panel-body" id="buscar" style="display:none">
+            <div class="form-horizontal">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label class="control-label">Año:&nbsp;</label></div>
+
+                        <div class="col-sm-4">
+                            <div class="input-append date" id="anio" data-date="10-2018" data-date-format="yyyy">
+                                <input type="text" class="form-control" name="date" size="4" data-date="10-2018" required="required">
+                                <span class="add-on"><i class="icon-th"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label class="control-label">Mes:&nbsp;</label></div>
+
+                        <div class="col-sm-4">
+                            <select class="form-control js-source-states" id="mes" name="mes" required="required">
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label>Bodega(s)</label></div>
+                        <div class="col-sm-4">
+                            <select id="listar_bodegas" name="listar_bodegas" multiple="multiple" placeholder="Selección múltiple" class="form-control"></select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label>Referencia(s)</label></div>
+                        <div class="col-sm-4">
+                            <select class="form-control js-source-states" id="codigo" name="codigo" placeholder="Seleccione">
+                                <option value="">Seleccione</option>
+                                @foreach (var item in ViewBag.codigo)
+                                {
+                                    <option value="@item.ref_codigo">@item.ref_codigo - @item.ref_descripcion</option>
+                                }
+                            </select>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <button type="button" class="btn btn-primary" id="btnFiltrar"><i class="fa fa-filter" aria-hidden="true"></i>&nbsp;&nbsp;Filtrar</button>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div id="torta" style="width: 100%;height: 400px"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="buscar2" class="tab-content">
+            <div id="principal" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="col-md-12">
+
+                        @*<div class="row">
+
+                            <div class="col-md-4">
+                                <select id="Meses" class="form-control ">
+                                    <option value="">Selecione</option>
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <button type="button" onclick="tortaInventarioBodega()" id="btncalcular" class="btn btn-success form-control"><span class="fa fa-refresh"></span>&nbsp;&nbsp;Calcular</button>
+                            </div>
+                        </div>*@
+
+
+                    </div>
+                    <div id="tortaClasificacion" style="width: 100%;height: 400px"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div id="chartdiv" style="width: 100%;height: 400px"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+@* Modal *@
+<div id="modal_contenedor_tablas" class="modal fade bd-example-modal-lg" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Movimientos</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_modal_bodega">
+                        <thead>
+                            <tr id="trBodega"></tr>
+                            <tr>
+                                <th style="text-align:center">Referencia</th>
+                                <th style="text-align:center">Cantidad Inicial</th>
+                                <th style="text-align:center">Costo Inicial</th>
+                                <th style="text-align:center">Cantidad Entrada</th>
+                                <th style="text-align:center">Costo Entrada</th>
+                                <th style="text-align:center">Cantidad Salida</th>
+                                <th style="text-align:center">Costo Salida</th>
+                                <th style="text-align:center">Stock</th>
+                                <th style="text-align:center">Costo stock</th>
+                                <th style="text-align:center">Clasifición ABC</th>
+                                <th style="text-align:center">Costo Promedio</th>
+                                <th style="text-align:center">Precio Venta</th>
+                                <th style="text-align:center">Fecha Ultima Compra</th>
+                                <th style="text-align:center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <table class="table table-striped table-bordered table-hover" id="tabla_gran_total">
+                        <thead>
+                            <tr>
+                                <th align="center"></th>
+                                <th align="center">Cantidad Inicial</th>
+                                <th align="center">Costo Inicial</th>
+                                <th align="center">Cantidad Entrada</th>
+                                <th align="center">Costo Entrada</th>
+                                <th align="center">Cantidad Salida</th>
+                                <th align="center">Costo Salida</th>
+                                <th align="center">Stock</th>
+                                <th align="center">Costo stock</th>
+                                <th align="center">Costo Promedio</th>
+                                <th align="center">Precio Venta</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalExito">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+
+<div id="modal_listarUbicacion" class="modal fade bd-example-modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Ubicaciones del Repuesto</h4>
+            </div>
+            <div class="col-lg-12" id="contenedorTablas" name="contenedorTablas">
+            </div>
+            <div class="col-lg-12" id="contenedorTablas2" name="contenedorTablas2">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalExito">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal_listarDetalleMovimiento" class="modal fade bd-example-modal-lg" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Movimientos</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tablaDetalleMovimiento">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Prefijo</th>
+                                <th style="text-align:center">Nombre</th>
+                                <th style="text-align:center">Fecha</th>
+                                <th style="text-align:center">Número</th>
+                                <th style="text-align:center">Cant Entrada</th>
+                                <th style="text-align:center">Costo Entrada</th>
+                                <th style="text-align:center">Cant Salida</th>
+                                <th style="text-align:center">Costo Salida</th>
+                                <th style="text-align:center">Costo Total</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalExito">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal_detalle_bodega" class="modal fade" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Bodegas</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tablaDetalleBodega">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Total Costo</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalExito">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Vendor scripts -->
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/vendor/d3/d3.min.js"></script>
+    <script src="~/vendor/c3/c3.min.js"></script>
+    <!-- App scripts -->
+    <script src="~/Scripts/homer.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/amcharts.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/funnel.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/themes/light.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/amchart2.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/pie.js"></script>
+    <script src="~/Scripts/graficos.js?hora=@ViewBag.horas"></script>
+    <script src="~/Vendor/AmCharts/lib/3/themes/light.js"></script>
+    <script src="~/Vendor/chartjs/Chart.min.js"></script>
+    <script src="~/Vendor/chartjs/samples/utils.js"></script>
+    <link href="~/Vendor/AmCharts/lib/3/plugins/export/export.css" rel="stylesheet" />
+    <script src="~/Vendor/AmCharts/lib/3/plugins/export/export.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('.js-source-states').select2();
+            var fecha = '@DateTime.Now.Year';
+            var mesActual = '@DateTime.Now.Month';
+            $("#anio").val(fecha);
+            $("#mes").val(mesActual).select2();
+            $('#anio').find('input').val(fecha);
+            $("#anio").datepicker({
+                format: "yyyy",
+                viewMode: "years",
+                minViewMode: "years",
+                autoclose: true
+            });
+            //buscarBodegas();
+            tortaInventarioBodega();
+        });
+
+        $('#btnFiltrar').click(function () {
+            var anio = $('#anio').val()
+            var mes = $('#mes').val()
+            var bodegas = $('#listar_bodegas').val()
+            var referencia = $('#codigo').val()
+            tortaKardex(anio, mes, bodegas, referencia)
+        });
+
+        //**************MODAL********************//
+        function buscarInventarioXBodega(id) {
+            $('#tablaDetalleBodega').dataTable().fnDestroy();
+            $('#tablaDetalleBodega').find('tbody').empty();
+            $.ajax({
+                url: '/IndicadoresGraficos/buscarInventarioXBodega',
+                data: { id },
+                type: 'post',
+                cache: false,
+                success: function (buscar) {
+                    console.log(buscar)
+                    $('#tablaDetalleBodega').dataTable().fnDestroy();
+                    $('#tablaDetalleBodega').find('tbody').empty();
+                    for (var i = 0; i < buscar.length; i++) {
+                        $('#tablaDetalleBodega').find('tbody').append(
+                            '<tr>'
+                            + '<td style="text-transform: uppercase">' + buscar[i].bodccs_nombre + '</td>'
+                            + '<td style="text-transform: uppercase">' + buscar[i].totalCosto + '</td>'
+                            + '</tr>'
+                        );
+                    }
+                    $('#modal_detalle_bodega').modal('show')
+                },
+                complete: function (buscar) {
+                    $('#tablaDetalleBodega').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        ]
+                    });
+                }
+            });
+        }//**************MODAL********************//
+
+        //**************Grafica********************//
+        function tortaInventarioBodega() {
+            $.ajax({
+                url: '/IndicadoresGraficos/tortaInventarioBodega',
+                data: {},
+                type: 'post',
+                cache: false,
+                success: function (buscar) {
+                    console.log(buscar)
+                    debugger
+                    var datos = [];
+                    for (var i = 0; i < buscar.length; i++) {
+                        datos[i] = {
+                            "title": buscar[i].bodega,
+                            "valor": parseInt(buscar[i].totalCosto),
+                            "descripcion": buscar[i].bodega
+                        }
+                    }
+                    debugger
+                    var chart = AmCharts.makeChart("tortaClasificacion", {
+                        "type": "pie",
+                        "theme": "light",
+                        "dataProvider": datos,
+                        "valueField": "valor",
+                        "titleField": "title",
+                        "descriptionField": "descripcion",
+                        "outlineAlpha": 0.4,
+                        "depth3D": 15,
+                        "balloonText": "[[title]]<br><span style='font-size:14px'><b>[[description]]<br>[[value]]</b> ([[percents]]%)</span>",
+                        "angle": 30,
+                        "legend": {
+                            "useGraphSettings": false,
+                            "valueText": " [[value]] "
+                        },
+                        "export": {
+                            "enabled": false
+                        }
+
+                    });
+                    chart.addListener("clickSlice", function (event, index) {
+                        var posicion = event.dataItem.index;
+                        for (var x = 0; x < buscar.length; x++) {
+                            if (x == posicion) {
+                                buscarInventarioXBodega(buscar[x].id)
+                            }
+                        }
+                    });
+                }
+            })
+        }
+        //**************Grafica********************//
+
+        function ocultarBusqueda() {
+            $('#buscar').hide();
+            $('#buscar2').show();
+            $('#tortaClasificacion').show();
+        }
+
+        function ocultarGrafica() {
+            $('#buscar').show();
+            $('#buscar2').hide();
+            $('#tortaClasificacion').hide();
+        }
+
+        function buscarBodegas() {
+            $.ajax({
+                url: '/kardex/BuscarBodegas',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#listar_bodegas').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#listar_bodegas').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+
+                    $('#listar_bodegas').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 800,
+                    });
+                    $('#listar_bodegas').multiselect('refresh');
+                }
+            })
+        };
+
+        function buscarKardex(bodega) {
+            $('#tabla_modal_bodega').dataTable().fnDestroy();
+            $('#tabla_gran_total').find('tbody').empty()
+            $('#vacio').hide();
+            $.ajax({
+                url: '/kardex/BuscarKardexRepuestos',
+                data: {
+                    anio: $('#anio').find('input').val(),
+                    mes: $('#mes').val(),
+                    bodega: bodega,
+                    codigo: $('#codigo').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    var GTcanIni = 0;
+                    var GTcosIni = 0;
+                    var GTcanEnt = 0;
+                    var GTcosEnt = 0;
+                    var GTcanSal = 0;
+                    var GTcosSal = 0;
+                    var GTstock = 0;
+                    var GTcStock = 0;
+                    var GTcostoProm = 0;
+                    var GTprecioVenta = 0;
+                    $('#modal_contenedor_tablas').modal('show');
+                    $('#tabla_modal_bodega').find($('#trBodega')).append('<td colspan="14" style="border-bottom:none"><strong style="text-transform: uppercase">' + data.data.consulta[0].bodccs_nombre + '</strong></td>')
+                    for (var i = 0; i < data.data.consulta.length; i++) {
+                        $('#tabla_modal_bodega').find('tbody').append(
+                            '<tr>'
+                                + '<td>' + data.data.consulta[i].codigo + ' - ' + data.data.consulta[i].ref_descripcion + '</td>'
+                                + '<td align="right">' + data.data.consulta[i].can_ini + '</td>'
+                                + '<td align="right"> ' + addCommas(data.data.consulta[i].cos_ini) + '</td>'
+                                + '<td align="right">' + data.data.consulta[i].can_ent + '</td>'
+                                + '<td align="right">' + data.data.consulta[i].cos_ent + '</td>'
+                                + '<td align="right">' + data.data.consulta[i].can_sal + '</td>'
+                                + '<td align="right">' + data.data.consulta[i].cos_sal + '</td>'
+                                + '<td align="right">' + data.data.consulta[i].stock + '</td>'
+                                + '<td align="right">' + addCommas(data.data.consulta[i].CostoStock) + '</td>'
+                                + '<td align="left">' + data.data.consulta[i].ClasifABC + '</td>'
+                                + '<td align="right">' + addCommas(data.data.consulta[i].costoProm) + '</td>'
+                                + '<td align="right">' + addCommas(data.data.consulta[i].precioVenta) + '</td>'
+                                + '<td align="right">' + data.data.consulta[i].fechaUltimacompra + '</td>'
+                                + '<td align="center">'
+                                    + '<button type="button" onclick="verDetalles(\'' + data.data.consulta[i].codigo + '\',' + data.data.consulta[i].bodega + ')" class="btn btn-xs btn-success">Ubicación</button>'
+                                    + '<button type="button" onclick="verMovimientos(\'' + data.data.consulta[i].codigo + '\',' + data.data.consulta[i].bodega + ')" class="btn btn-xs btn-primary">Movimientos</button>'
+                                + '</td>'
+                          + '</tr>'
+                            )
+                        GTcanIni += data.data.consulta[i].can_ini
+                        GTcosIni += data.data.consulta[i].cos_ini
+                        GTcanEnt += data.data.consulta[i].can_ent
+                        GTcosEnt += data.data.consulta[i].cos_ent
+                        GTcanSal += data.data.consulta[i].can_sal
+                        GTcosSal += data.data.consulta[i].cos_sal
+                        GTstock += data.data.consulta[i].stock
+                        GTcStock += data.data.consulta[i].CostoStock
+                        GTcostoProm += data.data.consulta[i].costoProm
+                        GTprecioVenta += data.data.consulta[i].precioVenta
+                    }
+                    $('#tabla_gran_total').find('tbody').append(
+                        '<tr>'
+                                + '<td><strong>GRAN TOTAL</strong></td>'
+                                + '<td align="right">' + GTcanIni + '</td>'
+                                + '<td align="right">' + addCommas(GTcosIni) + '</td>'
+                                + '<td align="right">' + GTcanEnt + '</td>'
+                                + '<td align="right">' + addCommas(GTcosEnt) + '</td>'
+                                + '<td align="right">' + GTcanSal + '</td>'
+                                + '<td align="right">' + addCommas(GTcosSal) + '</td>'
+                                + '<td align="right">' + GTstock + '</td>'
+                                + '<td align="right">' + addCommas(GTcStock) + '</td>'
+                                + '<td align="right">' + addCommas(GTcostoProm) + '</td>'
+                                + '<td align="right">' + addCommas(GTprecioVenta) + '</td>'
+                          + '</tr>'
+                        )
+                },
+                complete: function () {
+                    $('#tabla_modal_bodega').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+
+                        ]
+                    });
+
+                }
+            })
+        }
+
+        function verDetalles(codigo, bodega) {
+            console.log(" detalles ... ");
+            //if ($.fn.dataTable.isDataTable('#tablaCarteras')) {
+            //    $('#tablaCarteras').dataTable().fnDestroy();
+            //}
+            $('#tablaDetalleUbicacion').dataTable().fnDestroy();
+            $.ajax({
+                url: '/kardex/listarUbicacion',
+                data: {
+                    codigo: codigo,
+                    bodega: bodega,
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $("#modal_listarUbicacion").modal('show'); //modal_listarDetalle_cartera     $("#modal_listarTerceros").modal('show'); //modal_listarDetalle_cartera
+                    $('#tablaDetalleUbicacion').dataTable().fnDestroy();
+                    $('#tablaDetalleUbicacion').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        console.log(data)
+                        $('#tablaDetalleUbicacion').find('tbody').empty();
+                        for (var i = 0; i < data.length; i++) {
+                            $('#tablaDetalleUbicacion').find('tbody').append
+                            ('<tr align="center"><td align="left">' + data[i].descripcion + '</td>'
+                        );
+                        }
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaDetalleUbicacion').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            })
+
+        }
+
+        function verMovimientos(codigo, bodega) {
+            console.log(" ver Movimientos ... ");
+            //if ($.fn.dataTable.isDataTable('#tablaCarteras')) {
+            //    $('#tablaCarteras').dataTable().fnDestroy();
+            //}
+            $('#tablaDetalleMovimiento').dataTable().fnDestroy();
+            $.ajax({
+                url: '/kardex/listarMovimientos',
+                data: {
+                    codigo: codigo,
+                    bodega: bodega,
+                    anio: $('#anio').find('input').val(),
+                    mes: $('#mes').val(),
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $("#modal_listarDetalleMovimiento").modal('show'); //modal_listarDetalle_cartera     $("#modal_listarTerceros").modal('show'); //modal_listarDetalle_cartera
+                    $('#tablaDetalleMovimiento').dataTable().fnDestroy();
+                    $('#tablaDetalleMovimiento').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        console.log(data)
+                        $('#tablaDetalleMovimiento').find('tbody').empty();
+                        for (var i = 0; i < data.length; i++) {
+                            $('#tablaDetalleMovimiento').find('tbody').append(
+                                '<tr align="center">'
+                                    + '<td align="left">'+ data[i].prefijo + '</td>'
+                                    + '<td align="left">' + data[i].tpdoc_nombre + '</td>'
+                                    + '<td align="right">' + data[i].fecha + '</td>'
+                                    + '<td align="right">' + data[i].numero + '</td>'
+                                    + '<td align="right">' + data[i].cantEntrada + '</td>'
+                                    + '<td align="right">' + data[i].costoEntrada + '</td>'
+                                    + '<td align="right">' + data[i].cantSalida + '</td>'
+                                    + '<td align="right">' + data[i].costoSalida + '</td>'
+                                    + '<td align="right">' + data[i].costoTotal + '</td>'
+
+                        );
+                        }
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaDetalleMovimiento').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            })
+
+        }
+
+
+
+    </script>
+}

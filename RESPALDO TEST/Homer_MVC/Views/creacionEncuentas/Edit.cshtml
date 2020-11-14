@@ -1,0 +1,374 @@
+﻿@model Homer_MVC.IcebergModel.crm_encuestas
+
+@{
+    ViewBag.Title = "Parametrización de Encuestas";
+    ViewBag.Icono = "fa fa-question-circle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="fa fa-pencil"></i>&nbsp;&nbsp;Editar</a></li>
+                <li class=""><a href="@Url.Action("Browser", "creacionEncuentas", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm("Create", "creacionEncuentas", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+                        var i = 0;
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-2">Nombre:&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-6">
+                                        @Html.DropDownList("encuesta", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="control-label col-md-1">Pregunta&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-10">
+                                        <input type="text" name="pregunta" id="pregunta" value="" class="form-control limpiar" data-val="true" data-val-required="El campo estado es obligatorio." />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">Tipo Respuesta:&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-6">
+                                        <select class="form-control js-source-states" name="tipo_respuesta" id="tipo_respuesta">
+                                            <option value="text">Respuesta Abierta</option>
+                                            <option value="select">Selección Única</option>
+                                            <option value="checkbox">Selección Multiple</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input id="listas_opcionesrta" type="hidden" name="listas_opcionesrta" value="" />
+
+                            <div id="div_opcionesrta"></div>
+
+                        </div>
+
+                        <div class="panel-body-btns text-right col-sm-6">
+                            <button class="btn btn-primary" onclick="agregarPregunta()" type="button"><i class="fa fa-plus-circle"></i>&nbsp;&nbsp;&nbsp;Agregar Pregunta</button>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <hr />
+                            <div class="table-responsive">
+                                <input id="listas_preguntas" type="hidden" name="listas_preguntas" value="" />
+                                <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:center">#</th>
+                                            <th style="text-align:center">Pregunta</th>
+                                            <th style="text-align:center">Opciones de respuesta</th>
+                                            <th style="text-align:center">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        @foreach (var item in ViewBag.preguntas)
+                                        {
+                                            i++;
+                                            <tr>
+                                                <td style="text-align:right">@i</td>
+                                                <td style="text-align:left">@item.pregunta</td>
+                                                <td style="text-align:left">
+                                                    @foreach (var opciones in @item.crm_opcionesrespuesta)
+                                                    {
+                                                        @opciones.descripcion
+                                                        <samp>,</samp>
+                                                    }
+                                                </td>
+                                                <td style="text-align:center">
+                                                    <button onclick="eliminarOpcionRtaBD(@item.id)" type="button" class="btn btn-sm  btn-danger"><i class="fa fa-times"></i> Eliminar</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+
+    var r = 0;
+    var p = 0;
+
+    $(document).ready(function () {
+        $('#menu').val(@ViewBag.id_menu);
+        $('.js-source-states').select2();
+    });
+
+    $('#tipo_respuesta').change(function () {
+        $('#div_opcionesrta').empty();
+
+        if ($('#tipo_respuesta').val() != "text") {
+
+            agregarOpcionRespuesta()
+        }
+
+    });
+
+    function agregarOpcionRespuesta() {
+
+        var btnAgregar = '<button onclick="agregarOpcionRespuesta()" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> Agregar otra</button>'
+        var btnEliminar = '<button onclick="eliminarOpcionRespuesta(' + r + ')" class="btn btn-sm  btn-danger"><i class="fa fa-times"></i> Eliminar</button>'
+
+        r++;
+
+        var tipo = '';
+        var adicional = '';
+        var radio = '<span class="input-group-addon"><input type="radio"></span><input type="text" name="opcionrta' + r + '" id="opcionrta' + r + '" class="form-control">';
+        var ckeck = '<span class="input-group-addon"><input type="checkbox"></span><input type="text" name="opcionrta' + r + '" id="opcionrta' + r + '" class="form-control">';
+
+        if ($('#tipo_respuesta').val() == "select") {
+            tipo = radio;
+            adicional = '<div class="col-md-7" id="add_adicional' + r + '">'
+                                + '<label class="control-label col-md-4">+ Campo de texto:&nbsp;</label>'
+                                    + '<div class="col-md-1">'
+                                        + '<input type="checkbox" onclick="agregarTexto(' + r + ')" name="adicional' + r + '" id="adicional' + r + '" value="true" />'
+                                    + '</div>'
+                            + '</div>';
+
+        } else {
+            tipo = ckeck;
+            adicional = '';
+        }
+
+        $('#listas_opcionesrta').val(r);
+
+        var html = '<div id="item_' + r + '">'
+                        + '<div class="col-sm-12">'
+                        + '<div class="form-group">'
+                                + '<div class="col-md-4">'
+                                + '<div class="input-group">'
+                                    + tipo
+                                + '</div>'
+                                + '</div>'
+                        + adicional
+                            + '<div class="btn col-md-1">'
+                            + btnAgregar
+                            + '</div>'
+                        + '</div>'
+                        + '</div>'
+                    + '</div>';
+
+        if (r > 1) {
+            $('div.btn').replaceWith(btnEliminar)
+        }
+
+        $('#div_opcionesrta').append(html);
+
+    }
+
+    function agregarTexto(pos) {
+        if ($('#adicional' + pos + '').prop('checked')) {
+            $('#add_adicional' + pos + '').append('<div class="col-md-7" id="div_textAdicional' + pos + '"><input class="form-control" type="text" name="text_adicional' + pos + '" id="text_adicional' + pos + '" value="" /></div>')
+        } else {
+            $('#div_textAdicional' + pos + '').remove();
+        }
+
+    }
+
+    function eliminarOpcionRespuesta(id) {
+        $('#item_' + id + "").remove();
+    }
+
+    function agregarPregunta() {
+
+        r = 0;
+
+        p++;
+
+        var total_opcionesrta = parseFloat($('#listas_opcionesrta').val());
+        var opciones = "";
+        var adicionales = "";
+        $('#listas_preguntas').val(p);
+
+        if (total_opcionesrta == 0) {
+            opciones = 'N/A';
+            adicionales = '';
+
+        } else {
+            for (var i = 1; i <= total_opcionesrta; i++) {
+
+                if (typeof ($('#opcionrta' + i + '').val()) != 'undefined') {
+                    opciones += $('#opcionrta' + i + '').val() + ', ';
+                }
+
+                if (typeof ($('#text_adicional' + i + '').val()) != 'undefined') {
+                    adicionales += $('#text_adicional' + i + '').val() + ', ';
+                } else {
+                    adicionales += ', ';
+                }
+            }
+        }
+
+        var html = '<tr style="text-align:center" id="div_' + p + '">'
+                    + '<td></td><td><input type="hidden" value="' + $('#pregunta').val() + '" name="pregunta_' + p + '" id="pregunta_' + p + '"/>' + $('#pregunta').val() + '</td>'
+                    + ' <td><input type="hidden" value="' + opciones + '" name="opcionrta_' + p + '" id="opcionrta_' + p + '"/>'
+                    + '<input type="hidden" value="' + adicionales + '" name="adicional_opcionrta_' + p + '" id="adicional_opcionrta_' + p + '"/>'
+                    + opciones + '</td>'
+                    + ' <td><button onclick="eliminarPregunta(' + p + ')" class="btn btn-sm  btn-danger"><i class="fa fa-times"></i> Eliminar</button></td>'
+                    + '</tr>';
+
+        $('#tablaPaginada').append(html);
+        $(".limpiar").val('');
+    }
+
+    function eliminarPregunta(id) {
+        $('#div_' + id + "").remove();
+    }
+
+    function eliminarOpcionRtaBD(id) {
+        swal({
+            title: "Esta seguro que desea eliminar?",
+            text: "El registro se eliminara de la base de datos",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Si, Eliminar!",
+            cancelButtonText: "No, cancelar!",
+            closeOnConfirm: false,
+            closeOnCancel: false
+        },
+            function (isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        url: '/creacionEncuentas/EliminarPregunta',
+                        data: {
+                            id: id
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function () {
+                            swal("Eliminado!", "El registro se ha eliminado correctamente.", "success");
+                            location.reload(true);
+                        }
+                    });
+
+                } else {
+                    swal("Cancelado", "Se ha cancelado la operación", "error");
+                }
+            });
+    }
+
+    function AgregarQuitarFavorito(){
+        $.ajax({
+            url: '/Inicio/AgregarQuitarFavorito',
+            data: {
+                id_menu: @ViewBag.id_menu,
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+                if (data.esFavorito == true) {
+                    $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                } else {
+                    $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                }
+            }
+        });
+    }
+
+    </script>
+
+}

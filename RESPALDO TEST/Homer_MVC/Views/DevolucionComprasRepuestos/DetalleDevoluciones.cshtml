@@ -1,0 +1,469 @@
+﻿@using System.Globalization
+
+
+@{
+    ViewBag.Title = "Compra de Repuestos y Accesorios";
+    ViewBag.Icono = "fa fa-address-book-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    CultureInfo elGR = CultureInfo.CreateSpecificCulture("el-GR");
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Devolución de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+            {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+            {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class=""><a href="@Url.Action("Index","devolucionComprasRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-cart-arrow-down"></i>&nbsp;&nbsp;Compras Realizadas</a></li>
+                <li class=""><a href="@Url.Action("BrowserDevoluciones","devolucionComprasRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-reply"></i>&nbsp;&nbsp;Devoluciones Realizadas</a></li>
+                <li class="active"><a data-toggle="tab" href="#detalleCompra"><i class="fa fa-list-ul"></i>&nbsp;&nbsp;Detalle Devolución</a></li>
+            </ul>
+
+            <div id="detalleCompra" class="tab-pane active">
+                <div class="panel-body">
+
+                    <div class="hpanel">
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-success" type="button" id="btnGenerarPDF"><i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;&nbsp;Generar PDF</button>&nbsp;&nbsp;
+                        </div>
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                            </div>
+                            Detalle
+                        </div>
+                        <div class="panel-body list">
+                            <input type="hidden" name="idEncabezado" id="idEncabezado" value="@ViewBag.idEncabezado" />
+                            <div class="form-horizontal">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número de Documento:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" id="numeroDocumeto"  value="@ViewBag.factura" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Documento:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" value="@ViewBag.tipoDocumento" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Creación:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" value="@ViewBag.fecha" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Bodega:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" value="@ViewBag.bodega" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Proveedor:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" value="@ViewBag.proveedor" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Condición Pago:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" value="@ViewBag.tipoPago" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Moneda:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" value="@ViewBag.moneda" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Perfil Contable:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" value="@ViewBag.perfil" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fletes:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input id="fletes" class="form-control" readonly="readonly" value="@ViewBag.fletes.ToString("0,0", elGR)" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">% Iva Fletes:&nbsp;</label>
+                                            <div class="col-md-2">
+                                                <input type="text" name="por_iva_fletes" id="por_iva_fletes" class="form-control" value="@ViewBag.ivafletes.ToString("0,0", elGR)" readonly="readonly" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <input id="totalFletes" class="form-control" readonly="readonly" value="" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Solicitado por:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" value="@ViewBag.asesor" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Concepto 1:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" value="@ViewBag.concepto1" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Concepto 2:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" value="@ViewBag.concepto2" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Notas:<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                <textarea class="form-control" id="motivo" readonly="readonly" value="@ViewBag.observaciones"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número Pedido:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" readonly="readonly" value="@ViewBag.pedido" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tablaFacturacion">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">Código</th>
+                                                <th style="text-align:center">Detalle</th>
+                                                <th style="text-align:center">Cantidad</th>
+                                                <th style="text-align:center">Valor unitario</th>
+                                                <th style="text-align:center">Valor antes de IVA</th>
+                                                <th style="text-align:center">Descuento (%)</th>
+                                                <th style="text-align:center">Total Descuento ($)</th>
+                                                <th style="text-align:center">IVA(%)</th>
+                                                <th style="text-align:center">Total IVA ($)</th>
+                                                <th style="text-align:center">Valor Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                        <tfoot>
+                                            <tr id="filaSubTotal">
+                                                <td align="center" colspan="9" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                    <b>SUB TOTAL</b>
+                                                </td>
+                                                <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                                    <input class="form-control input-sm" id="valorSub" name="valorSub" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                </td>
+                                            </tr>
+                                            <tr id="filaTotalDescuento">
+                                                <td align="center" colspan="9" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                    <b>DESCUENTO</b>
+                                                </td>
+                                                <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                                    <input class="form-control input-sm" id="valorDes" name="valorDes" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                </td>
+                                            </tr>
+                                            <tr id="filaTotalIVA">
+                                                <td align="center" colspan="9" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                    <b>IVA</b>
+                                                </td>
+                                                <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                                    <input class="form-control input-sm" id="valorIVA" name="valorIVA" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                </td>
+                                            </tr>
+                                            <tr id="filaIVAfletes">
+                                                <td align="center" colspan="9" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                    <b>Valor IVA Fletes</b>
+                                                </td>
+                                                <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                                    <input class="form-control input-sm" id="valorIVAfletes" name="valorIVAfletes" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                </td>
+                                            </tr>
+                                            <tr id="filaTotal">
+                                                <td align="center" colspan="9" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                    <b>TOTAL</b>
+                                                </td>
+                                                <td align="center" id="valorFinalTD">
+                                                    <input class="form-control input-sm" id="valorFinal" name="valorFinal" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    <input id="valorFinal1" name="valorFinal1" type="hidden" value="" />
+                                                </td>
+                                            </tr>
+
+                                        </tfoot>
+                                    </table>
+
+                                    <table class="table table-striped table-bordered table-hover" id="tablaRetenciones">
+                                        <thead>
+                                            <tr>
+                                                <th colspan="6" style="text-align:center">Retenciones</th>
+                                            </tr>
+                                            <tr>
+                                                <th style="text-align:center">Retefuente</th>
+                                                <th style="text-align:center">Reteiva</th>
+                                                <th style="text-align:center">Reteica</th>
+                                                <th style="text-align:center">Autoretención</th>
+                                                <th style="text-align:center">Total Retenciones</th>
+                                                <th style="text-align:center">Total Proveedor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script type="text/javascript">
+
+
+        $(document).ready(function () {
+            $('#totalFletes').val(($('#fletes').val() * $('#por_iva_fletes').val()) / 100)
+            CompletarTabla()
+            CompletarRetenciones()
+            $('#motivo').val('@ViewBag.observaciones')
+        });
+
+        function CompletarTabla() {
+            $.ajax({
+                url: '/FacturacionRepuestos/CompletarTablaRepuestos',
+                data: { id: $('#idEncabezado').val() },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    var subTotal = 0;
+                    var descuento = 0;
+                    var iva = 0;
+                    var totalFinal = 0;
+                    $("#tablaFacturacion").find("tbody").empty()
+                    console.log(data)
+                    for (var i = 0; i < data.length; i++) {
+                        valorUnitario = data[i].valor_unitario / (100 - data[i].porcentaje_descuento) * 100
+                        antesIva = valorUnitario * data[i].cantidad
+                        totalDescuento = (antesIva * data[i].porcentaje_descuento) / 100
+                        totalIva = ((antesIva - totalDescuento) * data[i].porcentaje_iva) / 100
+                        $("#tablaFacturacion").find("tbody").append(
+                          '<tr>'
+                            + '<td style="text-align:left">' + data[i].codigo + '</td>'
+                            + '<td style="text-align:left">' + data[i].ref_descripcion + '</td>'
+                            + '<td style="text-align:right">' + data[i].cantidad + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(parseInt(valorUnitario)) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(parseInt(antesIva)) + '</td>'
+                            + '<td style="text-align:right">' + data[i].porcentaje_descuento + ' %</td>'
+                            + '<td style="text-align:right">$' + addCommas(parseInt(totalDescuento)) + '</td>'
+                            + '<td style="text-align:right">' + data[i].porcentaje_iva + ' %</td>'
+                            + '<td style="text-align:right">$' + addCommas(parseInt(totalIva)) + ' </td>'
+                            + '<td style="text-align:right">$' + addCommas(parseInt(antesIva - totalDescuento + totalIva)) + '</td>'
+                          + '</tr>')
+                        subTotal += antesIva;
+                        descuento += totalDescuento;
+                        iva += totalIva;
+                    }
+                    $('#valorSub').val('$' + addCommas(parseInt(subTotal)))
+                    $('#valorDes').val('$' + addCommas(parseInt(descuento)))
+                    $('#valorIVA').val('$' + addCommas(parseInt(iva)))
+                    $('#valorFletes').val(addCommas(parseInt('@ViewBag.fletes')))
+                    $('#valorIVAfletes').val($('#totalFletes').val())
+                    $('#valorFinal').val(addCommas(parseInt(subTotal - descuento + iva + addCommas(parseInt(@ViewBag.flete)) + $('#totalFletes').val())))
+                    $('#valorFinal1').val($('#valorFinal').val())
+
+                }
+            })
+        };
+
+        function CompletarRetenciones() {
+            $.ajax({
+                url: '/FacturacionRepuestos/CompletarRetenciones',
+                data: { id: $('#idEncabezado').val() },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                    var total = 0
+                    var valorTotal = parseInt(quitCommas($('#valorFinal1').val()))
+                    $("#tablaRetenciones").find("tbody").empty()
+                    for (var i = 0; i < data.buscarRetenciones.length; i++) {
+
+                        var totalRetenciones = data.buscarRetenciones[i].retencion + data.buscarRetenciones[i].retencion_iva
+                                            + data.buscarRetenciones[i].retencion_ica
+
+                        $("#tablaRetenciones").find("tbody").append(
+                          '<tr>'
+                            + '<td style="text-align:right">$' + addCommas(data.buscarRetenciones[i].retencion) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(data.buscarRetenciones[i].retencion_iva) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(data.buscarRetenciones[i].retencion_ica) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(data.buscarRetenciones[i].retencion_causada) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(totalRetenciones) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(valorTotal - totalRetenciones) + '</td>'
+                          + '</tr>')
+                    }
+
+                }
+            })
+        }
+
+        var numero_miles = "";
+
+        function formatNumber(n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles(id) {
+            numero_miles = formatNumber($('#' + id + '').val());
+            $('#' + id + '').val(numero_miles);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        $('#btnGenerarPDF').click(function () {
+            window.open('@Url.Action("devolucionComprasPDF", "DevolucionComprasRepuestos")?id=' + $('#idEncabezado').val(), '_blank');
+        });
+
+    </script>
+
+}
+

@@ -1,0 +1,1298 @@
+﻿@model Homer_MVC.IcebergModel.notascontableschequeModel
+
+@{
+    ViewBag.Title = "Comprobante de egreso";
+    ViewBag.Icono = "fa fa-address-book-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/sweetalert/lib/sweet-alert.css" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            @*<div class="alert alert-success  alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                    <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+                </div>*@
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div class="alert alert-danger alert-dismissible" id="mensaje" style="display: none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p><i class="fa fa-times fa-2x"></i> Por favor digite los campos obligatorios</p>
+        </div>
+
+        <div class="alert alert-warning alert-dismissible" id="aviso" style="display:none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p id="texto_aviso"></p>
+        </div>
+
+        <div class="alert alert-danger  alert-dismissible" id="bloqueado" style="display:none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p id="texto_bloqueo"></p>
+        </div>
+
+
+        @if (ViewBag.documentoDescuadrado != null)
+        {
+            <div class="col-sm-12">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar"></div>
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Cuenta</th>
+                                <th style="text-align:center">Parametro</th>
+                                <th style="text-align:center">Debito</th>
+                                <th style="text-align:center">Credito</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ViewBag.documentoDescuadrado)
+                            {
+                                <tr>
+                                    <th style="text-align:center">@item.NumeroCuenta</th>
+                                    <th style="text-align:center">@item.DescripcionParametro</th>
+                                    <th style="text-align:center">@Convert.ToInt32(item.ValorDebito)</th>
+                                    <th style="text-align:center">@Convert.ToInt32(item.ValorCredito)</th>
+                                </tr>
+}
+                            <tr>
+                                <th style="text-align:center">&nbsp;</th>
+                                <th style="text-align:center">&nbsp;</th>
+                                <th style="text-align:center">@Convert.ToInt32(ViewBag.calculoDebito)</th>
+                                <th style="text-align:center">@Convert.ToInt32(ViewBag.calculoCredito)</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje">
+                        @if (TempData["total_debitos"] != null)
+                        {
+                            <label class="label label-danger" style="font-size: 13px">Total Debitos: $<span class="precio">@Convert.ToDecimal(TempData["total_debitos"])</span></label>}
+                        @if (TempData["total_creditos"] != null)
+                        {
+                            <label class="label label-danger" style="font-size: 13px">Total Creditos: $<span class="precio">@Convert.ToDecimal(TempData["total_creditos"])</span></label>}
+                    </div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                @* fas fa-money-check-alt *@
+                @*<li class="active"><a data-toggle="tab" href="#manual"><i class="fa fa-list-alt"></i>&nbsp;&nbsp;Comprobantes</a></li>*@
+                <li class="active"><a data-toggle="tab" href="#manual"><i class="fa fa-list-alt"></i>&nbsp;&nbsp;Comprobantes</a></li>
+                @*<li class=""><a href="@Url.Action("Browser","ReciboCaja", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>*@
+                <li class=""><a href="@Url.Action("Browser","generarcheques", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="manual" class="tab-pane active">
+                <div class="panel-body">
+    @using (Html.BeginForm("Create", "generarcheques", FormMethod.Post))
+    {
+        @Html.Hidden("menu")
+
+        <div class="panel-body-btns text-right">
+            <button class="btn btn-info" id="btnGuardar" type="submit" style="display: none"><i class="fa fa-save"></i> Guardar</button>
+        </div>
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                Datos generales
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-horizontal">
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" id="selectTipoDocumento" name="tipo" required="required">
+                                                        <option></option>
+                                                        @foreach (var item in ViewBag.doc_registros)
+                                                        {
+                                                        <option value="@item.tpdoc_id">@item.tpdoc_nombre</option>
+}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" id="selectBodegas" name="bodega" required="required">
+                                                        <option></option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Nit:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("nitp", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Anticipo:&nbsp;</label>
+                                                <div class="col-md-1">
+                                                    @Html.CheckBoxFor(model => model.anticipo, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </div>
+                                                <div class="col-md-5 abono" id="" style="display:none">
+                                                    @Html.EditorFor(model => model.valor_total, new { htmlAttributes = new { @class = "form-control number", @type = "text", @onkeyUp = "return miles(this.id)", @onchange = "pagoAnticipo(this.id)", @placeholder = "Valor anticipo" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row abono" style="display: none">
+                                        <div class="col-sm-6"></div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Cuenta:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        @Html.DropDownList("cuentasAnticipos", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                        @*<select class="form-control js-source-states" id="cuentasAnticipos" name="cuentasAnticipos">
+                                                            <option></option>
+                                                            @foreach (var item in ViewBag.cuentasAnticipos)
+                                                            {
+                                                                <option value="@item.cntpuc_id">@item.descripcion</option>
+                                                            }
+                                                        </select>*@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Concepto 1:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("concepto1", null, "", htmlAttributes: new
+                                               {
+                                                   @class = "form-control js-source-states",
+                                                   @placeholder = "Seleccione"@*, @required = "required"*@ })
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Concepto 2:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("concepto2", null, "", htmlAttributes: new
+                                               {
+                                                   @class = "form-control js-source-states",
+                                                   @placeholder = "Seleccione"@*, @required = "required"*@ })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Observaciones:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.nota1, new { htmlAttributes = new { @class = "form-control" } })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    @* ******************************************************************************** Pago sin pedido ni factura  ******************************************************************************** *@
+                                    <br />
+                                    <div class="row">
+                                        <center>
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-info" id="btnDocumentos">Cargar Documentos</button>
+                                            </div>
+                                        </center>
+                                    </div>
+                                    @* ***************************************************************************** Fin Pago sin pedido ni factura  ******************************************************************************* *@
+
+                                </div>
+
+                                <div class="col-sm-12"><hr /></div>
+
+                                <div class="row" id="divDocumentosPendientesFiltro">
+                                    @* ****************************************************************************************** Filtros  ****************************************************************************************** *@
+                                    <div class="col-sm-12" id="filtro" style="text-align:center; display:none">
+                                        <div class="col-md-2"></div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tipo Documento:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("tipo_documentoFiltro", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-4">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Factura:&nbsp;</label>
+                                                <div class="col-md-8">
+                                                    @Html.Editor("txtFactura", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite numero factura" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <br />
+                                        <div class="col-sm-12" style="text-align:center;">
+                                            <div class="col-sm-10">
+                                                <label class="control-label col-md-2">Fechas:&nbsp;</label>
+                                                <div class="input-daterange input-group">
+                                                    <input class="input-sm form-control" type="datetime" placeholder="Desde" name="desde" id="desde" autocomplete="off">
+                                                    <span class="input-group-addon">a</span>
+                                                    <input class="input-sm form-control" type="datetime" placeholder="Hasta" name="hasta" id="hasta" autocomplete="off">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-2">
+                                                <button class="btn btn-primary" type="button" onclick="filtarDocumento()"><i class="fa fa-filter"></i></button>
+                                            </div>
+
+                                            <div class="col-md-10" id="errorFechas" style="display:none">
+                                                <div class="alert alert-danger" role="alert">
+                                                    La fecha inicial debe ser menor a la fecha final
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @* **************************************************************************************** Fin Filtros  ***************************************************************************************** *@
+                                    <div class="col-sm-12" id="facturas" style="display:none">
+                                        <div class="table-responsive">
+                                            <input type="hidden" name="listaFacturas" id="listaFacturas" value="" />
+                                            <div id="div-mensaje-buscar"></div>
+                                            <input type="hidden" id="arrayDocumentos" name="arrayDocumentos" value="" />
+                                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Número</th>
+                                                        <th style="text-align:center">Tipo</th>
+                                                        <th style="text-align:center"># Factura</th>
+                                                        <th style="text-align:center">Fecha</th>
+                                                        <th style="text-align:center">Vencimiento</th>
+                                                        <th style="text-align:center">Valor Total</th>
+                                                        <th style="text-align:center">Valor Aplicado</th>
+                                                        <th style="text-align:center">Saldo</th>
+                                                        <th style="text-align:center">Valor a pagar</th>
+                                                        <th style="text-align:center">Pago completo</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                Formas de pago
+                            </div>
+                            <div class="panel-body">
+                                <input type="hidden" name="lista_pagos" id="lista_pagos" value="" />
+                                <div class="col-lg-12" id="pagosAgregados"></div>
+                                <div class="col-lg-12" id="pagosAgregados1"></div>
+                                <div class="col-lg-12">
+                                    <div class="table-responsive">
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tablaPagos">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Forma de Pago</th>
+                                                    <th style="text-align:center">Cuenta Contable</th>
+                                                    <th style="text-align:center">Valor</th>
+                                                    <th style="text-align:center">No. Cheque</th>
+                                                    <th style="text-align:center">Fecha</th>
+                                                    <th style="text-align:center">Observaciones</th>
+                                                    <th style="text-align:center">Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal valor a pagar erroneo*@
+<div class="modal fade" id="modal_pagosErroneo" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Error en valor a pagar</h5>
+            </div>
+            <div class="modal-body">
+                El valor a pagar no puede ser mayor al saldo de la factura
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarmodal_pagosErroneo">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal Recibo registrado*@
+<div id="modalRecibo" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Comprobante registrado con éxito</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align:center;">
+                    <h4>Se registro el Comprobante con el número</h4> <h3><span class="label label-default">@ViewBag.numComprobanteCreado</span></h3>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalComprobante">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/sweetalert/lib/sweet-alert.min.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.js"></script>
+    
+@*<script src="~/Vendor/moment/min/moment.min.js"></script>*@
+    <script src="~/Vendor/moment/min/moment-with-locales.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    
+    <script type="text/javascript">
+        var costo = 0;
+        var i = 0;
+        var p = 0;
+        var r = 0;
+        var re = 0;
+        var cot = 0;
+        var cos = 0;
+        var cifra = 0;
+        var valor_total = 0;
+        var valor_total2 = 0;
+        var valorFaltante = 0;
+        var valorFaltante2 = 0;
+        var arreglo = new Array();
+
+
+        $(document).ready(function () {
+            $('#desde').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: new Date(),
+                //locale: 'es'
+            });
+
+            $('#hasta').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: new Date(),
+                //locale: 'es'
+            });
+
+            $('.js-source-states').select2();
+            $('#menu').val(@ViewBag.id_menu);
+            debugger
+            var nitSeleccion = '@ViewBag.proveedorSeleccionado';
+            if(nitSeleccion != "NOPARAMETRO"){
+                $('#nitp').val(@ViewBag.proveedorSeleccionado).trigger('change');
+            }
+
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000);
+            agregarPago()
+            setTimeout(function () {
+                validarFormaPago(1)
+            }, 100);
+        });
+
+        $('#cerrarModalComprobante').click(function () {
+            $('#modalRecibo').hide();
+        });
+
+        //$('#btnGuardarParteInferior').click(function () {
+        //    $('#btnGuardar').trigger('click');
+        //});
+
+
+        /*************************************************************************************** Validacion de perfil **************************************************************************************** */
+        $('#selectTipoDocumento').change(function () {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                data: {
+                    id: $('#selectTipoDocumento').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    //console.log(data);
+                    $('#selectBodegas').empty();
+                    $('#selectBodegas').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.buscarBodega.length; i++) {
+                        $('#selectBodegas').append($('<option>', {
+                            value: data.buscarBodega[i].id,
+                            text: data.buscarBodega[i].bodccs_nombre
+                        }));
+                    }
+                }
+            })
+        });
+
+        $('#selectBodegas').change(function () {
+            //if ($('#fpago').val() != "") {
+            //    cargarPerfiles()
+            //}
+        });
+
+        function cargarPerfiles(id) {
+            if ($('#selectBodegas').val() != "") {
+                $.ajax({
+                    url: '/generarcheques/BuscarPerfilPorBodega',
+                    data: {
+                        bodega: $('#selectBodegas').val(),
+                        tipoD: $('#selectTipoDocumento').val(),
+                        fpago: $('#fpago'+id+'').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        $('#perfil'+id+'').empty();
+                        $('#perfil'+id+'').append($('<option>', {
+                            value: '',
+                            text: ''
+                        }));
+                        for (var i = 0; i < data.length; i++) {
+                            $('#perfil'+id+'').append($('<option>', {
+                                value: data[i].id,
+                                text: data[i].perfil
+                            }));
+                        }
+                    }
+                })
+            }
+        }
+
+        $('#nitp').change(function () {
+            if (!$('#anticipo').prop('checked')) {
+                $('#btnDocumentos').prop('disabled', false);
+                $("#btnDocumentos").show();
+                $("#tablaPaginada").dataTable().fnDestroy();
+                $("#tablaPaginada").find('tbody').empty();
+            }
+            //  $('#id_pedido_vehiculo').val("").select2();            
+            //$("#tablaPaginadaPedido").dataTable().fnDestroy();
+            //$("#tablaPaginadaPedido").find("tbody").empty();
+
+            $.ajax({
+                url: '/generarcheques/BuscarBloqueoTercero',
+                data: {
+                    tercero_id: parseFloat($('#nitp').val())
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    //console.log(data.cliente[0].bloqueado)
+                    if (data.proveedor[0].tercero_estado == 0) {
+                        $("#texto_bloqueo").text("Proveedor Bloqueado: " + data.proveedor[0].razoninactivo)
+                        $("#bloqueado").show();
+                        $("#nitp").val(" ");
+                        $("#nitp").select2();
+                    }
+                    else {
+                        $("#texto_bloqueo").text("")
+                        $("#bloqueado").hide();
+                    }
+                }
+            })
+        })
+        /************************************************************************************ Final Validacion de perfil ************************************************************************************* */
+
+        /********************************************************************************** Validacion de facturas cliente *********************************************************************************** */
+        $('#anticipo').change(function () {
+            if ($('#anticipo').prop('checked')) {
+                for (var i = 0; i <= arreglo.length; i++) {
+                    $('#seleccion' + i).prop('checked', false)
+                    $('#valor_aPagar' + i + '').prop("readonly", false);
+                    $('#valor_aPagar' + i + '').val("0");
+                }
+                $('#divDocumentosPendientes').hide('1000');
+                $('#filtro').hide('1000');
+                $('#facturas').hide('1000');
+                $("#tablaPaginada").dataTable().fnDestroy();
+                $("#tablaPaginada").hide();
+                $("#tablaPaginada").find('tbody').empty();
+
+                $('#btnDocumentos').prop('disabled', true);
+                $('#btnDocumentos').hide();
+
+                $('.abono').show();
+
+                $('#nota1').prop('required', true);
+
+                //$('#pagosAgregados1').html('<div class="row"><div class="form-group col-lg-6">'
+                //                              +'<div class="row"><label class="label label-primary" id="labelTotal" style="font-size: 14px">Valor a pagar: $ '+addCommas(totalAux)+'</label>'
+                //                              +'<input name="totalPagar" id="totalPagar" class="form-control" type="hidden" value="' + totalAux + '">'
+                //                              +'<br /></div>'
+                //                              +'');
+            }
+            else {
+                $('.abono').hide('1000')
+                $('#divDocumentosPendientes').show('1000');
+                $('#filtro').show('1000');
+                $('#facturas').show('1000');
+                $('#btnDocumentos').prop('disabled', false);
+                $("#btnDocumentos").show();
+                $('#nota1').prop('required', false);
+                totalAux = 0;
+            }
+
+
+            agregarPago();
+        });
+
+        $("#btnDocumentos").click(function () {
+            $('#valor_total').empty();
+            $('#valor_total').val('');
+
+            $('#divDocumentosPendientes').show('1000');
+            $('#filtro').show('1000');
+            $('#facturas').show('1000');
+            $("#tablaPaginada").show();
+
+            totalAux = 0;
+            $('#pagosAgregados1').html('<div class="row"><div class="form-group col-lg-6">'
+                                          + '<div class="row"><label class="label label-primary" id="labelTotal" style="font-size: 14px">Valor a pagar: $ ' + addCommas(totalAux) + '</label>'
+                                          + '<input name="totalPagar" id="totalPagar" class="form-control" type="hidden" value="' + totalAux + '">'
+                                          + '<br /></div>'
+                                          + '');
+
+            $("#tablaPaginada").dataTable().fnDestroy();
+            $("#tablaPaginada").find("tbody").empty()
+            $.ajax({
+                url: '/generarcheques/BuscarFacturasFiltro',
+                data: {
+                    nit: $('#nitp').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    i++;
+                    $("#listaFacturas").val(data.length);
+                    $("#tablaPaginada").dataTable().fnDestroy();
+                    $("#tablaPaginada").find('tbody').empty();
+                    for (var h = 0; h < data.length; h++) {
+                        arreglo.push(0);
+                        $("#tablaPaginada").find("tbody").append('<tr align="center">'
+                            + '<td style="text-align: right">'
+                                    + '<input name="numero' + h + '" id="numero" class="form-control" type="hidden" value="' + data[h].numero + '" />' + data[h].numero
+                                 + '</td>'
+                                 + '<td style="text-align: left">'
+                                    //En este campo oculto estpy mandando el id del tipo de factura a pagar
+                                    + '<input name="tipo' + h + '" id="tipo' + h + '" class="form-control" type="hidden" value="' + data[h].idTipo + '" />'
+                                    //En este campo oculto estpy mandando el id del encabezado de la factura a pagar
+                                    + '<input name="id' + h + '" id="id' + h + '" class="form-control" type="hidden" value="' + data[h].id + '" />'
+                                    + data[h].tipo
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + data[h].numeroFactura
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + data[h].fecha
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + data[h].vencimiento
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="valor_total' + h + '" id="valor_total' + h + '" class="form-control" type="hidden" value="' + data[h].valor_total + '"/>' + addComas(data[h].valor_total)
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="valor_aplicado' + h + '" id="valor_aplicado' + h + '" class="form-control" type="hidden" value="' + data[h].valor_aplicado + '"/>' + addComas(data[h].valor_aplicado)
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="saldo' + h + '" id="saldo' + h + '" class="form-control" type="hidden" value="' + data[h].saldo + '"/>' + addComas(data[h].saldo)
+                                 + '</td>'
+                          /*asd*/ + '<td style="text-align: right">'
+                                    + '<input name="valor_aPagar' + h + '" id="valor_aPagar' + h + '" class="form-control number pagos" type="text" value="0" onkeyUp = "return miles(this.id)" onchange="pagos(' + h + ')"/>'
+                                 + '</td>'
+                                 + '<td style="text-align: center">'
+                                    +'<input type="checkbox" class="i-checks" id = "seleccion' + h + '" name="seleccion' + data[h].id + '" value="' + data[h].id + '" onclick="seleccionados(' + h + ')"/>'
+                                 +'</td>'
+                             + '</tr>');
+                    }
+                    $('#arrayDocumentos').val(arreglo)
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        })
+
+        //con esta funcion selecciona y deselecciona los id que tiene que enviar, para llenar el campo oculto vseleccionados
+        function seleccionados(id){
+            var campo = $('#seleccion' + id).val();
+            if($('#seleccion'+id).prop('checked')){
+                $('#valor_aPagar' + id + '').prop("readonly", true);
+                $('#valor_aPagar' + id + '').val(addCommas($('#saldo' + id + '').val()));
+            } else
+            {
+                $('#valor_aPagar' + id + '').prop("readonly", false);
+                $('#valor_aPagar' + id + '').val("0");
+            }
+            pagos(id)
+        }
+
+        function filtarDocumento() {
+            $("#tablaPaginada").dataTable().fnDestroy();
+            $("#tablaPaginada").find("tbody").empty()
+            $.ajax({
+                url: '/generarcheques/BuscarFacturasFiltro',
+                data: {
+                    nit: $('#nitp').val(),
+                    desde: $('#desde').val(),
+                    hasta: $('#hasta').val(),
+                    id_documento: $('#tipo_documentoFiltro').val(),
+                    factura: $('#txtFactura').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    i++;
+                    $("#listaFacturas").val(data.length);
+                    if (data != 0) {
+                        $('#errorFechas').hide();
+                        for (var h = 0; h < data.length; h++) {
+                            arreglo.push(0);
+                            $("#tablaPaginada").find("tbody").append('<tr align="center">'
+                            + '<td style="text-align: right">'
+                                    + '<input name="numero' + h + '" id="numero" class="form-control" type="hidden" value="' + data[h].numero + '" />' + data[h].numero
+                                 + '</td>'
+                                 + '<td style="text-align: left">'
+                                    //En este campo oculto estpy mandando el id del tipo de factura a pagar
+                                    + '<input name="tipo' + h + '" id="tipo' + h + '" class="form-control" type="hidden" value="' + data[h].idTipo + '" />'
+                                    //En este campo oculto estpy mandando el id del encabezado de la factura a pagar
+                                    + '<input name="id' + h + '" id="id' + h + '" class="form-control" type="hidden" value="' + data[h].id + '" />'
+                                    + data[h].tipo
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + data[h].factura
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + data[h].fecha
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + data[h].vencimiento
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="valor_total' + h + '" id="valor_total' + h + '" class="form-control" type="hidden" value="' + data[h].valor_total + '"/>' + addComas(data[h].valor_total)
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="valor_aplicado' + h + '" id="valor_aplicado' + h + '" class="form-control" type="hidden" value="' + data[h].valor_aplicado + '"/>' + addComas(data[h].valor_aplicado)
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="saldo' + h + '" id="saldo' + h + '" class="form-control" type="hidden" value="' + data[h].saldo + '"/>' + addComas(data[h].saldo)
+                                 + '</td>'
+                          /*asd*/ + '<td style="text-align: right">'
+                                    + '<input name="valor_aPagar' + h + '" id="valor_aPagar' + h + '" class="form-control number pagos" type="text" value="0" onkeyUp = "return miles(this.id)" onchange="pagos(' + h + ')"/>'
+                                 + '</td>'
+                                 + '<td style="text-align: center">'
+                                    +'<input type="checkbox" class="i-checks" id = "seleccion' + h + '" name="seleccion' + data[h].id + '" value="' + data[h].id + '" onclick="seleccionados(' + h + ')"/>'
+                                 +'</td>'
+                             + '</tr>');
+                        }
+                        $('#arrayDocumentos').val(arreglo)
+                    } else {
+                        $('#errorFechas').hide();
+                        $('#tablaPaginada').find('tbody').empty();
+                    } if ($('#desde').val() > $('#hasta').val()) {
+                        $('#errorFechas').show();
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        }
+
+        function filtarDocumento2() {
+            $("#tablaPaginada").dataTable().fnDestroy();
+            $("#tablaPaginada").find("tbody").empty()
+            $.ajax({
+                url: '/generarcheques/BuscarFacturasFiltro2',
+                data: {
+                    nit: $('#nitp').val(),
+                    desde: $('#desde').val(),
+                    hasta: $('#hasta').val(),
+                    id_documento: $('#tipo_documentoFiltro').val(),
+                    factura: $('#txtFactura').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    i++;
+                    $("#listaFacturas").val(data.length);
+                    if (data != 0) {
+                        $('#errorFechas').hide();
+                        for (var h = 0; h < data.length; h++) {
+                            arreglo.push(0);
+                            $("#tablaPaginada").find("tbody").append('<tr align="center">'
+                                 + '<td style="text-align: left">'
+                                    //En este campo oculto estpy mandando el id del tipo de factura a pagar
+                                    + '<input name="tipo' + h + '" id="tipo' + h + '" class="form-control" type="hidden" value="' + data[h].idTipo + '" >'
+                                    //En este campo oculto estpy mandando el id del encabezado de la factura a pagar
+                                    + '<input name="id' + h + '" id="id' + h + '" class="form-control" type="hidden" value="' + data[h].id + '" >'
+                                    + data[h].tipo
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="numero' + h + '" id="numero' + h + '" class="form-control" type="hidden" value="' + data[h].numero + '" >' + data[h].numero
+                                 + '</td>'
+                                 + '<td style="text-align: left">'
+                                    + data[h].fecha
+                                 + '</td>'
+                                 + '<td style="text-align: left">'
+                                    + data[h].vencimiento
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="valor_total' + h + '" id="valor_total' + h + '" class="form-control" type="hidden" value="' + data[h].valor_total + '">' + addComas(data[h].valor_total)
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="valor_aplicado' + h + '" id="valor_aplicado' + h + '" class="form-control" type="hidden" value="' + data[h].valor_aplicado + '">' + addComas(data[h].valor_aplicado)
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="saldo' + h + '" id="saldo' + h + '" class="form-control" type="hidden" value="' + data[h].saldo + '">' + addComas(data[h].saldo)
+                                 + '</td>'
+                          /*asd*/ + '<td style="text-align: right">'
+                                    + '<input name="valor_aPagar' + h + '" id="valor_aPagar' + h + '" class="form-control number pagos" type="text" value="0"   onkeyUp = "return miles(this.id)" onchange="pagos(' + h + ')"/>'
+                                 + '</td>'
+                             + '</tr>');
+                        }
+                        $('#arrayDocumentos').val(arreglo)
+                    } else {
+                        $('#errorFechas').hide();
+                        $('#tablaPaginada').find('tbody').empty();
+                    } if ($('#desde').val() > $('#hasta').val()) {
+                        $('#errorFechas').show();
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        }
+
+        /******************************************************************************* Fin Validacion de facturas cliente ********************************************************************************** */
+
+        /*******************************************************************************  Validacion pago de facturas cliente ********************************************************************************** */
+        var totalAux = 0;
+        function pagos(id) {
+            if ($('#valor_aPagar' + id).val() == "") {
+                $('#valor_aPagar' + id).val('0')
+            }
+            if (parseInt(quitCommas($('#valor_aPagar' + id).val())) > parseInt(quitCommas($('#saldo' + id).val()))) {
+                $('#modal_pagosErroneo').modal('show');
+                $('#valor_aPagar' + id).val(0);
+            } else {
+                if (parseInt(arreglo[id]) > parseInt(quitCommas($('#valor_aPagar' + id).val()))) {
+                    var diferencia = parseInt(arreglo[id]) - parseInt(quitCommas($('#valor_aPagar' + id).val()));
+                    totalAux = totalAux - diferencia;
+                    recibe = $('#valor_aPagar' + id).val();
+                    arreglo[id] = parseInt(quitCommas($('#valor_aPagar' + id).val()));
+                    $('#valor_aPagar' + id).val(recibe);
+                } else {
+                    var diferencia = parseInt(quitCommas($('#valor_aPagar' + id).val())) - parseInt(arreglo[id]);
+                    totalAux = totalAux + diferencia;
+                    recibe = $('#valor_aPagar' + id).val();
+                    arreglo[id] = parseInt(quitCommas($('#valor_aPagar' + id).val()));
+                    $('#valor_aPagar' + id).val(recibe);
+                }
+
+                $('#pagosAgregados1').html('<div class="row"><div class="form-group col-lg-6">'
+                                      +'<div class="row"><label class="label label-primary" id="labelTotal" style="font-size: 14px">Valor a pagar: $ '+addCommas(totalAux)+'</label>'
+                                      +'<input name="totalPagar" id="totalPagar" class="form-control" type="hidden" value="' + totalAux + '">'
+                                      +'<br /></div>'
+                                      +'');
+            }
+            $('#arrayDocumentos').val(arreglo)
+            agregarPago();
+        }
+
+        function pagoAnticipo() {
+            $('#pagosAgregados1').html('<div class="row"><div class="form-group col-lg-6">'
+                                      +'<div class="row"><label class="label label-primary" id="labelTotal" style="font-size: 14px">Valor a pagar: $ '+$('#valor_total').val()+'</label>'
+                                      +'<input name="totalPagar" id="totalPagar" class="form-control" type="hidden" value="' + parseInt(quitCommas($('#valor_total').val())) + '">'
+                                      +'<br /></div>'
+                                      +'');
+            agregarPago()
+        }
+
+        var numero_miles = "";
+        function formatNumber(n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles(id) {
+            numero_miles = formatNumber($('#' + id + '').val());
+            $('#' + id + '').val(numero_miles);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        $('#cerrarmodal_pagosErroneo').click(function () {
+            $('#modal_pagosErroneo').hide();
+        });
+
+        function eliminarPago(id) {
+            var elimin = parseInt(quitCommas($('#valor' + id + '').val()));
+            var fpago = parseInt(quitCommas($('#fpago' + id + '').val()));
+
+
+            valor_total = valor_total - parseInt(quitCommas($('#valor' + id + '').val()));
+            valor_total2=valor_total;
+
+            valorFaltante2+=elimin;
+
+            $("#linea" + id + "").remove();
+            $('#valorfaltantetext').html('Valor Faltante $'+(addCommas(valorFaltante2)));
+            $('#btnGuardar').hide();
+            $('#btnGuardarSimulacion').hide();
+            $(":submit").prop("disabled", true);
+
+            agregarPago();
+        }
+
+        /***************************************************************************** Fin Validacion pago de facturas cliente ********************************************************************************* */
+
+        function validarResolucion() {
+            $.ajax({
+                url: '/FacturacionComisiones/ValidarResolucion',
+                data: {
+                    //grup: $('#tipo').val(),
+                    tip: $('#selectTipoDocumento').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    //console.log(data)
+                    if (data == 1) {
+                        $('#texto_aviso').text('La fecha fin de vigencia de la resolución esta próxima a vencer, por favor valide');
+                        $('#aviso').show();
+                        //$('#modalFacturacion').modal('hide');
+                    }
+                    else if (data == 2) {
+                        $('#texto_aviso').text('El consecutivo de factura esta próximo a terminar, por favor valide');
+                        $('#aviso').show();
+                        //$('#modalFacturacion').modal('hide');
+                    }
+                    else if (data == 3) {
+                        $('#texto_bloqueo').text('La fecha de vigencia de resolución esta vencida, no puede facturar ');
+                        $('#bloqueado').show();
+                        $('#btnGuardar').hide();
+                        //$('#bntFacturar').hide();
+                        //$('#modalFacturacion').modal('hide');
+                    }
+                },
+                complete: function (data) {
+                }
+            })
+        }
+
+        function validarFormaPago(id) {
+            if ($('#fpago' + id + '').val() == 1) {
+                $('#cheque' + id + '').val('');
+                $('#divCheques' + id + '').hide('1000');
+                $('#cheque' + id + '').prop('readonly', true);
+                $('#cheque' + id + '').prop('required', false);
+            }
+            else if ($('#fpago' + id + '').val() == 2) {
+                $('#cheque' + id + '').val('');
+                $('#cheque' + id + '').prop('readonly', false);
+                $('#cheque' + id + '').prop('required', true);
+                $('#divCheques' + id + '').show('1000');
+            }
+            else if ($('#fpago' + id + '').val() == 3) {
+                $('#cheque' + id + '').val('');
+                $('#divCheques' + id + '').hide('1000');
+                $('#cheque' + id + '').prop('readonly', true);
+                $('#cheque' + id + '').prop('required', false);
+            }
+            else if ($('#fpago' + id + '').val() == 4) {
+                $('#cheque' + id + '').val('');
+                $('#divCheques' + id + '').hide('1000');
+                $('#cheque' + id + '').prop('readonly', true);
+                $('#cheque' + id + '').prop('required', false);
+            }
+            else if ($('#fpago' + id + '').val() == "") {
+                $('#cheque' + id + '').val('');
+                $('#divCheques' + id + '').hide('1000');
+                $('#cheque' + id + '').prop('readonly', true);
+                $('#cheque' + id + '').prop('required', false);
+            }
+            if ($('#fpago' + id + '').val() == 5) {
+                $('#cheque' + id + '').val('');
+                $('#divCheques' + id + '').hide('1000');
+                $('#cheque' + id + '').prop('readonly', true);
+                $('#cheque' + id + '').prop('required', false);
+            }
+            cargarPerfiles(id)
+        }
+
+        function agregarPago() {
+            if ($('#totalPagar').val() != undefined) {
+                var valorFaltante = (parseInt(quitCommas($('#totalPagar').val())));
+            }else{
+                var valorFaltante = 0;
+            }
+            var btnEliminar = '<button class="btn btn-danger btn-circle" id="' + i + '" type="button" onclick="eliminarPago(this.id)"><i class="fa fa-remove"></i></button>'
+            //console.log("El valor faltante al cargar la cotizacion es de: "+valorFaltante);
+            i++;
+
+            var option = '';
+            var optionBanco = '';
+            //console.log("El contador es igual a:"+i);
+            var btnAgregar = '<div class="panel-body-btns text-right"><button id="btnAgregar" class="btn btn-success" type="button" onclick="agregarPago()"><i class="fa fa-plus"></i> Agregar </button></div>';
+
+            if (i > 1) {
+                var x = i-1;
+                if ($('#txtValor' + x + '').val() == undefined) {
+                    var cifra =0;
+                }else {
+                    var cifra = parseInt(quitCommas($('#txtValor' + x + '').val()))||0;
+                }
+                //console.log("Cuando entra en el primer if el valor total es igal a: "+valor_total);
+                var formadepago = parseInt($('#fpago' + x + '').val()) || 0;
+                var perfilForma = parseInt($('#perfil' + x + '').val()) || 0;
+
+                //console.log("la forma de pago es igal a: "+formadepago);
+                if ($('#totalPagar').val() != "" && $('#totalPagar').val() != undefined && $('#totalPagar').val() != null) {
+                    valorFaltante = parseInt(quitCommas($('#totalPagar').val())) - valor_total;
+                }
+                //console.log("El valor faltante es igal a: "+valorFaltante);
+
+                if(cifra == 0 || formadepago == 0 || valorFaltante == 0 || perfilForma == 0){
+                    i--;
+                    valorFaltante;
+                    correcto = false;
+                    //console.log("estan vacios");
+                }
+                else {
+                    correcto = true
+                }
+                if (correcto == true) {
+                    //console.log(addCommas("El valor que ud esta cancelando es de: "+cifra));
+                    valor_total2 += parseInt(quitCommas(($('#txtValor' + x + '').val())));
+                    var valortotalform = (parseInt(quitCommas($('#totalPagar').val())));
+                    valorFaltante2 = valortotalform - valor_total2 ;
+                    //console.log(valorFaltante2);
+                    //console.log("Lo que pago es: "+valor_total2+" Lo que quedo debiendo es: "+valorFaltante2);
+                    if (valorFaltante2<0)
+                    {
+                        i--;
+                        valorFaltante2 =valorFaltante2+cifra;
+                        valorFaltante=valorFaltante2;
+                        valor_total2 =valor_total;
+                        //valorFaltante=valor_total2;
+                        //console.log("Pago mas de la deuda, el pago no se acepta");
+                    }else {
+
+                        valor_total += parseInt(quitCommas($('#txtValor' + x + '').val()));
+                        var valortotalform2 = parseInt(quitCommas($('#totalPagar').val()));
+                        valorFaltante = valortotalform2 - valor_total ;
+                        valorFaltante2 =valorFaltante;
+                        if(valorFaltante == 0 && $('#totalPagar').val!=""){
+
+                            //validarObligatorios();
+                            $('#btnGuardar').show();
+                            $('#btnGuardar').removeAttr("disabled");
+                            //$(":submit").removeAttr("disabled");
+                        }
+                        else{
+                            $('#btnGuardar').hide();
+                            $('#btnGuardarSimulacion').hide();
+                            $("#btnGuardar").prop("disabled", true);
+                        }
+                        $('#lista_pagos').val(x);
+                        var  idbanco=$('#slcBanco' + x +'').val();
+                        var nombrebanco="";
+                        if (idbanco!=""){
+                            nombrebanco= $('#slcBanco' + x + ' option:selected').text();
+                        }
+                        $('#tablaPagos').append('<tr id="linea'+x+'">'
+                                                 +'<td align="center"><input type="hidden" name="fpago'   + x + '"       id="fpago'         + x + '" value="'+ $('#fpago'           + x + '').val() +'"/>'  + $('#fpago' + x + ' option:selected').text()+'</td>'
+                                                 +'<td align="center"><input type="hidden" name="perfil'  + x + '"       id="perfil'        + x + '" value="'+ $('#perfil'          + x + '').val() +'"/>'  + $('#perfil'+ x + ' option:selected').text()+'</td>'
+                                                 +'<td align="center"><input type="hidden" name="valor'   + x + '"       id="valor'         + x + '" value="'+ $('#txtValor'        + x + '').val() +'"/>$' + $('#txtValor' + x +'').val()+'</td>'
+                                                 +'<td align="center"><input type="hidden" name="cheque'  + x + '"       id="cheque'        + x + '" value="'+ $('#cheque'          + x + '').val() +'"/>'  + $('#cheque' + x + '').val() +'</td>'
+                                                 +'<td align="center"><input type="hidden" name="fecha'   + x + '"       id="fecha'         + x + '" value="'+ $('#fecha'           + x + '').val() +'"/>'  + $('#fecha'  + x + '').val() +'</td>'
+                                                 +'<td align="center"><input type="hidden" name="observaciones' + x + '" id="observaciones' + x + '" value="'+ $('#txtObservacion'  + x + '').val() +'"/>'  + $('#txtObservacion' + x + '').val() +'</td>'
+                                                 +'<td align="center">'+ btnEliminar +'</td>'
+                                                 +'</tr>'
+                                               );
+
+                        //$('#pagosAgregados').html('<div class="row"><label class="label label-primary" style="font-size: 14px">Valor Faltante: $ '+addCommas(valorFaltante)+'</label>');
+
+                    }
+                }
+            }
+
+            $.ajax({
+                url: '/generarcheques/BuscarPagos',
+                data: {
+
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    option += '<option value="">Seleccione</option>'
+                    option += '<option value="1">Efectivo</option>'
+                    option += '<option value="2">Cheque</option>'
+                    option += '<option value="3">Transaccion</option>'
+                    option += '<option value="4">Maquina Efectivo</option>'
+                    option += '<option value="5">Endoso</option>'
+
+                    $('#pagosAgregados').html('<div class="row">'
+                                                +'<div class="form-group col-lg-6">'
+                                                    +'<label>Forma de pago </label>'
+                                                    +'<select class="multiselect-ui form-control input-sm" id="fpago' + i + '" onchange="validarFormaPago('+i+')">'
+                                                        + option
+                                                    +'</select>'
+                                                +'</div>'
+                                            +'<div class="form-group col-lg-6">'
+                                                +'<label>Cuenta contable </label>'
+                                                + '<select class="form-control js-source-states" id="perfil' + i + '" name="perfil' + i + '">'
+                                                + '</select>'
+                                            + '</div>'
+                                            + '<div class="form-group col-lg-6">'
+                                                + '<label>Valor $</label>'
+                                                + '<input class="form-control input-sm number" id="txtValor' + i + '" onkeyUp = "return miles(this.id)"/>'
+                                            + '</div>'
+                                            + '<div class="form-group col-lg-6" id="divCheques' + i + '" name="divCheques' + i + '" style:display:none>'
+                                                + '<label>No. Cheque </label>'
+                                                + '<input class="form-control input-sm " id="cheque' + i + '"  value="" readonly/>'
+                                            + '</div>'
+                                            + '<div class="form-group col-lg-6">'
+                                                + '<label>Fecha </label>'
+                                                + '<input type="text" class="form-control" id="fecha' + i + '" name="fecha' + i + '"/>'
+                                            + '</div>'
+                                            + '<div class="form-group col-lg-6">'
+                                                + '<label>Observaciones </label>'
+                                                + '<textarea class="form-control input-sm" style="widht: 280px; heigth: 100px" id="txtObservacion' + i + '"/>'
+                                            + '</div>'
+                                            + '<div class="form-group col-lg-1 btn">' + btnAgregar + '</div></div>'
+                                            +'<div class="row"><label class="label label-danger" style="font-size: 14px">Valor Faltante: $ '+addCommas(valorFaltante)+'</label>'
+                                            +'<br /><br />'
+                                        +'</div>'
+                                  +'');
+                },
+                complete: function (data) {
+                    $('#fpago' +i).select2();
+                    $('#perfil' +i).select2();
+                    $('#fecha' +i).datetimepicker({
+                        format: 'DD/MM/YYYY',
+                        minDate: '-' + new Date() + '',
+                        locale: 'es'
+                    });
+                }
+            });
+        }
+
+        //$('#slcBanco').change(function () {
+        //    cargarCuentas();
+        //})
+
+        //function cargarBancos() {
+        //    $.ajax({
+        //        url: '/generarcheques/BuscarBancos',
+        //        data: {
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //            $('#slcBanco').empty();
+        //            $('#slcBanco').append($('<option>', {
+        //                value: '',
+        //                text: ''
+        //            }));
+        //            for (var i = 0; i < data.length; i++) {
+        //                $('#slcBanco').append($('<option>', {
+        //                    value: data[i].id,
+        //                    text: data[i].Descripcion
+        //                }));
+        //            }
+        //            $('#slcBanco').select2();
+        //        }
+        //    })
+        //}
+
+        //function cargarCuentas() {
+        //    $.ajax({
+        //        url: '/generarcheques/cargarCuentas',
+        //        data: {
+        //            idBanco: $('#slcBanco').val(),
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //            $('#slcCuenta').empty();
+        //            $('#slcCuenta').append($('<option>', {
+        //                value: '',
+        //                text: ''
+        //            }));
+        //            for (var i = 0; i < data.length; i++) {
+        //                $('#slcCuenta').append($('<option>', {
+        //                    value: data[i].id,
+        //                    text: data[i].descripcion
+        //                }));
+        //            }
+        //            $('#slcCuenta').select2();
+        //        }
+        //    })
+        //}
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+    </script>
+
+}
+@if (TempData["mensaje"] != null)
+{
+    <script type="text/javascript">
+        $('#modalRecibo').show();
+    </script>
+}

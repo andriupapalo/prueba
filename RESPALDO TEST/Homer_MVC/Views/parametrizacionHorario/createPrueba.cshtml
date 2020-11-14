@@ -1,0 +1,542 @@
+﻿@model Homer_MVC.IcebergModel.horario_planta_asesor
+
+@{
+    ViewBag.Icono = "fa fa-clock-o";
+    ViewBag.Title = "Parametrizacion horario en planta pruebas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Icons/pe-icon-7-stroke/css/helper.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/metisMenu/dist/metisMenu.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/clockpicker/dist/bootstrap-clockpicker.min.css" />
+    <link rel="stylesheet" href="~/Vendor/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+<style type="text/css">
+    .popover-content {
+        height: 100px;
+        width: 200px;
+    }
+</style>
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro de @ViewBag.Title Disponible</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+            <br />
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+            <br />
+        }
+
+    <div id="tabs" class="tab-content">
+        <ul id="tabs-invVhNuevo" class="nav nav-tabs">
+            @*<li class="active" onclick="configuracion();"><a data-toggle="tab"><i class="fa fa-pencil-square-o" aria-hidden="true"></i> Configuración</a></li>*@
+            <li id="activosTab" class="" onclick="buscarAjaxPlanta();"><a data-toggle="tab" href="#buscarActivos"><i class="fa fa-search"></i>&nbsp;&nbsp;Buscar Horarios</a></li>
+
+
+        </ul>
+
+        <div id="horario" class="tab-pane active">
+            <div class="panel-body">
+
+                @using (Html.BeginForm())
+                {
+                    <div class="panel-body-btns text-right">
+                        <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                    </div>
+
+                    <hr />
+
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("menu")
+
+                    <div class="form-horizontal">
+
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+
+                        <div class="col-sm-9">
+                            <div class="form-group">
+                                <div>
+                                    <label class="control-label col-md-2">ingrese los datos:&nbsp;</label><br /><br />
+                                    <div class="input-daterange input-group">
+
+
+                                        @Html.Editor("ndispo_fecha_inicio", new { htmlAttributes = new { @class = "form-control datepicker", @type = "text", @placeholder = "AAAA/MM/DD", } })
+                                        <span class="input-group-addon">hasta</span>
+                                        @Html.Editor("ndispo_fecha_fin", new { htmlAttributes = new { @class = "form-control datepicker", @type = "text", @placeholder = "AAAA/MM/DD", } })
+                                    </div>
+                                    <br />
+                                </div>
+                                <label class="control-label col-md-2">Tipo Horario:&nbsp;<span class="text-danger">*</span></label>
+                                <div class="col-md-4">
+                                    <select class="form-control js-source-states" id="tipo_horario" name="tipo_horario" required>
+                                        <option value="">Seleccione</option>
+                                        <option value="persona">Usuarios</option>
+                                    </select>
+                                </div>
+                                <div style="display: none" id="divAsesor">
+                                    <label class="control-label col-md-2">Asesor:&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-4">
+                                        <select name="usuario_id" id="usuario_id" class="form-control js-source-states" placeholder="Seleccione">
+                                            <option value=""></option>
+                                            @foreach (var item in ViewBag.usuario_id)
+                                            {
+                                                <option value="@item.user_id">@item.user_nombre @item.user_apellido</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-info" type="button" id="buscarasesor"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Buscar</button>
+                                </div>
+
+
+
+                            </div>
+                            <div class="hpanel" id="panelTurnos">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-key"></i>&nbsp;&nbsp;&nbsp;Informacion Turno o check
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-3">Turno:&nbsp;</label>
+                                            <div class="col-md-8">
+                                                <label class="control-label col-md-6">
+                                                    @Html.CheckBoxFor(model => model.turno, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-3">Check:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <label class="control-label col-md-8">
+                                                    @Html.CheckBoxFor(model => model.checks, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-9">
+                            <div class="table-responsive project-list" style="text-align:center;">
+                                <input type="hidden" id="numerodias" name="numerodias" value="" />
+                                <table class="table table-striped table-bordered table-hover" id="tablaPaginadas">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:center">Fecha</th>
+                                            <th style="text-align:center">Hora Desde</th>
+                                            <th style="text-align:center">Hora Hasta</th>
+                                            <th style="text-align:center">Hora Desde 2</th>
+                                            <th style="text-align:center">Hora Hasta 2</th>
+                                            <th style="text-align:center">Disponible</th>
+                                           
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                }
+            </div>
+        </div>
+      
+
+        
+    </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/jquery-ui/jquery-ui.min.js"></script>
+    <script src="~/Vendor/slimScroll/jquery.slimscroll.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/clockpicker/dist/bootstrap-clockpicker.min.js"></script>
+    <script src="~/Vendor/iCheck/icheck.min.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+
+    <script>
+        var i = 0;
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $('.clockpicker').clockpicker({ autoclose: true });
+            $('.js-source-states').select2();
+            $('#tipo_horario').val('@ViewBag.val')
+            $('#tipo_horario').select2();
+            $('#usuario_id').select2();
+            $('#demo_id').select2();
+
+            $('#disponible').bootstrapToggle('on');
+         
+
+            if ($('#tipo_horario').val() == "persona") {
+                $('#divCarro').hide();
+                $('#divAsesor').show();
+            }else{
+                $('#divCarro').show();
+                $('#divAsesor').hide();
+            }
+
+            $("#usuario_id").val('@ViewBag.usuario_val')
+            $('#usuario_id').select2();
+
+          // buscarAjaxPlanta();
+       });
+
+        $('.datepicker').datetimepicker({
+            minDate: '-' + new Date() + '',
+            format: 'YYYY/MM/DD',
+        });
+
+        $('.fechax').keypress(function (e) {
+            e.preventDefault();
+            return false;
+        });
+
+        $('.todos').keypress(function (e) {
+            e.preventDefault();
+            return false;
+        });
+
+        
+        $('#no_disponible').change(function () {
+            if ($('#no_disponible').is(':checked')) {
+                $('.todos').attr("readonly", "readonly");
+                $('.check').removeAttr("checked")
+                $(".todos").clockpicker('remove');
+                $( ".todos" ).removeClass( "clockpicker" );
+            } else {
+                $('.todos').removeAttr("readonly", "readonly");
+                $('.check').attr("checked", "checked");
+                $( ".todos" ).addClass( "clockpicker" );
+                $(".todos").clockpicker({ autoclose: true });
+            }
+        });
+
+
+        $('#hora_desde').change(function () {
+            if (!$('#hora_desde').is(':checked')) {
+                $(".hora").clockpicker('remove');
+                $( ".hora" ).removeClass( "clockpicker" )
+                $('.hora').attr("readonly", "readonly");
+            } else {
+                $('.hora').removeAttr("readonly", "readonly");
+                $( ".hora" ).addClass( "clockpicker" );
+                $('.hora').clockpicker({ autoclose: true });
+
+            }
+        });
+         $('#hora_hasta').change(function () {
+            if (!$('#hora_hasta').is(':checked')) {
+                $(".hora").clockpicker('remove');
+                $( ".hora" ).removeClass( "clockpicker" )
+                $('.hora').attr("readonly", "readonly");
+            } else {
+                $('.hora').removeAttr("readonly", "readonly");
+                $( ".hora" ).addClass( "clockpicker" );
+                $('.hora').clockpicker({ autoclose: true });
+
+            }
+        });
+         $('#hora_desde2').change(function () {
+            if (!$('#hora_desde2').is(':checked')) {
+                $(".hora").clockpicker('remove');
+                $( ".hora" ).removeClass( "clockpicker" )
+                $('.hora').attr("readonly", "readonly");
+            } else {
+                $('.hora').removeAttr("readonly", "readonly");
+                $( ".hora" ).addClass( "clockpicker" );
+                $('.hora').clockpicker({ autoclose: true });
+
+            }
+        });
+         $('#hora_hasta2').change(function () {
+            if (!$('#hora_hasta2').is(':checked')) {
+                $(".hora").clockpicker('remove');
+                $( ".hora" ).removeClass( "clockpicker" )
+                $('.hora').attr("readonly", "readonly");
+            } else {
+                $('.hora').removeAttr("readonly", "readonly");
+                $( ".hora" ).addClass( "clockpicker" );
+                $('.hora').clockpicker({ autoclose: true });
+
+            }
+        });
+        $('#hora_desde').change(function () {
+            var horaactual= $('#hora_desde').val();
+            var horahasta=$('#hora_hasta').val();
+            if(horahasta<horaactual){
+                $('#hora_hasta').val(horaactual).trigger('change');
+            }
+
+
+        });
+
+       $('#hora_hasta').change(function () {
+            var horaactual= $('#hora_desde').val();
+            var horahasta=$('#hora_hasta').val();
+            var horahasta2=$('#hora_desde2').val();
+            if(horahasta<horaactual){
+                $('#hora_hasta').val(horaactual);
+            }
+            else{
+               if(horahasta>horahasta2){
+                    $('#hora_desde2').val(horahasta).trigger('change');
+                }
+            }
+        });
+
+        $('#hora_desde2').change(function () {
+            var horaactual= $('#hora_desde2').val();
+            var horahasta=$('#hora_hasta2').val();
+            var horahasta2=$('#hora_hasta').val();
+
+            if (horaactual < horahasta2) {
+                $('#hora_desde2').val(null);
+                 $('#hora_hasta2').val(null);
+
+            }
+            else{
+                if(horaactual>horahasta){
+                    $('#hora_hasta2').val(horaactual).trigger('change');
+                }
+            }
+        });
+
+
+        $('#hora_hasta2').change(function () {
+            var horaactual= $('#hora_hasta2').val();
+            var horahasta=$('#hora_desde2').val();
+            if(horaactual<horahasta){
+                $('#hora_hasta2').val(horahasta).trigger('change');
+            }
+        });
+
+
+         
+        $('#tipo_horario').change(function () {
+
+            if ($('#tipo_horario').val() == 'carro') {
+
+                $('#divCarro').show();
+                $('#divAsesor').hide();
+
+            } else {
+
+                $('#divCarro').hide();
+                if ($('#usuario_id').val() == "") {
+                    $('#divAsesor').show();
+                } else {
+                    window.location.href = '@Url.Action("CreatePlanta","parametrizacionHorario")?menu='+@ViewBag.id_menu+'&&tphorario=persona';
+                }
+            }
+        });
+
+        $('#demo_id').change(function () {
+            window.location.href = '@Url.Action("CreatePlanta", "parametrizacionHorario")?menu=' +@ViewBag.id_menu+'&&tphorario=carro&val=' + parseInt($('#demo_id').val());
+        });
+
+        
+
+        function AgregarNovedad() {
+            i++;
+
+            var btnEliminar = '<button class="btn btn-danger btn-circle" id="' + i + '" type="button" onclick="eliminarNovedad(this.id)"><i class="fa fa-remove"></i></button>'
+            $('#lista_novedades').val(i);
+
+            $('#tabla_novedades').find('tbody').append('<tr id="item' + i + '"><td  align="right"><input type="hidden" name="desde' + i + '" id="desde' + i + '" value="' + $('#ndispo_fecha_inicio').val() + '">' + $('#ndispo_fecha_inicio').val() + '</td>'
+                + '<td align="right"><input type="hidden" name="hasta' + i + '" id="hasta' + i + '" value="' + $('#ndispo_fecha_fin').val() + '">' + $('#ndispo_fecha_fin').val() + '</td>'
+                + '<td align="left"><input type="hidden" name="motivo' + i + '" id="motivo' + i + '" value="' + $('#observaciones').val() + '">' + $('#observaciones').val() + '</td>'
+                + '<td align="center">'+btnEliminar+'</td>'
+                + '</tr>');
+        }
+
+        function eliminarNovedad(id) {
+            $('#item'+id).remove();
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+
+        $('#buscarasesor').click(function () {
+            var asesor = $('#usuario_id').val();
+            var fechadesde = $('#ndispo_fecha_inicio').val();
+            var fechahasta = $('#ndispo_fecha_fin').val();
+
+            $.ajax({
+                url: '/parametrizacionHorario/buscarPlantaHorario',
+                data: {
+                    asesor: asesor,
+                    fecha: fechadesde,
+                    hasta: fechahasta,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                    debugger
+                    $('#numerodias').val(data.dias);
+
+                     $('#tablaPaginadas').find('tbody').empty();
+                    for (var i = 0; i < data.datos.length; i++) {
+                        var j = i + 1;
+                        $('#tablaPaginadas').find('tbody').append('<tr><td align="right"><input type="hidden" id="asesor'+i+'" name="asesor'+i+'" value="'+data.datos[i].asesorid+'"/>'
+                            + '<input type="hidden" id="fecha'+i+'" name="fecha'+i+'" value="'+data.datos[i].fecha+'"/>'
+                            + data.datos[i].fecha2 + '</td><td align="left"><input class="form-control clockpicker lunes todos text-box single-line" id="hora_desde'+i+'" name="hora_desde'+i+'" type="text" value="'+data.datos[i].hora_desde+'"/>'
+                            + '</td><td align="right"><input class="form-control clockpicker lunes todos text-box single-line" id="hora_hasta'+i+'" name="hora_hasta'+i+'" type="text" value="'+data.datos[i].hora_hasta+'"/>'
+                            + '</td><td align="left"><input class="form-control clockpicker lunes todos text-box single-line" id="hora_desde1'+i+'" name="hora_desde1'+i+'" type="text" value="'+data.datos[i].hora_desde1+'"/>'
+                            + '</td><td align="left"><input class="form-control clockpicker lunes todos text-box single-line" id="hora_hasta1'+i+'" name="hora_hasta1'+i+'" type="text" value="'+data.datos[i].hora_hasta1+'"/>'
+                            + '</td><td align="left"><input type="checkbox"  id="disponible' +i+'" name="disponible'+i+'"  value="'+data.datos[i].disponible+'" />'
+
+                           
+                            + '</td><td width="5%" align="center"></td></tr>');
+                    }
+                    
+
+                },
+                complete: function (data) {
+                                $('.clockpicker').clockpicker({ autoclose: true });
+                }
+            });
+           
+
+        
+
+
+
+        function buscarAjaxPlanta() {
+            debugger;
+            $("#tablaPaginada").dataTable().fnDestroy();
+
+
+            const table = $('#tablaPaginada').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "filter": true,
+                "orderMulti": false,
+                "searching": false,
+                dom: "<''<'col-sm-4'><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'li>p",
+                "lengthMenu": [[10, 20, 50, 100, 200, -1], [10, 20, 50, 100, 200, "All"]],
+                buttons: [
+                    //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm', text: 'Exportar a Excel' }
+                ],
+                "ajax": {
+
+                    "url": '/parametrizacionHorario/BuscarHorarioAsesorPlanta',
+                    "type": "POST",
+                    "datatype": "json",
+                    "data": {
+
+                    }
+                },
+                "columns": [
+
+
+                    { "data": "tipo_horario", "name": "tipo_horario", "autoWidth": true, className: "align-right" },
+                    { "data": "nombreasesorcompleto", "name": "nombreasesorcompleto", "autoWidth": true },
+                    { "data": "lunes_total", "name": "lunes_total", "autoWidth": true },
+                    { "data": "martes_total", "name": "martes_total", "autoWidth": true },
+                    { "data": "miercoles_total", "name": "miercoles_total", "autoWidth": true },
+                    { "data": "jueves_total", "name": "jueves_total", "autoWidth": true },
+                    { "data": "viernes_total", "name": "viernes_total", "autoWidth": true },
+                    { "data": "sabado_total", "name": "sabado_total", "autoWidth": true },
+                    { "data": "domingo_total", "name": "domingo_total", "autoWidth": true },
+                    { "data": "turno", "name": "turno", "autoWidth": true },
+                    { "data": "checks", "name": "checks", "autoWidth": true },
+
+                ],
+            });
+             const data = table.buttons.exportData();
+        }
+
+    </script>
+
+}

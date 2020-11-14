@@ -1,0 +1,682 @@
+﻿@{
+    ViewBag.Icono = "fa fa-check-square-o";
+    ViewBag.Title = "Pedido Sugerido";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+
+@section Styles {
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.themes.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Calcular @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                @*<li class="" onclick="buscarAjaxBajaCosto();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>*@
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.Hidden("lista_repuestos")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos Generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodega(s):&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select id="bodccs_cod" name="bodccs_cod" multiple="multiple" class="multipleOpcion">
+                                                        @foreach (var item in ViewBag.bodccs_cod)
+                                                        {
+                                                            <option value="@item.id">@item.bodccs_nombre</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Buscar Referencias:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.Editor("txtBuscarReferencia", new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese nombre o codigo", @onkeyup = "completeReferencias(this)", @autocomplete = "off" } })
+                                                </div>
+                                                <div class="col-md-1">
+                                                    @*<button type="button" class="btn btn-sm btn-info btn-circle" id="buscarReferencia"><i class="fa fa-search"></i></button>*@
+                                                    <button type="button" class="btn btn-sm btn-warning btn-circle" id="allReferencia" title="Todas Las Referencia" style="padding:6px;">
+                                                        <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="angle-double-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-inline--fa fa-angle-double-right fa-w-14 fa-5x">
+                                                            <path fill="currentColor" d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34zm192-34l-136-136c-9.4-9.4-24.6-9.4-33.9 0l-22.6 22.6c-9.4 9.4-9.4 24.6 0 33.9l96.4 96.4-96.4 96.4c-9.4 9.4-9.4 24.6 0 33.9l22.6 22.6c9.4 9.4 24.6 9.4 33.9 0l136-136c9.4-9.2 9.4-24.4 0-33.8z" class="">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                                <div class="col-md-1">
+                                                    @*<button type="button" class="btn btn-sm btn-info btn-circle" id="buscarReferencia"><i class="fa fa-search"></i></button>*@
+                                                    <button type="button" class="btn btn-sm btn-info btn-circle" id="icon_add_referencia" disabled style="cursor:default;"><i class="fa fa-arrow-right"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Referencia(s):&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select id="referencia_codigo" name="referencia_codigo" multiple="multiple" class="multipleOpcion">
+                                                        @foreach (string iref in ViewBag.referencia_codigo)
+                                                        {
+                                                            var item = iref.Split('|');
+                                                            <option value="@item[0]">@item[1]</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-1">
+                                                    <button type="button" class="btn btn-sm btn-danger btn-circle" id="clearReferencias" title="Limpiar Lista"><i class="fa fa-trash"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Período a evaluar:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @*@Html.Editor("txtMesesEvaluar", new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese numero de meses" } })*@
+                                                <select name="txtMesesEvaluar" id="txtMesesEvaluar" class="form-control" placeholder="Seleccione" required>
+                                                    <option value=""></option>
+                                                    <option value="1">Mensual</option>
+                                                    <option value="2">Bimestral</option>
+                                                    <option value="3">Trimestral</option>
+                                                    <option value="6">Semestral</option>
+                                                    <option value="12">Anual</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button class="btn btn-info" type="submit" id="btnFiltrar"><i class="fa fa-filter"></i>&nbsp;&nbsp;&nbsp;Filtrar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">Meses a sugerir:&nbsp;<span class="text-danger">*</span></label>
+                <div class="col-md-6">
+                    @Html.Editor("txtMesesSugerir", new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese numerode meses" } })
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">Ventas:&nbsp;</label>
+                <div class="col-md-6">
+                    @Html.CheckBox("ckeckSoloVentas", new { })
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">Ventas Y Ajustes:&nbsp;</label>
+                <div class="col-md-6">
+                    @Html.CheckBox("checkVentasAjustes", new { })
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">Solo Existencias:&nbsp;</label>
+                <div class="col-md-6">
+                    @Html.CheckBox("checkSoloExistencias", new { })
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4"></label>
+                <div class="col-md-6">
+                    <button class="btn btn-info" type="submit" id="btnFiltrar"><i class="fa fa-filter"></i>&nbsp;&nbsp;&nbsp;Filtrar</button>
+                </div>
+            </div>
+        </div>*@
+
+                                    <div class="col-sm-12">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                                <thead id="titulosTabla">
+                                                    <tr>
+                                                        @foreach (var item in ViewBag.titulos)
+                                                        {
+                                                            <th>@item.ToString()</th>
+                                                        }
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="cuerpoTabla">
+                                                    @foreach (var item in ViewBag.datos)
+                                                    {
+                                                        <tr>
+
+                                                            <td>@item.bodega.ToString()</td>
+                                                            <td>@item.codigo.ToString()</td>
+                                                            <td>@item.Referencia.ToString()</td>
+                                                            @foreach (var item2 in item.ValoresPorFecha)
+                                                            {
+                                                                <td>@Math.Round(item2.Valor).ToString()</td>
+                                                            }
+                                                            <td>@item.Clasificacion.ToString()</td>
+                                                            <td><input type="checkbox" class="form-control ref" onclick="guardarRef('@item.codigo')" id="'@item.codigo.ToString()'"></td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="panel-body-btns text-right">
+                                        <button class="btn btn-info" type="button" id="btnCompra" style="float:right"><i class="fa fa-cart-plus"></i>&nbsp;&nbsp;&nbsp;Procesar Solicitud de Compra</button>
+                                    </div>
+                                    </div>
+
+                                </div>
+
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    @*<script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>*@
+    @*<script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>*@
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/EasyAutocomplete-1.3.5/jquery.easy-autocomplete.min.js"></script>
+
+    <script type="text/javascript">
+        var referencias = new Array();
+        var cantReferencias = new Array();
+
+        $(document).ready(function () {
+            $('#txtMesesEvaluar').val('@ViewBag.periodo_eval');
+            $('#txtMesesEvaluar').select2();
+            $('#menu').val(@ViewBag.id_menu);
+            var bodegas = '@ViewBag.bodegasSeleccionadas';
+            var res = bodegas.split(",");
+            $('#bodccs_cod').val(res);
+
+            var referencias = '@ViewBag.referenciasSeleccionadas';
+            var res2 = referencias.split(",");
+            $('#referencia_codigo').val(res2);
+            if ($('#referencia_codigo').val() != null) {
+                 if ($('#referencia_codigo').val().includes('allRef')) {
+                    $('#txtBuscarReferencia').attr('disabled', true);
+                }
+            }
+           
+            $('.multipleOpcion').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400,
+                enableFiltering: true,
+                enableCaseInsensitiveFiltering: true
+            });
+
+            if (!$('#ckeckSoloVentas').is(':checked') && !$('#checkVentasAjustes').is(':checked')) {
+                $("#ckeckSoloVentas").prop('checked', true);
+            }
+
+
+            $('#tablaPaginada').dataTable({
+                //"ajax": 'api/datatables.json',
+                //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                buttons: [
+                    { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                    ////{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                    ////{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                ]
+            });
+        });
+
+        $('#buscarReferencia').click(function(){
+            var refer=$('#txtBuscarReferencia').val();
+            if(refer.length>=3){
+                buscarReferencia(refer);
+            }
+        });
+
+        $('#btnCompra').click(function () {
+            var separar2 = new Array();
+            if (referencias.length == 0) {
+                swal("Error!", "No hay referencias seleccionadas", "error");
+            } else {
+                $('#btnCompra').prop('disabled', true);
+                debugger;
+                console.log(referencias)
+                for (var i = 0; i < referencias.length; i++) {
+                    var separar = referencias[i].split(",");
+                    debugger;
+                    var s = { bod: separar[0], refer: separar[1], cant: separar[2] };
+
+                    separar2.push(s);
+                    console.log(separar2);
+                }
+                var result = separar2.reduce((prev, current, index, arr) => {
+                    // Compruebo si ya existe el elemento
+                    let exists = prev.find(x => x.bod === current.bod);
+                    debugger;
+                    // Si no existe lo creo con un array vacío en VALOR
+                    if (!exists) {
+                        exists = { bod: current.bod, refer: [], cant: [] };
+                        prev.push(exists);
+                    }
+                    // Si el elemento actual tiene VALOR lo añado al array del
+                    // elemento existente
+                    if (current.refer != null) {
+                        // Convierto el valor a numérico reemplazando el carácter separador
+                        let val = current.refer;
+                        let cantidad = current.cant;
+                        // Si es un valor numérico válido lo añado al resultado
+                        if (val != null && val != "") {
+                            exists.refer.push(val);
+                            exists.cant.push(cantidad);
+                        }
+                    }
+                    // Devuelvo el array resultado para la nueva iteración
+                    return prev;
+                }, []);
+                console.log(result);
+                crearSolicitud(result, separar2);
+            }
+        });
+
+        function crearSolicitud(resultado, separar) {
+            debugger;
+            swal({
+                title: "¿Estas seguro?",
+                text: "La solicitud se generará automaticamente",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#DD6B55',
+                cancelButtonText: 'No, cancelar!',
+                confirmButtonText: 'Si, continuar!',
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        $.ajax({
+                            url: '/pedidoSugerido/CrearSolicitudCompra',
+                            data: {
+                                referencias: JSON.stringify(resultado)
+                            },
+                            type: "post",
+                            dataType: "json",
+                            cache: false,
+                            success: function (data) {
+                                if (data == true) {
+                                    swal("Solicitud Creada Correctamente", "", "success");
+                                } else {
+                                    swal("Error!","La solicitur de compra no pudo ser creada","error");
+                                }
+                            }
+                        });
+                    } else {
+                        swal("Cancelado!", "La solicitud no ha sido creada", "error");
+                        $('#btnCompra').prop('disabled', false);
+                    }
+                }
+            )
+        }
+
+        function guardarRef(id) {
+            var index = referencias.indexOf(id);
+            debugger;
+            if (index >= 0) {
+                referencias.splice(index, 1);
+                debugger;
+            } else {
+                referencias.push(id);
+                debugger;
+            }
+            console.log(referencias);
+        }
+
+
+        //function guardarRef(id, ref) {
+        //    var index = referencias.indexOf(id);
+        //    var index2 = cantReferencias.indexOf(ref);
+        //    if (index >= 0 && index2 >= 0) {
+        //        referencias.splice(index, 1);
+        //        cantReferencias.splice(index2, 1);
+        //    } else {
+        //        referencias.push(id);
+        //        cantReferencias.push(ref);
+        //    }
+        //    console.log(referencias);
+        //    console.log(cantReferencias);
+        //}
+
+
+        $('#allReferencia').click(function(){
+            if($('#txtBuscarReferencia').val() != undefined){
+                addReferencia("", 1);
+            }
+        });
+
+        $('#clearReferencias').click(function () {
+            newOption(null, 1);
+            $('#txtBuscarReferencia').val('').attr('disabled', false);
+        });
+
+        function addReferencia(codigo, t = 0) {
+            var disponible = false;
+            if (codigo != "") {
+                if (codigo.indexOf('|') > -1) {
+                    var code = codigo.split('|')[0].trim();
+                    var otrasreferencias = $('#referencia_codigo').val();
+                    if (otrasreferencias == null || !otrasreferencias.includes(code)) {
+                        disponible = true;
+                        $('#icon_add_referencia').removeClass('btn-info').addClass('btn-warning').html('<i class="fa fa-spin fa-refresh"></i>');
+                        $.ajax({
+                            url: '/pedidoSugerido/AgregarReferencia',
+                            data: {
+                                codigo: code,
+                                demas: otrasreferencias
+                            },
+                            type: "post",
+                            cache: false,
+                            success: function (data) {
+                                if (data != 0) {
+                                    newOption({ value: data.id, text: data.nombre, selected: data.selected });
+                                    $('#icon_add_referencia').removeClass('btn-warning').addClass('btn-info').html('<i class="fa fa-arrow-right"></i>');
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    swal("Sin Datos","Por favor selecciona una referencia!", "warning");
+                }
+            } else if (t) {
+                newOption(null, 1);
+                newOption({ value: 'allRef', text: 'Todas Las Referencias', selected: 1 }, 0, false);
+                $('#txtBuscarReferencia').val('').attr('disabled', true);
+                disponible = true;
+            } else {
+                swal("Sin Datos","Por favor selecciona una referencia!", "warning");
+            }
+            return disponible;
+        }
+
+        function newOption(json, vaciar = 0, alloption = true) {
+            if (vaciar == 1) {
+                $('#referencia_codigo').empty();
+            } else {
+                $('#referencia_codigo').append($('<option>', json));
+            }
+            $('#referencia_codigo').multiselect("destroy").multiselect({
+                includeSelectAllOption: alloption,
+                maxHeight: 400,
+                enableFiltering: true,
+                enableCaseInsensitiveFiltering: true
+            });
+        }
+
+        function buscarReferencia(refer){
+
+            var otrasreferencias=$('#referencia_codigo').val();
+            //debugger;
+            $.ajax({
+                url: '/pedidoSugerido/BuscarReferencias',
+                data: {
+                    id: refer,
+                    otras:otrasreferencias
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#referencia_codigo').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        if(data[i].selected==1){
+                            $('#referencia_codigo').append($('<option>', {
+                                value: data[i].id,
+                                text: data[i].nombre,
+                                selected:data[i].selected
+                            }));
+                        }
+                        else{
+                            $('#referencia_codigo').append($('<option>', {
+                                value: data[i].id,
+                                text: data[i].nombre,
+                            }));
+                        }
+                    }
+
+                    $('#referencia_codigo').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 400,
+                        enableFiltering: true,
+                        enableCaseInsensitiveFiltering: true
+                    });
+                }
+            });
+        }
+
+        $('#ckeckSoloVentas').click(function () {
+            if ($('#ckeckSoloVentas').is(':checked')) {
+                $("#checkVentasAjustes").prop('checked', false);
+            }
+        });
+
+        $('#checkVentasAjustes').click(function () {
+            if ($('#checkVentasAjustes').is(':checked')) {
+                $("#ckeckSoloVentas").prop('checked', false);
+            }
+        });
+
+        //$('#btnFiltrar').click(function () {
+
+        //    //$('#tablaPaginada').dataTable().fnDestroy();
+        //    document.getElementById('titulosTabla').innerHTML = '';
+        //    document.getElementById('cuerpoTabla').innerHTML = '';
+        //    var ventas = false;
+        //    var ventasAjustes = false;
+        //    var existencias = false;
+        //    if ($('#ckeckSoloVentas').is(':checked')) {
+        //        ventas = true;
+        //    }
+        //    if ($('#checkVentasAjustes').is(':checked')) {
+        //        ventasAjustes = true;
+        //    }
+
+        //    $.ajax({
+        //        url: '/pedidoSugerido/FiltrarBusqueda',
+        //        data: {
+        //            bodegas: $('#bodccs_cod').val(),
+        //            referencias: $('#referencia_codigo').val(),
+        //            mesesEvaluar: $('#txtMesesEvaluar').val(),
+        //            mesesSugerir: $('#txtMesesSugerir').val(),
+        //            ventas: ventas,
+        //            ventasAjustes : ventasAjustes
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //           // console.log(data);
+        //           // $('#tablaPaginada').find('thead').empty();
+        //            var encabezado = '<tr>';
+        //            for (var i = 0; i < data.titulos.length; i++){
+        //                encabezado += '<th style="text-align:center">' + data.titulos[i] + '</th>';
+        //            }
+        //            encabezado += '</tr>';
+        //            //console.log(encabezado);
+        //           // $('#titulosTabla').html(encabezado);
+        //            document.getElementById('titulosTabla').innerHTML = encabezado;
+
+        //           // $('#tablaPaginada').find('tbody').empty();
+        //            var tupla = '';
+        //            for (var n = 0; n < data.datos.length; n++) {
+        //                 tupla += '<tr>';
+        //                tupla += '<td style="text-align:center">' + data.datos[n].Referencia + '</td>';
+        //                for (var j = 0; j < data.datos[n].ValoresPorFecha.length; j++){
+        //                    tupla += '<td style="text-align:center">' + data.datos[n].ValoresPorFecha[j].Valor + '</td>';
+        //                }
+        //                tupla += '</tr>';
+        //            }
+        //            //console.log(tupla);
+        //            //$('#cuerpoTabla').html(tupla);
+        //            document.getElementById('cuerpoTabla').innerHTML = tupla;
+        //        },
+        //        //complete: function (data) {
+        //        //    $('#tablaPaginada').dataTable({
+        //        //        "ajax": 'api/datatables.json',
+        //        //        dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+        //        //        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+        //        //        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        //        //        buttons: [
+        //        //            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+        //        //            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+        //        //            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+        //        //        ]
+        //        //    });
+        //        //}
+        //    })
+        //});
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+        $('#txtBuscarReferencia').change(function () {
+            if ($(this).val()!=undefined && $(this).val() != "") {
+                var code = $(this).val();
+                if (code.indexOf('|') > -1){
+                    if (addReferencia(code)) {
+                        $(this).val('');
+                    }
+                }
+            }
+        });
+
+        function completeReferencias(obj) {
+            var r = $(obj).val().trim();
+            var size = r.trim().length;
+            if (size == 2) {
+                $.ajax({
+                    url: '/kardex/traerReferencias',
+                    data: {
+                        referencia: r
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        var referencias = {
+                            data: data,
+                            list: {
+                                match: {
+                                    enabled: true
+                                }
+                            }
+                        };
+                        $("#txtBuscarReferencia").easyAutocomplete(referencias);
+                        $("#txtBuscarReferencia").focus();
+                    }
+                });
+            }
+        }
+
+    </script>
+}

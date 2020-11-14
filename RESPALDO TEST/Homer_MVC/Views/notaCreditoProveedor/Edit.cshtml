@@ -1,0 +1,684 @@
+﻿@model Homer_MVC.IcebergModel.encab_documento
+
+@{
+    ViewBag.Title = "Nota Credito Proveedores";
+    ViewBag.Icono = "fa fa-th-list";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div class="alert alert-danger alert-dismissible" id="mensaje" style="display: none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p><i class="fa fa-times fa-2x"></i> Por favor digite los campos obligatorios</p>
+        </div>
+
+        <div id="tabs" class="tab-content">
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#manual"><i class="fa fa-th-list"></i>&nbsp;&nbsp;Nota Credito</a></li>
+                <li class=""><a href="@Url.Action("Browser","notaCreditoProveedor",new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Busqueda</a></li>
+            </ul>
+
+            <div id="manual" class="tab-pane active">
+                <div class="panel-body">
+                    @using (Html.BeginForm("Edit", "notaCreditoProveedor", FormMethod.Post))
+                    {
+                        @Html.Hidden("menu")
+                        @Html.HiddenFor(x => x.idencabezado)
+                        @Html.HiddenFor(x => x.userid_creacion)
+                        @Html.HiddenFor(x => x.fec_creacion)
+                        @Html.HiddenFor(x => x.fecha)
+                        @Html.HiddenFor(x => x.numero)
+                        <input type="hidden" id="idEncab" value="" />
+                        <div class="panel-body-btns text-right">
+                            <a href="../../notaCreditoProveedor/Create" class="btn btn-info"><i class="fa fa-folder-o"></i> Crear Nuevo</a>
+                            @*<button class="btn btn-success" type="button" id="btnGenerarPDFPedido"><i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;&nbsp;Generar PDF</button>&nbsp;&nbsp;*@
+
+                            @*<button class="btn btn-info"><i class="fa fa-save"></i> Guardar</button>*@
+                        </div>
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                Datos Generales
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-horizontal">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.tipo, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.bodega, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @disabled = "disabled" })
+                                                @*<select class="form-control js-source-states" id="selectBodegas" name="selectBodegas" required="required">
+                                                        <option value="">Seleccione</option>
+                                                    </select>*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Nit:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @*@Html.DropDownList("nit", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })*@
+                                                @Html.DropDownListFor(model => model.nit, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @disabled = "disabled" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Vendedor:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("vendedor", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Perfil Contable:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @*<select class="form-control js-source-states" id="perfil" name="perfilcontable">
+                                                        <option></option>
+                                                    </select>*@
+                                                @Html.DropDownListFor(model => model.perfilcontable, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @disabled = "disabled" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Factura:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-5">
+                                                @Html.EditorFor(model => model.prefijo, new { htmlAttributes = new { @type = "hidden", @class = "form-control", @readonly = "" } })
+                                                <input type="text" name="idtipo" id="idtipo" class="form-control" value="@ViewBag.idtipo" readonly="readonly" />
+                                                <input type="text" name="descripcion" id="descripcion" class="form-control" value="@ViewBag.descripcion" readonly="readonly" />
+                                                @Html.EditorFor(model => model.documento, new { htmlAttributes = new { @class = "form-control", @readonly = "" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Observaciones:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.nota1, new { htmlAttributes = new { @class = "form-control", @readonly = "" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Concepto 2:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control limpiar js-source-states" name="concepto2" id="concepto2">
+                                                        <option></option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    <div class="col-md-6"></div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Valor Factura:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="text" name="valorFactura" id="valorFactura" class="form-control suma" value="@ViewBag.valor_total" readonly="readonly" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6"></div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Valor:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.valor_mercancia, new { htmlAttributes = new { @class = "form-control suma", @onkeyup = "return miles(this.id)", @readonly = "" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6"></div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">% Iva:&nbsp;</label>
+                                            <div class="col-md-2">
+                                                <input type="number" name="por_iva" id="por_iva" class="form-control" value="" min="0" max="100" pattern="^[0-9]+" readonly="" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                @Html.EditorFor(model => model.iva, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly", @style = "text-align:right" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6"></div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">% Retencion:&nbsp;</label>
+                                            <div class="col-md-2">
+                                                @*<input  name="por_retencion" id="por_retencion" class="form-control" value="" min="0" max="100" pattern="^[0-9]+" />*@
+                                                @Html.EditorFor(model => model.porcen_retencion, new { htmlAttributes = new { @type = "text", @class = "form-control", @min = "0", @max = "100", @readonly = "" } })
+                                            </div>
+                                            <div class="col-md-4">
+                                                @Html.EditorFor(model => model.retencion, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly", @style = "text-align:right" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6"></div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">% Reteica:&nbsp;</label>
+                                            <div class="col-md-2">
+                                                @*<input type="number" name="por_retencion_ica" id="por_retencion_ica" class="form-control" value="" min="0" max="100" pattern="^[0-9]+" />*@
+                                                @Html.EditorFor(model => model.porcen_retica, new { htmlAttributes = new { @type = "text", @class = "form-control", @min = "0", @max = "100", @readonly = "" } })
+                                            </div>
+                                            <div class="col-md-4">
+                                                @Html.EditorFor(model => model.retencion_ica, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly", @style = "text-align:right" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6"></div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">% Reteiva:&nbsp;</label>
+                                            <div class="col-md-2">
+                                                @*<input type="number" name="por_retencion_iva" id="por_retencion_iva" class="form-control" value="" min="0" max="100" pattern="^[0-9]+" />*@
+                                                @Html.EditorFor(model => model.porcen_reteiva, new { htmlAttributes = new { @type = "number", @class = "form-control", @min = "0", @max = "100", @readonly = "" } })
+                                            </div>
+                                            <div class="col-md-4">
+                                                @Html.EditorFor(model => model.retencion_iva, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly", @style = "text-align:right" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6"></div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Total:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.valor_total, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly", @style = "text-align:right" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@*modal facturas*@
+<div class="modal fade hmodal-info" id="modalFacturas" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Facturas</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                    </div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Seleccione</th>
+                                <th style="text-align:center">Fecha</th>
+                                <th style="text-align:center">Tipo</th>
+                                <th style="text-align:center">Número</th>
+                                <th style="text-align:center">Valor Total</th>
+                                <th style="text-align:center">Valor Aplicado</th>
+                                <th style="text-align:center">Vencimiento</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <button type="button" id="btnGuardarFac" data-dismiss="modal" class="btn btn-primary">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+
+        var i = 0;
+        $(".js-source-states").select2();
+
+        $(document).ready(function () {
+            //$('#selectTipoDocumento option:not(:selected)').prop('disabled', true);
+            $('#selectTipoDocumento option:selected').attr('disabled', 'disabled');
+            var iva = (parseInt($('#iva').val()) / parseInt($('#valor_mercancia').val())) * 100;
+            $('#por_iva').val(iva)
+            //   buscarBodegaPorDocumento();
+            $('#menu').val(@ViewBag.id_menu);
+            $('#selectTipoDocumento').val('@Model.tipo')
+            $('#selectTipoDocumento').select2();
+            $("#selectProveedor").val('@Model.nit')
+            $("#selectProveedor").select2()
+            $("#idEncab").val('@Model.idencabezado')
+            $("#vendedor").val('@Model.vendedor')
+            $("#vendedor").select2()
+            $('#perfil').val(@ViewBag.perfil);
+            //  $('#nit').val('@ViewBag.idTercero').trigger('change');
+            $('#valor_mercancia').val(addCommas(parseInt(@Model.valor_mercancia)));
+            $('#iva').val(addCommas(parseInt(@Model.iva)));
+            $('#retencion').val(addCommas(parseInt(@Model.retencion)));
+            $('#retencion_ica').val(addCommas(parseInt(@Model.retencion_ica)));
+            $('#retencion_iva').val(addCommas(parseInt(@Model.retencion_iva)));
+            $('#valor_total').val(addCommas(parseInt(@Model.valor_total)));
+
+            $("#vendedor").prop("disabled", true);
+            $("#perfil").prop("disabled", true);
+            //  $("#nit").prop("disabled", true);
+            $("#tipo").prop("disabled", true);
+            $("#selectBodegas").prop("disabled", true);
+        });
+
+        @*$(window).on("load", function () {
+                 //   $('#selectBodegas').val('@ViewBag.bodega').trigger('change');
+                    setTimeout(function () {
+                        $('#perfil').val('@ViewBag.perfilcontable').trigger('change');
+                        $('#usuarios').val('@ViewBag.vendedor').trigger('change');
+                        var prefijo111 = '@ViewBag.descripcion';
+                        prefijo111 = $.parseHTML(prefijo111);
+                        var prefijo12 = prefijo111[0].data;
+                        $('#idtipo').val('@ViewBag.prefijo');
+                        $('#descripcion').val(prefijo12);
+                    }, 1000);
+                });*@
+        var numero_miles = "";
+
+        function formatNumber(n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles(id) {
+            numero_miles = formatNumber($('#' + id + '').val());
+            $('#' + id + '').val(numero_miles);
+            //console.log($('#'+id+'').val);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            //console.log(nStr);
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        $('#tipo').change(function () {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                data: {
+                    id: $('#tipo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    $('#selectBodegas').empty();
+                    $('#selectBodegas').append($('<option>', {
+                        value: '',
+                        text: 'Seleccione'
+                    }));
+                    for (var i = 0; i < data.buscarBodega.length; i++) {
+                        $('#selectBodegas').append($('<option>', {
+                            value: data.buscarBodega[i].id,
+                            text: data.buscarBodega[i].bodccs_nombre
+                        }));
+                    }
+                    $('#selectBodegas').select2();
+                }
+            });
+        });
+
+        $('#selectBodegas').change(function () {
+            $.ajax({
+                url: '/compraRepuestos/BuscarPerfilPorBodega',
+                data: {
+                    bodega: $('#selectBodegas').val(),
+                    tipoD: $('#tipo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#perfil').empty();
+                    $('#perfil').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#perfil').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].perfil
+                        }));
+                    }
+                },
+                done: function (data) {
+                    $('#perfil').select2();
+                    $('#perfil').val('@ViewBag.perfilcontable').trigger('change');
+                }
+            });
+        });
+
+
+        function buscarBodegaPorDocumento() {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                data: {
+                    id: $('#tipo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    $('#selectBodegas').empty();
+                    $('#selectBodegas').append($('<option>', {
+                        value: '',
+                        text: 'Seleccione'
+                    }));
+                    for (var i = 0; i < data.buscarBodega.length; i++) {
+                        $('#selectBodegas').append($('<option>', {
+                            value: data.buscarBodega[i].id,
+                            text: data.buscarBodega[i].bodccs_nombre
+                        }));
+                    }
+                    $('#selectBodegas').select2();
+                }
+            });
+        }
+
+        function validarFacturas() {
+            $("#tablaPaginada").dataTable().fnDestroy();
+            $("#tablaPaginada").find("tbody").empty()
+            $.ajax({
+                url: '/ReciboCaja/BuscarFacturas',
+                data: {
+                    nit: $('#selectProveedor').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                    for (var i = 0; i < data.length; i++) {
+                        $("#tablaPaginada").find("tbody").append('<tr align="center">'
+                            + '<td><input type="radio" class="i-checks" name="seleccion" id="' + data[i].numero + '" value="' + data[i].id + '" /></td>'
+                            + '<td>' + data[i].fecha + '</td>'
+                            + '<td>' + data[i].tipo + '</td>'
+                            + '<td>' + data[i].numero + '</td>'
+                            + '<td>' + data[i].valor_total + '</td>'
+                            + '<td>' + data[i].valor_aplicado + '</td>'
+                            + '<td>' + data[i].vencimiento + '</td>'
+                            + '</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' },
+                        ]
+                    });
+                }
+            });
+        }
+
+        $("#selectProveedor").change(function () {
+            validarFacturas()
+        });
+
+        function validarValores() {
+            var valor_total = 0;
+
+            valor_total += parseFloat($("#costo").val())
+            $("#valor_total").val(valor_total);
+
+            var iva = $("#por_iva").val() / 100;
+            $("#iva").val($("#costo").val() * iva);
+            valor_total += parseFloat($("#iva").val())
+
+            var retencion = $("#por_retencion").val() / 100;
+            $("#retencion").val($("#costo").val() * retencion);
+            valor_total = valor_total - parseFloat($("#retencion").val())
+
+            var reteica = $("#por_retencion_ica").val() / 100;
+            $("#retencion_ica").val($("#costo").val() * reteica);
+            valor_total = valor_total - parseFloat($("#retencion_ica").val())
+
+            var iva = $("#por_retencion_iva").val() / 100;
+            $("#retencion_iva").val($("#iva").val() * iva);
+            valor_total = valor_total - parseFloat($("#retencion_iva").val())
+
+            $("#valor_total").val(valor_total);
+        }
+
+        $("#costo").change(function () {
+            validarValores();
+        });
+
+        $("#por_iva").change(function () {
+            validarValores();
+        });
+
+        $("#por_retencion").change(function () {
+            validarValores()
+        });
+
+        $("#por_retencion_ica").change(function () {
+            validarValores()
+        });
+
+        $("#por_retencion_iva").change(function () {
+            validarValores()
+        });
+
+        $('#btnGenerarPDFPedido').click(function () {
+            window.open('@Url.Action("notaCredito", "notaCredito")?id=' + $('#idEncab').val(), '_blank');
+        });
+
+        @*function AgregarQuitarFavorito(){
+                    $.ajax({
+                        url: '/Inicio/AgregarQuitarFavorito',
+                        data: {
+                            id_menu: @ViewBag.id_menu,
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            if(data.esFavorito == true){
+                                $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                            }else{
+                                $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                            }
+                        }
+                    })
+                }
+             function validarDocumento() {
+                $.ajax({
+                    url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                    data: {
+                        id: $('#selectTipoDocumento').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        $('#selectBodegas').empty();
+                        $('#selectBodegas').append($('<option>', {
+                            value: '',
+                            text: ''
+                        }));
+                        for (var i = 0; i < data.length; i++) {
+                            $('#selectBodegas').append($('<option>', {
+                                value: data[i].id,
+                                text: data[i].bodccs_nombre
+                            }));
+                        }
+                        $('#selectBodegas').val('@Model.bodega')
+                        $('#selectBodegas').select2();
+                    }
+                })
+
+
+                $.ajax({
+                    url: '/compraRepuestos/BuscarPerfilPorDocumento',
+                    data: {
+                        tipo: $('#selectTipoDocumento').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        $('#perfil').empty();
+                        $('#perfil').append($('<option>', {
+                            value: '',
+                            text: ''
+                        }));
+                        for (var i = 0; i < data.length; i++) {
+                            $('#perfil').append($('<option>', {
+                                value: data[i].id,
+                                text: data[i].perfil
+                            }));
+                        }
+                        $('#perfil').val('@Model.perfilcontable')
+                        $('#perfil').select2();
+                    }
+                })
+
+                $.ajax({
+                    url: '/movcontables/BuscarConceptosPorDocumento',
+                    data: {
+                        tipo: $('#selectTipoDocumento').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        console.log(data)
+
+                        $('#concepto').empty();
+                        $('#concepto2').empty();
+                        $("#concepto").append('<option></option>')
+                        $("#concepto2").append('<option></option>')
+
+                        if (data.concepto.length > 0) {
+                            for (var i = 0; i < data.concepto.length ; i++) {
+                                $("#concepto").append('<option value="' + data.concepto[i].id + '">' + data.concepto[i].Descripcion + '</option>')
+                            }
+                        }
+
+                        if (data.concepto2.length > 0) {
+                            for (var i = 0; i < data.concepto2.length ; i++) {
+                                $("#concepto2").append('<option value="' + data.concepto2[i].id + '">' + data.concepto2[i].Descripcion + '</option>')
+                            }
+                        }
+
+                    }
+                })
+            }
+
+                *@
+    </script>
+
+}

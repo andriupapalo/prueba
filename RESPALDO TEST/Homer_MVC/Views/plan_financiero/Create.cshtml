@@ -1,0 +1,499 @@
+﻿@model Homer_MVC.Models.PlanFinancieroForm
+
+@{
+    ViewBag.Icono = "fa fa-money";
+    ViewBag.Title = "Planes Financieros";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+}
+
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Crear</a></li>
+                <li class=""><a href="@Url.Action("Browser","plan_financiero", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm("Create", "plan_financiero", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                            @*<button class="btn btn-info" type="button" id="btn_guardaPlan" name="btn_guardaPlan" ><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>*@
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodega(s):&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select id="txtBodegas" class="multiselector" name="txtBodegas" multiple="multiple" placeholder="Seleccione" required="required">
+                                                        @foreach (var item in ViewBag.bodega_id)
+                                                        {
+                                                            <option value="@item.Value">@item.Text</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Financiera:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model=>model.idfinanciera, null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Nombre:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.plan_nombre, new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.plan_nombre, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Descripción:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.plan_descripcion, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.plan_descripcion, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Imagen:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input type="file" class="form-control" name="imagen" id="imagen">
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Genera Comisión:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.plan_comision, new { @data_toggle = "toggle", @checked = "checked", @data_size = "mini" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tasa de interés:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.tasa_interes, new { htmlAttributes = new { @class = "form-control", @required = "required", @onkeypress = "return validaUnPunto(event, this.id)" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Estado:&nbsp;</label>
+                                            <div class="col-md-6">
+
+                                                @Html.CheckBoxFor(model => model.plan_estado, new { @data_toggle = "toggle", @checked = "checked", @data_size = "mini" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        @*<div class="col-sm-6 comision">*@
+                                        <div class="col-sm-6" id="comision">
+                                            @* style="display:none" *@
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">% Comisión:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.plan_porcentaje_comision, new { htmlAttributes = new { @class = "form-control", @required = "required", @onkeypress = "return validaUnPunto(event, this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.plan_porcentaje_comision, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="col-sm-6" id="inactividad" style="display:none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Razón Inactividad:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.plan_razon_inactivo, new { htmlAttributes = new { @class = "form-control" } })
+                                                    @Html.ValidationMessageFor(model => model.plan_razon_inactivo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Bodega(s):&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        <select id="txtBodegas" class="multiselector" name="txtBodegas" multiple="multiple" placeholder="Seleccione" required ="required">
+                                                            @foreach (var item in ViewBag.bodega_id)
+                                                            {
+                                                                <option value="@item.Value">@item.Text</option>
+                                                            }
+                                                        </select>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Financiera:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                       @Html.DropDownList("financiera_id", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>*@
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Fecha Inicio: <span class="text-danger">*</span></label>
+                                                <div class="col-md-7">
+                                                    @Html.Editor("txtFechaInicio", new { htmlAttributes = new { @class = "form-control", @placeholder = "Fecha Inicio" } })
+                                                    @*@Html.EditorFor(model => model.fec_solicitud, new { htmlAttributes = new { @class = "form-control fecha", @required = "required", @onchage = "fncio" } })
+                                                        @Html.ValidationMessageFor(model => model.fec_solicitud, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Fecha Fin: <span class="text-danger">*</span></label>
+                                                <div class="col-md-7">
+                                                    @Html.Editor("txtFechaFin", new { htmlAttributes = new { @class = "form-control", @placeholder = "Fecha Fin" } })
+                                                    @*@Html.EditorFor(model => model.fec_solicitud, new { htmlAttributes = new { @class = "form-control fecha", @required = "required", @onchage = "fncio" } })
+                                                        @Html.ValidationMessageFor(model => model.fec_solicitud, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+
+
+         //  $("plan_comision").checked = true;
+           // $('.comision').show();
+
+            //if (!$('#plan_comision').prop('checked')) {
+            //    //   $('#plan_razon_inactivo').val('');
+            //    $('#comision').show();
+            //    $('.comision').show();
+            //}
+            //else
+            //{
+            //    $('#comision').hide();
+            //    $('.comision').hide();
+            //};
+
+            $('#txtFechaInicio').datetimepicker({
+                defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD',
+             //   maxDate: new Date(),
+                minDate: new Date(),
+            }).on('dp.change', function(e) {
+                $('#txtFechaFin').data("DateTimePicker").minDate(e.date)
+            });
+
+            $('#txtFechaFin').datetimepicker({
+                defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD',
+                minDate: '-' + new Date() + '',
+            });
+
+            $('.multiselector').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400
+            });
+
+        });
+
+        $('#plan_comision').change(function () {
+            if ($('#plan_comision').is(':checked')) {
+                //   $('#plan_porcentaje_comision').attr("required", "required");
+                $('.comision').show();
+                $('#comision').show()
+            } else {
+                $('.comision').hide();
+                $('#comision').hide();
+                $('#plan_porcentaje_comision').removeAttr("required", "required");
+            }
+        });
+
+        $('#plan_estado').change(function () {
+            if ($('#plan_estado').prop('checked')) {
+                $('#inactividad').hide();
+                $('#razon_inactivo').val('No aplica');
+            } else {
+                $('#razon_inactivo').val('');
+                $('#inactividad').show();
+            }
+        });
+
+        $('#btn_guardaPlan').click(function (e) {
+
+            var wplan_id = parseInt($("#anio").val());
+            var wplan_fecela = parseInt($("#formato").val());
+            var wpaln_usuela = parseInt($("#concepto").val());
+            var wpaln_descripcion = "";
+            var wpaln_estado = "";
+            var wpaln_nombre = "";
+            var wpaln_imagen = "";
+            var wpaln_usuario_actualizacion = "";
+            var wpaln_fecha_actualizacion = "";
+            var widfinanciera = "";
+            var widbodega = "";
+            var widplanfinanciera = "";
+            var wporcentaje = "";
+            var wfechadesde = "";
+            var wfechahasta = "";
+            var westado = "";
+            var wrazoninactividad = "";
+            var xnit = $('#tercero_id').val();  /// valor seleccionado del DropDownList
+            var xval1 = parseInt($("#txtValor1").val());
+
+            if ($('#anio').val() == '' || $('#formato').val() == '' || $('#concepto').val() == '' || $('#tercero_id').val() == '') {
+
+                //$('#mensajeAgregarConstantes').text('Los campos marcados con (*) son obligatorios');
+                $('#alertAgregarConstantes').show();
+                setTimeout(function () {
+                    $("#alertAgregarConstantes").fadeOut(1500);
+                }, 3000);
+            }
+            else {
+
+                ///***
+                var form = $('#defconstantes');
+                var valid = this.form.checkValidity();
+                if (valid) {
+                    event.preventDefault();
+
+                    $.ajax
+                       (
+                        {
+                            url: '/medmagconstantes/AgregarConstantes',
+                            type: 'POST',
+                            data:
+                                 {
+                                     idanio: xannio,
+                                     idformato: xformato,
+                                     idconcepto: xconcepto,
+                                     nit: xnit,
+                                     val1: xval1,
+                                     val2: xval2,
+                                     val3: xval3,
+                                     val4: xval4,
+                                     val5: xval5,
+                                     val6: xval6,
+                                     val7: xval7,
+                                     val8: xval8,
+                                     val9: xval9,
+                                     val10: xval10,
+                                     val11: xval11,
+                                     observacion: xobservacion,
+                                 },
+                            beforeSend: function (objeto) {
+                                $('#mensaje_enviando').show();
+                                $('#cuerpo_mensaje_enviando').html('<i class="fa fa-spinner text-center" aria-hidden="true" ></i> Enviando datos...')
+                                setTimeout(function () {
+                                    $("#mensaje_enviando").fadeOut(1500);
+                                }, 3000);
+
+                            },
+                        }).done(function (result) {
+                            //  $('#mensaje_enviando').hide();
+
+                            if (result == 1) {
+
+                                $("#mensaje").html('<i class="fa fa-check" aria-hidden="true" ></i> Definicion de Constantes agregado con exito');
+                                $("#mensaje").show();
+                                //   $('#mensaje_enviando').hiden();
+
+                                setTimeout(function () {
+                                    $("#mensaje").fadeOut(1500);
+                                }, 3000);
+
+                                $("#txtValor1").val('');
+                                $("#txtValor2").val('');
+                                $("#txtValor3").val('');
+                                $("#txtValor4").val('');
+                                $("#txtValor5").val('');
+                                $("#txtValor6").val('');
+                                $("#txtValor7").val('');
+                                $("#txtValor8").val('');
+                                $("#txtValor9").val('');
+                                $("#txtValor10").val('');
+                                $("#txtValor11").val('');
+                                $("#txtdescripcion").val('');
+                                MostrarTodasDefiniconesConstantes(xannio, xformato, xconcepto);
+
+                            } else {
+                                $("#mensaje_error").html('<i class="fa fa-times" aria-hidden="true" ></i> Error en guardar Definicion de Constantes');
+                                $("#mensaje_error").show();
+                            }
+                        });
+                } else {
+                    $("#mensaje_error").html('<i class="fa fa-times" aria-hidden="true" ></i> Error en guardar Definicion de Constantes. Debe seleccionar mínimo un nit');
+                    $("#mensaje_error").show();
+                }
+                //***
+            }
+        });
+
+        function validaUnPunto(e, id)	//Solo numeros y SOLO 1 punto decimal
+        {
+            var key = (document.all) ? e.which : e.keyCode;
+            cadena = $('#' + id + '').val();
+            console.log(cadena)
+            if (cadena.indexOf(',') == -1) {
+                //return (key <= 13 || (key >= 48 && key <= 57) || key == 46);
+                return (key <= 13 || (key >= 48 && key <= 57) || key == 44);
+
+            }
+            else {
+                return (key <= 13 || (key >= 48 && key <= 57));
+            }
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+}

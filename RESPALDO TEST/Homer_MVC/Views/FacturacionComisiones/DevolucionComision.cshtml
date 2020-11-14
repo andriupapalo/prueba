@@ -1,0 +1,653 @@
+﻿@model Homer_MVC.IcebergModel.encab_documento
+
+@{
+    ViewBag.Icono = "fa fa-file-text-o";
+    ViewBag.Title = "Devolución de Comisiones";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @*@if (TempData["mensaje"] != null)
+            {
+                <br />
+                <div class="alert alert-success  alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                    <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+                </div>
+            }*@
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        @if (ViewBag.documentoDescuadrado != null)
+        {
+            <div class="panel-body">
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Cuenta</th>
+                                    <th style="text-align:center">Parametro</th>
+                                    <th style="text-align:center">Debito</th>
+                                    <th style="text-align:center">Credito</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.documentoDescuadrado)
+                                {
+                                <tr>
+                                    <th style="text-align:center">@item.NumeroCuenta</th>
+                                    <th style="text-align:center">@item.DescripcionParametro</th>
+                                    <th style="text-align:center">@item.ValorDebito</th>
+                                    <th style="text-align:center">@item.ValorCredito</th>
+                                </tr>
+                                }
+                                <tr>
+                                    <th style="text-align:center">&nbsp;</th>
+                                    <th style="text-align:center">&nbsp;</th>
+                                    <th style="text-align:center">@ViewBag.calculoDebito</th>
+                                    <th style="text-align:center">@ViewBag.calculoCredito</th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="principal active"><a data-toggle="tab" href="#crear"><i class="fa fa-reply"></i>&nbsp;&nbsp;Devolución</a></li>
+                <li class="busqueda" onclick="BuscarComisiones();"><a data-toggle="tab" href="#buscar"><i class="fa fa-refresh"></i>&nbsp;&nbsp;Comisiones</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+
+                        <div class="table-responsive">
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Desde:&nbsp;</label>
+                                    <div class="col-md-6">
+                                        <input name="fecha_desded" id="fecha_desded" class="form-control fecha" value="" placeholder="Digite fecha" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Hasta:&nbsp;</label>
+                                    <div class="col-md-6">
+                                        <input name="fecha_hastad" id="fecha_hastad" class="form-control fecha" value="" placeholder="Digite fecha" />
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Financiera:&nbsp;</label>
+                                    <div class="col-md-6">
+                                        @Html.DropDownList("financiera", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", })
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-2">
+                                <div class="form-group">
+                                    <button class="btn btn-info" type="button" onclick="buscarDatosDevolucion()"><i class="fa fa-filter"></i>&nbsp;Filtrar</button>
+                                </div>
+                            </div>
+
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginadaD">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Factura #</th>
+                                        <th style="text-align:center">Financiera</th>
+                                        <th style="text-align:center">Asesor</th>
+                                        <th style="text-align:center">Valor Comisión</th>
+                                        <th style="text-align:center">Fecha Facturación</th>
+                                        <th style="text-align:center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginadaBusquedas">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Tipo documento</th>
+                                        <th style="text-align:center">N&uacute;mero</th>
+                                        <th style="text-align:center">Bodega</th>
+                                        <th style="text-align:center">Nit</th>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Valor Total</th>
+                                        <th style="text-align:center">N&uacute;mero Venta</th>
+                                        <th style="text-align:center">Acci&oacute;n</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade hmodal-success in" id="modalDevolucion" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header">
+                <h4 class="modal-title">Devolución</h4>
+                <small class="font-bold">Digite la siguiente información para realizar la devolución de la factura de comisiones</small>
+            </div>
+
+            @using (Html.BeginForm("DevolverFacturaManual", "FacturacionComisiones", FormMethod.Post, new { enctype = "multipart/form-data", @target = "_blank" }))
+            {
+            @Html.AntiForgeryToken()
+
+            <div class="modal-body">
+
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <input type="hidden" name="lista_seleccionDevolucion" id="lista_seleccionDevolucion" value="" />
+                <input type="hidden" name="encab_id" id="encab_id" value="" />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Tipo Documento:&nbsp;</label>
+                        <div class="col-md-6">
+                            @Html.DropDownList("tipo_d", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Perfil:&nbsp;</label>
+                        <div class="col-md-6">
+                            @Html.DropDownList("perfil_d", Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", })
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="visibility:hidden">Close</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade hmodal-success in" id="modalDevolucionAuto" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header">
+                <h4 class="modal-title">Devolución Automatica</h4>
+                <small class="font-bold">Digite la siguiente información para realizar la devolución de la factura de comisiones</small>
+            </div>
+
+            @using (Html.BeginForm("DevolverFacturaAuto", "FacturacionComisiones", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+            @Html.AntiForgeryToken()
+
+            <div class="modal-body">
+
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @*<input type="hidden" name="lista_seleccionDevolucion" id="lista_seleccionDevolucion" value="" />*@
+                <input type="hidden" name="encab_id_dev" id="encab_id_dev" value="" />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Tipo Documento:&nbsp;</label>
+                        <div class="col-md-6">
+                            @Html.DropDownList("tipo_d", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", })
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="visibility:hidden">Close</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div id="modalFacturacionTerminada" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Devolución registrada con éxito</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align:center;">
+                    <h4>Devolución de facturación registrada con el número</h4><h3><span class="label label-default">@TempData["mensaje"]</span></h3>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+
+    <script type="text/javascript">
+        var lista = '';
+        $(document).ready(function () {
+            $('.fecha').datetimepicker({
+                format: 'DD/MM/YYYY'
+            });
+
+            $('.js-source-states').select2();
+
+            buscarDatos();
+            buscarDatosDevolucion();
+            //validarResolucion();
+        });
+
+        function BuscarComisiones() {
+            if ($.fn.dataTable.isDataTable('#tablaPaginadaBusquedas')) {
+                $('#tablaPaginadaBusquedas').dataTable().fnDestroy();
+            }
+            $.ajax({
+                url: '/FacturacionComisiones/BuscarComisiones',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginadaBusquedas').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginadaBusquedas').find('tbody').append('<tr>'
+                            +'<td align="left">' + data[i].tpdoc_nombre + '</td>'
+                            +'<td align="right">' + data[i].numDev + '</td>'
+                            +'<td align="left">' + data[i].bodccs_nombre + '</td>'
+                            +'<td align="right">' + data[i].doc_tercero + '</td>'
+                            +'<td align="left">' + data[i].nombre + '</td>'
+                            +'<td align="right">' + data[i].fecha + '</td>'
+                            +'<td align="right">$' + addComas(data[i].valor_total) + '</td>'
+                            +'<td align="right">' + data[i].numVen + '</td>'
+                            +'<td align="center">'
+                                +'<button class="btn btn-info btn-xs" onclick="valida('+ '\'' + data[i].idDev + '\')">Ver</button>'
+                            +'</td>'
+                            +'</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginadaBusquedas').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        }
+
+        $('#tipo').change(function(){
+            $.ajax({
+                url: '/FacturacionComisiones/BuscarPerfilesYBodegasPorDocumento',
+                data: {
+                    id_documento: $('#tipo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#perfil').empty();
+                    $('#perfil').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.buscarPerfiles.length; i++) {
+                        $('#perfil').append($('<option>', {
+                            value: data.buscarPerfiles[i].id,
+                            text: data.buscarPerfiles[i].nombre
+                        }));
+                    }
+
+                    $('#bodega').empty();
+                    $('#bodega').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.buscarBodegas.length; i++) {
+                        $('#bodega').append($('<option>', {
+                            value: data.buscarBodegas[i].id,
+                            text: data.buscarBodegas[i].bodccs_nombre
+                        }));
+                    }
+
+                }
+            })
+        });
+
+        $('#tipo_d').change(function(){
+            $.ajax({
+                url: '/FacturacionComisiones/BuscarPerfilesYBodegasPorDocumento',
+                data: {
+                    id_documento: $('#tipo_d').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#perfil_d').empty();
+                    $('#perfil_d').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.buscarPerfiles.length; i++) {
+                        $('#perfil_d').append($('<option>', {
+                            value: data.buscarPerfiles[i].id,
+                            text: data.buscarPerfiles[i].nombre
+                        }));
+                    }
+                }
+            })
+        });
+
+        function facturar(id) {
+            window.location.href = '@Url.Action("FacturaComision" , "FacturacionComisiones")?id=' + id;
+        }
+
+        function buscarDatos() {
+            $.ajax({
+                url: '/FacturacionComisiones/BuscarDatos',
+                data: {
+                    fechaDesde: $('#fecha_desde').val(),
+                    fechaHasta: $('#fecha_hasta').val(),
+                    financiera: $('#financiera').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $("#tablaPaginada").dataTable().fnDestroy();
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="center"><input class="seleccion" type="checkbox" id="'+data[i].id+'"></td><td align="right">'
+                                        + data[i].numero + '</td><td align="left"><input type="text" value="'+ data[i].financiera_id +'" id="idFinanciera'+ data[i].id +'" name="idFinanciera'+ data[i].id +'" style="display:none;"/>'
+                                        + data[i].financiera + '</td><td align="left">'
+                                        + data[i].asesor + '</td><td align="left">'
+                                        + data[i].fec_confirmacion + '</td><td align="right">$'
+                                        + addCommas(data[i].valor_comision)
+                                        + '</td>'
+                                        //+ '<td width="5%" align="center"><button class="btn btn-primary btn-xs" data-toggle="modal" data-target="#modalFacturacion"><i class="fa fa-file-text-o" aria-hidden="true"></i>&nbsp;&nbsp;Facturar&nbsp;&nbsp;</button></td>'
+                                        + '</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+                }
+            })
+        }
+
+        function enviarSeleccion(){
+            var contador = 1;
+            var idFinanciera = '';
+            var financieraDiferente = false;
+            lista = '';
+            $('.seleccion:checked').each(
+                function () {
+                    lista += ','+this.id
+
+                    var financiera = $('#idFinanciera'+this.id+'').val();
+                    if(contador == 1){
+                        idFinanciera = financiera;
+                        contador++;
+                    }else{
+                        if(idFinanciera != financiera){
+                            financieraDiferente = true;
+                        }
+                    }
+                    $('#lista_seleccion').val(lista)
+                }
+            );
+            if(financieraDiferente == true){
+                swal({
+                    title: "Error!",
+                    text: "Las financieras seleccionadas son diferentes!",
+                    type: "error"
+                });
+            }else{
+                $('#nit').val(idFinanciera);
+                $('#modalFacturacion').modal('show');
+            }
+        }
+
+        function buscarDatosDevolucion() {
+
+            $.ajax({
+                url: '/FacturacionComisiones/BuscarDatosDevolucion',
+                data: {
+                    fechaDesde: $('#fecha_desdeD').val(),
+                    fechaHasta: $('#fecha_hastaD').val(),
+                    financiera: $('#financieraD').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $("#tablaPaginada").dataTable().fnDestroy();
+                    $("#tablaPaginadaD").dataTable().fnDestroy();
+                    $('#tablaPaginadaD').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginadaD').find('tbody').append('<tr><td align="center">'
+                                        + data[i].numero + '</td><td align="center">'
+                                        + data[i].financiera + '</td><td align="center">'
+                                        + data[i].asesor + '</td><td align="center">$'
+                                        + addCommas(data[i].valor_comision)
+                                        + '</td><td align="center">'
+                                        + data[i].fec_facturacomision + '</td>'
+                                        + '<td align="center">'
+                                        + '<button class="btn btn-primary btn-xs" onclick="devolverManual(' + data[i].id + ')">&nbsp;&nbsp;Manual&nbsp;&nbsp;</button>&nbsp;'
+                                        + '<button class="btn btn-xs" onclick="devolverAuto('+data[i].id+')">&nbsp;&nbsp;Automático&nbsp;&nbsp;</>'
+                                        + '</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginadaD').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' }
+                        ]
+                    });
+                }
+            })
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        $('#tipo').change(function () {
+            validarResolucion()
+        });
+
+        function validarResolucion() {
+
+            $.ajax({
+                url: '/FacturacionComisiones/ValidarResolucion',
+                data: {
+                    //grup: $('#tipo').val(),
+                    tip: $('#tipo').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data == 1) {
+                        $('#texto_aviso').text('La fecha fin de vigencia de la resolución esta próxima a vencer, por favor valide');
+                        $('#aviso').show();
+                        //$('#modalFacturacion').modal('hide');
+                    }
+                    else if (data == 2) {
+                        $('#texto_aviso').text('El consecutivo de factura esta próximo a terminar, por favor valide');
+                        $('#aviso').show();
+                        //$('#modalFacturacion').modal('hide');
+                    }
+                    else if (data == 3) {
+                        $('#texto_bloqueo').text('La fecha de vigencia de resolución esta vencida, no puede facturar ');
+                        $('#bloqueado').show();
+                        $('#btnGuardar').hide();
+                        //$('#bntFacturar').hide();
+                        //$('#modalFacturacion').modal('hide');
+                    }
+                },
+                complete: function (data) {
+                }
+            })
+        }
+
+        function devolverAuto(id) {
+            $('#encab_id_dev').val(id);
+            $('#modalDevolucionAuto').modal('show');
+            @*window.location.href = '@Url.Action("DevolverFacturaAuto", "FacturacionComisiones")?menu='+@ViewBag.id_menu+'&&id=' + id;*@
+        }
+
+        function devolverManual(id) {
+            $('#encab_id').val(id);
+            $('#modalDevolucion').modal('show');
+
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+    </script>
+
+
+    @if (TempData["mensaje"] != null)
+    {
+        <script type="text/javascript">
+            $('#modalFacturacionTerminada').modal('show');
+        </script>
+    }
+
+
+}

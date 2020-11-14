@@ -1,0 +1,688 @@
+﻿
+@{
+    ViewBag.Title = "indicadoresGenerales";
+    ViewBag.Icono = "fa fa-bar-chart";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+}
+    <style>.horizontal-scroll-wrapper {
+
+  overflow-y: hidden ;
+  overflow-x: auto;
+}</style>
+<!-- App styles -->
+<link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+<link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/vendor/chartist/custom/chartist.css" />
+<link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+
+<div class="panel-body">
+    <div class="panel-heading" style="        background-color: white;
+        border: solid 1px;
+        border-color: #e4e5e7
+">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>@ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+
+        <div id="tabs" class="tab-content">
+            <div id="principal" class="tab-pane active">
+                <div class="panel-body">
+
+       
+                    <div class="row" id="div_filtro" >
+                        <div class="col-md-6">
+                            <div class="col-sm-2"><label class="control-label">Tipo de Filtro:&nbsp;</label></div>
+
+                            <div class="col-sm-4">
+                                <select class="form-control js-source-states" id="tipo_filtro" name="tipo_filtro" required="required">
+                                  
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" id="bodegasmostrar" style="display: none;">
+                        <div class="col-md-6">
+                            <div class="col-sm-2"><label>Bodega(s)</label></div>
+                            <div class="col-sm-4">
+                                <select id="listar_bodegas" name="listar_bodegas"  multiple="multiple" required></select>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row" >
+
+                        <div class="col-md-6">
+                         <button type="button" style="display: none;"  class="btn btn-primary" id="btnFiltrar"><i class="fa fa-filter" aria-hidden="true"></i>&nbsp;&nbsp;Filtrar</button>
+                        </div>
+                      </div>
+
+
+                    <div class="row horizontal-scroll-wrapper">
+
+
+
+                        <table class="table table-striped  table-bordered table-hover"   width="100%" id="tablareferencias">
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+
+
+
+
+
+                </div>
+                </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js">
+        <</script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Ven-ew3dor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <!-- App scripts -->
+    <script src="~/Scripts/homer.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+
+    <script src="~/Vendor/AmCharts/lib/3/amchart2.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/pie.js"></script>
+    <script src="~/Scripts/graficos.js?hora=@ViewBag.horas"></script>
+    <script src="~/Vendor/AmCharts/lib/3/themes/light.js"></script>
+
+    <script type="text/javascript">
+            $(document).ready(function () {
+              
+                var escordinador = "";
+                $('.js-source-states').select2();
+        
+                var nombrerol = '@ViewBag.nombreVergeneral';
+                var nombrebod = '@ViewBag.nombreVergenbodega';
+
+
+
+                if (nombrerol == "P43") {
+                    var opcion = "<option value='0'>seleccione</option>";
+                    opcion += " <option value='1'>General</option>";
+                    opcion += "<option value='2'>Por Bodega</option>";
+                    $("#tipo_filtro").append(opcion);
+                    escordinador = "si";
+                  
+                } else {
+
+                       var opcion = " <option value='0'>seleccione</option>";
+                   opcion += "<option value='2'>Por Bodega</option>";
+                    $("#tipo_filtro").append(opcion);
+                    escordinador = "no";
+
+                } 
+
+                if (nombrebod == "P44") {
+                     var bodega = "@Session["user_bodega"]";
+                    buscarBodegas();
+                    escordinador = "no";
+                 
+                }else {
+                   
+                    buscarBodegasIdUser();
+                 }
+     
+
+
+
+        });
+
+
+           function buscarBodegas() {
+            $.ajax({
+                url: '/kardex/BuscarBodegas',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#listar_bodegas').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+                     $('#listar_bodegas').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 800,
+                    });
+
+                    $('#listar_bodegas').multiselect('refresh');
+
+                }
+            })
+        }
+
+
+        
+           function buscarBodegasIdUser() {
+            $.ajax({
+                url: '/Login/GetBodegasUsuarioActual',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#listar_bodegas').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+                     $('#listar_bodegas').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 800,
+                    });
+
+                    $('#listar_bodegas').multiselect('refresh');
+
+                }
+            })
+        }
+
+        
+        $('#tipo_filtro').change(function () {
+            var anio = $('#anio').val();
+            var mes = $('#mes').val();
+            var bodegas = $('#listar_bodegas').val()
+            var tipo_filtro = $("#tipo_filtro option:selected").val();
+
+            if (tipo_filtro == 1) {
+                $("#bodegasmostrar").css('display', 'none');
+                 $("#btnFiltrar").css('display', 'none');
+                buscarIndicadoresGenerales();
+            } else if (tipo_filtro == 2)  {
+                 $("#bodegasmostrar").css('display', 'block');
+                     $("#btnFiltrar").css('display', 'block');
+                $("#tipo_filtro").prop('checked', false).trigger('change');
+                $('#tablareferencias').find('tr').remove();
+
+            }
+
+
+        });
+
+
+        
+        $('#btnFiltrar').click(function () {
+            var anio = $('#anio').val();
+            var mes = $('#mes').val();
+
+            var bodegas = $('#listar_bodegas').val();
+
+        
+              var bodegas = $('#listar_bodegas').val()
+              buscarIndicadoresGeneralesbod(bodegas);
+
+          
+
+
+            
+    
+                
+
+        });
+
+
+
+         function buscarIndicadoresGenerales() {
+
+     var meses = ["","Enero", "Febrero","Marzo", "Abril", "Mayo", "Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+          
+               $.ajax({
+                url: '/IndicadoresGraficos/DatosIndicadoresGeneral',
+                   data: {  
+                 
+                },
+                type: 'post',
+                cache: false,
+                   success: function (data) {
+                    
+                               var anioanterior = "";
+                               var table = "";
+                       $('#tablareferencias').find('tr').remove();
+                    $('#tablareferencias tbody').find('table').empty();
+                                table += "<tr style=''>";
+                                table += "<th align='center'>Año</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td  align='center'>" + data[i].Año+"</td>";
+                               }
+                               table += "</tr>";
+                                table += "<tr>";
+                                 table += "<th align='center'  style='border: 1px solid black;  width: 30%;'>Datos</th>";
+                       for (var i = 0; i < data.length; i++) {
+                           var nombremes = meses[data[i].mes];
+                                   table += "<td align='center'  style='border: 1px solid black;'>" + nombremes+"</td>";
+                               }
+                                table += "</tr '>";
+                                table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;  width: 30%; color: white; border: 1px solid black; font-size: 16px;'>Inventario inicial</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td  align='center' style='font-size: 16px; border: 1px solid black;'>$" +addCommas( data[i].inventario_inicial)+"</td>";
+                               }
+                                 table += "</tr>";
+                                table += "<tr '>";
+                                 table += "<th align='center' style='background: #82B1ff; width: 30%;  color: white;border: 1px solid black; font-size: 16px;'>Compras GM (ingresos)</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center' style='font-size: 16px; border: 1px solid black;'>$" +addCommas( data[i].compras_gm_ingresis)+"</td>";
+                               }
+                               table += "</tr>";
+                                   table += "<tr >";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;  color: white;border: 1px solid black; font-size: 16px;'>compras concesionarios</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center' style='font-size: 16px; border: 1px solid black;'>$" +addCommas( data[i].compras_concesionarios)+"</td>";
+                               }
+                               table += "</tr>";
+                                  table += "<tr  >";
+                                 table += "<th  align='center'  style='background: #82B1ff; width: 30%;   color: white;border: 1px solid black; font-size: 16px;'>Compras otros repuestos</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center' style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].compras_otros_repuestos)+"</td>";
+                               }
+                               table += "</tr>";
+                                    table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; color: white; border: 1px solid black; font-size: 16px;'>Compras otros accesorios</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center' style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].compras_otros_accesorios)+"</td>";
+                               }
+                               table += "</tr>";
+                         table += "<tr >";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Total compras</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].total_compras)+"</td>";
+                               }
+                               table += "</tr>";
+                                 table += "<tr >";
+                                 table += "<th align='center' style='background: #82B1ff; width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Total ventas</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].total_ventas)+"</td>";
+                               }
+                               table += "</tr>";
+                                     table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Ajustes de inventario</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].ajustes_inventario)+"</td>";
+                               }
+                               table += "</tr>";
+                                        table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Costo de venta</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].costo_venta)+"</td>";
+                               }
+                               table += "</tr>";
+                                 table += "<tr>";
+                                 table += "<th align='center' style='background: #82B1ff; width: 30%;  color: white; border: 1px solid black;font-size: 16px;'>Inventario final</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].inventario_final)+"</td>";
+                               }
+                               table += "</tr>";
+                               table += "<tr>";
+                                 table += "<th align='center' style='background: #82B1ff; width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Diferencia inventario respecto a enero</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].dif_inventario_enero)+"</td>";
+                               }
+                               table += "</tr>";
+                                 table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Inv. En proceso</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].inv_proceso)+"</td>";
+                               }
+                               table += "</tr>";
+                                   table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Inv. Disponible</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" +addCommas(data[i].inv_disponible)+"</td>";
+                               }
+                               table += "</tr>";
+                               table += "<tr>";
+                        
+                                 table += "<th  align='center' style='background: #82B1ff;width: 30%;  color: white; border: 1px solid black; font-size: 16px;'>Inv. Final "+anioanterior +" </th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" +addCommas( data[i].inv_final)+"</td>";
+                               }
+                               table += "</tr>";
+                                 table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;width: 30%;  color: white; border: 1px solid black; font-size: 16px;'>variacion inventario respecto al año anterior </th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" + addCommas( data[i].variacion_inventario)+"%</td>";
+                               }
+                       table += "</tr>";
+
+
+                            table += "<tr>";
+                                 table += "<th align='center' width: 30%;'>Datos</th>";
+                       for (var i = 0; i < data.length; i++) {
+                         
+                                   table += "<td align='center' > &nbsp;&nbsp;&nbsp;</td>";
+                               }
+                                table += "</tr '>";
+
+
+
+                                      table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Rotacion inventario</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].rotacion_inven)+"%</td>";
+                               }
+                               table += "</tr>";
+                                     table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Lealtad bruta P&A</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].lealtad_bruta)+"%</td>";
+                               }
+                               table += "</tr>";
+                                  table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;  border: 1px solid black; color: white; font-size: 16px;'>Lealtad neta P&A</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].lealtad_neta)+"%</td>";
+                               }
+                               table += "</tr>";
+                                    table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Lealtad neta sin accesorios</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" + addCommas(data[i].lealtad_neta_sin_acceso)+"%</td>";
+                               }
+                               table += "</tr>";
+                                   table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Margen bruto sin incentivos</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].margen_bruto_sin_incent)+"%</td>";
+                               }
+                               table += "</tr>";
+                                   table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Margen bruto con incentivos</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].margen_bruto_con_incent)+"%</td>";
+                               }
+                               table += "</tr>";
+                                    table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>FOF (First Order Fill)</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].fof)+"%</td>";
+                               }
+                               table += "</tr>";
+                                      table += "<tr>";
+                                 table += "<th align='center' style='background: #82B1ff;width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>% Obsolencia</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'> " +addCommas( data[i].obsolencia)+"% </td>";
+                               }
+                               table += "</tr>";
+                               $('#tablareferencias').append(table);
+
+
+                },
+           
+            })
+
+
+
+        }
+
+
+        function addCommas(nStr) {
+    nStr += '';
+    x = nStr.split('.');
+    x1 = x[0];
+    x2 = x.length > 1 ? '.' + x[1] : '';
+    var rgx = /(\d+)(\d{3})/;
+    while (rgx.test(x1)) {
+        x1 = x1.replace(rgx, '$1' + '.' + '$2');
+    }
+    return x1 + x2;
+}
+
+        function buscarIndicadoresGeneralesbod(idbodega) {
+
+
+            var meses = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+
+               $.ajax({
+                url: '/IndicadoresGraficos/DatosIndicadoresGenBodega',
+                   data: {  
+                 bodegas: idbodega
+                },
+                type: 'post',
+                cache: false,
+                   success: function (data) {
+                       console.log(data);
+                                
+                       var table = "";
+                       $('#tablareferencias').find('tr').remove();
+                    $('#tablareferencias tbody').find('table').empty();
+                                table += "<tr style=''>";
+                                table += "<th align='center'>Año</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td  align='center'>" + data[i].Anio+"</td>";
+                               }
+                               table += "</tr>";
+                                table += "<tr>";
+                                 table += "<th align='center' style=' width: 30%; ' >Datos</th>";
+                       for (var i = 0; i < data.length; i++) {
+                           var nombremes = meses[data[i].mesbo];
+                                   table += "<td align='center' align='center' style='border: 1px solid black;'>" + nombremes+"</td>";
+                               }
+                               table += "</tr '>";
+                               
+                                table += "<tr>";
+                                table += "<th   align='center' style='background: #82B1ff;  width: 30%; color: white; border: 1px solid black; font-size: 16px;'>Bodega</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center' style='font-size: 16px; border: 1px solid black;'>" + data[i].nombodega+"</td>";
+                               }
+                               
+                                table += "</tr>";
+                                table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%; color: white; border: 1px solid black; font-size: 16px;'>Inventario inicial</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td  align='center' style='font-size: 16px; border: 1px solid black;'>$" +addCommas( data[i].inventario_inicial)+"</td>";
+                               }
+                                 table += "</tr>";
+                                table += "<tr '>";
+                                 table += "<th align='center' style='background: #82B1ff;  width: 30%; color: white;border: 1px solid black; font-size: 16px;'>Compras GM (ingresos)</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center' style='font-size: 16px; border: 1px solid black;'>$" +addCommas( data[i].compras_gm_ingresis)+"</td>";
+                               }
+                               table += "</tr>";
+                                   table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;  width: 30%; color: white;border: 1px solid black; font-size: 16px;'>compras concesionarios</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center' style='font-size: 16px; border: 1px solid black;'>$" +addCommas( data[i].compras_concesionarios)+"</td>";
+                               }
+                               table += "</tr>";
+                                  table += "<tr>";
+                                 table += "<th  align='center'  style='background: #82B1ff;  width: 30%;  color: white;border: 1px solid black; font-size: 16px;'>Compras otros repuestos</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center' style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].compras_otros_repuestos)+"</td>";
+                               }
+                               table += "</tr>";
+                                    table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;  width: 30%;  color: white; border: 1px solid black; font-size: 16px;'>Compras otros accesorios</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center' style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].compras_ot_acce)+"</td>";
+                               }
+                               table += "</tr>";
+                         table += "<tr >";
+                                 table += "<th  align='center' style='background: #82B1ff;  width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Total compras</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].total_compras)+"</td>";
+                               }
+                               table += "</tr>";
+                                 table += "<tr>";
+                                 table += "<th align='center' style='background: #82B1ff; width: 30%;   color: white;  border: 1px solid black; font-size: 16px;'>Total ventas</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].total_ventas)+"</td>";
+                               }
+                               table += "</tr>";
+                                     table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;   color: white;  border: 1px solid black; font-size: 16px;'>Ajustes de inventario</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].ajustes_inventario)+"</td>";
+                               }
+                               table += "</tr>";
+                                        table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;   color: white;  border: 1px solid black; font-size: 16px;'>Costo de venta</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].costo_venta)+"</td>";
+                               }
+                               table += "</tr>";
+                                 table += "<tr>";
+                                 table += "<th align='center' style='background: #82B1ff; width: 30%;   color: white; border: 1px solid black;font-size: 16px;'>Inventario final</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].inventario_final)+"</td>";
+                               }
+                               table += "</tr>";
+                               table += "<tr>";
+                                 table += "<th align='center' style='background: #82B1ff;  width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Diferencia inventario respecto a enero</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].diferencia)+"</td>";
+                               }
+                               table += "</tr>";
+                                 table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;   color: white;  border: 1px solid black; font-size: 16px;'>Inv. En proceso</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" + addCommas(data[i].inv_proceso)+"</td>";
+                               }
+                               table += "</tr>";
+                                   table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;   color: white;  border: 1px solid black; font-size: 16px;'>Inv. Disponible</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" +addCommas(data[i].inv_disponible)+"</td>";
+                               }
+                               table += "</tr>";
+                               table += "<tr>";
+                        
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;   color: white; border: 1px solid black; font-size: 16px;'>Inv. Final  año anterior </th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>$" +addCommas( data[i].inv_final)+"</td>";
+                               }
+                               table += "</tr>";
+                                 table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;   color: white; border: 1px solid black; font-size: 16px;'>variacion inventario respecto al año anterior </th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" + addCommas( data[i].variacion_inventario)+"%</td>";
+                               }
+                       table += "</tr>";
+                               table += "<tr>";
+                                 table += "<th align='center' width: 30%;'>Datos</th>";
+                       for (var i = 0; i < data.length; i++) {
+                         
+                                   table += "<td align='center' > &nbsp;&nbsp;&nbsp;</td>";
+                               }
+                                table += "</tr '>";
+                                      table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;  width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Rotacion inventario</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].rotacion_inven)+"%</td>";
+                               }
+                               table += "</tr>";
+                                     table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;   color: white;  border: 1px solid black; font-size: 16px;'>Lealtad bruta P&A</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].lealtad_bruta)+"%</td>";
+                               }
+                               table += "</tr>";
+                                  table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;   color: white; border: 1px solid black; font-size: 16px;'>Lealtad neta P&A</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].lealtad_neta)+"%</td>";
+                               }
+                               table += "</tr>";
+                                    table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;  width: 30%;   color: white;  border: 1px solid black; font-size: 16px;'>Lealtad neta sin accesorios</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" + addCommas(data[i].lealtad_neta_sin_acceso)+"%</td>";
+                               }
+                               table += "</tr>";
+                                   table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;   color: white;  border: 1px solid black; font-size: 16px;'>Margen bruto sin incentivos</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].margen_bruto_sin_incent)+"%</td>";
+                               }
+                               table += "</tr>";
+                                   table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff;  width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>Margen bruto con incentivos</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].margen_bruto_con_incent)+"%</td>";
+                               }
+                               table += "</tr>";
+                                    table += "<tr>";
+                                 table += "<th  align='center' style='background: #82B1ff; width: 30%;   color: white;  border: 1px solid black; font-size: 16px;'>FOF (First Order Fill)</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'>" +addCommas( data[i].fof)+"%</td>";
+                               }
+                               table += "</tr>";
+                                      table += "<tr>";
+                                 table += "<th align='center' style='background: #82B1ff;  width: 30%;  color: white;  border: 1px solid black; font-size: 16px;'>% Obsolencia</th>";
+                               for (var i = 0; i < data.length; i++) {
+                                   table += "<td align='center'  style='font-size: 16px; border: 1px solid black;'> " +addCommas( data[i].obsolencia)+"% </td>";
+                               }
+                               table += "</tr>";
+
+
+
+                               $('#tablareferencias').append(table);
+
+
+                },
+           
+            })
+
+
+
+        }
+
+
+
+
+
+
+
+        </script>
+}

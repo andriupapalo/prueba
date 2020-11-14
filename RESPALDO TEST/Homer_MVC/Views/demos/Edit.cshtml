@@ -1,0 +1,379 @@
+﻿@model Homer_MVC.IcebergModel.vdemos
+
+@{
+    ViewBag.Title = "Demos";
+    ViewBag.Icono = "fa fa-columns";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Editar</a></li>
+                <li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <a class="btn btn-info" href="../../demos?menu=@ViewBag.id_menu"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Crear nuevo</a>&nbsp;&nbsp;
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            @Html.Hidden("menu")
+                            @Html.HiddenFor(model => model.id)
+                            @Html.HiddenFor(model => model.fecha_creacion)
+                            @Html.HiddenFor(model => model.user_creacion)
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Plan Mayor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("planmayor", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "" })
+                                                @Html.ValidationMessageFor(model => model.planmayor, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Serie:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.serie, new { htmlAttributes = new { @class = "form-control", @required = "" } })
+                                                @Html.ValidationMessageFor(model => model.serie, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Ubicación:</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("ubicacion", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.ubicacion, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Placa:</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.placa, new { htmlAttributes = new { @class = "form-control" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Notas:</label>
+                                            <div class="col-md-6">
+                                                @Html.TextAreaFor(model => model.serie, new { @class = "form-control", @style = "width: 280px; height: 100px" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Estado:&nbsp;</label>
+                                            <div class="col-md-1">
+                                                <label class="control-label col-md-8">
+                                                    @Html.CheckBoxFor(model => model.estado, new { })
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6"></div>
+                                    <div class="col-sm-6" id="inactividad" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Razón Inactividad:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.razon_inactivo, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.razon_inactivo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-info-circle"></i>&nbsp;&nbsp;&nbsp;Información
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-3 small">
+                                        <p>Creado por: @ViewBag.user_nombre_cre</p>
+                                    </div>
+
+                                    <div class="col-sm-3 small">
+                                        <p>Fecha creación: @Html.DisplayFor(model => model.fecha_creacion)</p>
+                                    </div>
+
+                                    <div class="col-sm-3 small">
+                                        <p>
+                                            Actualizado por:  @{if (ViewBag.user_nombre_act == null)
+                                                {
+                                                <p class="text-danger">no se han realizado actualizaciones</p>
+                                            }
+                                            @ViewBag.user_nombre_act
+                                            }
+                                            </p>
+                                        </div>
+
+                                        <div class="col-sm-3 small">
+                                            <p>
+                                                Ultima actualización:  @{if (Model.fecha_actualizacion == null)
+                                                    {
+                                                    <p class="text-danger">no se han realizado actualizaciones</p>
+                                                }
+                                                @Html.DisplayFor(model => model.fecha_actualizacion)
+                                                }
+                                                </p>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                            }
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Plan Mayor</th>
+                                        <th style="text-align:center">Placa</th>
+                                        <th style="text-align:center">Serie</th>
+                                        <th style="text-align:center">Ubicación</th>
+                                        <th style="text-align:center">Notas</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+        $('#menu').val(@ViewBag.id_menu);
+        $('.js-source-states').select2();
+        buscarDatos();
+        setTimeout(function () {
+            $("#mensaje").fadeOut(1500);
+        }, 3000);
+        setTimeout(function () {
+            $("#mensaje_error").fadeOut(1500);
+        }, 3000);
+
+        if (!$('#estado').prop('checked')) {
+            $('#razon_inactivo').val('');
+            $('#inactividad').show();
+        }
+    });
+
+
+    $('#estado').click(function () {
+        if ($('#estado').prop('checked')) {
+            $('#inactividad').hide();
+            $('#razon_inactivo').val('No aplica');
+        } else {
+            $('#razon_inactivo').val('');
+            $('#inactividad').show();
+        }
+    });
+
+
+        $('#planmayor').change(function () {
+            $.ajax({
+                url: '/demos/BuscarVehiculo',
+                data: {
+                    plan_mayor: $('#planmayor').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#placa').val(data[0].placa)
+                },
+            });
+        });
+
+
+    function valida(id) {
+        window.location.href = '@Url.Action("Edit", "demos")?menu='+@ViewBag.id_menu+'&&id=' + id;
+    }
+
+
+    function buscarDatos() {
+
+        $.ajax({
+            url: '/demos/BuscarDatos',
+            data: {
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+                $('#tablaPaginada').find('tbody').empty();
+                for (var i = 0; i < data.length; i++) {
+                    $('#tablaPaginada').find('tbody').append('<tr><td align="center">'
+                        + data[i].planmayor + '</td><td align="center">'
+                        + data[i].placa + '</td><td align="center">'
+                        + data[i].serie + '</td><td align="center">'
+                        + data[i].ubivh_nombre + '</td><td align="center">'
+                        + data[i].notas + '</td><td width="5%"><button class="btn btn-info btn-xs" onclick="valida('
+                        + '\'' + data[i].id
+                        + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                }
+            },
+            complete: function (data) {
+                $('#tablaPaginada').dataTable({
+                    //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: [
+                        { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                        //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                    ]
+                });
+            }
+        });
+    }
+
+    function AgregarQuitarFavorito(){
+        $.ajax({
+            url: '/Inicio/AgregarQuitarFavorito',
+            data: {
+                id_menu: @ViewBag.id_menu,
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+                if (data.esFavorito == true) {
+                    $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                } else {
+                    $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                }
+            }
+        });
+    }
+
+    </script>
+
+}

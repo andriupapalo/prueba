@@ -1,0 +1,329 @@
+﻿@{
+    ViewBag.Title = "Motivos de Anulación";
+    ViewBag.Icono = "fa fa-folder-open-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles  {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Actualizar @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear" onclick=""><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Crear</a></li>
+                <li class="" onclick="buscarAjaxGrupos();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+
+                    @using (Html.BeginForm("EditarMotivoAnulacion", "FacturacionRepuestos"))
+                    {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Registro de Motivos de Anulación
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="row">
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Motivo:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <input type="hidden" id="iddetalle" name="iddetalle" value="'@ViewBag.iddetalle'" />
+                                                    @Html.Editor("motivo", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Motivo", @required = "required" } })
+                                                    <input type="hidden" id="idmotivo" name="idmotivo" value="'@ViewBag.idmotivo'" />
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Fecha:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.Editor("fecha", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Fecha", @required = "required" } })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Documentos:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                       @*<option></option>
+            @foreach (var item in ViewBag.doccons_idtpdoc)
+            {
+                <option class="selector" value="@item.tpdoc_id">@item.tpdoc_nombre</option>
+            }*@
+
+
+                                                 
+                                                    @Html.DropDownList("doccons_idtpdoc", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", multiple="multiple" , required = "required" })
+
+
+
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+
+
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                    }
+
+                </div>
+
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Motivo</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Documento (s)</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/fullcalendar/dist/fullcalendar.min.js"></script>
+    <script src="~/Vendor/fullcalendar/dist/lang-all.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+
+          
+            $('#menu').val(@ViewBag.id_menu);
+
+            var documentos = '@ViewBag.documentosSelect';
+            var doc = documentos.split(",");
+
+                 $('#doccons_idtpdoc').val(doc); 
+          
+
+              $('#doccons_idtpdoc').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 400
+              });
+
+            //$('input[type=checkbox]:checked').each(function (checkbox) {
+            //checkbox = $(this).prop('checked', false);
+            //});
+
+            $("#fecha").datetimepicker({
+                format: 'YYYY-MM-DD',
+            });
+
+            $('#bodega').val('@ViewBag.bodegaActual').select2();
+
+
+            $('#iddetalle').val('@ViewBag.iddetalle');
+            $('#idmotivo').val('@ViewBag.idmotivo');
+
+            $('#motivo').val('@ViewBag.motivo');
+            $('#fecha').val('@ViewBag.fecha');
+
+        });
+
+        function crearCaja() {
+            $('#buscar').hide();
+            $('#tablaPaginada').hide();
+            $('#crear').show();
+
+
+        }
+
+        function addCommas(nStr) {
+
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? `,${x[1]}` : '';
+            const rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+
+        }
+
+         $('#total').change(function () {
+            debugger;
+            var valor = $('#total').val();
+            debugger;
+            var valord = addCommas(valor);
+            $('#total').val(valord);
+        });
+
+        function actualizar(id) {
+        window.location.href = '@Url.Action("EditarMotivoAnulacion", "FacturacionRepuestos")?id=' + id;
+        }
+
+
+        function buscarAjaxGrupos() {
+
+            $("#tablaPaginada").dataTable().fnDestroy();
+
+                    var table = $('#tablaPaginada').DataTable({
+                        "processing": true,
+                        "serverSide": true,
+                        "filter": true,
+                        "orderMulti": false,
+                        "searching": false,
+                        dom: "<''<'col-sm-4'><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'li>p",
+                        "lengthMenu": [[50, 100, 200, -1], [50, 100, 200, "All"]],
+                        buttons: [
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm', text: 'Exportar a Excel' }
+                        ],
+                        "ajax": {
+                            "url": "/FacturacionRepuestos/busquedaMotivos",
+                            "type": "POST",
+                            "datatype": "json",
+                            "data": {
+                            }
+                        },
+                        "columns": [
+                            { "data": "motivo", "name": "motivo", "autoWidth": true },
+                            { "data": "fecha", "name": "fecha", "autoWidth": true },
+                            { "data": "listadocumentos", "name": "listadocumentos", "autoWidth": true },
+
+
+                            {
+                                "mData": null,
+                                "bSortable": false,
+                                "mRender": function (o) {
+                                    var boton = "";
+                                    boton = '<a class="btn btn-info btn-xs" id="btnActualizar" onclick="actualizar(' + o.id + ')">&nbsp;Editar&nbsp;</a></td>&nbsp;';
+                                    return boton;
+                                }
+                            },
+
+                        ],
+                        "order": [[0, "asc"]]
+                    });
+
+                    var data = table.buttons.exportData();
+                    // Buscar filtros
+                    //$('#botonbuscar2').prop('disabled', false);
+
+        }
+
+
+    </script>
+
+}
+

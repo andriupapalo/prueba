@@ -1,0 +1,893 @@
+﻿@model Homer_MVC.IcebergModel.InventarioModel
+@{
+    ViewBag.Title = "Inventario Físico";
+    ViewBag.Icono = "fa fa-wrench";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px; width:100%">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i>  @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+        <div class="alert alert-success  alert-dismissible" id="aut" style="display:none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p id="mensaje_aut"><i class="fa fa-times fa-2x"></i></p>
+        </div>
+        <div class="alert alert-danger  alert-dismissible" id="aut_error" style="display:none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p id="mensaje_aut_error"><i class="fa fa-times fa-2x"></i></p>
+        </div>
+
+        <div class="alert alert-danger  alert-dismissible" id="mensaje_error_permiso" style="display:none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p><i class="fa fa-times fa-2x"></i></p>
+        </div>
+
+        <div id="tabs" class="tab-content" style="display:none">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-Conteo" class="nav nav-tabs">
+                @*<li class=""><a href="@Url.Action("inventario","InventarioFisico")"><i class="fa fa-lock"></i>&nbsp;&nbsp;Bloquear</a></li>
+                    <li class=""><a href="@Url.Action("desbloquear","InventarioFisico")"><i class="fa fa-unlock"></i>&nbsp;&nbsp;Desbloquear</a></li>*@
+                <li class="active"><a data-toggle="tab" href="#Conteo"><i class="fa fa-hand-pointer-o"></i>&nbsp;&nbsp;Conteo</a></li>
+            </ul>
+
+            <div id="Conteo" class="tab-pane active">
+                <div class="panel-body">
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            @*botones*@
+                        </div>
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Persona 1</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" type="hidden" name="person_1id" id="person_1id" value="@ViewBag.person_1id" readonly />
+                                                <input class="form-control" type="hidden" name="aut_1" id="aut_1" value="0" readonly />
+                                                <input class="form-control" type="text" name="person_1" id="person_1" value="@ViewBag.person_1" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" id="autenticacion1">
+                                        <div class="col-md-4">
+                                            <input type="password" class="form-control col-md" name="contrasenaid1" id="contrasenaid1" value="" placeholder="Digite su contraseña" autocomplete="off" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button class="btn btn-success form-control" type="button" id="btn_validar_1"><i class="fa fa-check"></i>&nbsp;&nbsp;Autenticar</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" id="div_ubicaciones" style="display:none">
+                                        <div class="col-md-5">
+                                            <button class="btn btn-info form-control" type="button" id="btn_ubicaciones"><i class="fa fa-location-arrow"></i>&nbsp; Ubicaciones Asignadas</button>
+                                            <button class="btn btn-info form-control" style="display:none" type="button" id="btn_ubicaciones_extra" onclick="buscarUbicacionesExtra()"><i class="fa fa-location-arrow"></i>&nbsp; Ubicaciones Extras</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row" id="">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Persona 2</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" type="hidden" name="person_2id" id="person_2id" value="@ViewBag.person_2id" readonly />
+                                                <input class="form-control" type="hidden" name="aut_2" id="aut_2" value="0" readonly />
+                                                <input class="form-control" type="text" name="person_2" id="person_2" value="@ViewBag.person_2" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" id="autenticacion2">
+                                        <div class="col-md-4">
+                                            <input type="password" class="form-control col-md" name="contrasenaid2" id="contrasenaid2" value="" placeholder="Digite su contraseña" autocomplete="off" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button class="btn btn-success form-control" type="button" id="btn_validar_2"><i class="fa fa-check"></i>&nbsp;&nbsp;Autenticar</button>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="hpanel ocult" id="formulario" style="display:none">
+                                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                        <div class="panel-tools">
+                                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                        </div>
+                                        <i class="fa fa-hand-pointer-o"></i>&nbsp;&nbsp;&nbsp;Conteo
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="row">
+                                            <div class="col-md-6" id="tipo_conteo_div" style="display:none">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Conteo:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <select id="lista_tipo_conteo" class="form-control">
+                                                            <option value="">selecciones conteo</option>
+                                                            <option value="0">Conteo 1</option>
+                                                            <option value="1">Conteo 2</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Ubicación:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <select type="text" class="form-control" name="ubi_conteo" id="ubi_conteo"   style="text-transform:uppercase" >
+                                                            </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Referencia:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <input type="text" class="form-control" name="ref_conteo" id="ref_conteo" readonly value="" />
+                                                        <input type="hidden" class="form-control" name="ref_conteo2" id="ref_conteo2" readonly value="" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4"></label>
+                                                    <div class="col-md-6">
+                                                        <input type="text" class="form-control" name="input_punteo" onkeypress="validar(event)" id="input_punteo" value="" placeholder="Puntee Aquí" />
+                                                        <span style="display:none" id="error_asignada" class="text-danger">Esta ubicación no le fue asignada</span>
+                                                        <span style="display:none" id="error_ref_asignada" class="text-danger">Esta referencia no le fue asignada o no pertence a esta ubicación.</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4"></label>
+                                                    <div class="col-md-4">
+                                                        <input type="text" class="form-control" name="input_contador" id="input_contador" value="" placeholder="Contador" />
+                                                        <span style="display:none" id="guardado_success" class="text-success">Cambios Guardados</span>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <button class="form-control btn-success btn-sm" type="button" onclick="guardar2()"><i class="fa fa-save"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="col-md-4"></label>
+                                                    <div class="alert alert-success alert-dismissible col-md-2" id="guardado_ok" style="display:none; padding:5px">
+                                                        <p id="guardado"><i class="fa fa-save"></i>&nbsp;Guardado</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="hpanel ocult" id="ultimos_registros" style="display:none">
+                                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                        <div class="panel-tools">
+                                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                        </div>
+                                        <i class="fa fa-hand-pointer-o"></i>&nbsp;&nbsp;&nbsp;Últimos Registros
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+
+                                                    <div class="table-responsive col-md-12">
+
+                                                        <table class="table table-striped table-bordered table-hover" id="tabla_registros">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="text-align:center">Número</th>
+                                                                    <th style="text-align:center">Inventario</th>
+                                                                    <th style="text-align:center">Bodega</th>
+                                                                    <th style="text-align:center">Grupo</th>
+                                                                    <th style="text-align:center">Referencia</th>
+                                                                    <th style="text-align:center">Ubicación</th>
+                                                                    <th style="text-align:center">Cantidad Conteo 1</th>
+                                                                    <th style="text-align:center">Cantidad Conteo 2</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                        <table class="table table-striped table-bordered table-hover" hidden id="tabla_registros_extra">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="text-align:center">Número</th>
+                                                                    <th style="text-align:center">Inventario</th>
+                                                                    <th style="text-align:center">Bodega</th>
+                                                                    <th style="text-align:center">Grupo</th>
+                                                                    <th style="text-align:center">Código</th>
+                                                                    <th style="text-align:center">Referencia</th>
+                                                                    <th style="text-align:center">Ubicación</th>
+                                                                    <th style="text-align:center">Cantidad Conteo Extra</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="col-md-9">
+                                                            <button type="button" class="btn btn-danger form-control" id="finalizar"><i class="fa fa-close"></i>&nbsp;&nbsp;Finalizar Conteo</button>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal hmodal-info" id="modal_ubicaciones" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Ubicaciones Asignadas</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_ubicaciones">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Área</th>
+                                <th style="text-align:center">Estantería</th>
+                                <th style="text-align:center">Ubicaciones Conteo 1</th>
+                                <th style="text-align:center">Ubicaciones Conteo 2</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal hmodal-info" id="modal_ubicaciones_extra" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Ubicaciones y Referencias Asignadas Conteo Extra</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Ubicaciones:&nbsp;</label>
+                            <div class="col-md-8">
+                                <select class="form-control" id="lista_ubicaciones_extra"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_ubicaciones_extra">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Código</th>
+                                <th style="text-align:center">Referencia</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+
+    <script type="text/javascript">
+        var cont = 1
+        $(document).ready(function () {
+
+            buscarPermiso()
+            if (@ViewBag.usuarioLog == $('#person_1id').val()) {
+                $('#autenticacion1').hide()
+                $('#aut_1').val(1)
+            }
+            if (@ViewBag.usuarioLog == $('#person_2id').val()) {
+                $('#autenticacion2').hide()
+                $('#aut_2').val(1)
+            }
+            var estado_persona2 = @Convert.ToString(ViewBag.person_2ne);
+            if (estado_persona2 == "0") {
+                $('#persona_2').hide()
+            }
+            window.addEventListener("keypress", function(event){
+                if (event.keyCode == 13){
+                    event.preventDefault();
+                }
+            }, false);
+
+            if (@ViewBag.tipo_conteo == 1) {
+                $('#tipo_conteo_div').show()
+            }
+        });
+
+        function validar(e) {
+            tecla = (document.all) ? e.keyCode : e.which;
+            if (tecla==13)
+            {
+                desicion()
+            };
+        }
+
+        $('#btn_ubicaciones').click(function () {
+            $('#tabla_ubicaciones').dataTable().fnDestroy();
+            $.ajax({
+                url: '/InventarioFisico/buscarUbicacionesAsignadas',
+                data: {
+                    pareja: @ViewBag.pareja_id,
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    $('#tabla_ubicaciones').find('tbody').empty()
+                    for (var i = 0; i < data.ubi1.length; i++) {
+                        $('#tabla_ubicaciones').find('tbody').append(
+                            '<tr>'
+                            + '<td>' + data.ubi1[i].area + '</td>'
+                            + '<td>' + data.ubi1[i].estanteria + '</td>'
+                            + '<td>' + data.ubi1[i].ubicacion + '</td>'
+                            + '<td></td>'
+                            + '</tr>'
+                        );
+                    }
+                    for (var i = 0; i < data.ubi2.length; i++) {
+                        $('#tabla_ubicaciones').find('tbody').append(
+                            '<tr>'
+                            + '<td>' + data.ubi2[i].area + '</td>'
+                            + '<td>' + data.ubi2[i].estanteria + '</td>'
+                            + '<td></td>'
+                            + '<td>' + data.ubi2[i].ubicacion + '</td>'
+                            + '</tr>'
+                        )
+                    }
+                },
+                complete: function () {
+                    $('#tabla_ubicaciones').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            });
+            $('#modal_ubicaciones').modal('show')
+            $('body').removeClass('modal-open')
+        });
+
+        $('#btn_validar_1').click(function () {
+            $.ajax({
+                url: '/InventarioFisico/autenticaciones',
+                data: {
+                    contrasena: $('#contrasenaid1').val(),
+                    usuario1: $('#person_1id').val(),
+                    usuario2: false,
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    if (data.ok == true) {
+                        $('#aut').show()
+                        $('#mensaje_aut').text(data.mensaje)
+                        $('#aut').fadeOut(5000)
+                        $('#aut_1').val(1)
+                        $('#autenticacion1').hide()
+                        continuar()
+                    }
+                    if (data.ok == false) {
+                        $('#contrasenaid1').val('')
+                        $('#aut_error').show()
+                        $('#mensaje_aut_error').text(data.mensaje)
+                        $('#aut_error').fadeOut(5000)
+                    }
+                }
+            });
+        });
+
+        $('#btn_validar_2').click(function () {
+            $.ajax({
+                url: '/InventarioFisico/autenticaciones',
+                data: {
+                    contrasena: $('#contrasenaid2').val(),
+                    usuario1: false,
+                    usuario2: $('#person_2id').val(),
+                    existe: @Convert.ToString(ViewBag.person_2ne),
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    if (data.ok == true) {
+                        $('#aut').show()
+                        $('#mensaje_aut').text(data.mensaje)
+                        $('#aut').fadeOut(5000)
+                        $('#aut_2').val(1)
+                        $('#autenticacion2').hide()
+                        continuar()
+                    }
+                    if (data.ok == false) {
+                        $('#contrasenaid2').val('');
+                        $('#aut_error').show();
+                        $('#mensaje_aut_error').text(data.mensaje);
+                        $('#aut_error').fadeOut(5000);
+                    }
+                }
+            });
+        });
+
+        $('#lista_tipo_conteo').change(function () {
+            $('#ubi_conteo').val('')
+            $('#ref_conteo').val('')
+            $('#ref_conteo2').val('')
+            $('#input_contador').val('')
+            buscarubicacionesconteo();
+            
+        });
+
+
+        function buscarubicacionesconteo() {
+
+            console.log('conteo '+$('#lista_tipo_conteo').val())
+              $.ajax({
+                  url: '/InventarioFisico/traer_ubicaciones',
+                    data: {
+                    id_encab: @ViewBag.encabezado,
+                    id_pareja: @ViewBag.pareja_id,
+                    tipo: $('#lista_tipo_conteo').val()
+                },
+                type: 'post',
+                cache: false,
+                  success: function (data) {
+                               console.log('datos '+ data.asignadas)
+                      var opciones = "";
+                      $('#ubi_conteo').empty();
+                      for (var i = 0; i < data.length; i++) {
+                          opciones += "<option value=" + data[i].id_ubicacion + ">" + data[i].descripcion + "</option>";
+
+
+                      }
+                      $('#ubi_conteo').append(opciones);
+
+               
+                }
+            });
+        }
+        
+
+
+
+
+        $('#ubi_conteo').change(function () {
+            guardar()
+        });
+
+        $('#ref_conteo2').change(function () {
+            guardar()
+        });
+
+        $('#finalizar').click(function () {
+            swal({
+                title: 'Confirme',
+                text: '¿Está seguro que desea dar por terminado el punteo del inventario?, valide que ya realizó todas las ubicaciones asignadas',
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Sí, finalizar!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: true,
+                closeOnCancel: false
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        url: '/InventarioFisico/finalizarConteo',
+                        data: {
+                            pareja: @ViewBag.pareja_id,
+                            act: true,
+                        },
+                        success: function () {
+                            window.location.reload()
+                        }
+                    })
+                } else {
+                    swal("Cancelado", "", "error");
+                }
+            });
+        });
+
+        function registros(){
+            $('#tabla_registros_extra').dataTable().fnDestroy();
+            $.ajax({
+                url: '/InventarioFisico/buscarRegistros',
+                data: {
+                    encab: @ViewBag.encabezado,
+                    pareja: @ViewBag.pareja_id,
+                    tipo: $('#lista_tipo_conteo').val()
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    var num = 1;
+                    if ($('#lista_tipo_conteo').val() == 3) {
+                        $('#tabla_registros_extra').find('tbody').empty()
+                        for (var i = 0; i < data.length; i++) {
+                            $('#tabla_registros_extra').find('tbody').append(
+                                '<tr>'
+                                + '<td align="right">' + num + '</td>'
+                                + '<td align="left">' + data[i].encabezado + '</td>'
+                                + '<td align="left">' + data[i].bodega + '</td>'
+                                + '<td align="right">' + data[i].grupo + '</td>'
+                                + '<td align="left">' + data[i].codigo + '</td>'
+                                + '<td align="left">' + data[i].descripcion + '</td>'
+                                + '<td align="left">' + data[i].ubicacion + '</td>'
+                                + '<td align="right">' + data[i].conteoExtra + '</td>'
+                                + '</td>'
+                            );
+                            num++
+                        }
+                    } else {
+                        $('#tabla_registros').find('tbody').empty()
+                        for (var i = 0; i < data.length; i++) {
+                            $('#tabla_registros').find('tbody').append(
+                                '<tr>'
+                                + '<td align="right">' + num + '</td>'
+                                + '<td align="left">' + data[i].encabezado + '</td>'
+                                + '<td align="left">' + data[i].bodega + '</td>'
+                                + '<td align="right">' + data[i].grupo + '</td>'
+                                + '<td align="left">' + data[i].referencia + '</td>'
+                                + '<td align="left">' + data[i].ubicacion + '</td>'
+                                + '<td align="right">' + data[i].cantidad_1 + '</td>'
+                                + '<td align="right">' + data[i].cantidad_2 + '</td>'
+                                + '</td>'
+                            )
+                            num++
+                        }
+                    }
+                },
+                complete: function () {
+                    $('#tabla_registros_extra').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            });
+        }
+
+        function buscarPermiso() {
+            $.ajax({
+                url: '/InventarioFisico/buscarPermiso',
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    debugger
+                    if (data.estado == false) {
+                        $('#mensaje_error_permiso').text(data.mensaje)
+                        $('#mensaje_error_permiso').show()
+                    }
+                    else {
+                        if (@ViewBag.finalizado == 0) {
+                            $('#tabs').show()
+                        } else {
+                            buscarConteoExtra()
+                        }
+                    }
+                }
+            });
+        }
+
+        function continuar(){
+            if ($('#aut_1').val() == 1 && $('#aut_2').val() == 1) {
+                $('#div_ubicaciones').show()
+                $('.ocult').show()
+                $('#lista_tipo_conteo').select2()
+                registros()
+            }
+        }
+
+        function desicion() {
+
+            console.log($('#input_punteo').val())
+             console.log($('#ubi_conteo').val() )
+            console.log($('#lista_tipo_conteo').val())
+            $.ajax({
+                url: '/InventarioFisico/desicion',
+                data: {
+                    codigo: $('#input_punteo').val(),
+                    encab: @ViewBag.encabezado,
+                    tipo: $('#lista_tipo_conteo').val(),
+                    ubicacion: $('#ubi_conteo').val()
+                },
+                cache: false,
+                type: 'post',
+                success: function (data) {
+                    if (data.r == true) {
+                        if ($('#lista_tipo_conteo').val() == 3) {
+
+                            if (data.ref_asignada == true) {
+
+                                if ($('#input_punteo').val() == $('#ref_conteo2').val()) {
+                                    cont++
+                                    $('#input_contador').val(cont)
+                                    $('#input_punteo').val('')
+                                } else {
+                                    cont = 1
+                                    $('#ref_conteo2').trigger('change')
+                                    $('#ref_conteo2').val($('#input_punteo').val())
+                                    $('#ref_conteo').val(data.refe.codigo)
+                                    $('#input_contador').val('')
+                                    $('#input_contador').val(cont)
+                                    $('#input_punteo').val('')
+                                }
+                            } else {
+                                $('#error_ref_asignada').show().fadeOut(4000)
+                            }
+                        }
+                        else {
+                            if ($('#input_punteo').val() == $('#ref_conteo2').val()) {
+                                cont++
+                                $('#input_contador').val(cont)
+                                $('#input_punteo').val('')
+                            } else {
+                                cont = 1
+                                $('#ref_conteo2').trigger('change')
+                                $('#ref_conteo2').val($('#input_punteo').val())
+                                $('#ref_conteo').val(data.refe.codigo)
+                                $('#input_contador').val('')
+                                $('#input_contador').val(cont)
+                                $('#input_punteo').val('')
+                            }
+                        }
+                    }
+                    if (data.u == true) {
+                        if (data.asignada == true) {
+                            $('#ubi_conteo').val()
+                            $('#ubi_conteo').trigger('change')
+                            $('#ubi_conteo').val($('#input_punteo').val())
+                            cont = 1
+                            $('#input_contador').val('')
+                            $('#ref_conteo').val('')
+                            $('#ref_conteo2').val('')
+                            $('#input_punteo').val('')
+                        } else {
+                            $('#error_asignada').show().fadeOut(3000)
+                        }
+                    }
+                }
+            });
+        }
+
+        function guardar(){
+            if ($('#ubi_conteo').val() != "" && $('#ref_conteo2').val() != "" && $('#input_contador').val() != "") {
+                $.ajax({
+                    url: '/InventarioFisico/Guardado',
+                    data: {
+                        ubi: $('#ubi_conteo').val(),
+                        refe: $('#ref_conteo2').val(),
+                        cont: $('#input_contador').val(),
+                        encab: @ViewBag.encabezado,
+                        pareja: @ViewBag.pareja_id,
+                        tipo: $('#lista_tipo_conteo').val()
+                    },
+                    type: 'post',
+                    cache: false,
+                    success: function (data) {
+                        registros()
+                        $('#guardado_ok').show()
+                        $('#guardado_ok').fadeOut(2000)
+                    }
+                });
+            }
+        }
+
+        function guardar2() {
+            console.log('ubicacion '+$('#ubi_conteo').val())
+            if ($('#ubi_conteo').val() != "" && $('#ref_conteo2').val() != "" && $('#input_contador').val() != "") {
+                $.ajax({
+                    url: '/InventarioFisico/Guardado',
+                    data: {
+                        ubi: $('#ubi_conteo').val(),
+                        refe: $('#ref_conteo2').val(),
+                        cont: $('#input_contador').val(),
+                        encab: @ViewBag.encabezado,
+                        pareja: @ViewBag.pareja_id,
+                        tipo: $('#lista_tipo_conteo').val()
+                    },
+                    type: 'post',
+                    cache: false,
+                    success: function (data) {
+                        registros()
+                        $('#ref_conteo2').val('')
+                        $('#ref_conteo').val('')
+                        $('#input_contador').val('')
+                        $('#guardado_ok').show()
+                        $('#guardado_ok').fadeOut(2000)
+                    }
+                });
+            }
+        }
+
+        function buscarConteoExtra() {
+            $.ajax({
+                url: '/InventarioFisico/buscarConteoExtra',
+                data: {},
+                type: 'post',
+                cache: false,
+                success: function (data) {
+
+                    if (data.extra == 0) {
+                        $('#mensaje_error_permiso').removeClass('alert-danger')
+                        $('#mensaje_error_permiso').addClass('alert-info')
+                        $('#mensaje_error_permiso').text('La pareja ya finalizó el inventario')
+                        setTimeout(function () {
+                            $('#mensaje_error_permiso').show()
+                        }, 1000)
+                    }
+                    if (data.extra == 1) {
+                        $('#lista_tipo_conteo').empty()
+                        $('#lista_tipo_conteo').append('<option value="3">Conteo Extra')
+                        $('#btn_ubicaciones').hide()
+                        $('#tabla_registros').hide()
+                        registros()
+                        $('#tabla_registros_extra').show()
+                        $('#btn_ubicaciones_extra').show()
+                        $('#tabs').show()
+
+                    }
+                }
+            });
+        }
+
+        function buscarUbicacionesExtra(){
+            $.ajax({
+                url: '/InventarioFisico/buscarAsignacionExtra',
+                data: {
+                    encab: @ViewBag.encabezado,
+                    pareja: @ViewBag.pareja_id,
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    $('#lista_ubicaciones_extra').empty()
+                    for (var i = 0; i < data.length; i++) {
+                        $('#lista_ubicaciones_extra').append('<option value="' + data[i].id + '">' + data[i].descripcion)
+                    }
+                    $('#lista_ubicaciones_extra').select2()
+                    $('#lista_ubicaciones_extra').trigger('change')
+                    $('#modal_ubicaciones_extra').modal('show')
+                }
+            });
+        }
+
+        function buscarFinalizado(){
+
+        }
+
+        $('#lista_ubicaciones_extra').change(function () {
+            $('#tabla_ubicaciones_extra').dataTable().fnDestroy()
+            $.ajax({
+                url: '/InventarioFisico/cargarReferenciasConteoExtra',
+                data: {
+                    ubicacion: $('#lista_ubicaciones_extra').val(),
+                    encab: @ViewBag.encabezado,
+                    pareja: @ViewBag.pareja_id,
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    $('#tabla_ubicaciones_extra').find('tbody').empty()
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tabla_ubicaciones_extra').find('tbody').append(
+                            '<tr>'
+                            + '<td>' + data[i].codigo + '</td>'
+                            + '<td>' + data[i].descripcion + '</td>'
+                            + '</tr>'
+                        )
+                    }
+                },
+                complete: function () {
+                    $('#tabla_ubicaciones_extra').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            });
+        });
+
+    </script>
+
+}

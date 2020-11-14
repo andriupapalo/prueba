@@ -1,0 +1,900 @@
+﻿@model Homer_MVC.Models.terceroClienteForm
+
+@{
+    ViewBag.Title = "Cliente";
+    ViewBag.Icono = "fa fa-user";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    @*<link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />*@
+
+
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Actualizar @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li id="terceroT"><a data-toggle="tab" href=""><i class="fa fa-users"></i>&nbsp;&nbsp;Terceros</a></li>
+                <li class="active" id="clienteT"><a data-toggle="tab" href="#cliente"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li id="proveedorT" style="display:none"><a data-toggle="tab" href=""><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Proveedor</a></li>
+                <li id="empleadoT" style="display:none"><a data-toggle="tab" href=""><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Empleado</a></li>
+                <li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="terceros" class="tab-pane">
+                <div class="panel-body">
+                </div>
+            </div>
+
+
+            <div id="cliente" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm("updateCliente", "icb_terceros", FormMethod.Post))
+                    {
+                        <div class="panel-body-btns text-right">
+                            <a class="btn btn-info" href="../../terceros?menu=@ViewBag.id_menu"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Crear nuevo</a>&nbsp;
+                            @*<button class="btn btn-info" type="button" data-toggle="modal" data-target="#Modalperfil">Perfil</button>*@
+                            <button class="btn btn-info" type="submit" id="btnActualizarParteSuperior">
+                                <i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar
+                            </button>
+                        </div>
+
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        @Html.HiddenFor(model => model.tercero_id);
+                        @Html.HiddenFor(model => model.usuario_modi);
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Información Cliente
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Cliente:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.tipo_cliente, ViewBag.tipo_cliente.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "" })
+                                                @Html.ValidationMessageFor(model => model.tipo_cliente, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Estado Civil:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.edocivil_id, ViewBag.edocivil_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "" })
+                                                @Html.ValidationMessageFor(model => model.edocivil_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Ocupación:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @*@Html.DropDownListFor(model => model.tpocupacion_id, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "" })*@
+                                                @Html.DropDownListFor(model => model.tpocupacion_id,  ViewBag.tpocupacion_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "" })
+                                                @Html.ValidationMessageFor(model => model.tpocupacion_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Hobby :&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.tphobby_id, ViewBag.tphobby_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "" })
+                                                @Html.ValidationMessageFor(model => model.tphobby_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Deporte:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.tpdpte_id, ViewBag.tpdpte_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "" })
+                                                @Html.ValidationMessageFor(model => model.tpdpte_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número de Hijos:</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.numhijos_tercero, new { htmlAttributes = new { @class = "form-control", @type = "number", @placeholder = "Ingrese número de hijos" } })
+                                                @Html.ValidationMessageFor(model => model.numhijos_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="div_edades_hijos" style="display: none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Edades:</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.edades_hijos, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese edades de hijos" } })
+                                                @Html.ValidationMessageFor(model => model.edades_hijos, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Página Web:</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.pagina_web, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "" } })
+                                                @Html.ValidationMessageFor(model => model.pagina_web, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Telefono:</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.telefono, new { htmlAttributes = new { @class = "form-control", @type = "number", @placeholder = "Ingrese telefono" } })
+                                                @Html.ValidationMessageFor(model => model.telefono, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Segmentación:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.idsegmentacion, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required", @disabled = "disabled" })
+                                                @Html.ValidationMessageFor(model => model.idsegmentacion, "", new { @class = "text-danger" })
+                                                <input type="hidden" name="valSegmentacion" id="valSegmentacion" value="" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+
+
+
+
+                        <div class="hpanel" id="panelHabeasData">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-book"></i>&nbsp;&nbsp;&nbsp;Información Contable
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+
+                                        <label class="control-label col-md-4">Exento de Iva:</label>
+                                        <div class="col-md-6">
+
+                                            @Html.CheckBoxFor(model => model.exentoiva, new { @data_toggle = "toggle", @data_size = "mini" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Rango no facturación:</label>
+                                        <div class="col-md-2">
+                                            @Html.EditorFor(model => model.dia_nofacturad, new { htmlAttributes = new { @class = "form-control", @type = "number", @placeholder = "Día" } })
+                                        </div>
+                                        <label class="control-label col-md-1">a</label>
+                                        <div class="col-md-2">
+                                            @Html.EditorFor(model => model.dia_nofacturah, new { htmlAttributes = new { @class = "form-control", @type = "number", @placeholder = "Día" } })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Descuento Mano de Obra</label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.dscto_mo, new { htmlAttributes = new { @class = "form-control", @placeholder = "%" } })
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Descuento Repuestos</label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.dscto_rep, new { htmlAttributes = new { @class = "form-control", @placeholder = "%" } })
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Cupo Aprobado</label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.cupocredito, new { htmlAttributes = new { @class = "form-control", @placeholder = "$", onkeyUp = "return miles(this.id)" } })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Saldo Disponible</label>
+                                        <div class="col-md-6">
+                                            <input readonly id="saldocupo" name="saldocupo" class="form-control" value="@ViewBag.saldocupo" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Fecha Cupo Crédito</label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.fec_cupo_limite, new { htmlAttributes = new { @class = "form-control",  @autocomplete = "off" } })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @*<div class="col-sm-6">
+                    <div class="form-group">
+                    <label class="control-label col-md-4">Tipo Regimen:&nbsp;<span class="text-danger"></span></label>
+                    <div class="col-md-6">
+                    @Html.DropDownListFor(model => model.tpregimen_id, ViewBag.tpregimen_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @_Enabled = "false" })
+                    @Html.ValidationMessageFor(model => model.tpregimen_id, "", new { @class = "text-danger" })
+                    </div>
+                    </div>
+                    </div>*@
+
+                                @*<div class="col-sm-6">
+                    <div class="form-group">
+                    <label class="control-label col-md-4">Actividad Economica:&nbsp;<span class="text-danger">*</span></label>
+                    <div class="col-md-6">
+                    @Html.DropDownListFor(model => model.actividadEconomica_id, ViewBag.actividadEconomica_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                    @Html.ValidationMessageFor(model => model.actividadEconomica_id, "", new { @class = "text-danger" })
+                    </div>
+                    </div>
+                    </div>*@
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Condición de Pago:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownListFor(model => model.cod_pago_id, ViewBag.cod_pago_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "" })
+                                            @Html.ValidationMessageFor(model => model.cod_pago_id, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                @*<div class="col-sm-6">
+                    <div class="form-group">
+                    <label class="control-label col-md-4">Precios Accesorios:&nbsp;</label>
+                    <div class="col-md-6">
+                    <select class="form-control js-source-states" name="lprecios_repuestos" id="lprecios_repuestos">
+                    <option></option>
+                    <option value="precio1">Precio 1</option>
+                    <option value="precio2">Precio 2</option>
+                    <option value="precio3">Precio 3</option>
+                    <option value="precio4">Precio 4</option>
+                    <option value="precio5">Precio 5</option>
+                    <option value="precio6">Precio 6</option>
+                    <option value="precio7">Precio 7</option>
+                    <option value="precio8">Precio 8</option>
+                    <option value="precio9">Precio 9</option>
+                    </select>
+                    </div>
+                    </div>
+                    </div>*@
+
+                                @*<div class="col-sm-6">
+                    <div class="form-group">
+                    <label class="control-label col-md-4">Precios Vehículos:&nbsp;</label>
+                    <div class="col-md-4">
+                    @Html.EditorFor(model => model.lprecios_vehiculos, new { htmlAttributes = new { @class = "form-control", @placeholder = "" } })
+                    @Html.ValidationMessageFor(model => model.lprecios_vehiculos, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-4">
+                    <button type="button" class="btn btn-success btn-circle" onclick="buscarListaVehiculos()">
+                    <i class="fa fa-search"></i>
+                    </button>
+                    </div>
+                    </div>
+                    </div>*@
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Bloquear:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.CheckBoxFor(model => model.bloqueado, new { @data_toggle = "toggle", @data_size = "mini", @data_on = "Bloqueado", @data_off = "Desbloqueado" })
+                                            @Html.ValidationMessageFor(model => model.bloqueado, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                                <div class="col-sm-6" id="mov_bloqueado" style="display: none">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Motivo Bloqueado</label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.motivo_bloqueado, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese Motivo de Bloqueo" } })
+                                            @Html.ValidationMessageFor(model => model.motivo_bloqueado, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Días atraso para bloqueo de cartera</label>
+                                        <div class="col-md-3">
+                                            @Html.EditorFor(model => model.tiempo_para_bloqueo, new { htmlAttributes = new { @class = "form-control", } })
+                                            @Html.ValidationMessageFor(model => model.tiempo_para_bloqueo, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-info-circle"></i>&nbsp;&nbsp;&nbsp;Información
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-3 small">
+                                    <p>Creado por: @ViewBag.user_nombre_cre</p>
+                                </div>
+
+                                <div class="col-sm-3 small">
+                                    <p>Fecha creación: @Html.DisplayFor(model => model.terclifec_creacion)</p>
+                                </div>
+
+                                <div class="col-sm-3 small">
+                                    <p>
+                                        Actualizado por:  @{if (ViewBag.user_nombre_act == null)
+                                            {
+                                            <p class="text-danger">No se han realizado actualizaciones</p>
+                                        }
+                                        @ViewBag.user_nombre_act
+
+                                        }
+                                        </p>
+                                    </div>
+
+                                    <div class="col-sm-3 small">
+
+                                        <p>
+
+                                            Ultima actualización:  @{if (Model.terclifec_actualizacion == null)
+                                                {
+                                                <p class="text-danger">No se han realizado actualizaciones</p>
+                                            }
+                                            @Html.DisplayFor(model => model.terclifec_actualizacion)
+                                            }
+                                            </p>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            }
+                </div>
+                <div class="panel-body-btns text-right">
+                    <button class="btn btn-info" type="button" id="btnActualizarParteInferior"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+
+                </div>
+            </div>
+
+
+
+
+            <div id="proveedor" class="tab-pane">
+                <div class="panel-body">
+                </div>
+            </div>
+
+
+
+
+            <div id="empleado" class="tab-pane">
+                <div class="panel-body">
+                </div>
+            </div>
+
+
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Documento</th>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Ciudad</th>
+                                        <th style="text-align:center">Fecha creación</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contenido"></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+<br />
+<br />
+
+@*modal lista precios*@
+<div class="modal fade hmodal-info" id="modalListaPreciosVh" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Lista Precios Vehículos</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar"></div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaPreciosVh">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Seleccione</th>
+                                <th style="text-align:center">Lista</th>
+                                <th style="text-align:center">Concepto</th>
+                                <th style="text-align:center">Año</th>
+                                <th style="text-align:center">Mes</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <button type="button" id="btnGuardarListaVH" data-dismiss="modal" class="btn btn-primary">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript">
+        //modificado AC
+        $('#segmentacion').change(function() {
+            $('#valSegmentacion').val($('#segmentacion').val())
+        })
+        $('#btnActualizarParteInferior').click(function(){
+            $('#btnActualizarParteSuperior').trigger('click');
+        });
+
+        $('#terceroT').on('click', function(){
+            console.log("tercero 1 ");
+            $('#btnActualizarParteSuperior').trigger('click');
+            setTimeout(function(){
+                $('#terceroT').removeClass('active');//aca es donde muestra el tab tercero
+                $('li#terceroT.active').removeClass('active');
+                $('#clienteT').addClass('active');
+            }, 100);
+            window.location.href = '@Url.Action("update", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+        });
+
+        $('#fec_cupo_limite').datetimepicker({
+            format: 'YYYY/MM/DD',
+            minDate: new Date(),
+        }).datetimepicker("setDate","");
+
+        $('#proveedorT').on('click', function(){
+            console.log("proveedor  1 ");
+            $('#btnActualizarParteSuperior').trigger('click');
+            setTimeout(function(){
+                $('#proveedorT').removeClass('active');
+                $('li#proveedorT.active').removeClass('active');
+                $('#clienteT').addClass('active');
+            }, 100);
+            window.location.href = '@Url.Action("updateProveedor", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+        });
+
+        $('#empleadoT').on('click', function(){
+            console.log("empleado 1 ");
+            $('#btnActualizarParteSuperior').trigger('click');
+            setTimeout(function(){
+                $('#empleadoT').removeClass('active');
+                $('li#empleadoT.active').removeClass('active');
+                $('#clienteT').addClass('active');
+            }, 100);
+            window.location.href = '@Url.Action("updateEmpleado", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+        });
+
+    </script>
+    @if (TempData["mensaje"] != null)
+    {
+        <script type="text/javascript">
+            if ($('#terceroT').on('click', function() {
+             console.log("tercero 2 ");
+                //   $('#terceroT').addClass('active');
+                window.location.href = '@Url.Action("update", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+            } ));
+
+            if ($('#proveedorT').on('click', function() {
+             console.log("proveedor 2 ");
+                //     $('#proveedorT').addClass('active');
+                window.location.href = '@Url.Action("updateProveedor", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+            } ));
+
+            if ($('#empleadoT').on('click', function() {
+             console.log("empleado 2 ");
+                //     $('#empleadoT').addClass('active');
+                window.location.href = '@Url.Action("updateEmpleado", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+            }));
+        </script>
+    }
+    <script type="text/javascript">
+        $(document).ready(function () {
+            modificarInfoContable();
+            $('#menu').val(@ViewBag.id_menu);
+            //$('#fec_nacimiento').datepicker({
+            //    format: 'dd/mm/yyyy',
+            //    //startDate: '-3d'
+            //}).datepicker("setDate", "0");
+            $('#lprecios_repuestos').val('@ViewBag.lPreciosRepuestos');
+            //$('#fec_cupo_limite').val('@ViewBag.fec_cupo_limite');
+            $('.js-source-states').select2();
+            $('#tpocupacion_id').select2();
+            $('#genero_tercero').select2();
+            $('#tphobby_id').select2();
+            $('#tpdpte_id').select2();
+            $('#lprecios_repuestos').select2();
+            //$('#selectBusquedasParametros').multiselect({
+            //    onChange: function (option, checked, select) {
+            //        if ($('#selectBusquedasParametros').val() != null) {
+            //            if ($('#selectBusquedasParametros').val().length > 3) {
+            //                $('#selectBusquedasParametros').multiselect('deselect', [option[0].value]);
+            //            }
+            //        }
+            //    }
+            //});
+            // Asigna los tabs dependiendo si el tercero ya es cliente, proveedor o empleado
+            var ids = '@ViewBag.tiposTercero'.split(',');
+            for (var i = 0; i < ids.length; i++) {
+                if (ids[i] == 1) {
+                    $('#clienteT').show();
+                    $('#radioCliente').prop('checked', true);
+                }
+                if (ids[i] == 2) {
+                    $('#proveedorT').show();
+                    $('#radioProveedor').prop('checked', true);
+                }
+                if (ids[i] == 3) {
+                    $('#empleadoT').show();
+                    $('#radioEmpleado').prop('checked', true);
+                }
+            }
+
+            if ($('#bloqueado').prop('checked')) {
+                $('#motivo_bloqueado').val('');
+                $('#mov_bloqueado').show();
+            }
+
+            if ( $.trim($('#numhijos_tercero').val()) != "" && $('#numhijos_tercero').val() != null && $('#numhijos_tercero').val() != 0) {
+                $('#div_edades_hijos').show()
+            }
+            else
+            {
+                $('#div_edades_hijos').hide()
+            }
+
+            buscarAjaxTerceros();
+        });
+
+
+
+
+        function modificarInfoContable() {
+            $.ajax({
+                url: '/icb_terceros/PermisoModificarInfoContable',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data == 1) {
+                        $('#exentoiva').prop('disabled', false);
+                        $('#dia_nofacturad').prop('disabled', false);
+                        $('#dia_nofacturah').prop('disabled', false);
+                        $('#dscto_mo').prop('disabled', false);
+                        $('#dscto_rep').prop('disabled', false);
+                        $('#cupocredito').prop('disabled', false);
+                        $('#tpregimen_id').prop('disabled', false);
+                        $('#actividadEconomica_id').prop('disabled', false);
+                        $('#cod_pago_id').prop('disabled', false);
+                        $('#lprecios_repuestos').prop('disabled', false);
+                        $('#lprecios_vehiculos').prop('disabled', false);
+                        $('#bloqueado').prop('disabled', false);
+                        $('#tiempo_para_bloqueo').prop('disabled', false);
+
+                    } else {
+                        $('#exentoiva').prop('disabled', true);
+                        $('#dia_nofacturad').prop('disabled', true);
+                        $('#dia_nofacturah').prop('disabled', true);
+                        $('#dscto_mo').prop('disabled', true);
+                        $('#dscto_rep').prop('disabled', true);
+                        $('#cupocredito').prop('disabled', true);
+                        $('#tpregimen_id').prop('disabled', true);
+                        $('#actividadEconomica_id').prop('disabled', true);
+                        $('#cod_pago_id').prop('disabled', true);
+                        $('#lprecios_repuestos').prop('disabled', true);
+                        $('#lprecios_vehiculos').prop('disabled', true);
+                        $('#bloqueado').prop('disabled', true);
+                        $('#tiempo_para_bloqueo').prop('disabled', true);
+
+                        $('#exentoiva').prop('required', false);
+                        $('#dia_nofacturad').prop('required', false);
+                        $('#dia_nofacturah').prop('required', false);
+                        $('#dscto_mo').prop('required', false);
+                        $('#dscto_rep').prop('required', false);
+                        $('#cupocredito').prop('required', false);
+                        $('#tpregimen_id').prop('required', false);
+                        $('#actividadEconomica_id').prop('required', false);
+                        $('#cod_pago_id').prop('required', false);
+                        $('#lprecios_repuestos').prop('required', false);
+                        $('#lprecios_vehiculos').prop('required', false);
+                        $('#bloqueado').prop('required', false);
+                        $('#tiempo_para_bloqueo').prop('required', false);
+
+                        $('#panelHabeasData').hide();
+                    }
+                },
+                complete: function (data) {
+                }
+            });
+        }
+
+        $('#numhijos_tercero').change(function () {
+            if ($('#numhijos_tercero').val() != "" && $('#numhijos_tercero').val() != null && $('#numhijos_tercero').val() != 0) {
+                $('#div_edades_hijos').show()
+            }
+            else {
+                $('#div_edades_hijos').hide()
+            }
+        });
+
+        function buscarListaVehiculos() {
+
+            $.ajax({
+                url: '/icb_terceros/buscarLpreciosVehiculos',
+                data: {
+
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#modalListaPreciosVh').modal("show");
+                    $('#tablaPreciosVh').dataTable().fnDestroy();
+                    $('#tablaPreciosVh').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+
+                        $('#tablaPreciosVh').find('tbody').append('<tr><td align="center">'
+                            + '<input class="listaSeleccion" type="radio" name="listaSeleccion" value="' + data[i].lista + '"></td><td align="center">'
+                            + data[i].lista + '</td><td align="center">'
+                            + data[i].concepto + '</td><td align="center">'
+                            + data[i].ano + '</td><td align="center">'
+                            + data[i].mes + '</td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPreciosVh').dataTable({
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        $('#btnGuardarListaVH').click(function () {
+            var lista = $('input:radio[name=listaSeleccion]:checked').val();
+            $('#lprecios_vehiculos').val(lista);
+        });
+        ///ojo ***************************************************************************************************************
+        function valida(id) {
+            window.location.href = '@Url.Action("update","icb_terceros")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        //$('#btnBuscar').click(function () {
+        //    buscarAjaxTerceros();
+        //    $('.nav-tabs li:eq(4) a').tab('show')
+        //});
+
+        function buscarAjaxTerceros() {
+
+            $.ajax({
+                url: '/icb_terceros/BuscarTercerosPaginados',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="right">' + data[i].doc_tercero + '</td><td align="left">'
+                            + data[i].nombre_completo + '</td><td align="left">'
+                            + data[i].ciu_nombre + '</td><td align="right">'
+                            + data[i].fechaCreacion + '</td><td align="left">'
+                            + data[i].tercero_estado + '</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                            + '\'' + data[i].tercero_id
+                            + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        $('#bloqueado').change(function () {
+            if ($('#bloqueado').prop('checked')) {
+                $('#motivo_bloqueado').val('');
+                $('#mov_bloqueado').show();
+            } else {
+                $('#mov_bloqueado').hide();
+
+            }
+        });
+
+        var numero_miles = "";
+
+        function formatNumber(n) {
+            const array_number = n.split(',');
+            var complemento = "";
+            n = String(array_number[0]).replace(/\D/g, "");
+            if (array_number.length > 1) {
+                complemento = `,${array_number[1]}`;
+            }
+
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".") + complemento;
+        }
+
+        function miles(id) {
+            numero_miles = formatNumber($(`#${id}`).val());
+            $(`#${id}`).val(numero_miles);
+        }
+
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+
+}
+

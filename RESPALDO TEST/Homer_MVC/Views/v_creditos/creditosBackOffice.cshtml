@@ -1,0 +1,301 @@
+﻿@model Homer_MVC.IcebergModel.v_creditos
+
+@{
+    ViewBag.Title = "Créditos BackOffice";
+    ViewBag.Icono = "fa fa-credit-card-alt";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button class="btn btn-mini btn-default" style="border-radius:25px">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="buscar" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+
+                            @* ****************************************************************************************** Filtros  ****************************************************************************************** *@
+                            <div class="col-sm-12" id="filtro" style="text-align:center; ">
+                                <div class="col-md-2"></div>
+                                <div class="col-sm-12">
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Financiera:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.financiera_id, ViewBag.financiera_id.Items as List<SelectListItem>, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tercero:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("tercero", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4"># Pedido:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="number" min="0" class="form-control" id="pedido" name="pedido" value="" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+
+                                <br />
+                                <div class="col-sm-12" style="text-align:center;">
+                                    <div class="col-sm-10">
+                                        <label class="control-label col-md-2">Fechas:&nbsp;</label>
+                                        <div class="input-daterange input-group">
+                                            <input class="input-sm form-control" type="datetime" placeholder="Desde" name="desde" id="desde">
+                                            <span class="input-group-addon">a</span>
+                                            <input class="input-sm form-control" type="datetime" placeholder="Hasta" name="hasta" id="hasta">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-2">
+                                        <button class="btn btn-primary" type="button" onclick="filtarDocumento()"><i class="fa fa-filter"></i>&nbsp;&nbsp;Filtrar</button>
+                                    </div>
+
+                                    <div class="col-md-10" id="errorFechas" style="display:none">
+                                        <div class="alert alert-danger" role="alert">
+                                            La fecha final no puede ser inferior a la fecha inicial!
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @* **************************************************************************************** Fin Filtros  ***************************************************************************************** *@
+                            
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Pedido</th>
+                                        <th style="text-align:center">Financiera</th>
+                                        <th style="text-align:center">Tercero</th>
+                                        <th style="text-align:center">Vehículo</th>
+                                        <th style="text-align:center">Modelo</th>
+                                        <th style="text-align:center">Fecha Solicitud</th>
+                                        <th style="text-align:center">Estado Crédito</th>
+                                        <th style="text-align:center">Poliza</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+<script src="~/Vendor/moment/min/moment.min.js"></script>
+<script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('.js-source-states').select2();
+        $('#desde').datetimepicker({
+            format: 'YYYY/MM/DD',
+            maxDate: new Date()
+        });
+        $('#hasta').datetimepicker({
+            format: 'YYYY/MM/DD',
+            maxDate: new Date()
+        });
+        buscarDatos();
+    });
+        
+    function buscarDatos() {
+        $.ajax({
+            url: '/v_creditos/BuscarCreditosFiltro',
+            data: {
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+                $('#tablaPaginada').find('tbody').empty();
+                for (var i = 0; i < data.data.length; i++) {
+                    $('#tablaPaginada').find('tbody').append('<tr>'
+                            + '<td align="right">' + data.data[i].pedido + '</td><'
+                            + 'td align="left">' + data.data[i].financiera + '</td>'
+                            + '<td align="left">' + data.data[i].nombre + '</td>'
+                            + '<td align="left">' + data.data[i].planmayor + '</td>'
+                            + '<td align="left">' + data.data[i].ref_descripcion + '</td>'
+                            + '<td align="left">' + data.data[i].fec_solicitud + '</td>'
+                            + '<td align="left">' + data.data[i].estadoc + '</td>'
+                            + '<td align="left">' + data.data[i].poliza + '</td>'
+                            + '<td align="left">' + data.data[i].fec_desembolso + '</td>'
+                            + '<td width="15%" align="center">'
+                                //+'<button class="btn btn-info btn-xs" onclick="valida('+ '\'' + data.data[i].id + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                                + '<button class="btn btn-primary btn-xs" onclick="seguimiento(' + '\'' + data.data[i].id + '\')">&nbsp;&nbsp;Seguimiento&nbsp;&nbsp;</button>'
+                            + '</td>'
+                        + '</tr>');
+                }
+            },
+            complete: function (data) {
+                $('#tablaPaginada').dataTable({
+                    //"ajax": 'api/datatables.json',
+                    //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: [
+                        //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        //{ extend: 'copy', className: 'btn-sm' },
+                        //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                        //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                        //{ extend: 'print', className: 'btn-sm' }
+                    ]
+                });
+            }
+        })
+    }
+
+    function filtarDocumento() {
+        $("#tablaPaginada").dataTable().fnDestroy();
+        $("#tablaPaginada").find("tbody").empty()
+        $.ajax({
+            url: '/v_creditos/BuscarCreditosFiltro',
+            data: {
+                financiera: $('#financiera_id').val(),
+                tercero: $('#tercero').val(),
+                pedido: $('#pedido').val(),
+                desde: $('#desde').val(),
+                hasta: $('#hasta').val(),
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+                console.log(data)
+                $('#tablaPaginada').find('tbody').empty();
+                if (data.error == true) {
+                    $('#errorFechas').show();
+                } else {
+                    $('#errorFechas').hide();
+                    for (var i = 0; i < data.data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr>'
+                                + '<td align="right">' + data.data[i].pedido + '</td><'
+                                + 'td align="left">' + data.data[i].financiera + '</td>'
+                                + '<td align="left">' + data.data[i].nombre + '</td>'
+                                + '<td align="left">' + data.data[i].planmayor + '</td>'
+                                + '<td align="left">' + data.data[i].ref_descripcion + '</td>'
+                                + '<td align="left">' + data.data[i].fec_solicitud + '</td>'
+                                + '<td align="left">' + data.data[i].estadoc + '</td>'
+                                + '<td align="left">' + data.data[i].poliza + '</td>'
+
+                                + '<td align="left">' + data.data[i].fec_desembolso + '</td>'
+                                + '<td width="15%" align="center">'
+                                    //+'<button class="btn btn-info btn-xs" onclick="valida('+ '\'' + data.data[i].id + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                                    + '<button class="btn btn-primary btn-xs" onclick="seguimiento(' + '\'' + data.data[i].id + '\')">&nbsp;&nbsp;Seguimiento&nbsp;&nbsp;</button>'
+                                + '</td>'
+                            + '</tr>');
+                    }
+                }
+            },
+            complete: function (data) {
+                $('#tablaPaginada').dataTable({
+                    //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: [
+                        //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        //{ extend: 'pdf', className: 'btn-sm', text: 'PDF' },
+                        //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' },
+                    ]
+                });
+            }
+        })
+    }
+
+    function seguimiento(id) {
+        window.location.href = '@Url.Action("Seguimiento", "v_creditos")?menu?'+@ViewBag.id_menu+'&&id=' + id;
+    }
+    
+    </script>
+
+}

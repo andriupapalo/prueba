@@ -1,0 +1,118 @@
+﻿@model Homer_MVC.IcebergModel.prospectos
+
+@{
+    ViewBag.Icono = "fa fa-user-plus";
+    ViewBag.Title = "Confirmación Visita";
+    Layout = "~/Views/Shared/_Layout_Blank.cshtml";
+}
+@Styles.Render("~/bundles/font-awesome/css")
+@Styles.Render("~/bundles/bootstrap/css")
+@Styles.Render("~/bundles/peicon7stroke/css")
+@Styles.Render("~/bundles/homer/css")
+
+<!DOCTYPE html>
+
+<br />
+<br />
+<br />
+<div class="panel-body col-md-6 col-md-offset-3">
+    <div class="hpanel">
+        <div class="panel-body">
+            <a class="small-header-action" href="">
+                <div class="clip-header">
+                    <i class="fa fa-arrow-up"></i>
+                </div>
+            </a>
+
+            <div id="hbreadcrumb" class="pull-right m-t-lg">
+                <ol class="hbreadcrumb breadcrumb"></ol>
+            </div>
+            <h2 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h2>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="hpanel">
+        <div class="panel-body col-md-6 col-md-offset-3">
+            @using (Html.BeginForm())
+            {
+                <div class="panel-body-btns text-right"></div>
+
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger", autocomplete = "off" })
+
+                    <div class="row">
+                        <input type="hidden" name="idProspecto" id="idProspecto" value="@ViewBag.prospecto" />
+                        <p id="mensajeMostrar"></p>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <center>
+                                <button onclick="confirmar()" class="btn btn-info" type="button"><i class="fa fa-check-circle"></i>&nbsp;&nbsp;&nbsp;Confirmar</button>
+                            </center>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <div class="alert alert-success" role="alert" id="ok" style="display:none">
+                                    Su confirmación se realizo con exitosamente
+                                </div>
+
+                                <div class="alert alert-danger" role="alert" id="false" style="display:none">
+                                    No fue posible realizar su confirmacion, por favor intente de nuevo
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#mensajeMostrar').html("Muchas gracias Señor(a) " + '@ViewBag.nombreTercero' +", con tan solo un click podrá participar en nuestros próximos eventos y campañas")
+        });
+
+        function confirmar() {
+            $.ajax({
+                url: '/prospectos/confirmacionVisita',
+                data: {
+                    confirma: true,
+                    prospecto: $('#idProspecto').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.exito == true) {
+                        $('#ok').show()
+                        $('#error').hide()
+                        setTimeout(function () {
+                            $("#ok").fadeOut(1500);
+                        }, 3000);
+                    } else {
+                        $('#error').show()
+                        $('#ok').hide()
+                        setTimeout(function () {
+                            $("#error").fadeOut(1500);
+                        }, 3000);
+                    }
+                }
+            });
+        }
+
+    </script>
+}

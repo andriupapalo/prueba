@@ -1,0 +1,1112 @@
+﻿@{
+    ViewBag.Title = "Auditoría Inventario";
+    ViewBag.Icono = "fa fa-align-left";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i>  @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-bloquear" class="nav nav-tabs">
+                <li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Auditorías</a></li>
+                <li class="active"><a data-toggle="tab" href="#encabezado"><i class="fa fa-align-left"></i>&nbsp;&nbsp;Editar Auditoría</a></li>
+                @*<li class=""><a data-toggle="tab" href="@Url.Action("Inventario","InventarioFisico")"><i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;Bloquear</a></li>
+                    <li class=""><a href="@Url.Action("asignacionParejas","InventarioFisico")"><i class="fa fa-male"></i><i class="fa fa-male"></i>&nbsp;&nbsp;Asignar Parejas</a></li>
+                    <li class=""><a href="@Url.Action("desbloquear","InventarioFisico")"><i class="fa fa-unlock"></i>&nbsp;&nbsp;Desbloquear</a></li>
+                    <li class=""><a href="@Url.Action("ConteoInventario","InventarioFisico")"><i class="fa fa-hand-pointer-o"></i>&nbsp;&nbsp;Conteo</a></li>*@
+            </ul>
+
+            <div id="encabezado" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="alert alert-danger" id="errorPermiso" style="display:none" role="alert">El usuario no tiene permiso de bloquear el inventario</div>
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+
+                            <button id="crearNuevo" name="crearNuevo" onclick="crear()" class="btn btn-info" type="button">Crear Nuevo</button>
+                            <button id="Bloquear" name="Bloquear" onclick="bloquear()" class="btn btn-danger" type="button">Bloquear Inventario</button>
+                            <button id="Desbloquear" name="Desbloquear" onclick="desbloquear()" class="btn btn-success" type="button">Desbloquear Inventario</button>
+
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Nombre Auditoría:&nbsp;<a class="text-danger">*</a>&nbsp;</label>
+                                                <div class="col-md-8">
+                                                    <input type="text" class="form-control zona_encabezado" maxlength="250" name="encabezado" id="encabezado" required value="@ViewBag.encabezado" autocomplete="off" />
+                                                    <input type="hidden" name="id_encabezado" id="id_encabezado" required value="@ViewBag.id_encabezado" />
+                                                    <input type="hidden" name="estado" id="estado" required value="@ViewBag.estado_encabezado" />
+                                                    <input type="hidden" name="tipoConteo_VB" id="tipoConteo_VB" required value="@ViewBag.tipo" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Hacer 2 conteos contra stock:</label>
+                                                <div class="col-md-2">
+                                                    <input type="checkbox" class="zona_encabezado" name="checkConteo" id="checkConteo" data-toggle="toggle" checked="checked" data-size="mini" value="" />
+                                                    <input type="hidden" name="tipoConteo" id="tipoConteo" value="" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodegas:&nbsp;<a class="text-danger">*</a></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("bodegas", null, "", htmlAttributes: new { @class = "form-control js-source-states zona_encabezado", @placeholder = "Seleccione" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Áreas:&nbsp;<a class="text-danger">*</a></label>
+                                                <div class="col-md-6">
+                                                    <select multiple="multiple" class="form-control multi zona_encabezado" id="areas" name="areas" required></select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Estanterías:&nbsp;<a class="text-danger">*</a></label>
+                                                <div class="col-md-6">
+                                                    <select multiple="multiple" class="form-control multi zona_encabezado" id="estanterias" name="estanterias" required></select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Ubicaciones:&nbsp;<a class="text-danger">*</a></label>
+                                                <div class="col-md-6">
+                                                    <select multiple="multiple" class="form-control multi zona_encabezado" id="ubicaciones" name="ubicaciones" required></select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="control-label col-md-4">Fechas:&nbsp;<a class="text-danger">*</a></label>
+                                            <div class="input-daterange input-group col-md-8" id="datepicker">
+                                                <input type="text" class="input-sm form-control zona_encabezado" name="fechaInicia" readonly id="fechaInicia" value="@ViewBag.fechaInicia" placeholder="Fecha Inicio Inventario" required autocomplete="off" />
+                                                <span class="input-group-addon">Hasta</span>
+                                                <input type="text" class="input-sm form-control zona_encabezado" name="fechaTermina" readonly id="fechaTermina" value="@ViewBag.fechaTermina" placeholder="Fecha Fin Inventario" required autocomplete="off" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <div class="col-md-6"></div>
+                                                <button id="actualizarEncabezado" name="actualizarEncabezado" onclick="actualizarencab()" class="btn btn-success" type="button"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar Encabezado</button>
+                                                <button id="btnSubmit" name="btnSubmit" class="btn btn-success zona_encabezado" type="submit" style="display:none"></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-male"></i>&nbsp;<i class="fa fa-plus"></i>&nbsp;<i class="fa fa-male"></i>&nbsp;&nbsp;&nbsp;Parejas Asignadas
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row zona_asignacion">
+                                        <div class="col-md-6" id="tipo_conteo_list" style="display:none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Conteo:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control" id="lista_conteo">
+                                                        <option value="0">Conteo 1</option>
+                                                        <option value="1">Conteo 2</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row zona_asignacion">
+                                        <div class="col-md-6" id="parejas_select_div">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Parejas:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("parejas_select", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="estanterias_asignadas_div">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Estanterías:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control multi" id="estanterias_asignadas" name="estanterias_asignadas" multiple></select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="row zona_asignacion">
+                                        <div class="col-md-6" id="parejas_ubicaciones_div">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Ubicaciones:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control multi" id="parejas_ubicaciones" name="parejas_ubicaciones" multiple></select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="asignar_ubicacion_div">
+                                            <div class="col-md-4"></div>
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-info" id="asignar_ubicacion">Asignar Ubicación</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table class="table table-striped table-bordered table-hover" id="parejasAsignadas">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Número</th>
+                                                        <th style="text-align:center">Persona 1</th>
+                                                        <th style="text-align:center">Persona 2</th>
+                                                        <th style="text-align:center">Ubicaciones Asignadas Conteo 1</th>
+                                                        <th style="text-align:center">Ubicaciones Asignadas Conteo 2</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-5">
+                                        <button class="form-control btn btn-info" type="button" id="crear_nuevo_btn">Crear nueva auditoría</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Fecha Inicio</th>
+                                        <th style="text-align:center">Fecha Fin</th>
+                                        <th style="text-align:center">Tipo Conteo</th>
+                                        <th style="text-align:center">Conteo 1</th>
+                                        <th style="text-align:center">Conteo 2</th>
+                                        <th style="text-align:center">Bodega</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade hmodal-primary" id="modal_editar_progreso" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Edición de Conteo</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Parejas:&nbsp;</label>
+                            <div class="col-md-8">
+                                <select class="form-control" id="select_parejas_modal" name="select_parejas_modal"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="table_editar_progreso">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Ubicación</th>
+                                <th style="text-align:center">Referencia</th>
+                                <th style="text-align:center">Conteo 1</th>
+                                <th style="text-align:center">Conteo 2</th>
+                                <th style="text-align:center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <h3>Conteo Extra</h3>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="table_editar_progreso_extra">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Ubicación</th>
+                                <th style="text-align:center">Referencia</th>
+                                <th style="text-align:center">Conteo Extra</th>
+                                <th style="text-align:center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script src="~/Vendor/moment/min/moment-with-locales.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+
+
+    <script type="text/javascript">
+        var fechaHoy = '@DateTime.Now.Date.ToString("yyyy/MM/dd")';
+        $(document).ready(function () {
+            $('#bodegas').select2()
+            $('#areas_select').select2()
+            $('#lista_conteo').select2()
+            $('#select_parejas_modal').select2()
+            $('#bodegas').trigger('change')
+            $('#parejas_select').select2()
+            $('#areas_parejas').select2()
+            $('.multi').multiselect({
+                includeSelectAllOption: true,
+                filterPlaceholder: 'Buscar',
+                minWidth: "100%",
+                includeSelectAllOption: true,
+                enableCaseInsensitiveFiltering: true,
+            });
+            $('#fechaInicia').datetimepicker({
+                format: 'DD/MM/YYYY',
+                minDate: '-' + new Date() + '',
+                locale: 'es'
+            });
+            $('#fechaTermina').datetimepicker({
+                format: 'DD/MM/YYYY',
+                minDate: '-' + new Date() + '',
+                locale: 'es'
+            });
+            $('#fechaInicia').val('@ViewBag.fechaInicia')
+            $('#fechaTermina').val('@ViewBag.fechaTermina')
+            $('#checkConteo').trigger('change')
+            if ($('#estado').val() == "0") {
+                $('#Desbloquear').hide()
+                $('#Bloquear').show()
+            }
+            if ($('#estado').val() == "1") {
+                $('#Desbloquear').show()
+                $('#Bloquear').hide()
+                $('#actualizarEncabezado').hide()
+                $('#asignar_ubicacion_div').hide()
+                $('#parejas_ubicaciones_div').hide()
+                $('#areas_select').hide()
+                $('#estanterias_asignadas_div').hide()
+                $('#parejas_ubicaciones').hide()
+                $('#parejas_select_div').hide()
+
+            }
+
+            if ($('#tipoConteo_VB').val() == "1") {
+                $('#tipo_conteo_list').show()
+                $('#checkConteo').bootstrapToggle('on')
+                //$('#checkConteo').prop('checked', false).trigger('change')
+            }
+            if ($('#tipoConteo_VB').val() == "0") {
+                $('#tipo_conteo_list').hide()
+                $('#checkConteo').bootstrapToggle('off')
+                //$('#checkConteo').prop('checked', false).trigger('change')
+            }
+
+            //buscarBodega()
+            browser()
+            buscarParejas()
+            validarEstado()
+        });
+
+        function validarEstado(){
+            debugger
+            if ($('#estado').val() == "0") {
+                var fecha_termina = "@ViewBag.fechaTermina";
+                if (fechaHoy > fecha_termina) {
+                    $('#actualizarEncabezado').hide()
+                    $('.zona_asignacion').hide()
+                    $('.zona_encabezado').prop('disabled', true)
+                    $('.zona_encabezado').find('<option>').prop('disabled', true)
+                }
+            } else if ($('#estado').val() == "1") {
+                $('#actualizarEncabezado').hide()
+                $('.zona_asignacion').hide()
+                $('.zona_encabezado').prop('disabled', true)
+
+            }
+
+        }
+
+        $('#crear_nuevo_btn').click(function () {
+            window.location.href = '@Url.Action("encabezado", "InventarioFisico")'
+        })
+
+        $('#checkConteo').change(function () {
+            if ($('#checkConteo').prop('checked')) {
+                $('#tipoConteo').val(1)
+            } else {
+                $('#tipoConteo').val(0)
+            }
+        })
+
+        function cargarLista(id) {
+            $.ajax({
+                url: '/InventarioFisico/cargarListaPareja',
+                data: {
+                    id_encab: id,
+                },
+                cache: false,
+                type: 'post',
+                success: function (data) {
+                    $('#select_parejas_modal').empty()
+                    for (var i = 0; i < data.length; i++) {
+                        $('#select_parejas_modal').append('<option value="' + data[i].value + '">' + data[i].text + '')
+                    }
+                    $('#modal_editar_progreso').modal('show')
+                    //$('body').removeClass('modal-open')
+                    $('body').attr('style','width:100%')
+                    $('#select_parejas_modal').val('').trigger('change')
+                }
+            })
+        }
+
+        $('#select_parejas_modal').change(function () {
+            $('#table_editar_progreso').dataTable().fnDestroy();
+            $('#table_editar_progreso').find('tbody').empty();
+            $('#table_editar_progreso_extra').dataTable().fnDestroy();
+            $('#table_editar_progreso_extra').find('tbody').empty();
+            $.ajax({
+                url: '/InventarioFisico/CargarTablaDatos',
+                data: {
+                    id: $('#select_parejas_modal').val()
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    var arreglo = [data.buscar.length]
+                    for (var i = 0; i < data.buscar.length; i++) {
+
+                        $('#table_editar_progreso').find('tbody').append(
+                                '<tr>'
+                                    + '<td>' + data.buscar[i].ubicacion + '</td>'
+                                    + '<td>' + data.buscar[i].referencia + '</td>'
+                                    + '<td style="width: 10%">'
+                                        + '<input id="inputConteo1' + i + '" style="text-align:right" class="form-control col-md-3" value="' + data.buscar[i].conteo_1 + '"/>'
+                                        + '<input id="inputConteo1Hidden' + i + '" type="hidden" style="text-align:right" class="form-control col-md-3" value="' + data.buscar[i].conteo_1 + '"/>'
+                                    + '</td>'
+                                    + '<td>'
+                                        + '<input id="inputConteo2' + i + '" style="text-align:right" class="form-control col-md-3" value="' + data.buscar[i].conteo_2 + '"/>'
+                                        + '<input id="inputConteo2Hidden' + i + '" type="hidden" style="text-align:right" class="form-control col-md-3" value="' + data.buscar[i].conteo_2 + '"/>'
+                                    + '</td>'
+                                    + '<td align="center" style="width: 5%">'
+                                        + '<button type="button" class="btn btn-info btn-sm form-control" onclick="guardarCambios(' + data.buscar[i].id + ',' + i + ')" title="Guardar Cambios"><i class="fa fa-save"></i></button>'
+                                    + '</td>'
+                                + '</tr>'
+                            )
+                        if (data.buscar[i].conteo_1 == 0) {
+                            $('#inputConteo1' + i).prop('disabled', true)
+                            $('#inputConteo1Hidden' + i).prop('disabled', true)
+                        }
+                        if (data.buscar[i].conteo_2 == 0) {
+                            $('#inputConteo2' + i).prop('disabled', true)
+                            $('#inputConteo2Hidden' + i).prop('disabled', true)
+                        }
+                        arreglo[i] = {
+                            id: data.buscar[i].id,
+                            input1: $('#inputConteo1' + i).val(),
+                            inputH1: $('#inputConteo1Hidden' + i).val(),
+                            input2: $('#inputConteo2' + i).val(),
+                            inputH2: $('#inputConteo2Hidden' + i).val(),
+                        }
+
+                    }
+                    for (var i = 0; i < data.extra.length; i++) {
+
+                        $('#table_editar_progreso_extra').find('tbody').append(
+                                '<tr>'
+                                    + '<td>' + data.extra[i].ubicacion + '</td>'
+                                    + '<td>' +'('+ data.extra[i].ref_codigo +')' + data.extra[i].referencia + '</td>'
+                                    + '<td style="width: 10%">'
+                                        + '<input id="inputConteo3' + i + '" style="text-align:right" class="form-control col-md-3" value="' + data.extra[i].conteo3 + '"/>'
+                                        + '<input id="inputConteo3Hidden' + i + '" type="hidden" style="text-align:right" class="form-control col-md-3" value="' + data.extra[i].conteo3 + '"/>'
+                                    + '</td>'                                    
+                                    + '<td align="center" style="width: 5%">'
+                                        + '<button type="button" class="btn btn-info btn-sm form-control" onclick="guardarCambios2(' + data.extra[i].id_conteo + ',' + i + ')" title="Guardar Cambios"><i class="fa fa-save"></i></button>'
+                                    + '</td>'
+                                + '</tr>'
+                            )
+                        //if (data.extra[i].conteo3 == 0) {
+                        //    $('#inputConteo3' + i).prop('disabled', true)
+                        //    $('#inputConteo3Hidden' + i).prop('disabled', true)
+                        //}
+                        
+                        arreglo[i] = {
+                            id: data.extra[i].id,
+                            input1: $('#inputConteo3' + i).val(),
+                            inputH1: $('#inputConteo3Hidden' + i).val(),
+                        }
+
+                    }
+
+                },
+                complete: function (data) {
+                    $('#table_editar_progreso').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[5, 10, 15, -1], [5, 10, 15, "All"]],
+                        buttons: []
+                    });
+                    $('#table_editar_progreso_extra').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[5, 10, 15, -1], [5, 10, 15, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        })
+
+        function guardarCambios2(id, i) {
+            var conteo3 = $('#inputConteo3' + i).val();
+            var conteo3_hiden = $('#inputConteo3Hidden' + i).val();           
+            $.ajax({
+                url: '/InventarioFisico/guardarCambios2',
+                data: {
+                    id: id,
+                    conteo_3_nuevo: conteo3,
+                    conteo_3_antiguo: conteo3_hiden,
+                    pareja: $('#select_parejas_modal').val()
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    if (data == true) {
+                        swal("Modificación realizada con éxito", "", "success")
+                        setTimeout(function(){
+                            location.reload()
+                        },1000)
+                    }
+                    else {
+                        swal("No hizo modificaciones para actualizar", "", "error")
+                    }
+                }
+            })
+        }
+
+        function guardarCambios(id, i) {
+            var conteo1 = $('#inputConteo1' + i).val();
+            var conteo1_hiden = $('#inputConteo1Hidden' + i).val();
+            var conteo2 = $('#inputConteo2' + i).val();
+            var conteo2_hiden = $('#inputConteo2Hidden' + i).val();
+            $.ajax({
+                url: '/InventarioFisico/guardarCambios',
+                data: {
+                    id: id,
+                    conteo_1_nuevo: conteo1,
+                    conteo_1_antiguo: conteo1_hiden,
+                    conteo_2_nuevo: conteo2,
+                    conteo_2_antiguo: conteo2_hiden
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    if (data == true) {
+                        swal("Modificación realizada con éxito", "", "success")
+                    }
+                    else {
+                        swal("No hizo modificaciones para actualizar", "", "error")
+                    }
+                }
+            })
+        }
+
+        $('#bodegas').change(function () {
+            buscarArea()
+        })
+
+        $('#areas').change(function () {
+            buscarEstanterias()
+        })
+
+        $('#estanterias').change(function () {
+            buscarUbicacion()
+        })
+
+        $('#estanterias_asignadas').change(function () {
+            traer_ubicaciones()
+        })
+
+        $('#asignar_ubicacion').click(function(){
+            if ($('#parejas_ubicaciones').val() == "" || $('#parejas_ubicaciones').val() == null || $('#parejas_select').val() == "") {
+                swal("No seleccionó ninguna pareja o ubicación","","error")
+            }else {
+                $.ajax({
+                    url:'/InventarioFisico/asignarUbicacionGrupo',
+                    data:{
+                        grupo: $('#parejas_select').val(),
+                        ubicaciones: $('#parejas_ubicaciones').val(),
+                        encab: @ViewBag.id_encabezado,
+                        tipo: $('#lista_conteo').val()
+                    },
+                    type: 'post',
+                    cache: false,
+                    success: function(data){
+                        if (data == true) {
+                            $('#parejas_select').val('').select2()
+                            $('#parejas_select').trigger('change')
+                            $('#estanterias_asignadas').trigger('change')
+                            //$('#estanterias').val('').select2()
+                            swal("Asignación Correcta", "", "success")
+                            buscarParejas()
+                        }else {
+                            swal("Asignación Incorrecta", "", "error")
+                        }
+                    }
+                })
+            }
+        })
+
+        $('#parejas_select').change(function(){
+
+            buscarEstanteriasAsignadas()
+
+        })
+
+        $('#lista_conteo').change(function(){
+            $('#parejas_select').val('').trigger('change')
+        })
+
+        function traer_ubicaciones(){
+            console.log('entra')
+            $.ajax({
+                url:'/InventarioFisico/traer_ubicaciones',
+                data:{
+                    id_pareja: $('#parejas_select').val(),
+                    id_stand: $('#estanterias_asignadas').val(),
+                    id_encab: $('#id_encabezado').val(),
+                    tipo: $('#lista_conteo').val(),
+                },
+                type: 'post',
+                cache: false,
+                success: function(data){
+                    $('#parejas_ubicaciones').empty();
+                    console.log(data)
+                    for (var i = 0; i < data.length; i++) {
+                        $('#parejas_ubicaciones').append($('<option>', {
+                            value: data[i].value,
+                            text: data[i].text
+
+                        }));
+                    }
+
+                    //var area = 'ViewBag.areas';
+                    //var area_select = area.split(",")
+                    //$('#parejas_ubicaciones').val(area_select).trigger('change')
+
+                    $('#parejas_ubicaciones').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 500,
+                        minWidth: 600,
+                    });
+                    $('#parejas_ubicaciones').multiselect('refresh');
+                }
+            })
+        }
+
+        function parejas(id) {
+            window.location.href = '@Url.Action("asignacionParejas", "InventarioFisico")?id=' + id;
+        }
+
+        function buscarBodega() {
+            $.ajax({
+                url: '/InventarioFisico/buscarBodegaDisponible',
+                data: {},
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $('#bodegas').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#bodegas').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+                },
+            })
+        }
+
+        function buscarArea() {
+            var bodega = $('#bodegas').val()
+            $.ajax({
+                url: '/InventarioFisico/buscarAreaDisponible',
+                data: {
+                    id: bodega
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $('#areas').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#areas').append($('<option>', {
+                            value: data[i].areabod_id,
+                            text: data[i].areabod_nombre
+
+                        }));
+                    }
+
+                    var area = '@ViewBag.areas';
+                    var area_select = area.split(",")
+                    $('#areas').val(area_select).trigger('change')
+
+                    $('#areas').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 500,
+                        minWidth: 600,
+                    });
+                    $('#areas').multiselect('refresh');
+
+                },
+
+            })
+
+        }
+
+        function buscarEstanterias() {
+            var area = $('#areas').val()
+            $.ajax({
+                url: '/InventarioFisico/buscarStandDisponible',
+                data: {
+                    id: area
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $('#estanterias').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#estanterias').append($('<option>', {
+                            value: data[i].Value,
+                            text: data[i].Text
+
+                        }));
+                    }
+
+                    var area = '@ViewBag.estanterias';
+                    var area_select = area.split(",")
+                    $('#estanterias').val(area_select).trigger('change')
+
+                    $('#estanterias').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 500,
+                        minWidth: 600,
+                    });
+                    $('#estanterias').multiselect('refresh');
+
+                },
+
+            })
+
+        }
+
+        function buscarEstanteriasAsignadas() {
+            $.ajax({
+                url: '/InventarioFisico/buscarStandAsignado',
+                data: {
+                    id: @ViewBag.id_encabezado,
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $('#estanterias_asignadas').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#estanterias_asignadas').append($('<option>', {
+                            value: data[i].Value,
+                            text: data[i].Text
+
+                        }));
+                    }
+
+                    var area = '@ViewBag.estanterias';
+                    var area_select = area.split(",")
+                    //$('#estanterias').val(area_select).trigger('change')
+
+                    $('#estanterias_asignadas').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 500,
+                        minWidth: 600,
+                    });
+                    $('#estanterias_asignadas').multiselect('refresh');
+
+                },
+
+            })
+
+        }
+
+        function buscarUbicacion() {
+            var estanterias = $('#estanterias').val()
+            $.ajax({
+                url: '/InventarioFisico/buscarUbicacion',
+                data: {
+                    id: estanterias
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $('#ubicaciones').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#ubicaciones').append($('<option>', {
+                            value: data[i].Value,
+                            text: data[i].Text
+                        }));
+                    }
+                    var ubicacion = '@ViewBag.ubicaciones';
+                    var ubicacion_select = ubicacion.split(",")
+                    $('#ubicaciones').val(ubicacion_select).trigger('change')
+                    $('#ubicaciones').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        filterPlaceholder: 'Buscar',
+                        maxHeight: 500,
+                        includeSelectAllOption: true,
+                        enableCaseInsensitiveFiltering: true,
+                    });
+                    $('#ubicaciones').multiselect('refresh');
+                },
+            })
+        }
+
+        function browser() {
+            $.ajax({
+                url: '/InventarioFisico/browserEncabezado',
+                data: {},
+                type: 'POST',
+                cache: false,
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+
+                        $('#tablaPaginada').find('tbody').append(
+                                '<tr>'
+                                    + '<td align="left">' + data[i].encabezado + '</td>'
+                                    + '<td align="right">' + data[i].fechaInicia + '</td>'
+                                    + '<td align="right">' + data[i].fechaFinal + '</td>'
+                                    + '<td align="left">' + data[i].tipo + '</td>'
+                                    + '<td align="right">' + data[i].progreso_1 + '%</td>'
+                                    + '<td align="right">' + data[i].progreso_2 + '%</td>'
+                                    + '<td align="left">' + data[i].bodega + '</td>'
+                                    + '<td align="left">' + data[i].estado + '</td>'
+                                    + '<td align="center">'
+                                        + '<button type="button" class="btn btn-xs btn-success" id="asig_parejas' + i + '" title="Asignar Parejas" onclick="parejas(' + data[i].id_encabezado + ')"><i class="fa fa-male"></i>&nbsp;<i class="fa fa-male"></i></button>&nbsp;'
+                                        + '<button type="button" class="btn btn-xs btn-info" onclick="valida(' + data[i].id_encabezado + ')">Ver</button>&nbsp;'
+                                        + '<button type="button" class="btn btn-xs btn-warning" id="editarProgreso' + i + '" style="display:none" title="Editar Progreso" onclick="cargarLista(' + data[i].id_encabezado + ')"><i class="fa fa-pencil"></i></button>&nbsp;'
+                                        + '<button type="button" class="btn btn-xs btn-primary" id="informe' + i + '" style="display:none" title="Informe" onclick="Informe(' + data[i].id_encabezado + ')"><i class="fa fa-align-left"></i></button>&nbsp;'
+                                        + '<button type="button" class="btn btn-xs btn-success" id="excel' + i + '" style="display:none" title="Informe Excel" onclick="generarExcel(' + data[i].id_encabezado + ')"><i class="fa fa-file-excel-o"></i></button>'
+                                   + '</td>'
+                                + '</tr>'
+                            )
+                        if (data[i].estado == "Activo") {
+                            $('#editarProgreso' + i).show()
+                            $('#informe' + i).show()
+                            $('#asig_parejas' + i).hide()
+                            $('#informe' + i).show()
+                        }
+                        if (data[i].estado == "Finalizado") {
+                            $('#editarProgreso' + i).hide()
+                            $('#asig_parejas' + i).hide()
+                            $('#excel' + i).show()
+                            $('#informe' + i).hide()
+                        }
+                        var fechaHoy = '@DateTime.Now.Date.ToString("yyyy/MM/dd")';
+                        if (data[i].fechaFinal <= fechaHoy) {
+                            if (data[i].fechaFinal < fechaHoy && data[i].estado == "Inactivo") {
+                                $('#informe' + i).hide()
+                                $('#asig_parejas' + i).hide()
+                            }
+                        }
+                    }
+                }
+            })
+        };
+
+        function generarExcel(id){
+            $.ajax({
+                url:'/InventarioFisico/generarExcel',
+                data:{
+                    id_encab :id
+                },
+                success: function(data){
+                    if (data.carga == 1) {
+                        var link = "/Informes Inventario/"+ data.nombre
+                        window.location.href = link;
+                    }
+                    else {
+                        swal("Error","No fue posible generar el archivo, valide que si hay información en el inventario","error")    
+                    }
+                }
+            })
+        }
+
+        function Informe(id) {
+            window.location.href = '@Url.Action("Informe", "InventarioFisico")?id=' + id;
+        }
+
+        function valida(id) {
+            window.location.href = '@Url.Action("edit", "InventarioFisico")?id=' + id;
+        }
+
+        function crear() {
+            window.location.href = '@Url.Action("encabezado", "InventarioFisico")';
+        }
+
+        function buscarParejas() {
+            $.ajax({
+                url: '/InventarioFisico/buscarParejas',
+                data: {
+                    id: @ViewBag.id_encabezado,
+                },
+                type: 'POST',
+                cache: false,
+                success: function (data) {
+                    $('#parejasAsignadas').find('tbody').empty()
+                    for (var i = 0; i < data.length; i++) {
+
+                        $('#parejasAsignadas').find('tbody').append(
+                            '<tr>'
+                                + '<td align="right">' +data[i].numero + '</td>'
+                                + '<td>'+ data[i].persona_1 + '</td>'
+                                + '<td>' + data[i].persona_2 + '</td>'
+                                + '<td>'+data[i].ubicaciones +'</td>'
+                                + '<td>'+data[i].ubicaciones2 +'</td>'
+                            + '</tr>'
+                        )
+
+                    }
+
+                }
+            })
+        }
+
+        function actualizarencab() {
+            swal({
+                title: 'Confirme',
+                text: '¿Está seguro que desea actualizar el encabezado?',
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Sí, actualizar!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    $('#btnSubmit').trigger('click')
+                    setTimeOut(function(){
+                        location.reload()
+                    },500)
+                } else {
+                    swal("Cancelado", "", "error");
+                }
+            })
+        }
+
+        function bloquear() {
+
+            var fecha = '@DateTime.Now.ToString("yyyy/MM/dd")';
+
+            if ( $('#fechaInicia').val() == fecha ) {
+                swal({
+                    title: 'Confirme',
+                    text: 'Asegurese de haber creado todas la parejas y asignado sus ubicaciones. Después de bloquear no se podrán hacer cambios.',
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Si, enviar!",
+                    cancelButtonText: "No, cancelar!",
+                    closeOnConfirm: true,
+                    closeOnCancel: true
+                },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        $.ajax({
+                            url:'/InventarioFisico/bloquearInventario',
+                            data: {
+                                encab: @ViewBag.id_encabezado,
+                            },
+                            type: 'post',
+                            cache: false,
+                            success: function(data){
+                                if (data == true) {
+                                    window.location.reload()
+                                }else if (data == false) {
+                                    setTimeout(function(){
+                                        swal("No se pudo bloquear el inventario","Hay otra auditoria de inventario para esta bodega en estado activo. Por favor valide","error")
+                                    },800)
+                                }
+                                if (data.finalizado == true) {
+                                    setTimeout(function(){
+                                        swal("No se pudo bloquear el inventario","Este inventario ya finalizó","error")
+                                    },800)
+                                }
+                            }
+                        })
+                    }
+                })
+            }else{
+                swal("Debe bloquear el inventario en la fecha de inicio del encabezado","","error")
+            }
+        }
+
+        function desbloquear() {
+
+
+            swal({
+                title: 'Confirme',
+                text: 'Asegurese de haber finalizado el inventario. Después de desbloquear no se podrán hacer cambios.',
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Si, enviar!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: true,
+                closeOnCancel: true
+            },
+            function (isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        url:'/InventarioFisico/desbloquearInventario',
+                        data: {
+                            encab: @ViewBag.id_encabezado,
+                        },
+                        type: 'post',
+                        cache: false,
+                        success: function(data){
+                            window.location.reload()
+
+                        }
+                    })
+                }
+            })
+
+        }
+
+
+
+    </script>
+
+}

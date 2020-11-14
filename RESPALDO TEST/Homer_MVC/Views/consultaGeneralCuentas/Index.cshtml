@@ -1,0 +1,849 @@
+﻿@{
+    ViewBag.Icono = "fa fa-files-o";
+    ViewBag.Title = "Consulta General Cuentas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>@ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Numero Cuenta:&nbsp;</label>
+                                                <div class="col-md-7">
+                                                    <div class="input-group m-b">
+                                                        @Html.DropDownList("txtCuentaInicio", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                        <span class="input-group-addon">-</span>
+                                                        @Html.DropDownList("txtCuentaFin", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Fecha:&nbsp;</label>
+                                                <div class="col-md-7">
+                                                    <div class="input-group m-b">
+                                                        @Html.Editor("txtFechaInicio", new { htmlAttributes = new { @class = "form-control", @placeholder = "Fecha Desde" } })
+                                                        <span class="input-group-addon">-</span>
+                                                        @Html.Editor("txtFechaFin", new { htmlAttributes = new { @class = "form-control", @placeholder = "Fecha Hasta" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Centro:&nbsp;</label>
+                                                <div class="col-md-7">
+                                                    <select id="txtCentrosCosto" class="multiselector" name="txtCentrosCosto" multiple="multiple" placeholder="Seleccione">
+                                                        @foreach (var item in ViewBag.txtCentrosCosto)
+                                                        {
+                                                            <option value="@item.Value">@item.Text</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Centro:&nbsp;</label>
+                                                <div class="col-md-3">
+                                                    @Html.CheckBox("checkCentro", new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </div>
+                                                <label class="control-label col-md-3">Nit:&nbsp;</label>
+                                                <div class="col-md-3">
+                                                    @Html.CheckBox("checkNit", new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Nit:&nbsp;</label>
+                                                <div class="col-md-7">
+                                                    @Html.DropDownList("txtNit", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Niif:&nbsp;</label>
+                                                <div class="col-md-3">
+                                                    @Html.CheckBox("checkNiff", new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </div>
+                                                <label class="control-label col-md-3">Movimiento:&nbsp;</label>
+                                                <div class="col-md-3">
+                                                    @Html.CheckBox("checkMovimiento", new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="row">
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Nivel:&nbsp;</label>
+                                                <div class="col-md-7">
+                                                    <select id="txtNivel" class="multiselector" name="txtNivel" multiple="multiple" placeholder="Seleccione">
+                                                        @for (var i = 1; i <= 6; i++)
+                                                        {
+                                                            <option value="@i">@i</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <div class="col-md-7 col-sm-offset-3">
+                                                    <button type="button" class="btn btn-success" id="btnFiltrar"><i class="fa fa-search"></i>&nbsp;&nbsp;Buscar</button>
+                                                    <img src="~/Images/Loading.gif" style="height:30px; display:none;" id="imagenLoading" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <br />
+
+                                <div class="form-horizontal" id="panelInfoEncontrada" style="display:none;">
+
+                                    <div class="row">
+
+                                        <div class="col-lg-12">
+                                            <div class="hpanel hblue">
+                                                <div class="panel-heading hbuilt text-center">
+                                                    @*<div class="panel-tools">
+                                                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                                            <a class="closebox"><i class="fa fa-times"></i></a>
+                                                        </div>*@
+                                                    <b>INFORMACION CONTABLE</b>
+                                                </div>
+                                                <div class="panel-body">
+
+                                                    <div class="table-responsive">
+                                                        <div id="div-mensaje-buscar"></div>
+                                                        <table class="table table-striped table-bordered table-hover" id="tablaDatosContables">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="text-align:center; display:none;">asd</th>
+                                                                    <th style="text-align:center">Cuenta</th>
+                                                                    <th style="text-align:center">Nombre Cuenta</th>
+                                                                    <th style="text-align:center">Año</th>
+                                                                    <th style="text-align:center">Mes</th>
+                                                                    <th style="text-align:center">Inicial</th>
+                                                                    <th style="text-align:center">Debito</th>
+                                                                    <th style="text-align:center">Credito</th>
+                                                                    <th style="text-align:center">Saldo</th>
+                                                                    <th style="text-align:center; display:none;" class="tituloNiff">Inicial Niif</th>
+                                                                    <th style="text-align:center; display:none;" class="tituloNiff">Debito Niif</th>
+                                                                    <th style="text-align:center; display:none;" class="tituloNiff">Credito Niif</th>
+                                                                    <th style="text-align:center; display:none;" class="tituloNiff">Saldo Niif</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('.js-source-states').select2();
+            $('#txtFechaInicio').datetimepicker({
+                format: 'MM/YYYY'
+            });
+            $('#txtFechaFin').datetimepicker({
+                format: 'MM/YYYY'
+            });
+            $('.multiselector').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400
+            });
+        });
+
+
+
+
+        $('#btnFiltrar').click(function () {
+
+            $('#imagenLoading').show();
+            $('#panelInfoEncontrada').hide();
+
+            var checkCentro = false;
+            if ($('#checkCentro').prop('checked')) {
+                checkCentro = true;
+            }
+
+            var checkNit = false;
+            if ($('#checkNit').prop('checked')) {
+                checkNit = true;
+            }
+
+            var checkMovimiento = false;
+            if ($('#checkMovimiento').prop('checked')) {
+                checkMovimiento = true;
+            }
+
+            var checkNiff = 'none';
+            if ($('#checkNiff').prop('checked')) {
+                checkNiff = '';
+                $('.tituloNiff').show();
+            } else {
+                $('.tituloNiff').hide();
+            }
+
+            $.ajax({
+                url: '/consultaGeneralCuentas/BuscarInformacionCuentas',
+                data: {
+                    cuentaInicio: $('#txtCuentaInicio').val(),
+                    cuentaFin: $('#txtCuentaFin').val(),
+                    FechaInicio: $('#txtFechaInicio').val(),
+                    FechaFin: $('#txtFechaFin').val(),
+                    centros: $('#txtCentrosCosto').val(),
+                    filtroCentro: checkCentro,
+                    filtroNit: checkNit,
+                    nit: $('#txtNit').val(),
+                    filtroMovimiento: checkMovimiento
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    var nivelesAceptados = '';
+                    if ($('#txtNivel').val() == null) {
+                        var nivelesAceptados = '1,2,3,4,5,6';
+                    } else {
+                        nivelesAceptados = $('#txtNivel').val();
+                    }
+
+                    $('#tablaDatosContables').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+
+                        if (nivelesAceptados.indexOf("1") >= 0 && data[i].visible == true) {
+                            $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1) + '</td><td align="left" style="font-weight:bold;">' + data[i].cuenta + '</td><td align="left" style="font-weight:bold;">'
+                                + data[i].cuentaDescripcion + '</td><td align="left">' + data[i].ano
+                                + '</td><td align="right">' + data[i].mes
+                                + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].saldo_ini)
+                                + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].debito)
+                                + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].credito)
+                                + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].total)
+                                + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].saldo_inicial_niff)
+                                + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].debitoNiff)
+                                + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].creditoNiff)
+                                + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].totalNiff)
+                                + '</td></tr>');
+
+                            if (data[i].centrosHijos.length > 0) {
+                                if (data[i].esAfectable == true) {
+                                    for (var c1 = 0; c1 < data[i].centrosHijos.length; c1++) {
+                                        $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1) + '</td><td align="left" style="font-weight:bold;">' + data[i].centrosHijos[c1].centroPrefijo + '</td><td align="left" style="font-weight:bold;">'
+                                            + data[i].centrosHijos[c1].centro + '</td><td align="left">' + data[i].centrosHijos[c1].ano
+                                            + '</td><td align="right">' + data[i].centrosHijos[c1].mes
+                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].centrosHijos[c1].saldo_ini)
+                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].centrosHijos[c1].debito)
+                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].centrosHijos[c1].credito)
+                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].centrosHijos[c1].total)
+                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].centrosHijos[c1].saldo_inicial_niff)
+                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].centrosHijos[c1].debitoNiff)
+                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].centrosHijos[c1].creditoNiff)
+                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].centrosHijos[c1].totalNiff)
+                                            + '</td></tr>');
+                                    }
+                                }
+                            }
+
+                            if (data[i].NitsHijos.length > 0) {
+                                if (data[i].esAfectable == true) {
+                                    for (var n1 = 0; n1 < data[i].NitsHijos.length; n1++) {
+                                        $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1) + '</td><td align="left" style="font-weight:bold;">' + data[i].NitsHijos[n1].terceroDocumento + '</td><td align="left" style="font-weight:bold;">'
+                                            + data[i].NitsHijos[n1].terceroNombre + '</td><td align="left">' + data[i].NitsHijos[n1].ano
+                                            + '</td><td align="right">' + data[i].NitsHijos[n1].mes
+                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].NitsHijos[n1].saldo_ini)
+                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].NitsHijos[n1].debito)
+                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].NitsHijos[n1].credito)
+                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].NitsHijos[n1].totalNiff)
+                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].NitsHijos[n1].saldo_inicial_niff)
+                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].NitsHijos[n1].debitoNiff)
+                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].NitsHijos[n1].creditoNiff)
+                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].NitsHijos[n1].total)
+                                            + '</td></tr>');
+                                    }
+                                }
+                            }
+
+                            if (data[i].MovimientosHijos.length > 0) {
+                                //if (data[i].esAfectable == true) {
+                                for (var m1 = 0; m1 < data[i].MovimientosHijos.length; m1++) {
+                                    $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1) + '</td><td align="left" style="font-weight:bold;">' + data[i].MovimientosHijos[m1].prefijoDocumento + '</td><td align="left" style="font-weight:bold;">'
+                                        + data[i].MovimientosHijos[m1].nombreDocumento + '</td><td align="left">' + data[i].MovimientosHijos[m1].ano
+                                        + '</td><td align="right">' + data[i].MovimientosHijos[m1].mes
+                                        + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].MovimientosHijos[m1].saldo_ini)
+                                        + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].MovimientosHijos[m1].debito)
+                                        + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].MovimientosHijos[m1].credito)
+                                        + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].MovimientosHijos[m1].totalNiff)
+                                        + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].MovimientosHijos[m1].saldo_inicial_niff)
+                                        + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].MovimientosHijos[m1].debitoNiff)
+                                        + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].MovimientosHijos[m1].creditoNiff)
+                                        + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].MovimientosHijos[m1].total)
+                                        + '</td></tr>');
+                                }
+                                // }
+                            }
+
+
+
+                        }
+
+
+
+
+                        if (data[i].cuentasHijas.length > 0) {
+
+                            for (var j = 0; j < data[i].cuentasHijas.length; j++) {
+
+                                if (nivelesAceptados.indexOf("2") >= 0 && data[i].cuentasHijas[j].visible == true) {
+                                    $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="display:none;">' + (i + 1) + '</td><td align="left">' + data[i].cuentasHijas[j].cuenta + '</td><td align="left">'
+                                        + data[i].cuentasHijas[j].cuentaDescripcion + '</td><td align="left">' + data[i].cuentasHijas[j].ano
+                                        + '</td><td align="right">' + data[i].cuentasHijas[j].mes
+                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].saldo_ini)
+                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].debito)
+                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].credito)
+                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].total)
+                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].saldo_inicial_niff)
+                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].debitoNiff)
+                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].creditoNiff)
+                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].totalNiff)
+                                        + '</td></tr>');
+
+                                    if (data[i].cuentasHijas[j].centrosHijos.length > 0) {
+                                        if (data[i].cuentasHijas[j].esAfectable == true) {
+                                            for (var c2 = 0; c2 < data[i].cuentasHijas[j].centrosHijos.length; c2++) {
+                                                $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1) + '</td><td align="left" style="font-weight:bold;">' + data[i].cuentasHijas[j].centrosHijos[c2].centroPrefijo + '</td><td align="left" style="font-weight:bold;">'
+                                                    + data[i].cuentasHijas[j].centrosHijos[c2].centro + '</td><td align="left">' + data[i].cuentasHijas[j].centrosHijos[c2].ano
+                                                    + '</td><td align="right">' + data[i].cuentasHijas[j].centrosHijos[c2].mes
+                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].centrosHijos[c2].saldo_ini)
+                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].centrosHijos[c2].debito)
+                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].centrosHijos[c2].credito)
+                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].centrosHijos[c2].total)
+                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].centrosHijos[c2].saldo_inicial_niff)
+                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].centrosHijos[c2].debitoNiff)
+                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].centrosHijos[c2].creditoNiff)
+                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].centrosHijos[c2].totalNiff)
+                                                    + '</td></tr>');
+                                            }
+                                        }
+                                    }
+
+                                    if (data[i].cuentasHijas[j].NitsHijos.length > 0) {
+                                        if (data[i].cuentasHijas[j].esAfectable == true) {
+                                            for (var n2 = 0; n2 < data[i].cuentasHijas[j].NitsHijos.length; n2++) {
+                                                $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1) + '</td><td align="left" style="font-weight:bold;">' + data[i].cuentasHijas[j].NitsHijos[n2].terceroDocumento + '</td><td align="left" style="font-weight:bold;">'
+                                                    + data[i].cuentasHijas[j].NitsHijos[n2].terceroNombre + '</td><td align="left">' + data[i].cuentasHijas[j].NitsHijos[n2].ano
+                                                    + '</td><td align="right">' + data[i].cuentasHijas[j].NitsHijos[n2].mes
+                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].NitsHijos[n2].saldo_ini)
+                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].NitsHijos[n2].debito)
+                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].NitsHijos[n2].credito)
+                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].NitsHijos[n2].total)
+                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].NitsHijos[n2].saldo_inicial_niff)
+                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].NitsHijos[n2].debitoNiff)
+                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].NitsHijos[n2].creditoNiff)
+                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].NitsHijos[n2].totalNiff)
+                                                    + '</td></tr>');
+                                            }
+                                        }
+                                    }
+
+
+                                }
+
+
+
+
+                                if (data[i].cuentasHijas[j].cuentasHijas.length > 0) {
+                                    for (var k = 0; k < data[i].cuentasHijas[j].cuentasHijas.length; k++) {
+
+                                        if (nivelesAceptados.indexOf("3") >= 0 && data[i].cuentasHijas[j].cuentasHijas[k].visible == true) {
+                                            $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="display:none;">' + (i + 1) + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuenta + '</td><td align="left">'
+                                                + data[i].cuentasHijas[j].cuentasHijas[k].cuentaDescripcion + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].ano
+                                                + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].mes
+                                                + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].saldo_ini)
+                                                + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].debito)
+                                                + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].credito)
+                                                + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].total)
+                                                + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].saldo_inicial_niff)
+                                                + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].debitoNiff)
+                                                + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].creditoNiff)
+                                                + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].totalNiff)
+                                                + '</td></tr>');
+
+                                            if (data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos.length > 0) {
+                                                if (data[i].cuentasHijas[j].cuentasHijas[k].esAfectable == true) {
+                                                    for (var c3 = 0; c3 < data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos.length; c3++) {
+                                                        $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1) + '</td><td align="left" style="font-weight:bold;">' + data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].centroPrefijo + '</td><td align="left" style="font-weight:bold;">'
+                                                            + data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].centro + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].ano
+                                                            + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].mes
+                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].saldo_ini)
+                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].debito)
+                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].credito)
+                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].total)
+                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].saldo_inicial_niff)
+                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].debitoNiff)
+                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].creditoNiff)
+                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].centrosHijos[c3].totalNiff)
+                                                            + '</td></tr>');
+                                                    }
+                                                }
+                                            }
+
+                                            if (data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos.length > 0) {
+                                                if (data[i].cuentasHijas[j].cuentasHijas[k].esAfectable == true) {
+                                                    for (var n3 = 0; n3 < data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos.length; n3++) {
+                                                        $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1) + '</td><td align="left" style="font-weight:bold;">' + data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].terceroDocumento + '</td><td align="left" style="font-weight:bold;">'
+                                                            + data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].terceroNombre + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].ano
+                                                            + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].mes
+                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].saldo_ini)
+                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].debito)
+                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].credito)
+                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].total)
+                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].saldo_inicial_niff)
+                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].debitoNiff)
+                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].creditoNiff)
+                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].NitsHijos[n3].totalNiff)
+                                                            + '</td></tr>');
+                                                    }
+                                                }
+                                            }
+
+
+                                        }
+
+
+
+
+
+
+
+                                        if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas.length > 0) {
+
+                                            for (var l = 0; l < data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas.length; l++) {
+
+                                                if (nivelesAceptados.indexOf("4") >= 0 && data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].visible == true) {
+                                                    $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="display:none;">' + (i + 1) + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuenta + '</td><td align="left">'
+                                                        + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentaDescripcion + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].ano
+                                                        + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].mes
+                                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].saldo_ini)
+                                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].debito)
+                                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].credito)
+                                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].total)
+                                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].saldo_inicial_niff)
+                                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].debitoNiff)
+                                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].creditoNiff)
+                                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].totalNiff)
+                                                        + '</td></tr>');
+
+                                                    if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos.length > 0) {
+                                                        if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].esAfectable == true) {
+                                                            for (var c4 = 0; c4 < data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos.length; c4++) {
+                                                                $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1)
+                                                                    + '</td><td align="left" style="font-weight:bold;">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].centroPrefijo + '</td><td align="left" style="font-weight:bold;">'
+                                                                    + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].centro + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].ano
+                                                                    + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].mes
+                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].saldo_ini)
+                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].debito)
+                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].credito)
+                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].total)
+                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].saldo_inicial_niff)
+                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].debitoNiff)
+                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].creditoNiff)
+                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].centrosHijos[c4].totalNiff)
+                                                                    + '</td></tr>');
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos.length > 0) {
+                                                        if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].esAfectable == true) {
+                                                            for (var n4 = 0; n4 < data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos.length; n4++) {
+                                                                $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1)
+                                                                    + '</td><td align="left" style="font-weight:bold;">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].terceroDocumento + '</td><td align="left" style="font-weight:bold;">'
+                                                                    + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].terceroNombre + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].ano
+                                                                    + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].mes
+                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].saldo_ini)
+                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].debito)
+                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].credito)
+                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].total)
+                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].saldo_inicial_niff)
+                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].debitoNiff)
+                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].creditoNiff)
+                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].NitsHijos[n4].totalNiff)
+                                                                    + '</td></tr>');
+                                                            }
+                                                        }
+                                                    }
+
+                                                }
+
+
+
+
+
+
+
+                                                if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas.length > 0) {
+                                                    for (var m = 0; m < data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas.length; m++) {
+                                                        if (nivelesAceptados.indexOf("5") >= 0 && data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].visible == true) {
+                                                            $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="display:none;">' + (i + 1) + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuenta + '</td><td align="left">'
+                                                                + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentaDescripcion + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].ano
+                                                                + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].mes
+                                                                + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].saldo_ini)
+                                                                + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].debito)
+                                                                + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].credito)
+                                                                + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].total)
+                                                                + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].saldo_inicial_niff)
+                                                                + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].debitoNiff)
+                                                                + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].creditoNiff)
+                                                                + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].totalNiff)
+                                                                + '</td></tr>');
+
+                                                            if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos.length > 0) {
+                                                                if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].esAfectable == true) {
+                                                                    for (var c5 = 0; c5 < data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos.length; c5++) {
+                                                                        $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1)
+                                                                            + '</td><td align="left" style="font-weight:bold;">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].centroPrefijo + '</td><td align="left" style="font-weight:bold;">'
+                                                                            + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].centro + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].ano
+                                                                            + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].mes
+                                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].saldo_ini)
+                                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].debito)
+                                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].credito)
+                                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].total)
+                                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].saldo_inicial_niff)
+                                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].debitoNiff)
+                                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].creditoNiff)
+                                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].centrosHijos[c5].totalNiff)
+                                                                            + '</td></tr>');
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos.length > 0) {
+                                                                if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].esAfectable == true) {
+                                                                    for (var n5 = 0; n5 < data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos.length; n5++) {
+                                                                        $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1)
+                                                                            + '</td><td align="left" style="font-weight:bold;">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].terceroDocumento + '</td><td align="left" style="font-weight:bold;">'
+                                                                            + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].terceroNombre + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].ano
+                                                                            + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].mes
+                                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].saldo_ini)
+                                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].debito)
+                                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].credito)
+                                                                            + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].total)
+                                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].saldo_inicial_niff)
+                                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].debitoNiff)
+                                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].creditoNiff)
+                                                                            + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].NitsHijos[n5].totalNiff)
+                                                                            + '</td></tr>');
+                                                                    }
+                                                                }
+                                                            }
+
+                                                        }
+
+
+
+
+
+
+                                                        if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas.length > 0) {
+                                                            for (var n = 0; n < data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas.length; n++) {
+                                                                if (nivelesAceptados.indexOf("6") >= 0 && data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].visible == true) {
+                                                                    $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="display:none;">' + (i + 1) + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].cuenta + '</td><td align="left">'
+                                                                        + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].cuentaDescripcion + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].ano
+                                                                        + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].mes
+                                                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].saldo_ini)
+                                                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].debito)
+                                                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].credito)
+                                                                        + '</td><td align="right">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].total)
+                                                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].saldo_inicial_niff)
+                                                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].debitoNiff)
+                                                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].creditoNiff)
+                                                                        + '</td><td align="right" style="display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].totalNiff)
+                                                                        + '</td></tr>');
+
+                                                                    if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos.length > 0) {
+                                                                        if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].esAfectable == true) {
+                                                                            for (var c6 = 0; c6 < data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos.length; c6++) {
+                                                                                $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1)
+                                                                                    + '</td><td align="left" style="font-weight:bold;">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].centroPrefijo + '</td><td align="left" style="font-weight:bold;">'
+                                                                                    + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].centro + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].ano
+                                                                                    + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].mes
+                                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].saldo_ini)
+                                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].debito)
+                                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].credito)
+                                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].total)
+                                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].saldo_inicial_niff)
+                                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].debitoNiff)
+                                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].creditoNiff)
+                                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].centrosHijos[c6].totalNiff)
+                                                                                    + '</td></tr>');
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                    if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos.length > 0) {
+                                                                        if (data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].esAfectable == true) {
+                                                                            for (var n6 = 0; n6 < data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos.length; n6++) {
+                                                                                $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold; display:none;">' + (i + 1)
+                                                                                    + '</td><td align="left" style="font-weight:bold;">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].terceroDocumento + '</td><td align="left" style="font-weight:bold;">'
+                                                                                    + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].terceroNombre + '</td><td align="left">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].ano
+                                                                                    + '</td><td align="right">' + data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].mes
+                                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].saldo_ini)
+                                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].debito)
+                                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].credito)
+                                                                                    + '</td><td align="right" style="font-weight:bold;">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].total)
+                                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].saldo_inicial_niff)
+                                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].debitoNiff)
+                                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].creditoNiff)
+                                                                                    + '</td><td align="right" style="font-weight:bold; display:' + checkNiff + '">$ ' + addComas(data[i].cuentasHijas[j].cuentasHijas[k].cuentasHijas[l].cuentasHijas[m].cuentasHijas[n].NitsHijos[n6].totalNiff)
+                                                                                    + '</td></tr>');
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                }
+
+
+
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
+                        //var sumaInicialAux = 0;
+                        //var debitoAux = 0;
+                        //var creditoAux = 0;
+                        //var TotalAux = 0;
+                        //if (data[i].sumaInicial == null) {
+                        //    sumaInicialAux = 0;
+                        //} else {
+                        //    sumaInicialAux = data[i].sumaInicial;
+                        //}
+                        //if (data[i].debito == null) {
+                        //    debitoAux = 0;
+                        //} else {
+                        //    debitoAux = data[i].debito;
+                        //}
+                        //if (data[i].credito == null) {
+                        //    creditoAux = 0;
+                        //} else {
+                        //    creditoAux = data[i].credito;
+                        //}
+                        //if ((data[i].sumaInicial + data[i].debito - data[i].credito) == null) {
+                        //    TotalAux = 0;
+                        //} else {
+                        //    TotalAux = (data[i].sumaInicial + data[i].debito - data[i].credito);
+                        //}
+
+                        //if (sumaInicialAux == 0 && debitoAux == 0 && creditoAux == 0) {
+
+                        //} else {
+                        //if (data[i].cntpuc_numero.length == 1) {
+
+                        //for (var j = 0; j < data[i].length; j++) {
+
+                        //}
+
+
+                        //}
+                        //else {
+                        //alert('sdasd');
+                        //for (var j = 0; j < data[i].nivel2.length; j++) {
+                        //    $('#tablaDatosContables').find('tbody').append('<tr><td align="left" style="font-weight:bold;">' + (i + 1) + '</td><td align="left" style="font-weight:bold;">' + data[i].cntpuc_numero + '</td><td align="left" style="font-weight:bold;">'
+                        //           + data[i].cntpuc_descp + '</td><td align="left">' + data[i].nivel2[j].anio
+                        //           + '</td><td align="right">' + data[i].nivel2[j].mes
+                        //           + '</td><td align="left" style="font-weight:bold;">' + data[i].nivel2[j].saldoInicial
+                        //           + '</td><td align="right" style="font-weight:bold;">' + data[i].nivel2[j].debito
+                        //           + '</td><td align="right" style="font-weight:bold;">' + data[i].nivel2[j].credito
+                        //           + '</td><td align="right" style="font-weight:bold;">' + 0
+                        //           + '</td></tr>');
+                        // }
+
+
+                        //$('#tablaDatosContables').find('tbody').append('<tr><td align="left">' + (i + 1) + '</td><td align="left">' + data[i].cntpuc_numero + '</td><td align="left">'
+                        //       + data[i].cntpuc_descp + '</td><td align="left">' + ''
+                        //       + '</td><td align="right">' + ''
+                        //       + '</td><td align="left">' + sumaInicialAux
+                        //       + '</td><td align="right">' + debitoAux
+                        //       + '</td><td align="right">' + creditoAux
+                        //       + '</td><td align="right">' + TotalAux
+                        //       + '</td></tr>');
+                        //}
+                        //}
+                    }
+                },
+                complete: function (data) {
+                    $('#panelInfoEncontrada').show();
+                    $('#imagenLoading').hide();
+                    //$('#tablaDatosContables').dataTable({
+                    //    //"ajax": 'api/datatables.json',
+                    //    //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                    //    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    //    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    //    buttons: [
+                    //        //{ extend: 'copy', className: 'btn-sm' },
+                    //    //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                    //    { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                    //    ////{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                    //    ////{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                    //    ]
+                    //});
+                }
+            });
+        });
+
+    </script>
+
+}

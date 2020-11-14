@@ -1,0 +1,391 @@
+﻿@{
+    ViewBag.Title = "Facturación de Varios y Micelaneos";
+    ViewBag.Icono = "fa fa-address-book-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="principal" onclick="irCreacion()"><a data-toggle="tab"><i class="fa fa-th-list"></i>&nbsp;&nbsp;Facturación</a></li>
+                <li class="busqueda active"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Busqueda</a></li>
+            </ul>
+
+            <div id="buscar" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Tipo documento</th>
+                                        <th style="text-align:center"># Consecutivo</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Nit</th>
+                                        <th style="text-align:center">Valor Total</th>
+                                        <th style="text-align:center">Bodega</th>
+                                        <th style="text-align:center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="modalDevManual" class="modal fade hmodal-info" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Devolución de compra manual</h4>
+            </div>
+
+            @using (Html.BeginForm("DevolucionCompra", "compraRepuestos", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+
+                @Html.Hidden("menu")
+
+                <div class="modal-body">
+                    <input name="id_devolucion" id="id_devolucion_manual" value="" type="hidden" />
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-6">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <select class="form-control selectTipoDocumento" id="selectTipoDocumento" name="tipo" required="required">
+                                    <option></option>
+                                    @*@foreach (var item in ViewBag.doc_registros)
+                                        {
+                                            <option value="@item.tpdoc_id">@item.tpdoc_nombre</option>
+                                        }*@
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <br /><br />
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-6">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <select class="form-control" id="selectBodegas" name="bodega" required="required">
+                                    <option></option>
+                                    @*@foreach (var item in ViewBag.bodegas)
+                                        {
+                                            <option value="@item.id">@item.bodccs_nombre</option>
+                                        }*@
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <br /><br />
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-6">Perfil Contable:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <select class="form-control" id="perfil" name="perfilcontable" required="required">
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <br /><br />
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-default" data-dismiss="" id="">Aceptar</button>
+                </div>
+
+            }
+
+        </div>
+    </div>
+</div>
+
+<div id="modalDevAuto" class="modal fade hmodal-info" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Devolución de compra automatica</h4>
+            </div>
+
+            @using (Html.BeginForm("DevolucionCompra", "compraRepuestos", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+
+                @Html.Hidden("menu")
+
+                <div class="modal-body">
+                    <input name="id_devolucion" id="id_devolucion_auto" value="" type="hidden" />
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-6">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <select class="form-control selectTipoDocumento" id="selectTipoDocumento" name="tipo" required="required">
+                                    <option></option>
+                                    @*@foreach (var item in ViewBag.doc_registros)
+                                        {
+                                            <option value="@item.tpdoc_id">@item.tpdoc_nombre</option>
+                                        }*@
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <br /><br />
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-6">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <select class="form-control" id="selectBodega" name="bodega" required="required">
+                                    <option></option>
+                                    @*@foreach (var item in ViewBag.bodegas)
+                                        {
+                                            <option value="@item.id">@item.bodccs_nombre</option>
+                                        }*@
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <br /><br />
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-default" data-dismiss="" id="">Aceptar</button>
+                </div>
+
+            }
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+
+        function irCreacion() {
+            window.location.href = '@Url.Action("Facturar", "FacturacionOtros")?menu=' + @ViewBag.id_menu;
+        }
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+
+        $.ajax({
+            url: '/FacturacionOtros/BuscarDatosVenta',
+            data: {
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+                $('#tablaPaginada').find('tbody').empty();
+                for (var i = 0; i < data.length; i++) {
+                    $('#tablaPaginada').find('tbody').append('<tr><td align="left">'
+                                    + data[i].tipoDocumento + '</td><td align="right">'
+                                    + data[i].numero + '</td><td align="right">'
+                                    + data[i].fecha + '</td><td align="left">'
+                                    + data[i].nit + '</td><td align="right">$'
+                                    + addComas(data[i].valor_total) + '</td><td align="left">'
+                                    + data[i].bodega + '</td><td align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                                    + '\'' + data[i].id
+                                    + '\')">Ver</button>'
+                                    //+'&nbsp;<button class="btn btn-primary btn-xs" onclick="devolucion_manual('
+                                    //+ '\'' + data[i].id
+                                    //+ '\')">D. Manual</button>&nbsp;<button class="btn btn-info btn-xs" onclick="devolucion_automatica('
+                                    //+ '\'' + data[i].id
+                                    //+ '\')">D. Automatica</button>'
+                                    + '</td></tr>');
+                }
+            },
+            complete: function (data) {
+                $('#tablaPaginada').dataTable({
+                    //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: [
+                        { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        //{ extend: 'pdf', className: 'btn-sm', text: 'PDF' },
+                        //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' },
+                    ]
+                });
+            }
+        })
+    });
+
+    function valida(id) {
+        window.location.href = '@Url.Action("DetalleFactura", "FacturacionOtros")?id=' + id;
+    }
+
+        $('.selectTipoDocumento').change(function () {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                data: {
+                    id: $(this).val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#selectBodegas').empty();
+                    $('#selectBodegas').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectBodegas').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+                    $('#selectBodega').empty();
+                    $('#selectBodega').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectBodega').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+                }
+            })
+
+            $.ajax({
+                url: '/compraRepuestos/BuscarPerfilPorDocumento',
+                data: {
+                    tipo: $('#selectTipoDocumento').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#perfil').empty();
+                    $('#perfil').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#perfil').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].perfil
+                        }));
+                    }
+                }
+            })
+        });
+
+        function devolucion_manual(id) {
+            //$("#id_devolucion_manual").val(id)
+            //$("#modalDevManual").modal("show");
+            window.location.href = '@Url.Action("DevolucionManual", "compraRepuestos")?id='+id;
+        }
+
+        function devolucion_automatica(id) {
+            $("#id_devolucion_auto").val(id)
+            $("#modalDevAuto").modal("show");
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+    </script>
+
+}

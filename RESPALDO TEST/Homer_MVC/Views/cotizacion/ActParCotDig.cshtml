@@ -1,0 +1,617 @@
+﻿@model Homer_MVC.IcebergModel.pcotizaciondigital
+
+@{
+    ViewBag.Icono = "fa fa-pdf";
+    ViewBag.Title = "Parametrizar Cotización Digital";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<style type="text/css">
+    .popover-content {
+        height: 100px;
+        width: 200px;
+    }
+</style>
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm("ActParCotDig", "cotizacion", FormMethod.Post, new { enctype = "multipart/form-data", id = "formulario", name = "formulario" }))
+                    {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(model => model.id)
+                        @Html.HiddenFor(model => model.userid_creacion)
+                        @Html.HiddenFor(model => model.fecha_creacion)
+                        @Html.HiddenFor(model => model.userid_actualizacion)
+                        @Html.HiddenFor(model => model.fecha_actualizacion)
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Modelo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.modelo, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.modelo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">A&ntilde;o modelo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <select name="anioModelo" id="anioModelo" class="form-control js-source-states" required>
+                                                    <option></option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Imagen Principal:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-8">
+                                                <div class="col-md-1" style="padding:0">
+                                                    <button type="button" name="btnInfoP" id="btnInfoP" class="btn btn-info btn" data-toggle="popover" data-placement="top" title="Información"><i class="fa fa-info"></i></button>
+                                                </div>
+                                                <div class="col-md-1" style="padding:0">
+                                                    <a name="btnVerFotoP" id="btnVerFotoP" class="btn btn-success btn" href="@ViewBag.imgPrincipal" target="_blank" title="Ver Foto"><i class="fa fa-eye"></i></a>&nbsp;
+                                                </div>
+                                                <div class="col-xs-1" style="padding:0"></div>
+                                                <div class="col-md-8" style="padding:0">
+                                                    <input type="hidden" name="imgPrincipalOK" id="imgPrincipalOK" class="form-control-file" value="@ViewBag.imgPrincipalOK" />
+                                                    <input type="file" name="imgPrincipal" id="imgPrincipal" class="form-control-file" value="" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Imagen Detalle 1:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-8">
+                                                <div class="col-md-1" style="padding:0">
+                                                    <button type="button" name="btnInfo1" id="btnInfo1" class="btn btn-info btn btnInfoD" data-toggle="popover" data-placement="top" title="Información"><i class="fa fa-info"></i></button>
+                                                </div>
+                                                <div class="col-md-1" style="padding:0">
+                                                    <a name="btnVerFotoD1" id="btnVerFotoD1" class="btn btn-success btn" href="@ViewBag.imgDetalle1" target="_blank" title="Ver Foto"><i class="fa fa-eye"></i></a>&nbsp;
+                                                </div>
+                                                <div class="col-xs-1" style="padding:0"></div>
+                                                <div class="col-md-8" style="padding:0">
+                                                    <input type="hidden" name="imgDetalle1OK" id="imgDetalle1OK" class="form-control-file" value="@ViewBag.imgDetalle1OK" />
+                                                    <input type="file" name="imgDetalle1" id="imgDetalle1" class="form-control-file" value="" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Imagen Detalle 2:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-8">
+                                                <div class="col-md-1" style="padding:0">
+                                                    <button type="button" name="btnInfo2" id="btnInfo2" class="btn btn-info btn btnInfoD" data-toggle="popover" data-placement="top" title="Información"><i class="fa fa-info"></i></button>
+                                                </div>
+                                                <div class="col-md-1" style="padding:0">
+                                                    <a name="btnVerFotoD2" id="btnVerFotoD2" class="btn btn-success btn" href="@ViewBag.imgDetalle2" target="_blank" title="Ver Foto"><i class="fa fa-eye"></i></a>&nbsp;
+                                                </div>
+                                                <div class="col-xs-1" style="padding:0"></div>
+                                                <div class="col-md-8" style="padding:0">
+                                                    <input type="hidden" name="imgDetalle2OK" id="imgDetalle2OK" class="form-control-file" value="@ViewBag.imgDetalle2OK" />
+                                                    <input type="file" name="imgDetalle2" id="imgDetalle2" class="form-control-file" value="" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Imagen Detalle 3:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-8">
+                                                <div class="col-md-1" style="padding:0">
+                                                    <button type="button" name="btnInfo3" id="btnInfo3" class="btn btn-info btn btnInfoD" data-toggle="popover" data-placement="top" title="Información"><i class="fa fa-info"></i></button>
+                                                </div>
+                                                <div class="col-md-1" style="padding:0">
+                                                    <a name="btnVerFotoD3" id="btnVerFotoD3" class="btn btn-success btn" href="@ViewBag.imgDetalle3" target="_blank" title="Ver Foto"><i class="fa fa-eye"></i></a>&nbsp;
+                                                </div>
+                                                <div class="col-xs-1" style="padding:0"></div>
+                                                <div class="col-md-8" style="padding:0">
+                                                    <input type="hidden" name="imgDetalle3OK" id="imgDetalle3OK" class="form-control-file" value="@ViewBag.imgDetalle3OK" />
+                                                    <input type="file" name="imgDetalle3" id="imgDetalle3" class="form-control-file" value="" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Titulo imagen 1:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.tituloDet1, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese titulo imagen 1", @required = "required", @autocomplete = "off" } })
+                                                @Html.ValidationMessageFor(model => model.tituloDet1, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Palabra destacada imagen 1:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.palabraResaltada1, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese palabra destacada del titulo 1", @required = "required", @autocomplete = "off" } })
+                                                @Html.ValidationMessageFor(model => model.palabraResaltada1, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-4"></div>
+                                            <div class="col-md-6">
+                                                <div class="alert alert-danger" role="alert" id="msjError1" style="display:none">
+                                                    La palabra destacada no se encuentra en el titulo diligenciado
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Titulo imagen 2:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.tituloDet2, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese titulo imagen 2", @required = "required", @autocomplete = "off" } })
+                                                @Html.ValidationMessageFor(model => model.tituloDet2, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Palabra destacada imagen 2:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.palabraResaltada2, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese palabra destacada del titulo 2", @required = "required", @autocomplete = "off" } })
+                                                @Html.ValidationMessageFor(model => model.palabraResaltada2, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-4"></div>
+                                            <div class="col-md-6">
+                                                <div class="alert alert-danger" role="alert" id="msjError2" style="display:none">
+                                                    La palabra destacada no se encuentra en el titulo diligenciado
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Titulo imagen 3:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.tituloDet3, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese titulo imagen 3", @required = "required", @autocomplete = "off" } })
+                                                @Html.ValidationMessageFor(model => model.tituloDet3, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Palabra destacada imagen 3:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.palabraResaltada3, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese palabra destacada del titulo 3", @required = "required", @autocomplete = "off" } })
+                                                @Html.ValidationMessageFor(model => model.palabraResaltada3, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-4"></div>
+                                            <div class="col-md-6">
+                                                <div class="alert alert-danger" role="alert" id="msjError3" style="display:none">
+                                                    La palabra destacada no se encuentra en el titulo diligenciado
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Texto principal:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.TextAreaFor(model => model.texto1, new { @class = "form-control", @placeholder = "Ingrese texto principal de la cotizacion", @required = "required", @rows = "4", @columns = "10" })
+                                                @Html.ValidationMessageFor(model => model.texto1, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Pie de foto:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.TextAreaFor(model => model.pieFoto, new { @class = "form-control", @placeholder = "Ingrese texto del pie de foto principal de la cotizacion", @required = "required", @rows = "4", @columns = "10" })
+                                                @Html.ValidationMessageFor(model => model.pieFoto, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Detalle titulo 1:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.TextAreaFor(model => model.tituloCuerpo1, new { @class = "form-control", @placeholder = "Ingrese texto del detalle del titulo 1", @required = "required", @rows = "4", @columns = "10" })
+                                                @Html.ValidationMessageFor(model => model.tituloCuerpo1, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Detalle titulo 2:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.TextAreaFor(model => model.tituloCuerpo2, new { @class = "form-control", @placeholder = "Ingrese texto del detalle del titulo 2", @required = "required", @rows = "4", @columns = "10" })
+                                                @Html.ValidationMessageFor(model => model.tituloCuerpo2, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Detalle titulo 3:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.TextAreaFor(model => model.tituloCuerpo3, new { @class = "form-control", @placeholder = "Ingrese texto del detalle del titulo 3", @required = "required", @rows = "4", @columns = "10" })
+                                                @Html.ValidationMessageFor(model => model.tituloCuerpo3, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Chevy Star:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <select name="chevyStar" id="chevyStar" class="form-control js-source-states" required>
+                                                    <option value="1">Incluye Chevy Star</option>
+                                                    <option value="2">Compatible Chevy Star</option>
+                                                    <option value="3">No incluye Chevy Star</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>}
+                </div>
+            </div>
+
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Modelo</th>
+                                        <th style="text-align:center">A&ntilde;o modelo</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $('#modelo').trigger('change');
+            setTimeout(function (){
+                $('#anioModelo').val(@ViewBag.anioModelo);
+                $('#anioModelo').trigger('change');
+                $('#chevyStar').val(@ViewBag.chevyStar);
+                $('#chevyStar').trigger('change');
+            }, 500);
+
+            $('.js-source-states').select2()
+            BuscarCotizacionesParametrizadas();
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000);
+            $('[data-toggle="popover"]').popover();
+        });
+
+        $('#modelo').change(function () {
+            $('#descripcion').val('');
+            $('#valor').val('');
+            var esNuevo = true;
+
+            $.ajax({
+                url: '/cotizacion/BuscarAniosModelos',
+                data: {
+                    codigoModelo: $('#modelo').val(),
+                    esNuevo: esNuevo
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#anioModelo').empty();
+                    $('#anioModelo').append($('<option>', {
+                        value: '',
+                        text: 'Seleccione'
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#anioModelo').append($('<option>', {
+                            value: data[i].codigo,
+                            text: data[i].anios
+                        }));
+                    }
+                    //$('#anioModelo').select2();
+                }
+            });
+        });
+
+        $('#btnInfoP').popover({
+            trigger : 'click',
+            placement : 'top',
+            html: 'true',
+            content : '<div>'
+                          +'<p>Las medidas recomendadas para la imágen principal son de 1500 X 1014 píxeles</p>'
+                     +'</div>',
+            template: '<div class="popover">'
+                         +'<div class="arrow"></div>'
+                         +'<h3 class="popover-title"></h3>'
+                         +'<div class="popover-content"></div>'
+                         +'<div class="popover-footer"></div>'
+                     +'</div>'
+        });
+
+        $('.btnInfoD').popover({
+            trigger : 'click',
+            placement : 'top',
+            html: 'true',
+            content : '<div>'
+                          +'<p>Las medidas recomendadas para las imágenes del detalle son de 326 X 326 píxeles</p>'
+                     +'</div>',
+            template: '<div class="popover">'
+                         +'<div class="arrow"></div>'
+                         +'<h3 class="popover-title"></h3>'
+                         +'<div class="popover-content"></div>'
+                         +'<div class="popover-footer"></div>'
+                     +'</div>'
+        });
+
+        $('body').on('click', function (e) {
+            $('[data-toggle="popover"]').each(function () {
+                if (!$(this).is(e.target) && $(this).has(e.target).length === 0 && $('.popover').has(e.target).length === 0) {
+                    $(this).popover('hide');
+                }
+            });
+        });
+
+        $('#tituloDet1').change(function () {
+            var str = $('#tituloDet1').val();
+            var res = str.toUpperCase();
+            $('#tituloDet1').val(res)
+        });
+
+        $('#palabraResaltada1').change(function () {
+            var str = $('#palabraResaltada1').val();
+            var res = str.toUpperCase();
+            $('#palabraResaltada1').val(res)
+
+            var str = $('#tituloDet1').val();
+            var res = str.split(" ");
+            var bandera = false;
+
+            for (var i = 0; i < res.length; i++) {
+                if (res[i] == $('#palabraResaltada1').val().trim()) {
+                    bandera = true;
+                    $('#msjError1').hide('1000')
+                }
+            }
+            if (bandera == false) {
+                $('#msjError1').show('1000')
+            }
+        });
+
+        $('#tituloDet2').change(function () {
+            var str = $('#tituloDet2').val();
+            var res = str.toUpperCase();
+            $('#tituloDet2').val(res)
+        });
+
+        $('#palabraResaltada2').change(function () {
+            var str = $('#palabraResaltada2').val();
+            var res = str.toUpperCase();
+            $('#palabraResaltada2').val(res)
+
+            var str = $('#tituloDet2').val();
+            var res = str.split(" ");
+            var bandera = false;
+
+            for (var i = 0; i < res.length; i++) {
+                if (res[i] == $('#palabraResaltada2').val().trim()) {
+                    bandera = true;
+                    $('#msjError2').hide('1000')
+                }
+            }
+            if (bandera == false) {
+                $('#msjError2').show('1000')
+            }
+        });
+
+        $('#tituloDet3').change(function () {
+            var str = $('#tituloDet3').val();
+            var res = str.toUpperCase();
+            $('#tituloDet3').val(res)
+        });
+
+        $('#palabraResaltada3').change(function () {
+            var str = $('#palabraResaltada3').val();
+            var res = str.toUpperCase();
+            $('#palabraResaltada3').val(res)
+
+            var str = $('#tituloDet3').val();
+            var res = str.split(" ");
+            var bandera = false;
+
+            for (var i = 0; i < res.length; i++) {
+                if (res[i] == $('#palabraResaltada3').val().trim()) {
+                    bandera = true;
+                    $('#msjError3').hide('1000')
+                }
+            }
+            if (bandera == false) {
+                $('#msjError3').show('1000')
+            }
+        });
+
+        function valida(id) {
+            window.location.href = '@Url.Action("ActParCotDig", "cotizacion")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        function BuscarCotizacionesParametrizadas() {
+
+            $.ajax({
+                url: '/cotizacion/BuscarCotizacionesParametrizadas',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="left">'
+                            + data[i].modvh_nombre + '</td><td align="left">'
+                            + data[i].anio + '</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                            + '\'' + data[i].id
+                            + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar de Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+}

@@ -1,0 +1,786 @@
+﻿@model Homer_MVC.IcebergModel.NotasContablesModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Vehículos pendientes por matricular.";
+    ViewBag.Icono = "fa fa-file-text-o";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+}
+
+<style type="text/css">
+    .popover-content {
+        height: 100px;
+        width: 200px;
+    }
+</style>
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color: white; border: solid 1px; border-color: #e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top: 0px;">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-check fa-2x"></i> @TempData["mensaje"]
+                </p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]
+                </p>
+            </div>
+        }
+        @Html.Hidden("menu")
+        <div id="tabs" class="tab-content">
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active">
+                    <a data-toggle="tab" href="#buscar"><i class="fa fa-refresh"></i>&nbsp;&nbsp;@ViewBag.Title</a>
+                </li>
+                <li id="tramitados">
+                    <a data-toggle="tab" href="#matriculados"><i class="fa fa-refresh"></i>&nbsp;&nbsp;"Vehículos tramitados"</a>
+                </li>
+            </ul>
+
+            <div id="buscar" class="tab-pane fade in active">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive" style="width: 100%;">
+                            <div id="div-mensaje-buscar"></div>
+                            <div id="div_message"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaBusquedas_id">
+                                <thead>
+                                    <tr>
+
+                                        <th style="text-align: center"># Pedido</th>
+                                        <th style="text-align: center">Año</th>
+                                        <th style="text-align: center">Modelo</th>
+                                        <th style="text-align: center">Color</th>
+                                        <th style="text-align: center">Plan Mayor</th>
+                                        <th style="text-align:center">Ubicación</th>
+                                        <th style="text-align:center">Fecha Recepción</th>
+                                        <th style="text-align:center">Serie</th>
+                                        <th style="text-align:center">Bodega</th>
+                                        <th style="text-align:center">Factura</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Cliente</th>
+                                        <th style="text-align:center">Asesor</th>                                        
+                                        <th style="text-align:center">Placa</th>
+                                        <th style="text-align: center">Acción</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="matriculados" class="tab-pane fade">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive" style="width: 100%;">
+                            <div id="div-mensaje-buscar"></div>
+                            <div id="div_message"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablamatricula_id">
+                                <thead>
+                                    <tr>
+
+                                        <th style="text-align: center"># Pedido</th>
+                                        <th style="text-align: center">Año</th>
+                                        <th style="text-align: center">Modelo</th>
+                                        <th style="text-align: center">Color</th>
+                                        <th style="text-align: center">Plan Mayor</th>
+                                        <th style="text-align: center">Placa</th>
+                                        <th style="text-align: center">Serie</th>
+                                        <th style="text-align: center">Tramitador</th>
+                                        <th style="text-align: center">Cartera</th>
+                                        <th style="text-align: center">Observación</th>
+                                        <th style="text-align: center">Fecha Matricula</th>
+                                        <th style="text-align: center">Accion</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*Modal Nota debito cliente*@
+
+<div class="modal fade" id="DebitNoteModal">
+    <div class="modal-dialog">
+        <div class="modal-content modal-lg">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Nota de debito</h4>
+            </div>
+            <div class="modal-body" id="bodyModal">
+                @*Aquí va el contenido del modal*@
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" value="" name="idorder" id="idorder">
+                    <label>¿Confirma la nota débito de la matricula del vehículo <span id="vhlicplate">##</span>?</label>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btn_saveNoteDebit"><i class="fa fa-save"></i> Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*Modal notas de seguimiento*@
+<div id="followingModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog" role="document">
+        @*Contenido del modal*@
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Notas de seguimiento</h4>
+                <small>Agregar Notas</small>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    @*formulario*@
+                    @using (Html.BeginForm())
+                    {
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                <label class="control-label">Tipo Seguimiento:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                            </div>
+                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                @*@Html.DropDownList("tipo", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" });*@
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                <label class="control-label col-md-12">Tipo Seguimiento:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                            </div>
+                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                @*@Html.DropDownList("tipo", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })*@
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                <label class="control-label col-md-12">Motivo:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                            </div>
+                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                @Html.Editor("Motivo", new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                <label class="control-label col-md-12">Nota:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                            </div>
+                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                @Html.Editor("Nota", new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    @*<script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>*@
+
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+            verificarRolUsuario();
+            buscarDatos();
+            verificarPermiso();
+            $('[data-toggle="popover"]').popover();
+            $('.js-source-states').select2();
+            matriculados();
+            debugger;
+            var tramite = "@ViewBag.tramite";
+            if (tramite != "") {
+                //$('li a.active').removeClass('active');
+                //$('#tramitados').addClass('active');
+                $('#tramitados a').trigger('click');
+            }
+        });
+
+        function verificarRolUsuario() {
+            $.ajax({
+                url: '/vpedidos/verificarRolUsuario',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data == 2031) {
+                        $('#a').hide();
+                        $('#b').hide();
+                        $('#c').show();
+                        $('#d').show();
+                    } else {
+                        $('#a').show();
+                        $('#b').show();
+                        $('#c').show();
+                        $('#d').hide();
+                    }
+                }
+            });
+        }
+
+        function verificarPermiso() {
+            $.ajax({
+                url: '/vpedidos/verificarPermisoPazysalvo',
+                data: {},
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#permiso').val(data);
+                }
+            });
+        }
+
+        function handleClick(myRadio) {
+            currentValue = myRadio.value;
+            if (currentValue == 0) {
+                $("#formoculto").hide();
+            } else {
+                $("#formoculto").show();
+            }
+        }
+
+        //Carga de documentos alistados
+        function buscarDatos() {
+            $.ajax({
+                url: '/vpedidos/BuscarPedidosPendientesEntrega',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#tablaBusquedas_id').find('tbody').empty();
+                    for (let i = 0; i < data.length; i++) {
+                        const estAlist = (data[i].estadoAlistamiento == null)
+                            ? ''
+                            : `<div class="badge badge-${data[i].estadoAlistaminetoEstilo}"></div>`;
+                        const btn_alist =
+                            `<button class="btn btn-xs btn-primary" title="Nota debito cliente" onclick="sendModalNote(${
+                                data[i].id
+                                })"><i class="fa fa-file"></i></button>`;
+                        const btn_eventVehi =
+                            `<button class="btn btn-xs btn-danger" id="registroEvento" title="Evento vehículos" onclick="eventVehi(${
+                                data[i].id
+                                }, ${data[i].planmayor})"><i class="fa fa-car"></i></button>`;
+                        const btn_segui =
+                            `<button class="btn btn-xs btn-warning" title="seguimiento" onclick="seguimVehiculo(${
+                                data[i].id
+                                })"><i class="fa fa-binoculars"></i></button>`;
+                        $('#tablaBusquedas_id').find('tbody').append(
+                            `<tr><td align="right">${data[i].numero}</td><td align="right">${data[i].anio
+                            }</td><td align="right">${data[i].modelo}</td><td align="right">${data[i].color
+                            }</td><td align="right">${data[i].planmayor}</td><td align ="right">${data[i].ubicacion}</td>
+                            <td align="right">${data[i].finFechaRecepcion}</td><td align="right">${data[i].serie}</td><td align="right">${data[i].nombreBodega}</td>
+                            <td align="right">${data[i].numFactura}</td><td align="right">${data[i].facturaFecha}</td>
+                            <td align="right">${data[i].cliente}</td><td align="right">${data[i].asesor}</td><td align="right">${data[i].plac_vh}</td><td align="center">${btn_alist}${
+                            btn_eventVehi}${btn_segui}</td></tr>`);
+
+                        if ($(`#pedido${i}`).val() != "") {
+                            $(`#pedido${i}`).prop('checked', true);
+                        } else {
+                            $(`#pedido${i}`).prop('checked', false);
+                        }
+
+                        if ($(`#matricula${i}`).val() != "") {
+                            $(`#matricula${i}`).prop('checked', true);
+                        } else {
+                            $(`#matricula${i}`).prop('checked', false);
+                        }
+                    }
+                },
+                complete: function(data) {
+
+                    $('#tablaBusquedas_id').dataTable({
+                        "bDestroy": true,
+                        buttons: []
+                    });
+                }
+            });
+        }
+
+        $('#selectBodegas').change(function() {
+            $.ajax({
+                url: '/compraRepuestos/BuscarPerfilPorBodega',
+                data: {
+                    bodega: $('#selectBodegas').val(),
+                    tipoD: $('#tipo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#perfil').empty();
+                    $('#perfil').append($('<option>',
+                        {
+                            value: '',
+                            text: ''
+                        }));
+                    for (let i = 0; i < data.length; i++) {
+                        $('#perfil').append($('<option>',
+                            {
+                                value: data[i].id,
+                                text: data[i].perfil
+                            }));
+                    }
+                }
+            });
+        });
+
+        $("#nit").change(function() {
+            if ($.fn.dataTable.isDataTable('#tablaPaginada')) {
+                $('#tablaPaginada').dataTable().fnDestroy();
+            }
+            $.ajax({
+                url: '/notaCredito/BuscarDocumentosFiltro',
+                data: {
+                    nit: $('#nit').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    console.log(data);
+                    for (let i = 0; i < data.length; i++) {
+                        $("#tablaPaginada").find("tbody").append(
+                            `<tr align="center"><td><input type="hidden"  name="idval" id="tp${data[i].numero
+                            }" value="${data[i].tp
+                            }" /><input type="hidden"  name="idval" id="pre${data[i].numero}" value="${data[i].id
+                            }" /><input type="hidden"  name="idval" id="tipo${data[i].numero
+                            }" value="${data[i].prefijo}" /><input type="hidden"  name="idval" id="desc${data[i].numero
+                            }" value="${data[i].descripcion
+                            }" /><input type="hidden"  name="idval" id="numero${data[i].numero}" value="${data[i]
+                            .numeroFactura
+                            }" /><input type="radio" class="i-checks" name="seleccion" id="${data[i].numero}" value="${
+                            data[i].tipo} - ${data[i].numero}" /></td><td>${data[i].fecha}</td><td>${data[i].tipo
+                            }</td><td>${data[i].numero}</td><td><input type="hidden"  name="idval" id="input${
+                            data[i].numero}" value="${data[i].saldo}" />${addCommas(data[i].valor_total)
+                            }</td><td><input type="hidden"  name="idval" id="retencion${data[i].numero}" value="${
+                            data[i].retencion
+                            }" /><input type="hidden"  name="idval" id="reteica${data[i].numero}" value="${data[i]
+                            .reteIca
+                            }" /><input type="hidden"  name="idval" id="reteiva${data[i].numero}" value="${
+                            data[i].reteIva}" />${data[i].vencimiento}</td></tr>`);
+                    }
+                },
+                complete: function(data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        ]
+                    });
+                }
+            });
+        });
+
+        $("#costo").change(function() {
+            var iva = decimal($("#por_iva").val());
+            var rete = decimal($("#por_retencion").val());
+            var rica = decimal($("#por_retencion_ica").val());
+            var riva = decimal($("#por_retencion_iva").val());
+
+            if ($("#por_iva").val() != "" ||
+                $("#por_retencion").val() != "" ||
+                $("#por_retencion_ica").val() != "" ||
+                $("#por_retencion_iva").val() != "") {
+                var valor_iva =
+                    Math.round((parseInt(quitCommas($('#costo').val())) * parseFloat($("#por_iva").val())) / 100) || 0;
+                var valor_retencion =
+                    Math.round((parseInt(quitCommas($('#costo').val())) * parseFloat($("#por_retencion").val())) /
+                            100) ||
+                        0;
+                var valor_reteIca =
+                    Math.round((parseInt(quitCommas($('#costo').val())) * parseFloat($("#por_retencion_ica").val())) /
+                            1000) ||
+                        0;
+                $('#iva').val(addCommas(valor_iva));
+                $('#retencion').val(addCommas(valor_retencion));
+                if ($('#iva').val() == 0) {
+                    $('#retencion_iva').val('0');
+                } else {
+                    var valor_reteIva =
+                        Math.round(((parseInt(quitCommas($('#iva').val())) || 0) *
+                                    (parseFloat($("#por_retencion_iva").val())) ||
+                                    0) /
+                                100) ||
+                            0;
+                    $('#retencion_iva').val(addCommas(valor_reteIva));
+                }
+                $('#retencion_ica').val(addCommas(valor_reteIca));
+
+                ValorTotalPagado();
+            } else {
+                $('#iva').val(0);
+                $('#retencion').val(0);
+                $('#retencion_ica').val(0);
+                $('#retencion_iva').val(0);
+            }
+
+            ValorTotalPagado();
+        });
+
+        $("#por_iva").change(function() {
+            const max = parseInt(this.max);
+            const valor = parseInt(this.value);
+            if (valor > max) {
+                $("#modal_porcentajes").modal('show');
+                this.value = max;
+                calcularIVA();
+            } else {
+                calcularIVA();
+            }
+        });
+
+        function calcularIVA() {
+            //var valor = decimal($('#por_iva').val());
+            const valor_iva =
+                Math.round((parseInt(quitCommas($('#costo').val())) * parseFloat($('#por_iva').val())) / 100 || 0);
+            $('#iva').val(addCommas(valor_iva));
+
+            const valor_reteIva =
+                Math.round((parseInt(quitCommas($('#iva').val())) * parseFloat($('#por_retencion_iva').val())) / 100 ||
+                    0);
+            $('#retencion_iva').val(addCommas(valor_reteIva));
+
+            ValorTotalPagado();
+        }
+
+        $("#por_retencion").change(function() {
+            const max = parseInt(this.max);
+            const valor = parseInt(this.value);
+            if (valor > max) {
+                $("#modal_porcentajes").modal('show');
+                this.value = max;
+                calcularRetencion();
+            } else {
+                calcularRetencion();
+            }
+        });
+
+        function calcularRetencion() {
+            //var valor = decimal($('#por_retencion').val());
+            const valor_retencion =
+                Math.round((parseInt(quitCommas($('#costo').val())) * parseFloat($('#por_retencion').val())) / 100 ||
+                    0);
+            $('#retencion').val(addCommas(valor_retencion));
+
+            ValorTotalPagado();
+        }
+
+        $("#por_retencion_ica").change(function() {
+            const max = parseInt(this.max);
+            const valor = parseInt(this.value);
+            if (valor > max) {
+                $("#modal_porcentajes").modal('show');
+                this.value = max;
+                calcularReteIca();
+            } else {
+                calcularReteIca();
+            }
+        });
+
+        function calcularReteIca() {
+            const valor_reteIca =
+                Math.round((parseInt(quitCommas($('#costo').val())) * (parseFloat($('#por_retencion_ica').val()))) /
+                    1000 ||
+                    0);
+            $('#retencion_ica').val(addCommas(valor_reteIca));
+
+            ValorTotalPagado();
+        }
+
+        $("#por_retencion_iva").change(function() {
+            const max = parseInt(this.max);
+            const valor = parseInt(this.value);
+            if (valor > max) {
+                $("#modal_porcentajes").modal('show');
+                this.value = max;
+                calcularReteIva();
+            } else {
+                calcularReteIva();
+            }
+        });
+
+        function calcularReteIva() {
+            if ($('#iva').val() == 0 || $('#por_retencion_iva').val() == 0) {
+                $('#retencion_iva').val('0');
+            } else {
+                const valor_reteIva =
+                    Math.round(((parseInt(quitCommas($('#iva').val())) || 0) *
+                                (parseFloat($("#por_retencion_iva").val())) ||
+                                0) /
+                            100) ||
+                        0;
+                $('#retencion_iva').val(addCommas(valor_reteIva));
+            }
+
+            ValorTotalPagado();
+        }
+
+        function ValorTotalPagado() {
+            const valorApagar = (parseInt(quitCommas($('#costo').val())));
+            const valorRetencion = (parseInt(quitCommas($('#retencion').val()))) || 0;
+            const valorReteIca = (parseInt(quitCommas($('#retencion_ica').val()))) || 0;
+            const valorReteIva = (parseInt(quitCommas($('#retencion_iva').val()))) || 0;
+            const valorIVA = (parseInt(quitCommas($('#iva').val())));
+
+            const valorTotal = valorApagar + valorIVA - valorRetencion - valorReteIca - valorReteIva;
+            $('#valor_total').val(addComas(parseInt(valorTotal))) || 0;
+
+        }
+
+        var numero_miles = "";
+
+        function formatNumber(n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles(id) {
+            numero_miles = formatNumber($(`#${id}`).val());
+            $(`#${id}`).val(numero_miles);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? `.${x[1]}` : '';
+            const rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            const s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        function decimal(nStr) {
+            nStr.toString();
+            console.log(nStr);
+            const s = nStr.replace(/\./g, ",");
+            return s;
+        }
+
+        function soloNumeros(e) {
+            key = e.keyCode || e.which;
+            tecla = String.fromCharCode(key).toLowerCase();
+            letras = "1234567890.";
+            especiales = "8-37-39-46";
+
+            tecla_especial = false;
+            for (let i in especiales) {
+                if (key == especiales[i]) {
+                    tecla_especial = true;
+                    break;
+                }
+            }
+            if (letras.indexOf(tecla) == -1 && !tecla_especial) {
+                return false;
+            }
+        }
+
+        function valida(e, id) //Solo numeros y SOLO 1 punto decimal
+        {
+            const key = (document.all) ? e.which : e.keyCode;
+            cadena = $(`#${id}`).val();
+            console.log(cadena);
+            if (cadena.indexOf('.') == -1) {
+                return (key <= 13 || (key >= 48 && key <= 57) || key == 46);
+            } else {
+                return (key <= 13 || (key >= 48 && key <= 57));
+            }
+        }
+
+        function AgregarQuitarFavorito() {
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+        function sendModalNote(idn) {
+            console.log("Prueba de fuego");
+            url = `../NoteDebitSchedule/DebitNoteModal?idn=${idn}`;
+            $('#bodyModal').load(url,
+                function(resp) {
+                    $('#DebitNoteModal').modal('show');
+                    $('#btn_saveNoteDebit').prop('disabled', false);
+                });
+        }
+
+        function endModalNote(idn, planmayor) {
+            url = `../NoteDebitSchedule/Create?id=${idn}`;
+            $('#idorder').val(idn);
+            $('#vhlicplate').text(planmayor);
+            $('#DebitNoteModal').modal('show');
+            $('#btn_saveNoteDebit').prop('disabled', false);
+        }
+
+        function seguimVehiculo(id) {
+            window.location.href = `@Url.Action("Seguimiento", "vpedidos")?menu=${@ViewBag.id_menu}&id=${id}`;
+        }
+
+        function eventVehi(id, planmayor) {
+            window.location.href = `@Url.Action("Registrar", "EventoVehiculo")?menu=${id}&id=${planmayor}`;
+        }
+
+        function generarPDF(idencab) {
+            window.open(`@Url.Action("notaDebito", "notaDebito")?id=${idencab}`, '_blank');
+        }
+
+        //cargando los datos para el tab de vehiculos yá matriculados.
+        function matriculados() {
+            $.ajax({
+                url: '/vpedidos/matriculados',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablamatricula_id').find('tbody').empty();
+                    for (let i = 0; i < data.length; i++) {
+                        $('#tablamatricula_id').find('tbody').append(
+                            `<tr>
+                            <td align="right"> ${data[i].numero}</td>
+                            <td align="right"> ${data[i].year}</td>
+                            <td align="right"> ${data[i].model}</td>
+                            <td align="right"> ${data[i].color}</td>
+                            <td align="right"> ${ data[i].plan}</td>
+                            <td align="right"> ${data[i].placa}</td>
+                            <td align="right"> ${data[i].vin}</td>
+                            <td align="right"> ${data[i].tramitador}</td>
+                            <td align="right"> ${data[i].cartera}</td>
+                            <td align="right"> ${data[i].observation}</td>
+                            <td align="center"><input disabled type="checkbox" id="matricula${i}" name="matricula${i}" value="${data[i].fecha}" /><br />${data[i].fecha}</td>`
+                            + (data[i].nd != "" ? '<td align="center"><button class="btn btn-info btn-sm" type="button" title="Generar PDF Nota Debito" onclick="generarPDF('+ data[i].nd +')"><i class="fa fa-file-pdf-o"></i></button></td>' : '<td></td>')
+                        +'</tr>');
+                    }
+                },
+                complete: function(data) {
+                    $('#tablamatricula_id').dataTable({
+                        'bDestroy': true,
+                    });
+                }
+            });
+        }
+
+    </script>
+    @if (TempData["mensaje_error"] != null)
+    {
+        <script type="text/javascript">
+            $('#modal_diferencia').show();
+        </script>
+    }
+    @if (TempData["mensaje"] != null)
+    {
+        <script type="text/javascript">
+            $('#modalNota').show();
+        </script>
+    }
+}

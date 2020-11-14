@@ -1,0 +1,3105 @@
+﻿@model Homer_MVC.IcebergModel.tcitastaller
+
+@{
+    ViewBag.Title = "Agenda Taller Servicio";
+    ViewBag.Icono = "fa fa-calendar-check-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link rel="stylesheet" href="~/Vendor/clockpicker/dist/bootstrap-clockpicker.min.css" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+
+    <style type="text/css">
+        #tablaBahiasDia td {
+            cursor: pointer;
+        }
+    </style>
+
+    <style type="text/css">
+        .fc-time-grid .fc-slats td {
+            height: 30px !important;
+        }
+
+        .line_encabezado {
+            border: 0;
+            display: block;
+            height: 1px;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <style>
+        #tabla_clon {
+            border-right: 1px solid #ddd;
+            display: inline-block;
+            position: absolute;
+            width: auto;
+            /*border: 0px solid #ddd;*/
+        }
+
+        @@media (min-width: 768px) {
+            #tabla_clon { /*display: none;*/
+            }
+        }
+    </style>
+    <style type="text/css">
+        /*body {
+          min-height: 2000px;
+          padding-top: 70px;
+        }*/
+        /*.tableFloatingHeaderOriginal th {
+          background-color: #fff;
+          border-bottom: 1px solid #DDD;
+        }*/
+
+
+    </style>
+
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color: white; border: solid 1px; border-color: #e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color: white; border: solid 1px; border-color: #e4e5e7">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.DropDownList("bodega", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Fecha:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.Editor("fecha_agenda", new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "Ingrese fecha", required = "required" } })
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <div class="col-md-6 col-md-offset-4">
+                            <button type="button" class="btn btn-primary" id="btnfiltrocliente" onclick="Abrirmodalclientes()"><i class="fa fa-search"></i>&nbsp;&nbsp;Clientes</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="row">
+
+
+
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Area:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.DropDownList("cbAreas", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        @*<label class="control-label col-md-4">Area:&nbsp;<span class="text-danger">*</span></label>*@
+                        <div class="col-md-6 col-md-offset-4">
+                            <button type="button" class="btn btn-primary" id="btnFiltrar"><i class="fa fa-search"></i>&nbsp;&nbsp;Filtrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            
+
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top: 0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+            {
+            <br />
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-check fa-2x"></i> @TempData["mensaje"]
+                </p>
+            </div>
+            }
+
+        @if (TempData["mensaje_error"] != null)
+            {
+            <br />
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]
+                </p>
+            </div>
+            }
+
+        <div id="tabs" class="tab-content">
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active" onclick="buscarCitasDiarias();">
+                    <a data-toggle="tab" href="#pestanaDia"><i class="fa fa-calendar-o"></i>&nbsp;&nbsp;Dia</a>
+                </li>
+                <li class="" onclick="buscarCitasSemanal();">
+                    <a data-toggle="tab" href="#pestanaSemana"><i class="fa fa-calendar-check-o"></i>&nbsp;&nbsp;Semana</a>
+                </li>
+                <li class="" onclick="buscarCitasMensual();">
+                    <a data-toggle="tab" href="#pestanaMes"><i class="fa fa-calendar"></i>&nbsp;&nbsp;Mes</a>
+                </li>
+                @foreach (var item in ViewBag.colorEstados)
+                    {
+                    <li class="">
+                        <a data-toggle=""><i class="fa fa-circle" style="color: @item.Value"></i>&nbsp;&nbsp;@item.Text</a>
+                    </li>
+                    }
+            </ul>
+
+            <div id="pestanaDia" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div id="scrollito" class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            @Html.Editor("plan_mayor", new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "Ingrese plan_mayor", style = "display:none" } })
+                            @Html.Editor("accesorio", new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "accesorio si o no", style = "display:none" } })
+                            <table class="table table-striped table-bordered table-hover" id="tablaBahiasDia">
+                                <thead>
+
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pestanaSemana" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaBahiasSemana">
+                                <thead>
+
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="pestanaMes" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaBahiasMes">
+                                <thead>
+
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+
+<div class="modal fade hmodal-info" id="modal_clientesbuscar" tabindex="-2" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close" style="cursor:pointer"></i></button>
+                <h4 class="modal-title">
+                    &nbsp;&nbsp;&nbsp; Citas Clientes
+                </h4>
+            </div>
+
+
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-md-2">
+                        <label>Cedula</label>
+                        <input type="text" id="cedulatxt" class="form-control" />
+                    </div>
+                    <div class="col-md-2">
+                        <label>Placa</label>
+                        <input type="text" id="placatxt" class="form-control" />
+                    </div>
+                    <div class="col-md-2">
+                        <label>Fecha Desde</label>
+                        <input type="text" id="fechaini" class="form-control fechas" />
+                    </div>
+                    <div class="col-md-2">
+                        <label>Fecha Hasta</label>
+                        <input type="text" id="fechafin" class="form-control fechas" />
+                    </div>
+                    <div class="col-md-2">
+                        <br />
+                        <button class="btn btn-primary" onclick="Filtrar()">Consultar</button>
+                    </div>
+                </div>
+
+                <div class="row" style="overflow-x: scroll; ">
+                    <table class="table table-striped table-bordered table-hover" id="tablaPaginadacitas">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Bogdega</th>
+                                <th style="text-align:center">Fecha</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Placa</th>
+                                <th style="text-align:center">Cedula</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Estado</th>
+                                <th style="text-align:center">Razon Ingreso</th>
+                                <th style="text-align:center">Accion</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade hmodal-success" id="modalAgregarCita" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Cita Agenda</h4>
+                <small class="font-bold">Asignacion de horas y operaciones a realizar.</small>
+            </div>
+            <div class="modal-body">
+
+                @Html.Hidden("id_tercero")
+                @Html.Hidden("id_cita")
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Horas:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-8">
+                                @Html.Editor("HorasTotalesModal", new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "#", @readonly = "readonly", Value = "0" } })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Taller:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("bodegaModal", Enumerable.Empty<SelectListItem>(), "", new { @class = "form-control js-source-states", placeholder = "Seleccione", @readonly = "readonly" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Area:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("areaModal", Enumerable.Empty<SelectListItem>(), "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Puesto:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("puestoModal", Enumerable.Empty<SelectListItem>(), "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Tipo Cita:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("tipoCitaModal", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Fecha:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.Editor("fechaModal", new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "Ingrese fecha" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Hora:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8 clockpicker">
+                            @Html.Editor("horaModal", new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "Ingrese hora" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Agente:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.Editor("agenteModal", new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "", @readonly = "readonly" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Placa:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.Editor("placaModal", new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "Ingrese placa", required = "required" } })
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-primary" id="btnBuscarPlaca">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <div class="alert alert-danger" role="alert" style="display: none" id="NoExistePlaca">
+                                La placa ingresada no se encuentra registrada!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Veh&iacute;culo:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("vehiculoModal", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                        </div>
+                    </div>
+                </div>
+
+                @*<div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">Veh&iacute;culo:&nbsp;</label>
+                <div class="col-md-8">
+                    @Html.Editor("vehiculoModal", new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Modelo vehiculo", @readonly = "readonly" } })
+                </div>
+            </div>
+        </div>*@
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">C&eacute;dula:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-4">
+                            @Html.Editor("cedulaModal", new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "Ingrese cedula", required = "required" } })
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-primary" id="btnBuscarCedula">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-success" onclick="cambiarpropietario()" id="btnasignar" style="display: none;">
+                                <i class="fa fa-user-circle-o"></i>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <div class="alert alert-danger" role="alert" style="display: none" id="NoExisteDocumento">
+                                El documento ingresado no se encuentra registrado!
+                            </div>
+                            <div class="alert alert-success" role="alert" style="display: none" id="Cambiopropmensaje">
+                                Se a asignado un nuevo propietario al vehiculo
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Cliente:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.Editor("clienteModal", new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "Nombre Cliente", required = "required", @readonly = "readonly" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Telefono:&nbsp;</label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("telefonoModal", Enumerable.Empty<SelectListItem>(), "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Domicilio:&nbsp;</label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("domicilioModal", Enumerable.Empty<SelectListItem>(), "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6" style="visibility: hidden;" id="btnActualizarOculto">
+                    <div class="form-group">
+                        <div class="col-md-4 col-md-offset-4">
+                            <button type="button" class="btn btn-primary" id="btnActualizarcliente"><i class="fa fa-refresh"></i>&nbsp;Actualizar Tercero</button>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-sm-6 camposNoObligatorios">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Fuente:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("fuenteModal", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 camposNoObligatorios">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Tipo Llamada:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select class="form-control js-source-states" id="tipoLlamadaModal">
+                                <option value="S">Saliente</option>
+                                <option value="E">Entrante</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                @*<div class="col-sm-6 camposNoObligatorios">
+            <div class="form-group">
+                <label class="control-label col-md-4">Tipo Tarifa:&nbsp;<span class="text-danger">*</span></label>
+                <div class="col-md-8">
+                    @Html.DropDownList("tipoTarifa", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                </div>
+            </div>
+        </div>*@
+
+                @*<div class="col-sm-6" id="selectCentroCosto" style="display:block">
+            <div class="form-group">
+                <label class="control-label col-md-4">Cartera:&nbsp;<span class="text-danger">*</span></label>
+                <div class="col-md-8">
+                    @Html.DropDownList("centroCostoModal", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione",@required="required" })
+                </div>
+            </div>
+        </div>*@
+
+
+                <div class="col-md-12">
+                    <br />
+                </div>
+
+                <div class="col-sm-6 camposNoObligatorios planmostrar" style="display: none;" id="areaPlanMantenimiento">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Plan Mantenimiento:&nbsp;</label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("planModal", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6" id="selectRazonIngreso" style="display: block">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Razon de Ingreso:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("razonIngresoModal", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6" id="selectInfoPlan" style="display: none">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <div class="alert alert-info">
+                                <strong></strong>
+                                <p id="textoplandesc"></p><br />
+                                <strong></strong>
+                                <p id="textoplanpre"></p><br />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 areaOperacionesPorPlan areaReferenciasPorPlan" style="display: none">
+                    <hr style="background-color: #777; height: 3px;" />
+                </div>
+
+                <div class="col-md-12 text-center areaReferenciasPorPlan" style="display: none">
+                    <h4>
+                        <label class="label label-default">Referencias segun el plan</label>
+                    </h4>
+                </div>
+
+
+                <div class="row" style="display: none" id="contenedorPlanes">
+                    <div class="col-md-12 areaReferenciasPorPlan" style="display: none">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    <div class="table-responsive">
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tablaRepuestos">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: center">C&oacute;digo</th>
+                                                    <th style="text-align: center">Descripci&oacute;n</th>
+                                                    <th style="text-align: center">Precio</th>
+                                                    <th style="text-align: center">Cantidad</th>
+                                                    @*<th style="text-align:center">Iva (%)</th>*@
+                                                    @*<th style="text-align:center">Valor Iva</th>*@
+                                                    <th style="text-align: center">Precio Total</th>
+                                                    <th style="text-align: center">
+                                                        <input type="checkbox" id="checkSeleccionarTodos" />
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                            <tfoot></tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 text-center areaOperacionesPorPlan" style="display: none">
+                        <h4>
+                            <label class="label label-default">Operaciones segun el plan</label>
+                        </h4>
+                    </div>
+
+                    <div class="col-md-12 areaOperacionesPorPlan" style="display: none">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    <div class="table-responsive">
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tablaOperacionesPorPlan">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: center">C&oacute;digo</th>
+                                                    <th style="text-align: center">Descripci&oacute;n</th>
+                                                    <th style="text-align: center">Tiempo (Horas)</th>
+                                                    <th style="text-align: center">Precio</th>
+                                                    @*<th style="text-align:center">Iva (%)</th>*@
+                                                    @*<th style="text-align:center">Valor Iva</th>*@
+                                                    <th style="text-align: center">Precio Total</th>
+                                                    <th style="text-align: center">
+                                                        <input type="checkbox" id="checkTodasOperaciones" />
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                            <tfoot></tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-primary">
+                            Total a pagar
+                            <span class="badge badge-light">
+                                <p id="valorAPagar"></p>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <hr style="background-color: #777; height: 3px;" />
+                </div>
+
+                <div class="col-md-12 camposNoObligatorios">
+
+                    <div class="col-md-12 text-center">
+                        <h4>
+                            <label class="label label-default">Sintomas que reporta el cliente</label>
+                        </h4>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Sintomas:&nbsp;</label>
+                            <div class="col-md-6">
+                                @Html.Editor("sintomaModal", new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "Ingrese descripcion", required = "required" } })
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-primary" id="btnAgregarSintoma">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tablaSintomas">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align: center">&nbsp;</th>
+                                                <th style="text-align: center">Descripci&oacute;n</th>
+                                                <th style="text-align: center">&nbsp;</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12 tablaAverias" id="tablaAveriasdiv" style="display: none;">
+
+                    <div class="col-md-12 text-center">
+                        <h4>
+                            <label class="label label-default">Averias a solucionar</label>
+                        </h4>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tabla_averias">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">Plan Mayor</th>
+                                                <th style="text-align:center">Fecha</th>
+                                                <th style="text-align:center">Descripción</th>
+                                                <th style="text-align:center">Averia</th>
+                                                <th style="text-align:center">Impacto</th>
+                                                <th style="text-align:center">Zona</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <hr style="background-color: #777; height: 3px;" />
+                </div>
+
+                <div class="col-md-12">
+
+                    <div class="col-md-12 text-center">
+                        <h4>
+                            <label class="label label-default">Operaciones adicionales a aplicar</label>
+                        </h4>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Operaci&oacute;n:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                @Html.DropDownList("operacionModal", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-primary" id="btnAgregarOperacion">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 text-center" style="display: none;" id="alertaAgregarOperacion">
+                        <label class="text-danger">Debe digitar cliente, tipo de tarifa y operacion para poder agregar.</label>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tablaOperaciones">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align: center">C&oacute;digo</th>
+                                                <th style="text-align: center">Descripci&oacute;n</th>
+                                                <th style="text-align: center">Tiempo</th>
+                                                <th style="text-align: center">Valor</th>
+                                                @*<th style="text-align:center">Iva (%)</th>*@
+                                                @*<th style="text-align:center">Valor Iva</th>*@
+                                                <th style="text-align: center">Total</th>
+                                                <th style="text-align: center">&nbsp;</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-2">Notas:<span class="text-danger"></span></label>
+                        <div class="col-md-8">
+                            @Html.TextArea("notas", new RouteValueDictionary(new { @class = "someClass", style = "width: 100%; height:80px;" }))
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Estado:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("estadoModal", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6" style="display: none;" id="areaMotivoEstadoOculto">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Motivo Estado:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("motivoEstadoModal", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12" style="display: none;" id="alertaModal">
+                    <div class="form-group">
+                        <div class="alert alert-warning">
+                            <strong></strong>
+                            <p id="mensajeAlerta"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panelreprogramacion" style="display: none;">                  
+         
+                      
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Motivo Reprogramacion:&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-6">
+                                        <select id="selectmotivos" class="form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+                         
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <label class="control-label col-md-4">Observacion:&nbsp;<span class="text-danger">*</span></label>
+                                    <textarea id="observacionreprog" class="form-control"></textarea>
+                                </div>
+                            </div>
+
+                    
+                </div>
+
+                <div>
+
+                </div>
+                <label></label>
+                <label></label>
+                <label></label>
+
+            </div>
+
+            <div class="modal-footer" style="background-color: white; border: none;">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnGuardarCita">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    @*<script src="~/Scripts/jquery-latest.js"></script>*@
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/clockpicker/dist/bootstrap-clockpicker.min.js"></script>
+
+    <script src="~/Scripts/detalleot.js"></script>
+    <script type="text/javascript">
+        var strundefined = typeof undefined;
+        function getWindow(elem) {
+            return jQuery.isWindow(elem) ? elem : elem.nodeType === 9 ? elem.defaultView || elem.parentWindow : false;
+        }
+
+        jQuery.fn.extend({
+            offset: function(options) {
+                if (arguments.length) {
+                    return options === undefined
+                        ? this
+                        : this.each(function(i) {
+                            jQuery.offset.setOffset(this, options, i);
+                        });
+                }
+
+                var docElem,
+                    win,
+                    box = { top: 0, left: 0 };
+                const elem = this[0];
+                const doc = elem && elem.ownerDocument;
+
+                if (!doc) {
+                    return;
+                }
+
+                docElem = doc.documentElement;
+
+                // Make sure it's not a disconnected DOM node
+                if (!jQuery.contains(docElem, elem)) {
+                    return box;
+                }
+
+                // If we don't have gBCR, just use 0,0 rather than error
+                // BlackBerry 5, iOS 3 (original iPhone)
+                if (typeof elem.getBoundingClientRect !== strundefined) {
+                    box = elem.getBoundingClientRect();
+                }
+                win = getWindow(doc);
+                return {
+                    top: box.top + (win.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
+                    left: box.left + (win.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
+                };
+            },
+
+            position: function() {
+                if (!this[0]) {
+                    return;
+                }
+
+                var offsetParent,
+                    offset,
+                    parentOffset = { top: 0, left: 0 };
+                const elem = this[0];
+
+                // fixed elements are offset from window (parentOffset = {top:0, left: 0}, because it is its only offset parent
+                if (jQuery.css(elem, "position") === "fixed") {
+                    // we assume that getBoundingClientRect is available when computed position is fixed
+                    offset = elem.getBoundingClientRect();
+                } else {
+                    // Get *real* offsetParent
+                    offsetParent = this.offsetParent();
+
+                    // Get correct offsets
+                    offset = this.offset();
+                    if (!jQuery.nodeName(offsetParent[0], "html")) {
+                        parentOffset = offsetParent.offset();
+                    }
+
+                    // Add offsetParent borders
+                    parentOffset.top += jQuery.css(offsetParent[0], "borderTopWidth", true);
+                    parentOffset.left += jQuery.css(offsetParent[0], "borderLeftWidth", true);
+                }
+
+                // Subtract parent offsets and element margins
+                // note: when an element has margin: auto the offsetLeft and marginLeft
+                // are the same in Safari causing offset.left to incorrectly be 0
+                return {
+                    top: offset.top - parentOffset.top - jQuery.css(elem, "marginTop", true),
+                    left: offset.left - parentOffset.left - jQuery.css(elem, "marginLeft", true)
+                };
+            },
+
+            offsetParent: function() {
+                return this.map(function() {
+                    var offsetParent = this.offsetParent || docElem;
+
+                    while (offsetParent &&
+                        (!jQuery.nodeName(offsetParent, "html") && jQuery.css(offsetParent, "position") === "static")) {
+                        offsetParent = offsetParent.offsetParent;
+                    }
+                    return offsetParent || docElem;
+                });
+            }
+        });
+
+        var contadorSintoma = 1;
+        var contadorOperacion = 1;
+        var horasTotales = 0;
+        var panelActivo = 'Dia';
+        var fechaAsignada = '';
+        var listaOperaciones = new Array();
+        var listaSintomas = new Array();
+        var primerFiltro = 0;
+        var valorTotalPagar = 0;
+
+        //Bandera que usamos para indicar por consola que todo se completó correctamente
+        function ready() {
+            //clearConsole()
+            const Year = new Date().getFullYear();
+
+            setTimeout(console.log.bind(console,
+                "%cAll is ready, enjoy!",
+                "color: #b70d0d; font-size: x-large")); //No muestra la ruta donde se genera el console
+            setTimeout(console.log.bind(console,
+                `%cDesarrollado por Exiware® 2019. Todos los derechos reservados.\nContacto soporte@exiware.com | Bogotá D.C. - Colombia \n© Exiware S.A.S. ${
+                Year}`,
+                "color: #b70d0d; font-size: x"));
+        }
+
+     
+
+
+
+        /*Función que recarga la página y exige que se traigan los nuevos cambios desde el servidor*/
+        /*Funciona solamente cuando se cierra y nuevamente se abre el navegador*/
+        function Reload() {
+            /* Obtenemos la última parte de la URL. Por ejemplo, en una URL como:
+             * https://unadireccion.com/blog
+             * se obtendrá 'blog'*/
+            (function() {
+                const page = location.href.substring(location.href.lastIndexOf('/') + 1);
+                const isRedirected = sessionStorage.getItem(page); //Variable por sesión de navegador
+
+                if (!isRedirected) {
+                    sessionStorage.setItem(page, true);
+                    window.location.reload(true);
+                }
+            })();
+        }
+
+        ////Función que borra el log generado en la consola según el navegador
+        function clearConsole() {
+            if (typeof console._commandLineAPI !== 'undefined') {
+                console.API = console._commandLineAPI;
+            } else if (typeof console._inspectorCommandLineAPI !== 'undefined') {
+                console.API = console._inspectorCommandLineAPI;
+            } else if (typeof console.clear !== 'undefined') {
+                console.API = console;
+            }
+            if (console.API) {
+                setTimeout(console.API.clear.bind(console)); //No muestra la ruta donde se genera el console
+            }
+            setTimeout(console.clear.bind());
+        }
+
+        $(document).ready(function() {
+            ready();
+            var averia = @ViewBag.averia;
+            buscarAverias();
+            $('.js-source-states').select2();
+            $('#fecha_agenda').datetimepicker({
+                format: 'YYYY/MM/DD',
+                //minDate: new Date(),
+            });
+            combomotivosreprogramacion();
+            $('#planModal').append($('<option>',
+                {
+                    value: '',
+                    text: 'Ninguno'
+                }));
+
+            $('form select').each(function(i) {
+                this.addEventListener('invalid',
+                    function(e) {
+                        var _s2Id = `s2id_${e.target.id}`; //s2 autosuggest html ul li element id
+                        const _posS2 = $(`#${_s2Id}`).position();
+                        //get the current position of respective select2
+                        $(`#${_s2Id} ul`).addClass('_invalid'); //add this class with border:1px solid red;
+                        //this will reposition the hidden select2 just behind the actual select2 autosuggest field with z-index = -1
+                        $(`#${e.target.id}`).attr('style',
+                            `display:block !important;position:absolute;z-index:-1;top:${_posS2.top -
+                            $(`#${_s2Id}`).outerHeight() +
+                            30}px;left:${_posS2.left - ($(`#${_s2Id}`).width() / 10)}px;`);
+                        /*
+                        //Adjust the left and top position accordingly
+                        */
+                        //remove invalid class after 3 seconds
+                        setTimeout(function() {
+                                $(`#${_s2Id} ul`).removeClass('_invalid');
+                            },
+                            3000);
+                        return true;
+                    },
+                    false);
+            });
+
+
+               function combomotivosreprogramacion() {
+
+                     $.ajax({
+                url: '/agendaTallerServicio/ConsultaMotivosReprog',
+                data: {                  
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    var select = "";
+                       
+                    select += "<option value='0'>Seleccione estado</option>";
+                    for (var i = 0; i < data.length; i++) {
+                        select += "<option value='" + data[i].id + "'>"+data[i].descripcion +"</option>";
+                    }
+                        $('#selectmotivos').append(select);
+                }
+            });
+
+        }
+            //buscarFiltroTemporal();
+            //setInterval(buscarFiltroTemporal, 20000);
+
+            $('.clockpicker').clockpicker({
+                autoclose: true
+            });
+            debugger;
+            const f = new Date();
+            // f_actual = f.getDate() + "-" + (f.getMonth() +1) + "-" + f.getFullYear();
+            const anho = f.getFullYear();
+           var dia = f.getDate();
+            var mes = (f.getMonth() + 1);
+            if (mes < 10) {
+                mes = `0${mes}`;
+            };
+            if (dia < 10) {
+                dia = `0${dia}`;
+            };
+            f_actual = anho + "-" + mes + "-" + dia;
+
+            $('#fechaModal').datetimepicker({
+                format: 'YYYY/MM/DD',
+                minDate: f_actual,
+            });
+
+            if ($("#bodega").val() != "" && $("#fecha_agenda").val() != "" && $("#cbAreas").val() != "") {
+                $('#btnFiltrar').trigger('click');
+            }
+                    $('.fechas').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: `-${new Date()}`
+            });
+              var fecha = '@DateTime.Now.ToString("yyyy-MM-dd")';
+                     $("#fechaini").val(fecha);
+               $("#fechaini").find('imput').val(fecha);
+                    $("#fechafin").val(fecha);
+            $("#fechafin").find('imput').val(fecha);
+
+
+        });
+
+        $('#btnBuscarPlaca').click(function() {
+            window.open(`@Url.Action("CrearVehiculocita", "agendaTallerServicio")?placa=${$('#placaModal').val()}`,
+                '_blank');
+
+
+        });
+
+        function buscarFiltroTemporal() {
+            if (primerFiltro > 0) {
+                $('#btnFiltrar').trigger('click');
+            }
+        }
+
+        $('#cedulaModal').keyup(function() {
+            $('#id_tercero').val('');
+            $('#clienteModal').val('');
+            $('#telefonoModal').empty().select2();
+            $('#domicilioModal').empty().select2();
+            $('#btnActualizarOculto').css('visibility', 'hidden');
+            $('#tablaOperaciones').find('tbody').empty();
+        });
+
+        $('#btnActualizarcliente').click(function() {
+            $.ajax({
+                url: '/agendaTallerServicio/BuscarTerceroPorCedula',
+                data: {
+                    cedula: $('#cedulaModal').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    window.open(`@Url.Action("update", "icb_terceros")?menu=${@ViewBag.id_menu}&&id=${data}`, '_blank');
+                }
+            });
+        });
+
+        var referenciasPorPlan = '';
+        var operacionesPorPlan = '';
+
+        function agregarCitaAjax() {
+            referenciasPorPlan = '';
+            operacionesPorPlan = '';
+
+
+            $(".checkReferencias:checked").each(function() {
+                referenciasPorPlan += `,${$(this).val()}`;
+            });
+
+            $(".checkOperaciones:checked").each(function() {
+                operacionesPorPlan += `,${$(this).val()}`;
+            });
+            console.log(operacionesPorPlan);
+
+            var tipo_cita = $('#tipoCitaModal').val();
+            var id_cita = $('#id_cita').val();
+            var bahia = $('#areaModal').val();
+            var bodega =  $('#bodegaModal').val();
+            var tecnico =  $('#puestoModal').val();
+            var idmovprog = $('#selectmotivos').val();
+            var observacionreprog = $('#observacionreprog').val();
+            $.ajax({
+                url: '/agendaTallerServicio/AgregarCita',
+                data: {
+                    id_cita:id_cita,
+                    tipo_cita: tipo_cita,
+                    bahia: bahia,
+                    bodega: bodega,
+                    tecnico: tecnico,
+                    agente: $('#agenteModal').val(),
+                    cliente: $('#id_tercero').val(),
+                    placa: $('#placaModal').val(),
+                    fecha: $('#fechaModal').val(),
+                    horaInicio: $('#horaModal').val(),
+                    tiempo: $('#HorasTotalesModal').val(),
+                    tipoLlamada: $('#tipoLlamadaModal').val(),
+                    fuente: $('#fuenteModal').val(),
+                    operaciones: JSON.stringify(listaOperaciones),
+                    sintomas: JSON.stringify(listaSintomas),
+                    notas: $('#notas').val(),
+                    estado: $('#estadoModal').val(),
+                    motivoEstado: $('#motivoEstadoModal').val(),
+                    id_tipo_inspeccion: $('#planModal').val(),
+                    referenciasPlan: referenciasPorPlan,
+                    operacionesPlan: operacionesPorPlan,
+                    //tipoTarifa: $('#tipoTarifa').val(),
+                    modelo_codigo: $('#vehiculoModal').val(),
+                    centroCosto: $('#centroCostoModal').val(),
+                    razonIngreso: $('#razonIngresoModal').val(),
+                    averia: @ViewBag.averia,
+                    idmovprog: idmovprog,
+                    observacionreprog: observacionreprog
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+
+                },
+                complete: function(data) {
+                    if (data.responseJSON.success == true) {
+                        $('#mensajeAlerta').text('');
+                        $('#alertaModal').hide();
+
+                        $('#modalAgregarCita').modal('hide');
+                        //swal("Cita Agregada!", "La cita ha sido guardada.", "success");
+                        swal({
+                                title: "Cita Agregada!",
+                                text: "La cita ha sido guardada.",
+                                type: "success",
+                                showCancelButton: false,
+                                confirmButtonColor: "#62cb31",
+                                confirmButtonText: "Cerrar!",
+                                cancelButtonText: "No, cancelar!",
+                                closeOnConfirm: true,
+                                closeOnCancel: false
+                            },
+                            function(isConfirm) {
+                                if (isConfirm) {
+                                    $('#btnFiltrar').trigger('click');
+                                }
+                            });
+                    } else {
+                        swal({
+                                title: "Error!",
+                                text: data.responseJSON.errorMessage + "!",
+                                type: "warning",
+                                showCancelButton: true,
+                                confirmButtonColor: "#DD6B55",
+                                confirmButtonText: "Cerrar!",
+                                cancelButtonText: "Cancelar!"
+                            },
+                            function() {
+                                //swal("Cancelado", data.responseJSON.errorMessage , "error");
+                                $('#mensajeAlerta').text(data.responseJSON.errorMessage);
+                                setTimeout(function() {
+                                        $("#mensajeAlerta").fadeOut(1500);
+                                    },
+                                    3000);
+                                $('#alertaModal').show();
+                                $('#modalAgregarCita').modal('show');
+                            });
+                    }
+                }
+            });
+        }
+
+        $('#btnGuardarCita').click(function() {
+            if ($('#tipoCitaModal').val() == '' ||
+                $('#areaModal').val() == '' ||
+                $('#puestoModal').val() == '' ||
+                $('#id_tercero').val() == '' ||
+                $('#agenteModal').val() == '' ||
+                $.trim($('#placaModal').val()) == '' ||
+                $('#fechaModal').val() == '' ||
+                $('#horaModal').val() == '' ||
+                $('#HorasTotalesModal').val() == '' ||
+                $('#tipoLlamadaModal').val() == '' ||
+                $('#fuenteModal').val() == '' ||
+                $('#estadoModal').val() == '' ||
+                $('#razonIngresoModal').val() == '') {
+                $('#mensajeAlerta').text('Los campos marcados con (*) son obligatorios');
+                $('#alertaModal').show();
+            } else if ($('#HorasTotalesModal').val() == 0) {
+                $('#mensajeAlerta').text('No puede asignar una cita sin tiempo (horas)');
+                $('#alertaModal').show();
+            } else {
+                // Si esta en estado 11 significa que esta en cancelado y por tanto requiere motivo de cancelacion obligatorio
+                if ($('#estadoModal').val() == 11 && $('#motivoEstadoModal').val() == '') {
+                    $('#mensajeAlerta').text('Las citas canceladas requieren motivo obligatoriamente');
+                    $('#alertaModal').show();
+                } else {
+                    if ($('#estadoModal').val() == 11 || $('#estadoModal').val() == 3) {
+                        agregarCitaAjax();
+                    } else {
+                        $('#alertaModal').hide();
+                        $.ajax({
+                            url: '/agendaTallerServicio/ValidarPlacaConCitaAsignada',
+                            data: {
+                                placa: $('#placaModal').val(),
+                            },
+                            type: "post",
+                            cache: false,
+                            success: function(data) {
+
+                            },
+                            complete: function(data) {
+                                if (data.responseJSON.placaConCita == true) {
+                                    swal({
+                                            title: `La placa ya tiene una cita asignada en la fecha ${data.responseJSON
+                                                .fecha} en la bodega ${data.responseJSON.bodega}`,
+                                            text: "Desea actualizar ?",
+                                            type: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: "#62cb31",
+                                            confirmButtonText: "Guardar Cita!",
+                                            cancelButtonText: "No, cancelar!",
+                                            closeOnConfirm: false,
+                                            closeOnCancel: true
+                                        },
+                                        function(isConfirm) {
+                                            if (isConfirm) {
+                                                agregarCitaAjax();
+
+                                            } else {
+                                                $('#modalAgregarCita').modal('show');
+                                                //swal("Cancelado", "La cita no se ha agregado", "error");
+                                            }
+                                        });
+                                    $('#modalAgregarCita').modal('hide');
+                                } else {
+                                    agregarCitaAjax();
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        });
+
+        function buscarAverias() {
+            $.ajax({
+                url: '/agendaTallerServicio/buscarAveriasSolicitadas',
+                data: { planmayor:$('#plan_mayor').val() },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    $('#tabla_averias').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tabla_averias').find('tbody').append(
+                            '<tr>'
+                            + '<td align="center">' + data[i].planmayor + '</td>'
+                            + '<td align="center">' + data[i].fecha + '</td>'
+                            + '<td align="left">' + data[i].observacion + '</td>'
+                            + '<td align="left">' + data[i].averia + '</td>'
+                            + '<td align="left">' + data[i].impacto + '</td>'
+                            + '<td align="left">' + data[i].zona + '</td>'
+                            + '</tr>'
+                        );
+                    }
+                }
+            });
+        }
+
+
+        $('#placaModal').change(function() {
+            buscarPlaca();
+            MostrarAverias();
+        });
+
+        $('#tipoCitaModal').change(function() {
+            validarEventos();
+            validarObligatorios();
+        });
+
+        function validarObligatorios() {
+            var accesorio = $('#accesorio').val();
+            if ($('#tipoCitaModal').val() != "") {
+                $.ajax({
+                    url: '/agendaTallerServicio/validarObligatorios',
+                    data: {
+                        tipoCita: $('#tipoCitaModal').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function(data) {
+                        if (data == true) {
+                            $('.camposNoObligatorios').hide('1000');
+                            //$('#tipoTarifa').val(6)
+                            $('#fuenteModal').val(5);
+                        } else {
+
+                            $('.camposNoObligatorios').show('1000');
+                            if (accesorio != "0") {
+                                $('.planmostrar').hide('100');
+
+                            } else {
+                                $('.planmostrar').show('100');
+
+                            }
+                            // $('#tipoTarifa').val('')
+                            $('#fuenteModal').val('');
+                            $('#fuenteModal option[value="5"]').prop('disabled', true);
+                            //  $('#tipoTarifa option[value="6"]').prop('disabled', true);
+                        }
+                    }
+                });
+            }
+        }
+
+        function validarEventos() {
+            if ($('#tipoCitaModal').val() != "" && $('#placaModal').val() != "") {
+                $.ajax({
+                    url: '/agendaTallerServicio/validarEventos',
+                    data: {
+                        tipoCita: $('#tipoCitaModal').val(),
+                        placa: $('#placaModal').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function(data) {
+                        if (data.ok == true && data.permitido == true) {
+                            $('#btnGuardarCita').prop('disabled', false);
+                        }
+                        if (data.ok == false && data.permitido == false) {
+                            swal("Error!",
+                                "Este vehículo no tiene los eventos para ser enviado a alistamiento",
+                                "warning");
+                            $('#btnGuardarCita').prop('disabled', true);
+                        }
+                        if (data.ok == true && data.permitido == false) {
+                            swal("Error!",
+                                "Este vehículo no tiene los eventos para ser enviado a alistamiento",
+                                "warning");
+                            $('#btnGuardarCita').prop('disabled', true);
+                        }
+                        if (data.ok == false && data.permitido == true) {
+                            $('#btnGuardarCita').prop('disabled', false);
+                        }
+                    },
+                    complete: function(data) {
+
+                    }
+                });
+            }
+        }
+
+        function buscarPlaca() {
+            var accesorio = $('#accesorio').val();
+            $.ajax({
+                url: '/agendaTallerServicio/BuscarPlaca',
+                data: {
+                    placa: $('#placaModal').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data.placaExiste == true) {
+                        $('#vehiculoModal').val(data.buscarPlaca.modvh_codigo);
+                        $('#cedulaModal').val(data.cedulacliente);
+                        $('#id_tercero').val(data.buscarPlaca.doc_tercero);
+                        $('#btnBuscarCedula').trigger('click');
+                        $('#vehiculoModal').prop('style', 'visible:visible').select2();
+
+                        $('#NoExistePlaca').hide();
+                        //$('#areaPlanMantenimiento').show();
+                    }
+                    if (data.placaExiste == false) {
+                        $('#vehiculoModal').val('').prop('style', 'visible:visible').select2();
+                        $('#vehiculoModal').select2('readonly', false);
+                        $('#clienteModal').val('');
+                        $('#telefonoModal').empty().select2();
+                        $('#domicilioModal').empty().select2();
+                        //$('#areaPlanMantenimiento').hide();
+                        $('#NoExistePlaca').show();
+                        setTimeout(function() {
+                                $("#NoExistePlaca").fadeOut(1500);
+                            },
+                            3000);
+                    }
+                },
+                complete: function(data) {
+                    if (data.responseJSON.placaExiste == true) {
+                        if (accesorio == "") {
+                            $('#planModal').trigger('change');
+                        }
+                        $('#vehiculoModal').select2('readonly', true);
+                        validarEventos();
+                    }
+                }
+            });
+        }
+
+        function MostrarAverias() {
+            var plcavh = $('#placaModal').val();
+      
+                     $.ajax({
+                url: '/agendaTallerServicio/ConsultarAverias',
+                         data: {
+                    placa: plcavh
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data == true) {
+                        $('#tablaAveriasdiv').show();
+                    } else {
+                        $('#tablaAveriasdiv').hide();
+
+                    }
+                        
+                }
+            });
+        }
+
+        $('#btnBuscarCedula').click(function() {
+            $.ajax({
+                url: '/agendaTallerServicio/BuscarCliente',
+                data: {
+                    cedula: $('#cedulaModal').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data.encontrado == true) {
+                        $('#id_tercero').val(data.tercero_id);
+                        $('#clienteModal').val(data.Nombrecliente);
+                        $('#telefonoModal').empty();
+                        $('#domicilioModal').empty();
+                        $('#btnasignar').css('display', 'block');
+                        for (var i = 0; i < data.direcciones.length; i++) {
+                            $('#domicilioModal').append($('<option>',
+                                {
+                                    value: data.direcciones[i].direccion,
+                                    text: data.direcciones[i].direccion
+                                }));
+                        }
+                        for (var i = 0; i < data.telefonos.length; i++) {
+                            $('#telefonoModal').append($('<option>',
+                                {
+                                    value: data.telefonos[i],
+                                    text: data.telefonos[i]
+                                }));
+                        }
+                        $('#domicilioModal').select2();
+                        $('#telefonoModal').select2();
+                        $('#btnActualizarOculto').css('visibility', 'visible');
+                        $('#NoExisteDocumento').hide();
+                           $('#Cambiopropmensaje').hide();
+                           $('#Cambiopropmensaje').hide();
+
+                        if (parseInt($('#id_tercero').val()) != data.tercero_id) {
+                            $('#tablaOperaciones').find('tbody').empty();
+                        } else {
+
+                        }
+
+                    } else {
+                         $('#btnasignar').css('display', 'none');
+                        $('#btnActualizarOculto').css('visibility', 'hidden');
+                        $('#id_tercero').val('');
+                        $('#clienteModal').val('');
+                        $('#telefonoModal').empty().select2();
+                        $('#NoExisteDocumento').show();
+                        window.open(
+                            `@Url.Action("tercero", "icb_terceros")?menu=${@ViewBag.id_menu}&&cedula=${$('#cedulaModal')
+                            .val()}`,
+                            '_blank');
+                    }
+                }
+            });
+        });
+
+        function recalcularSintomas() {
+            listaSintomas.length = 0;
+            for (let i = 0; i < contadorSintoma; i++) {
+                const valor = $(`#txtSintoma${i}`).val();
+                if (typeof valor !== "undefined") {
+                    listaSintomas.push(valor);
+                }
+            }
+        }
+
+        function eliminarSintoma(contador) {
+            $(`#filaSintoma${contador}`).remove();
+            recalcularSintomas();
+        }
+
+        $('#btnAgregarSintoma').click(function() {
+            if ($('#sintomaModal').val() != '') {
+                $('#tablaSintomas').find('tbody').append(
+                    `<tr id="filaSintoma${contadorSintoma
+                    }"><td align="center">0</td><td align="center"><input type="text" value="${$('#sintomaModal').val()
+                    }" style="display:none;" id="txtSintoma${contadorSintoma}" name="txtSintoma${contadorSintoma}"/>${$(
+                        '#sintomaModal').val()
+                    }</td><td width="5%" align="center"><button class="btn btn-danger btn-xs" onclick="eliminarSintoma(${
+                    contadorSintoma
+                    })">&nbsp;&nbsp;<i class="fa fa-remove"></i>&nbsp;&nbsp;</button></td></tr>`);
+                listaSintomas.push($('#sintomaModal').val());
+                contadorSintoma++;
+                $('#sintomaModal').val('');
+            }
+        });
+
+        $('#checkTodasOperaciones').change(function() {
+            $(".checkOperaciones").prop('checked', $(this).prop("checked"));
+            clickOperaciones(0);
+        });
+
+        function clickOperaciones(id) {
+            var sumaTiempo = 0;
+            var sumaPrecio = 0;
+            var sumaValorIVA = 0;
+            var sumaTotal = 0;
+
+            $(".checkOperaciones:checked").each(function() {
+                sumaTiempo += parseInt($(`#txtTiempoOperacion${$(this).val()}`).val());
+                sumaPrecio += parseInt($(`#txtPrecioMatriz${$(this).val()}`).val());
+                sumaValorIVA += parseInt($(`#txtValorIVA${$(this).val()}`).val());
+                sumaTotal += parseInt($(`#txtValorTotal${$(this).val()}`).val());
+            });
+            $('#tablaOperacionesPorPlan').find('tfoot').empty();
+            $('#tablaOperacionesPorPlan').find('tfoot').append(
+                `<tr><td align="center"></td><td align="center"><b>Total Tiempo</b></td><td align="center"><b>${
+                addComas(sumaTiempo)
+                }</b></td><td align="center"><b>${addComas(sumaPrecio)
+                }</b></td><td align="center"><input type="text" style="display:none" id="valor1" value="${sumaTotal
+                }"/><b>${addComas(sumaTotal)
+                }</b></td></tr>`);
+
+            for (let i = 0; i < contadorOperacion; i++) {
+                const tiempoOperacionesAdicionales = $(`#txtTiempo${i}`).val();
+                if (typeof tiempoOperacionesAdicionales !== "undefined") {
+                    sumaTiempo += parseFloat(tiempoOperacionesAdicionales);
+                }
+            }
+            $('#HorasTotalesModal').val(sumaTiempo);
+
+            var v3 = $('#valor1').val();
+            if (v3 == "" || v3 == undefined) {
+                v3 = 0;
+            } else {
+                v3 = parseInt($('#valor1').val());
+            }
+
+            var v4 = $('#valor2').val();
+            if (v4 == "" || v4 == undefined) {
+                v4 = 0;
+            } else {
+                v4 = parseInt($('#valor2').val());
+            }
+
+            $('#valorAPagar').text(addComas(v3 + v4));
+        }
+
+        $('#checkSeleccionarTodos').change(function() {
+            $(".checkReferencias").prop('checked', $(this).prop("checked"));
+            clickReferencias(0);
+        });
+
+        function clickReferencias(id) {
+            var sumaPrecios = 0;
+            var sumaIvas = 0;
+            var sumaCantidad = 0;
+            var sumaTotales = 0;
+            $(".checkReferencias:checked").each(function() {
+                sumaCantidad = parseInt($(`#txtCantidadReferencia${$(this).val()}`).val());
+                sumaPrecios += parseFloat($(`#txtCantidadReferencia${$(this).val()}`).val()) *
+                    parseInt($(`#txtPrecioReferencia${$(this).val()}`).val());
+                sumaIvas += parseInt($(`#txtValorIvaReferencia${$(this).val()}`).val());
+                sumaTotales += parseInt($(`#txtValorTotalReferencia${$(this).val()}`).val());
+            });
+            $('#tablaRepuestos').find('tfoot').empty();
+            $('#tablaRepuestos').find('tfoot').append(
+                `<tr><td align="center"></td><td align="center"><b>Total</b></td><td align="center"><b>$ ${addComas(
+                    sumaPrecios)
+                }</b></td><td align="center"><b>${addComas(sumaCantidad)
+                }</b></td><td align="center"><input type="text" style="display:none" id="valor2" value="${sumaTotales
+                }"/>$ ${addComas(sumaTotales)
+                }</td><td width="10%" align="center"></td></tr>`);
+
+            var v1 = $('#valor1').val();
+            if (v1 == "" || v1 == undefined) {
+                v1 = 0;
+            } else {
+                v1 = parseInt($('#valor1').val());
+            }
+
+            var v2 = $('#valor2').val();
+            if (v2 == "" || v2 == undefined) {
+                v2 = 0;
+            } else {
+                v2 = parseInt($('#valor2').val());
+            }
+
+            $('#valorAPagar').text(addComas(v1 + v2));
+        }
+
+        $('#vehiculoModal').change(function() {
+            $('#planModal').trigger('change');
+        });
+
+        //buscamos las operaciones que hay para el plan seleccionado
+        $('#planModal').change(function () {
+            var bodega = $('#bodegaModal').val();
+            $.ajax({
+                url: '/agendaTallerServicio/BuscarOperacionPorPlan',
+                data: {
+                    id_modelo: $('#vehiculoModal').val(),
+                    codigo: $('#planModal').val(),
+                    bodega: bodega
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    //Operaciones del plan
+                    $('#tablaOperacionesPorPlan').find('tbody').empty();
+                    for (var i = 0; i < data.buscarOperaciones.length; i++) {
+
+                        var valorIVA = parseInt(data.buscarOperaciones[i].iva);
+                        var total = parseFloat(data.buscarOperaciones[i].preciototal);
+                        $('#tablaOperacionesPorPlan').find('tbody').append(
+                            `<tr><td align="center"><input type="text" style="display:none" id="txtEsInspeccion${
+                            data.buscarOperaciones[i].codigo}" value="1"/>${data.buscarOperaciones[i].codigo
+                            }</td><td align="center">${data.buscarOperaciones[i].operacion
+                            }</td><td align="center"><input type="text" style="display:none" id="txtTiempoOperacion${
+                            data.buscarOperaciones[i].codigo}" value="${data.buscarOperaciones[i].tiempo}"/>${data
+                            .buscarOperaciones[i].tiempo
+                            }</td><td align="center"><input type="text" style="display:none" id="txtPrecioMatriz${
+                            data.buscarOperaciones[i].codigo}" value="${data.buscarOperaciones[i].preciomatriz
+                            }"/><input type="text" style="display:none" id="txtPorcetajeIVA${data.buscarOperaciones[i]
+                            .codigo}" value="${data.buscarOperaciones[i].porcentajeiva
+                            }"/><input type="text" style="display:none" id="txtValorIVA${
+                            data.buscarOperaciones[i].codigo}" value="${valorIVA}"/>${addComas(data.buscarOperaciones[i]
+                                .preciomatriz)
+                            }</td><td align="center"><input type="text" style="display:none" id="txtValorTotal${
+                            data.buscarOperaciones[i].codigo}" value="${total}"/>${addComas(total)
+                            }</td><td width="10%" align="center"><input type="checkbox" value="${
+                            data.buscarOperaciones[i].codigo}" id="ckOperacion${data.buscarOperaciones[i].codigo
+                            }" class="checkOperaciones" onclick="clickOperaciones('${data.buscarOperaciones[i].codigo
+                            }')"/></td></tr>`);
+                    }
+                    if (data.buscarOperaciones.length > 0) {
+                        $('.areaOperacionesPorPlan').show();
+                        $('#selectInfoPlan').show();
+                        var plan = $('#planModal').val();
+                        $('#textoplandesc').html(`El tiempo total del plan es de <b>${data.tiempo} horas </b>`);
+                        $('#textoplanpre').html(`El precio total del plan es de <b> $ ${data.valortotal} </b></br><button type="button" class="btn btn-sm btn-info" onclick="verplan(`+plan+`)"> Ver Matriz</button> `);
+
+                    } else {
+                        $('.areaOperacionesPorPlan').hide();
+                        $('#selectInfoPlan').hide();
+                        $('#textoplandesc').html('');
+                        $('#textoplanpre').html('');
+                    }
+
+                    // Referencias del plan
+                    $('#tablaRepuestos').find('tbody').empty();
+                    for (var i = 0; i < data.buscarReferencias.length; i++) {
+                        $('#tablaRepuestos').find('tbody').append(
+                            `<tr><td align="center">${data.buscarReferencias[i].ref_codigo}</td><td align="center">${
+                            data.buscarReferencias[i].ref_descripcion
+                            }</td><td align="center"><input type="text" style="display:none" id="txtPrecioReferencia${
+                            data.buscarReferencias[i].ref_codigo}" value="${data.buscarReferencias[i].precio}"/>$ ${
+                            addComas(data.buscarReferencias[i].precio)
+                            }</td><td align="center"><input type="text" style="display:none" id="txtValorIvaReferencia${
+                            data.buscarReferencias[i].ref_codigo}" value="${data.buscarReferencias[i].valorIva
+                            }"/>$ <input type="text" style="display:none" id="txtCantidadReferencia${
+                            data.buscarReferencias[i].ref_codigo}" value="${data.buscarReferencias[i].cantidad}"/>${data
+                            .buscarReferencias[i].cantidad
+                            }</td><td align="center"><input type="text" style="display:none" id="txtValorTotalReferencia${
+                            data.buscarReferencias[i].ref_codigo}" value="${data.buscarReferencias[i].valorTotal}"/>$ ${
+                            addComas(data.buscarReferencias[i].valorTotal)
+                            }</td><td width="10%" align="center"><input type="checkbox" value="${
+                            data.buscarReferencias[i].ref_codigo
+                            }" class="checkReferencias" onclick="clickReferencias('${data.buscarReferencias[i]
+                            .ref_codigo}')"/></td></tr>`);
+                    }
+                    if (data.buscarReferencias.length > 0) {
+                        $('#contenedorPlanes').show();
+                        $('.areaReferenciasPorPlan').show();
+                    } else {
+                        $('#contenedorPlanes').hide();
+                        $('.areaReferenciasPorPlan').hide();
+                    }
+                }
+            });
+        });
+
+        function recalcularTiempo() {
+            // Tiempo de operaciones asociadas a un plan
+            var sumaTiempo = 0;
+            $(".checkOperaciones:checked").each(function() {
+                sumaTiempo += parseInt($(`#txtTiempoOperacion${$(this).val()}`).val());
+            });
+
+            horasTotales = 0;
+            listaOperaciones.length = 0;
+            for (let i = 0; i < contadorOperacion; i++) {
+                const valor = $(`#txtTiempo${i}`).val();
+                const id_operacion = $(`#txtOperacion${i}`).val();
+
+                if (typeof valor !== "undefined" && typeof id_operacion !== "undefined") {
+                    horasTotales += parseFloat($(`#txtTiempo${i}`).val());
+                    listaOperaciones.push(id_operacion);
+                }
+            }
+            horasTotales += sumaTiempo;
+            $('#HorasTotalesModal').val(horasTotales);
+        }
+
+        function eliminarOperacion(contador) {
+            $(`#filaOperacion${contador}`).remove();
+            recalcularTiempo();
+        }
+
+        var contador = 0;
+        $('#btnAgregarOperacion').click(function() {
+            if ($('#operacionModal').val() != '' && $('#clienteModal').val() != '') {
+                $.ajax({
+                    url: '/agendaTallerServicio/BuscarOperacionParaAgregar',
+                    data: {
+                        id: $('#operacionModal').val(),
+                        id_bodega: $('#bodegaModal').val(),
+                        id_tercero: $('#id_tercero').val(),
+                        // id_tipo_tarifa: $('#tipoTarifa').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function(data) {
+                        if (data.encontrado == true) {
+                            //$('#tipoTarifa').select2('readonly', true)
+                            //$('#centroCostoModal').select2('readonly', true)
+                            if (contadorOperacion > 0) {
+                                var flag = false;
+                                $('.op').each(function() {
+                                    flag = (this.value == data.buscarOperacion.codigo);
+                                    if (flag == true) {
+                                        return false;
+                                    }
+                                });
+                                if (flag == true) {
+                                    swal("Error!",
+                                        "La operación no puede ser agregada por que ya fue asignada",
+                                        "error");
+                                } else {
+                                    $('#tablaOperaciones').find('tbody').append(
+                                        `<tr id="filaOperacion${contadorOperacion
+                                        }"><td align="center"><input class="op" type="hidden" name="op${
+                                        contadorOperacion}"  id="op${contadorOperacion}" value="${data.buscarOperacion
+                                        .codigo
+                                        }"/>${data.buscarOperacion.codigo
+                                        }</td><td align="center"><input type="text" value="${data.buscarOperacion.codigo
+                                        }" style="display:none;" id="txtOperacion${contadorOperacion
+                                        }" name="txtOperacion${contadorOperacion}"/>${data.buscarOperacion.operacion
+                                        }</td><td align="center"><input type="text" value="${data.buscarOperacion.tiempo
+                                        }" style="display:none;" id="txtTiempo${contadorOperacion}" name="txtTiempo${
+                                        contadorOperacion}"/>${data.buscarOperacion.tiempo
+                                        }</td><td align="center"><input type="text" value="${data.buscarOperacion
+                                        .ivaOperacion}" style="display:none;" id="txtIvaOperacion${contadorOperacion
+                                        }" name="txtIvaOperacion${contadorOperacion}"/><input type="text" value="${
+                                        data.buscarOperacion.valorIva}" style="display:none;" id="txtValorIva${
+                                        contadorOperacion
+                                        }" name="txtValorIva${contadorOperacion}"/> <input type="text" value="${
+                                        data.buscarOperacion.precio}" style="display:none;" id="txtValor${
+                                        contadorOperacion}" name="txtValor${
+                                        contadorOperacion}"/>$ ${addComas(data.buscarOperacion.precio)
+                                        }</td><td align="center"><input type="text" value="${data.buscarOperacion
+                                        .valorTotal}" style="display:none;" id="txtValorTotal${contadorOperacion
+                                        }" name="txtValorTotal${contadorOperacion}"/>$ ${addComas(data.buscarOperacion
+                                            .valorTotal)
+                                        }</td><td width="5%" align="center"><button class="btn btn-danger btn-xs" onclick="eliminarOperacion(${
+                                        contadorOperacion
+                                        })">&nbsp;&nbsp;<i class="fa fa-remove"></i>&nbsp;&nbsp;</button></td></tr>`);
+                                    listaOperaciones.push(data.buscarOperacion.codigo);
+                                    contadorOperacion++;
+                                    $('#operacionModal').val('').select2();
+                                }
+                            } else {
+                                $('#tablaOperaciones').find('tbody').append(
+                                    `<tr id="filaOperacion${contadorOperacion
+                                    }"><td align="center"><input class="op" type="hidden" name="op${contadorOperacion
+                                    }"  id="op${contadorOperacion}" value="${data.buscarOperacion.codigo
+                                    }"/>${data.buscarOperacion.codigo
+                                    }</td><td align="center"><input type="text" value="${data.buscarOperacion.codigo
+                                    }" style="display:none;" id="txtOperacion${contadorOperacion
+                                    }" name="txtOperacion${contadorOperacion}"/>${data.buscarOperacion.operacion
+                                    }</td><td align="center"><input type="text" value="${data.buscarOperacion.tiempo
+                                    }" style="display:none;" id="txtTiempo${contadorOperacion}" name="txtTiempo${
+                                    contadorOperacion}"/>${data.buscarOperacion.tiempo
+                                    }</td><td align="center"><input type="text" value="${data.buscarOperacion
+                                    .ivaOperacion}" style="display:none;" id="txtIvaOperacion${contadorOperacion
+                                    }" name="txtIvaOperacion${contadorOperacion}"/><input type="text" value="${
+                                    data.buscarOperacion.valorIva}" style="display:none;" id="txtValorIva${
+                                    contadorOperacion
+                                    }" name="txtValorIva${contadorOperacion}"/> <input type="text" value="${
+                                    data.buscarOperacion.precio}" style="display:none;" id="txtValor${contadorOperacion
+                                    }" name="txtValor${
+                                    contadorOperacion}"/>$ ${addComas(data.buscarOperacion.precio)
+                                    }</td><td align="center"><input type="text" value="${data.buscarOperacion.valorTotal
+                                    }" style="display:none;" id="txtValorTotal${contadorOperacion
+                                    }" name="txtValorTotal${contadorOperacion}"/>$ ${addComas(data.buscarOperacion
+                                        .valorTotal)
+                                    }</td><td width="5%" align="center"><button class="btn btn-danger btn-xs" onclick="eliminarOperacion(${
+                                    contadorOperacion
+                                    })">&nbsp;&nbsp;<i class="fa fa-remove"></i>&nbsp;&nbsp;</button></td></tr>`);
+                                listaOperaciones.push(data.buscarOperacion.codigo);
+                                contadorOperacion++;
+                                $('#operacionModal').val('').select2();
+                            }
+                            if (data.buscarOperacion.tiempo != null) {
+                                recalcularTiempo();
+                                //horasTotales += parseInt(data.buscarOperacion.tiempo);
+                                //$('#HorasTotalesModal').val(horasTotales);
+                            }
+                        }
+                    }
+                });
+            } else {
+                $('#alertaAgregarOperacion').show();
+                setTimeout(function() {
+                        $('#alertaAgregarOperacion').fadeOut(1500);
+                    },
+                    3000);
+            }
+        });
+
+        function buscarTipoBahia(id) {
+            $.ajax({
+                url: '/agendaTallerServicio/BuscarArea',
+                data: {
+                    id: id
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#areaModal').empty();
+                    $('#areaModal').append($('<option>',
+                        {
+                            value: data.id,
+                            text: data.descripcion,
+                            selected: true
+                        }));
+                    $('#areaModal').select2();
+                }
+            });
+        }
+
+        function buscarTecnicoPorBahia(id) {
+            $.ajax({
+                url: '/agendaTallerServicio/BuscarTecnicoPorBahia',
+                data: {
+                    id_bahia: id
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                    if (data != "0") {
+
+                        $('#puestoModal').empty();
+                        $('#puestoModal').append($('<option>',
+                            {
+                                value: data.user_id,
+                                text: data.usuario,
+                                selected: true
+                            }));
+                        $('#puestoModal').select2();
+
+                    } else {
+
+                           $.ajax({
+                url: '/agendaTallerServicio/TecnicosSinBahia',
+                data: {
+                    id: id
+                },
+                type: "post",
+                cache: false,
+                               success: function (data) {
+
+                    $('#puestoModal').empty();
+                    var opciones = "<option value='0'>seleccione</option>";
+                    for (var i = 0; i < data.length; i++) {
+
+                         opciones += "<option value='"+data[i].user_id+"'>"+data[i].usuario+"</option>";
+                    }
+                    $('#puestoModal').append(opciones);
+                    $('#puestoModal').select2();
+                }
+            });
+
+
+
+
+
+
+                    }
+
+
+
+
+                }
+            });
+        }
+
+        //validamos si en la bahia que dimos click ya hay una cita, si la hay mostramos la informacion correspondiente, si no mostramos el modal vacio para registrarla
+        function asignarCita(id, hora, idCita) {
+            $('#bodegaModal').empty();
+            var fechaHoy = new Date();
+            $('#bodegaModal').empty();
+            $('#textoplandesc').html('');
+            $('#vehiculoModal').val('').prop('style', 'visible:visible').select2();
+            $('#vehiculoModal').select2('readonly', false);
+            $('#clienteModal').select2('readonly', false);
+
+            var planmayor = $('#plan_mayor').val();
+            var accesorio = $('#accesorio').val();
+                        console.log('info cita' + idCita);
+            //fechaHoy.setHours(0,0,0,0);
+            const date = fechaAsignada.split(/\s|\/|:/);
+            const horaAux = hora.split(':');
+            var fechaFormulario = new Date(date[0], (date[1]) - 1, date[2], horaAux[0], horaAux[1], 0);
+            //if (Date.parse(fechaHoy) < Date.parse(fechaFormulario)) {
+            $.ajax({
+                url: '/agendaTallerServicio/ValidarSiExisteCita',
+                data: {
+                    id_cita: idCita,
+                    plan_mayor: planmayor,
+                    accesorio: accesorio,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                 console.log('encontrado' + data.encontrado );
+                    if (data.encontrado == true) {
+                        $('#id_cita').val(data.buscarCita.id);
+                        //$('#tipoTarifa').val(data.buscarCita.tipotarifa).select2();
+
+                        for (var i = 0; i < data.listataller.length; i++) {
+                            $('#bodegaModal').append($('<option>',
+                                {
+                                    value: data.listataller[i].id,
+                                    text: data.listataller[i].nombre,
+                                    selected: true
+                                }));
+                        }
+                        $('#bodegaModal').select2();
+
+                        $('#areaModal').empty();
+                        $('#areaModal').append($('<option>',
+                            {
+                                value: data.buscarCita.bahia_id,
+                                text: data.buscarCita.descripcion,
+                                selected: true
+                            }));
+                        $('#areaModal').select2();
+                        $('#areaModal').select2('readonly', true);
+
+                        $('#puestoModal').empty();
+                        $('#puestoModal').append($('<option>',
+                            {
+                                value: data.buscarCita.tecnico_id,
+                                text: data.buscarCita.tecnicoNombre,
+                                selected: true
+                            }));
+                        $('#puestoModal').select2();
+                        $('#puestoModal').select2('readonly', true);
+
+                        $('#agenteModal').val(data.buscarCita.agenteNombre);
+                        //$('#agenteModal').select2('readonly', true);
+
+                        $('#tipoCitaModal').val(data.buscarCita.tipocita).select2();
+                        $('#tipoCitaModal').select2('readonly', true);
+                        $('#fechaModal').val(data.buscarCita.fecha_desde);
+                        $('#horaModal').val(data.buscarCita.hora_desde);
+                        $('#placaModal').val(data.buscarCita.placa).prop('readonly', true);
+
+                        if (data.buscarCita.tipocita == 4) {
+                            validarObligatorios();
+                        }
+
+                        $('#telefonoModal').prop('readonly', true);
+                        $('#domicilioModal').select2('readonly', true);
+                        $('#tipoLlamadaModal').select2('readonly', true);
+                        $('#fuenteModal').select2('readonly', true);
+                        // $('#tipoTarifa').select2('readonly', true);
+                        $('#fechaModal').prop('readonly', true);
+                        $('#horaModal').prop('readonly', true);
+
+                        $('#vehiculoModal').val(data.buscarCita.modelo).select2();
+                        //$('#vehiculoModal').prop('readonly', true);
+                        //$('#vehiculoModal').prop('disabled', true);
+
+                        $('#cedulaModal').val(data.buscarCita.doc_tercero).prop('readonly', true);
+                        $('#btnBuscarCedula').trigger('click');
+                        $('#notas').val(data.buscarCita.notas);
+                        $('#fuenteModal').val(data.buscarCita.fuente).select2();
+
+                        $('#estadoModal').val(data.buscarCita.estadocita).select2();
+                        if ($('#estadoModal').val() == 11) {
+                            $('#areaMotivoEstadoOculto').show();
+                        }
+                        if ($('#estadoModal').val() == 14) {
+                            $('#estadoModal').select2('readonly', true);
+                        } else {
+                            $('#motivoEstadoModal').val('').select2();
+                            $('#areaMotivoEstadoOculto').hide();
+                        }
+
+                        //if ($('#tipoTarifa').val() == 3) {
+                        //    $('#centroCostoModal').val(data.buscarCita.centrocosto).select2();
+                        //    $('#centroCostoModal').select2('readonly', true);
+                        //}
+
+                        $('#estadoModal option:not(:selected)').prop('disabled', true);
+                        //$('#estadoModal option:selected').prop('disabled', true);
+                        //$('#estadoModal option[value="1"]').prop('disabled', true);
+                        $('#estadoModal option[value="2"]').prop('disabled', false);
+                        $('#estadoModal option[value="3"]').prop('disabled', false);
+                        $('#estadoModal option[value="8"]').prop('disabled', true);
+                        $('#estadoModal option[value="11"]').prop('disabled', false);
+
+                        $('#motivoEstadoModal').val(data.buscarCita.motivoestado).select2();
+                        $('#planModal').val(data.buscarCita.id_tipo_inspeccion).select2();
+                        $('#planModal').select2('readonly', true);
+
+
+                        // Sintomas
+                        $('#tablaSintomas').find('tbody').empty();
+                        listaSintomas.length = 0;
+                        for (var i = 0; i < data.buscarCita.sintomas.length; i++) {
+                            $('#tablaSintomas').find('tbody').append(
+                                `<tr id="filaSintoma${contadorSintoma
+                                }"><td align="center">0</td><td align="center"><input type="text" value="${data
+                                .buscarCita.sintomas[i].sintomas
+                                }" style="display:none;" id="txtSintoma${contadorSintoma}" name="txtSintoma${
+                                contadorSintoma}"/>${data.buscarCita.sintomas[i].sintomas
+                                }</td><td width="5%" align="center"><button class="btn btn-danger btn-xs" onclick="eliminarSintoma(${
+                                contadorSintoma
+                                })">&nbsp;&nbsp;<i class="fa fa-remove"></i>&nbsp;&nbsp;</button></td></tr>`);
+                            listaSintomas.push(data.buscarCita.sintomas[i].sintomas);
+                            contadorSintoma++;
+                        }
+
+                        // Operaciones sin plan
+                        $('#tablaOperaciones').find('tbody').empty();
+                        listaOperaciones.length = 0;
+
+                        horasTotales = 0;
+                        for (var i = 0; i < data.buscarCita.operacionesSinPlan.length; i++) {
+                            console.log(data.buscarCita.operacionesSinPlan[i]);
+                            $('#tablaOperaciones').find('tbody').append(
+                                `<tr id="filaOperacion${contadorOperacion
+                                }"><td align="center"><input class="op" type="hidden" name="op${contadorOperacion
+                                }"  id="op${contadorOperacion}" value="${data.buscarCita.operacionesSinPlan[i].codigo
+                                }"/>${data.buscarCita.operacionesSinPlan[i].codigo
+                                }</td><td align="center"><input type="text" value="${
+                                data.buscarCita.operacionesSinPlan[i].codigo}" style="display:none;" id="txtOperacion${
+                                contadorOperacion
+                                }" name="txtOperacion${contadorOperacion}"/>${
+                                data.buscarCita.operacionesSinPlan[i].operacion
+                                }</td><td align="center"><input type="text" value="${
+                                data.buscarCita.operacionesSinPlan[i].tiempo
+                                }" style="display:none;" id="txtTiempo${contadorOperacion}" name="txtTiempo${
+                                contadorOperacion}"/>${data.buscarCita.operacionesSinPlan[i].tiempo
+                                }</td><td align="center">${addComas(data.buscarCita.operacionesSinPlan[i].precio)
+                                }</td><td align="center">${addComas(data.buscarCita.operacionesSinPlan[i].valorTotal)
+                                }</td><td width="5%" align="center"><button class="btn btn-danger btn-xs" onclick="eliminarOperacion(${
+                                contadorOperacion
+                                })">&nbsp;&nbsp;<i class="fa fa-remove"></i>&nbsp;&nbsp;</button></td></tr>`);
+
+                            listaOperaciones.push(data.buscarCita.operacionesSinPlan[i].codigo);
+                            contadorOperacion++;
+                            //if (data.buscarCita.operacionesSinPlan[i].tiempo != null) {
+                            //    horasTotales += parseInt(data.buscarCita.operacionesSinPlan[i].tiempo);
+                            //    $('#HorasTotalesModal').val(horasTotales);
+                            //}
+                        }
+
+                        // Operaciones con plan
+                        $('#tablaOperacionesPorPlan').find('tbody').empty();
+                        for (var i = 0; i < data.buscarCita.buscarOperaciones.length; i++) {
+                            if (data.buscarCita.buscarOperaciones[i].operacionSeleccionada == true) {
+
+                                var valorIVA =
+                                    Math.round(((parseInt(data.buscarCita.buscarOperaciones[i].preciomatriz)) *
+                                            parseInt(data.buscarCita.buscarOperaciones[i].porcentaje)) /
+                                        100);
+                                var total = parseInt(data.buscarCita.buscarOperaciones[i].preciomatriz) + valorIVA;
+
+                                $('#tablaOperacionesPorPlan').find('tbody').append(
+                                    `<tr><td align="center">${data.buscarCita.buscarOperaciones[i].codigo
+                                    }</td><td align="center">${data.buscarCita.buscarOperaciones[i].operacion
+                                    }</td><td align="center"><input type="text" style="display:none" id="txtTiempoOperacion${
+                                    data.buscarCita.buscarOperaciones[i].codigo}" value="${data.buscarCita
+                                    .buscarOperaciones[i].tiempo}"/>${data.buscarCita.buscarOperaciones[i].tiempo
+                                    }</td><td align="center"><input type="text" style="display:none" id="txtPorcetajeIVA${
+                                    data.buscarCita.buscarOperaciones[i].codigo}" value="${data.buscarCita
+                                    .buscarOperaciones[i].porcentaje
+                                    }"/><input type="text" style="display:none" id="txtValorIVA${data.buscarCita
+                                    .buscarOperaciones[i].codigo}" value="${valorIVA
+                                    }"/><input type="text" style="display:none" id="txtPrecioMatriz${
+                                    data.buscarCita.buscarOperaciones[i].codigo}" value="${
+                                    data.buscarCita.buscarOperaciones[i].preciomatriz}"/>${addComas(
+                                        data.buscarCita.buscarOperaciones[i].preciomatriz)
+                                    }<td align="center"><input type="text" style="display:none" id="txtValorTotal${data
+                                    .buscarCita.buscarOperaciones[i].codigo}" value="${total}"/>${addComas(total)
+                                    }</td><td width="10%" align="center"><input type="checkbox" checked="checked" value="${
+                                    data.buscarCita.buscarOperaciones[i].codigo}" id="ckOperacion${data.buscarCita
+                                    .buscarOperaciones[i].codigo
+                                    }" class="checkOperaciones" onclick="clickOperaciones('${data.buscarCita
+                                    .buscarOperaciones[i].codigo}')"/></td></tr>`);
+                            } else {
+                                $('#tablaOperacionesPorPlan').find('tbody').append(
+                                    `<tr><td align="center">${data.buscarCita.buscarOperaciones[i].codigo
+                                    }</td><td align="center">${data.buscarCita.buscarOperaciones[i].operacion
+                                    }</td><td align="center"><input type="text" style="display:none" id="txtTiempoOperacion${
+                                    data.buscarCita.buscarOperaciones[i].codigo}" value="${data.buscarCita
+                                    .buscarOperaciones[i].tiempo}"/>${data.buscarCita.buscarOperaciones[i].tiempo
+                                    }</td><td width="10%" align="center"><input type="checkbox" value="${
+                                    data.buscarCita.buscarOperaciones[i].codigo}" id="ckOperacion${data.buscarCita
+                                    .buscarOperaciones[i].codigo
+                                    }" class="checkOperaciones" onclick="clickOperaciones('${data.buscarCita
+                                    .buscarOperaciones[i].codigo}')"/></td></tr>`);
+                            }
+                        }
+                        if (data.buscarCita.buscarOperaciones.length > 0) {
+                            $('.areaOperacionesPorPlan').show();
+                            $('#selectInfoPlan').show();
+                            $('#textoplandesc').html(`El tiempo total del plan es de <b>${data.tiempo} horas </b> `);
+                            $('#textoplanpre').html(`El precio total del plan es de <b> $ ${data.valortotal} </b> `);
+                        } else {
+                            $('.areaOperacionesPorPlan').hide();
+                            $('#selectInfoPlan').hide();
+                            $('#textoplandesc').html('');
+                            $('#textoplanpre').html('');
+                        }
+                        clickOperaciones();
+
+                        // Referencias
+                        $('#tablaRepuestos').find('tbody').empty();
+                        for (var i = 0; i < data.buscarCita.buscarReferencias.length; i++) {
+
+                            if (data.buscarCita.buscarReferencias[i].referenciaSeleccionada == true) {
+                                $('#tablaRepuestos').find('tbody').append(
+                                    `<tr><td align="center">${data.buscarCita.buscarReferencias[i].ref_codigo
+                                    }</td><td align="center">${data.buscarCita.buscarReferencias[i].ref_descripcion
+                                    }</td><td align="center"><input type="text" style="display:none" id="txtPrecioReferencia${
+                                    data.buscarCita.buscarReferencias[i].ref_codigo}" value="${
+                                    data.buscarCita.buscarReferencias[i].precio}"/>$ ${addComas(
+                                        data.buscarCita.buscarReferencias[i].precio)
+                                    }</td><td align="center"><input type="text" style="display:none" id="txtValorIvaReferencia${
+                                    data.buscarCita.buscarReferencias[i].ref_codigo}" value="${data.buscarCita
+                                    .buscarReferencias[i].valorIva
+                                    }"/><input type="text" style="display:none" id="txtCantidadReferencia${
+                                    data.buscarCita.buscarReferencias[i].ref_codigo}" value="${
+                                    data.buscarCita.buscarReferencias[i].cantidad}"/>${addComas(
+                                        data.buscarCita.buscarReferencias[i].cantidad)
+                                    }</td></td><td align="center"><input type="text" style="display:none" id="txtValorTotalReferencia${
+                                    data.buscarCita.buscarReferencias[i].ref_codigo}" value="${data.buscarCita
+                                    .buscarReferencias[i].valorTotal
+                                    }"/>$ ${addComas(data.buscarCita.buscarReferencias[i].valorTotal)
+                                    }</td><td width="10%" align="center"><input type="checkbox" checked="checked" value="${
+                                    data.buscarCita.buscarReferencias[i].ref_codigo
+                                    }" class="checkReferencias" onclick="clickReferencias('${data.buscarCita
+                                    .buscarReferencias[i].ref_codigo}')"/></td></tr>`);
+                            } else {
+                                $('#tablaRepuestos').find('tbody').append(
+                                    `<tr><td align="center">${data.buscarCita.buscarReferencias[i].ref_codigo
+                                    }</td><td align="center">${data.buscarCita.buscarReferencias[i].ref_descripcion
+                                    }</td><td align="center"><input type="text" style="display:none" id="txtPrecioReferencia${
+                                    data.buscarCita.buscarReferencias[i].ref_codigo}" value="${
+                                    data.buscarCita.buscarReferencias[i].precio}"/>$ ${addComas(
+                                        data.buscarCita.buscarReferencias[i].precio)
+                                    }</td><td align="center"><input type="text" style="display:none" id="txtValorIvaReferencia${
+                                    data.buscarCita.buscarReferencias[i].ref_codigo}" value="${data.buscarCita
+                                    .buscarReferencias[i].valorIva
+                                    }"/><input type="text" style="display:none" id="txtCantidadReferencia${
+                                    data.buscarCita.buscarReferencias[i].ref_codigo}" value="${
+                                    data.buscarCita.buscarReferencias[i].cantidad}"/>${addComas(
+                                        data.buscarCita.buscarReferencias[i].cantidad)
+                                    }</td><td align="center"><input type="text" style="display:none" id="txtValorTotalReferencia${
+                                    data.buscarCita.buscarReferencias[i].ref_codigo}" value="${data.buscarCita
+                                    .buscarReferencias[i].valorTotal}"/>$ ${
+                                    addComas(data.buscarCita.buscarReferencias[i].valorTotal)
+                                    }</td><td width="10%" align="center"><input type="checkbox" value="${data.buscarCita
+                                    .buscarReferencias[i].ref_codigo
+                                    }" class="checkReferencias" onclick="clickReferencias('${data.buscarCita
+                                    .buscarReferencias[i].ref_codigo}')"/></td></tr>`);
+                            }
+                        }
+                        if (data.buscarCita.buscarReferencias.length > 0) {
+                            $('#contenedorPlanes').show();
+                            $('.areaReferenciasPorPlan').show();
+                        } else {
+                            $('#contenedorPlanes').hide();
+                            $('.areaReferenciasPorPlan').hide();
+                        }
+                        clickReferencias();
+
+                        recalcularTiempo();
+                        $('#modalAgregarCita').modal('show');
+
+                    } else {
+                        //*********************************************************************************************************************************
+                        if (planmayor != "" && planmayor != null) {
+                            $.ajax({
+                                url: '/agendaTallerServicio/buscarXPlanMayor',
+                                data: { planmayor },
+                                type: "POST",
+                                success: function (data) {
+                                     console.log('plan existe' + data.existe );
+                                    if (data.existe == true) {
+                                        $('#vehiculoModal').val(data.buscarPlan.modvh_codigo);
+                                        $('#cedulaModal').val(data.buscarPlan.doc_tercero);
+                                        $('#id_tercero').val(data.buscarPlan.doc_tercero);
+                                        $('#placaModal').val(data.buscarPlan.plac_vh);
+                                        $('#btnBuscarCedula').trigger('click');
+                                        $('#vehiculoModal').prop('style', 'visible:visible').select2();
+                                    }
+                                },
+                                complete: function (data) {
+                                    if (data.responseJSON.existe == true) {
+                                        if (accesorio == "") {
+                                            $('#planModal').trigger('change');
+                                        }
+                                        $('#vehiculoModal').select2('readonly', true);
+                                        validarEventos();
+                                    }
+                                }
+                            });
+                        }
+
+                        if (Date.parse(fechaHoy) < Date.parse(fechaFormulario)) {
+                                console.log('fechas ' + Date.parse(fechaHoy) )
+                            $('#id_cita').val('');
+                            $('#telefonoModal').prop('readonly', false);
+                            $('#domicilioModal').prop('readonly', false);
+                            $('#tipoLlamadaModal').prop('readonly', false);
+                            $('#fuenteModal').prop('readonly', false);
+                            //$('#tipoTarifa').prop('readonly', false);
+                            $('#placaModal').prop('readonly', false);
+                            $('#cedulaModal').prop('readonly', false);
+                            //$('#vehiculoModal').prop('disabled', false);
+                            $('#puestoModal').prop('readonly', false);
+                            $('#areaModal').prop('readonly', false);
+                            $('#tipoCitaModal').prop('readonly', false);
+                            //$('#agenteModal').prop('readonly', false);
+
+                            $('#alertaModal').hide();
+                            for (var i = 0; i < data.listataller.length; i++) {
+                                $('#bodegaModal').append($('<option>',
+                                    {
+                                        value: data.listataller[i].id,
+                                        text: data.listataller[i].nombre,
+                                        //selected: true
+                                    }));
+                            }
+                            //$('#bodegaModal').append($('<option>', {
+                            //    value: $('#bodega').val(),
+                            //    text: $("#bodega option:selected").text(),
+                            //    selected: true
+                            //}));
+                            buscarTipoBahia(id);
+                            buscarTecnicoPorBahia(id);
+                            buscarCentrosCosto($('#bodega').val());
+                            horasTotales = 0;
+                            $('#HorasTotalesModal').val(horasTotales);
+
+                            $('#placaModal').val('');
+                            $('#vehiculoModal').val('');
+                            $('#cedulaModal').val('');
+                            $('#clienteModal').val('');
+                            $('#telefonoModal').empty().select2();
+                            $('#domicilioModal').empty().select2();
+                            $('#btnActualizarOculto').css('visibility', 'hidden');
+                            $('#notas').val('');
+                            $('#fuenteModal').val('').select2();
+                            $('#estadoModal option[value="1"]').prop('disabled', false);
+                            $('#estadoModal').val(1).select2();
+                            $('#estadoModal option:not(:selected)').prop('disabled', true);
+                            $('#motivoEstadoModal').val('').select2();
+                            $('#areaMotivoEstadoOculto').hide();
+                            $('#agenteModal').val(data.nombreasesor);
+                            $('#tipoCitaModal').val('').select2();
+                            $('#bodegaModal').select2();
+                            $('#fechaModal').val($('#fecha_agenda').val());
+                            //$('#puestoModal').empty();
+                            //$('#puestoModal').append($('<option>', {
+                            //    value: data.buscarCita.tecnico_id,
+                            //    text: data.buscarCita.tecnicoNombre,
+                            //    selected: true
+                            //}));
+                            //$('#puestoModal').select2();
+
+                            $('#puestoModal').val();
+                            $('#horaModal').val(hora);
+                            $('#tablaSintomas').find('tbody').empty();
+                            listaSintomas.length = 0;
+                            contadorSintoma = 0;
+                            $('#tablaOperaciones').find('tbody').empty();
+                            $('#tablaOperacionesPorPlan').find('tbody').empty();
+                            $('#tablaOperacionesPorPlan').find('tfoot').empty();
+                            $('#tablaRepuestos').find('tbody').empty();
+                            $('#tablaRepuestos').find('tfoot').empty();
+
+                            listaOperaciones.length = 0;
+                            contadorOperacion = 0;
+
+                            if (accesorio == 1) {
+                                if (data.tieneaccesorios == 1) {
+                                    $('#planModal').hide();
+                                    for (var i = 0; i < data.listaaccesorios.length; i++) {
+
+
+                                        $('#tablaRepuestos').find('tbody').append(
+                                            `<tr><td align="center">${data.listaaccesorios[i].id
+                                            }</td><td align="center">${data.listaaccesorios[i].nombre
+                                            }</td><td align="center"><input type="text" style="display:none" id="txtPrecioReferencia${
+                                            data.listaaccesorios[i].id}" value="${data.listaaccesorios[i].valorcifra
+                                            }"/>$ ${data.listaaccesorios[i].valor_uni
+                                            }</td><td align="center"><input type="text" style="display:none" id="txtValorIvaReferencia${
+                                            data.listaaccesorios[i].id
+                                            }" value="0"/><input type="text" style="display:none" id="txtCantidadReferencia${
+                                            data.listaaccesorios[i].id}" value="0"/>${addComas(data.listaaccesorios[i]
+                                                .cantidad)
+                                            }</td><td align="center"><input type="text" style="display:none" id="txtValorTotalReferencia${
+                                            data.listaaccesorios[i].id}" value="${data.listaaccesorios[i].totalcifra
+                                            }"/>$ ${
+                                            addComas(data.listaaccesorios[i].valor_total)
+                                            }</td><td width="10%" align="center"><input type="checkbox" value="${data
+                                            .listaaccesorios[i].id
+                                            }" class="checkReferencias" onclick="clickReferencias('${data
+                                            .listaaccesorios[i].id}')"/></td></tr>`);
+
+                                    }
+                                    if (data.listaaccesorios.length > 0) {
+                                        $('#contenedorPlanes').show();
+                                        $('.areaReferenciasPorPlan').show();
+                                    } else {
+                                        $('#contenedorPlanes').hide();
+                                        $('.areaReferenciasPorPlan').hide();
+                                    }
+                                    clickReferencias();
+
+
+                                } else {
+                                    $('#planModal').show();
+                                }
+                                $('#placaModal').val(planmayor);
+                            }
+                            $('#modalAgregarCita').modal('show');
+                        } else {
+                            swal({
+                                title: "Error de Fecha!",
+                                text: "No puede asignar ni modificar una cita para una fecha ya pasada!",
+                                type: "error"
+                            });
+                        }
+                    }
+                },
+                complete: function(data) {
+                    if (accesorio == 1) {
+                        buscarPlaca();
+                    }
+                    //$('#modalAgregarCita').modal('show');
+                }
+            });
+            //}
+            //else {
+            //    swal({
+            //        title: "Error de Fecha!",
+            //        text: "No puede asignar ni modificar una cita para una fecha ya pasada!",
+            //        type: "error"
+            //    });
+            //}
+        }
+
+        function buscarCentrosCosto(id) {
+            $.ajax({
+                url: '/agendaTallerServicio/BuscarCentrosCosto',
+                data: {
+                    id: id
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data != 0) {
+                        $('#centroCostoModal').empty();
+                        $('#centroCostoModal').append($('<option>',
+                            {
+                                value: data.id,
+                                text: data.nombre,
+                            }));
+                        $('#centroCostoModal').select2();
+                    }
+
+                }
+            });
+        }
+
+        function buscarCitasDiarias() {
+            $('#tabla_clon').remove();
+            $('#tabla_clon2').remove();
+            if ($.fn.dataTable.isDataTable('#tablaBahiasDia')) {
+                $('#tablaBahiasDia').dataTable().fnDestroy();
+            }
+            panelActivo = 'Dia';
+            $.ajax({
+                url: '/agendaTallerServicio/BuscarFiltro',
+                data: {
+                    id_bodega: $('#bodega').val(),
+                    fecha: $('#fecha_agenda').val(),
+                    id_area: $('#cbAreas').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    console.log("sirvio");
+                    $('#tablaBahiasDia').find('thead').empty();
+                    var titulos = '';
+                    var flag = false;
+                    for (var i = 0; i < data.listaPrimeraFila[0].ListaTitulosAgenda.length; i++) {
+                        titulos += `<td align="center" style="min-width:120px">${data.listaPrimeraFila[0]
+                            .ListaTitulosAgenda[i].NombreCelda}</td>`;
+                    }
+                    var largo = data.listaPrimeraFila[0].ListaTitulosAgenda.length;
+                    $('#tablaBahiasDia').find('thead').append(`<tr class="heading">${titulos}</tr>`);
+
+                    $('#tablaBahiasDia').find('tbody').empty();
+
+                    if (data.listaDatos.length <= 0) {
+                        swal({
+                            title: "Sin Datos!",
+                            text: "La bodega seleccionada no cuenta con bodegas u horarios asignados!",
+                            type: "warning"
+                        });
+                    } else {
+                        var a = 0;
+                        for (var i = 0; i < data.listaDatos.length; i++) {
+                            var fila = '';
+                            for (var j = 0; j < data.listaDatos[i].ListaCeldas.length; j++) {
+                                a++;
+                                if (data.listaDatos[i].ListaCeldas[j].hora == true && flag == false) {
+                                    fila += '<tr>';
+                                    fila += `<td align="center">${data.listaDatos[i].ListaCeldas[j].NombreCelda}</td>`;
+                                    flag = true;
+
+                                } else if (data.listaDatos[i].ListaCeldas[j].hora == true && flag == true) {
+                                    fila += '</tr><tr>';
+                                    fila += `<td align="center">${data.listaDatos[i].ListaCeldas[j].NombreCelda}</td>`;
+                                } else {
+                                    if (data.listaDatos[i].ListaCeldas[j].CeldaInactiva == true) {
+                                        fila += `<td align="center" rowspan="${
+                                            data.listaDatos[i].ListaCeldas[j].valRowSpan
+                                            }" style="background-color:#A9A6A6"><font color="#FFF">${data.listaDatos[i]
+                                            .ListaCeldas[j].NombreCelda}</font></td>`;
+                                    } else {
+                                        fila += `<td align="center" rowspan="${
+                                            data.listaDatos[i].ListaCeldas[j].valRowSpan}" style="background-color:${
+                                            data.listaDatos[i].ListaCeldas[j].ColorCelda}" onclick="asignarCita(${
+                                            data.listaDatos[i].ListaCeldas[j].IdBahia},'${
+                                            data.listaDatos[i].ListaCeldas[j].HoraInicio}', ${data.listaDatos[i]
+                                            .ListaCeldas[j]
+                                            .IdCita});"><b>${data.listaDatos[i].ListaCeldas[j].NombreCelda
+                                            }</b></td>`;
+                                    }
+                                }
+                            }
+                            $('#tablaBahiasDia').find('tbody').append(fila);
+                        }
+                    }
+                },
+                error: function(data) {
+                    console.log("fallo");
+                    $('#tablaBahiasDia').find('thead').empty();
+                    $('#tablaBahiasDia').find('tbody').empty();
+                },
+                complete: function(data) {
+                    //$('#tablaBahiasDia').DataTable( {
+                    //    "scrollY": 500,
+                    //    "scrollX": true
+                    //});
+                    $('.nav-tabs li:eq(0) a').tab('show');
+                }
+            });
+        }
+
+        function cumulativeOffset(element) {
+            var top = 0, left = 0;
+            do {
+                top += element.offsetTop || 0;
+                left += element.offsetLeft || 0;
+                element = element.offsetParent;
+            } while (element);
+
+            return {
+                top: top,
+                left: left
+            };
+        };
+
+        function alinear() {
+            const c = cumulativeOffset(document.getElementById('tablaBahiasDia')).left;
+            var left = -$(window).scrollLeft() - ($('#scrollito').scrollLeft() - c);
+            left = left + 2;
+            $('#tabla_clon2').css('left', left);
+        }
+
+        function check_interval() {
+            buscarCitasDiarias();
+        }
+
+        setInterval("check_interval();", 300000);
+
+        $(window).resize(function() {
+            $('#tabla_clon').remove();
+            inmovilizar_columna($('#tablaBahiasDia'));
+            inmovilizar_fila($('#tablaBahiasDia'));
+            alinear();
+        });
+
+        var lastScrollTop = 0;
+        $(window).scroll(function() {
+            const documentScrollTop = $(document).scrollTop();
+            if (lastScrollTop != documentScrollTop) {
+                inmovilizar_fila($('#tablaBahiasDia'));
+                inmovilizar_columna($('#tablaBahiasDia'));
+                lastScrollTop = documentScrollTop;
+            }
+            alinear();
+        });
+
+        $('#scrollito').scroll(function() {
+            const c = cumulativeOffset(document.getElementById('tablaBahiasDia')).left;
+            $('#tabla_clon2').css('left', -((($('#scrollito').scrollLeft() + $(window).scrollLeft()) - (c))));
+            alinear();
+        });
+
+        function inmovilizar_columna(tablex) { //OK
+            $('#tabla_clon').remove();
+            const fixedColumn = tablex.clone().insertBefore(tablex);
+
+            fixedColumn.find('th:not(:first-child),td:not(:first-child)').remove();
+            fixedColumn.attr('id', 'tabla_clon'); // :V
+            fixedColumn.addClass('fixed-column');
+            fixedColumn.attr('style', 'z-index:1');
+            fixedColumn.find('tr').each(function(f, fila) {
+                tr_table = tablex.find(`tr:eq(${f})`);
+                $(this).height(tr_table.height());
+
+                $(this).find('td').each(function(c, col) {
+                    $(this).width(tr_table.find(`td:eq(${c})`).width());
+                    if (tr_table.find(`td:eq(${c})`).css('backgroundColor') != 'rgb(249, 159, 69)') { //#f99f45
+                        $(this).css('backgroundColor', '#FFF');
+                    } else {
+                        $(this).css('backgroundColor', '#F99F45');
+                    }
+                });
+            });
+        }
+
+        function barra(fixeRow) {
+            const windowHeight = $(window).scrollTop();
+            var contenido2 = $("#scrollito").offset();
+            const contenido3 = $("#tablaBahiasDia").width();
+            contenido2 = contenido2.top;
+            var cual = '';
+            if (windowHeight >= contenido2) {
+                cual = '';
+            } else {
+                cual = 'none';
+            }
+            fixeRow.css('display', cual);
+            fixeRow.css('width', contenido3);
+            fixeRow.css('top', 0);
+            fixeRow.css('background-color', 'white');
+            const c = cumulativeOffset(document.getElementById('tablaBahiasDia')).left;
+            fixeRow.css('left', -($(document).scrollLeft() - (c + 10)));
+        }
+
+        function inmovilizar_fila(table) {
+            $('#tabla_clon2').remove();
+            const fixeRow = table.clone().insertBefore(table);
+
+            fixeRow.find('tr:not(.heading)').remove();
+            fixeRow.attr('id', 'tabla_clon2');
+            fixeRow.css('margin-top', '0');
+            fixeRow.css('z-index', '3');
+            fixeRow.css('position', 'fixed');
+            fixeRow.css('width', (table.width() + 2));
+            fixeRow.find('.heading').each(function(f, fila) {
+                tr_table = table.find(`tr:eq(${f})`);
+                $(this).height(tr_table.height());
+                $(this).find('td').each(function(c, col) {
+                    ancho_table = tr_table.find(`td:eq(${c})`).width();
+                    $(this).width(ancho_table);
+                });
+            });
+            barra(fixeRow);
+        }
+
+        $('#fecha_agenda').blur(function() {
+            fechaAsignada = $('#fecha_agenda').val();
+        });
+
+        $('#btnFiltrar').click(function() {
+            primerFiltro = 1;
+            var areavirtual = $("#cbAreas").val();
+            if (areavirtual != "-1") {
+
+                if (panelActivo == 'Dia') {
+                    //$("#tablaBahiasDia").dataTable().fnDestroy();
+                    fechaAsignada = $('#fecha_agenda').val();
+                    buscarCitasDiarias();
+                }
+                if (panelActivo == 'Semana') {
+                    buscarCitasSemanal();
+                }
+                if (panelActivo == 'Mes') {
+                    buscarCitasMensual();
+                }
+            } else {
+                buscarBahiasVirtuales();
+            }
+
+        });
+
+        $('#areaModal').change(function() {
+
+            $.ajax({
+                url: '/agendaTallerServicio/CargarPuestoArea',
+                data: {
+                    area: $('#areaModal').val(),
+                    idBodega: $('#bodegaModal').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#puestoModal').empty();
+                    for (let i = 0; i < data.length; i++) {
+                        $('#puestoModal').append($('<option>',
+                            {
+                                value: data[i].idTecnico,
+                                text: data[i].usuario
+                            }));
+                    }
+                    $('#puestoModal').select2();
+                    $('#puestoModal').prop('readonly', false);
+                }
+            });
+        });
+
+        
+        $('#estadoModal').change(function () {
+         
+            if ($('#estadoModal').val() == 2) {
+                $('#puestoModal').select2('readonly', false);
+                $('#fechaModal').prop('readonly', false);
+                $('#horaModal').prop('readonly', false);
+                $('#panelreprogramacion').show();
+            } else {
+                $('#panelreprogramacion').hide();
+            }
+
+        });
+
+
+        function buscarBahiasVirtuales() {
+
+
+
+        }
+
+        function validarDiaSemana(fecha) {
+            const fechaAux = fecha.substring(0, 10);
+            $('#fecha_agenda').val(fechaAux);
+            buscarCitasDiarias();
+            //$("#tabs-crear").tabs("option", "active", 1);
+        }
+
+        function buscarCitasSemanal() {
+            panelActivo = 'Semana';
+            $.ajax({
+                url: '/agendaTallerServicio/BuscarFiltroSemanal',
+                data: {
+                    id_bodega: $('#bodega').val(),
+                    fecha: $('#fecha_agenda').val(),
+                    id_area: $('#cbAreas').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+
+                    var titulos = '';
+                    $('#tablaBahiasSemana').find('thead').empty();
+                    for (var i = 0; i < data.listaTitulos.length; i++) {
+                        titulos += `<td align="center" style="min-width:120px">${data.listaTitulos[i]}</td>`;
+                    }
+                    $('#tablaBahiasSemana').find('thead').append(`<tr>${titulos}</tr>`);
+
+                    $('#tablaBahiasSemana').find('tbody').empty();
+                    for (var i = 0; i < data.listaDatos.length; i++) {
+                        let fila = '';
+                        for (let j = 0; j < data.listaDatos[i].ListaCeldas.length; j++) {
+                            if (j == 0) {
+                                fila += `<td align="center" style="background-color:${data.listaDatos[i].ListaCeldas[j].ColorCelda}">${data.listaDatos[i].ListaCeldas[j].NombreCelda}</td>`;
+                            } else {
+                                if (data.listaDatos[i].ListaCeldas[j].CeldaInactiva == true) {
+                                fila += `<td align="center" style="background-color:${data.listaDatos[i].ListaCeldas[j].ColorCelda}">${data.listaDatos[i].ListaCeldas[j].NombreCelda}</td>`;
+
+                                } else {
+                                fila += `<td align="center" style="background-color:${data.listaDatos[i].ListaCeldas[j].ColorCelda}"onclick="validarDiaSemana('${data.listaDatos[i].ListaCeldas[j].HoraInicio}');">${data.listaDatos[i].ListaCeldas[j].NombreCelda}</td>`;
+
+                                }
+                            }
+                        }
+                        $('#tablaBahiasSemana').find('tbody').append(`<tr>${fila}</tr>`);
+                    }
+                }
+            });
+        }
+
+        function buscarCitasMensual() {
+            panelActivo = 'Mes';
+            $.ajax({
+                url: '/agendaTallerServicio/BuscarFiltroMensual',
+                data: {
+                    id_bodega: $('#bodega').val(),
+                    fecha: $('#fecha_agenda').val(),
+                    id_area: $('#cbAreas').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#tablaBahiasMes').find('thead').empty();
+                    var titulos = '';
+                    for (var i = 0; i < data.listaTitulos.length; i++) {
+                        titulos += `<td align="center" style="min-width:120px">${data.listaTitulos[i]}</td>`;
+                    }
+                    $('#tablaBahiasMes').find('thead').append(`<tr>${titulos}</tr>`);
+
+                    $('#tablaBahiasMes').find('tbody').empty();
+                    for (var i = 0; i < data.listaDatos.length; i++) {
+
+                        let fila = '';
+                        for (let j = 0; j < data.listaDatos[i].ListaCeldas.length; j++) {
+                            if (j == 0) {
+                                fila += `<td align="center">${data.listaDatos[i].ListaCeldas[j].NombreCelda}</td>`;
+                            } else {
+                                if (data.listaDatos[i].ListaCeldas[j].CeldaInactiva == true) {
+                                    fila += `<td align="center" style="background-color:${data.listaDatos[i].ListaCeldas[j].ColorCelda}">${data.listaDatos[i]
+                                        .ListaCeldas[j].NombreCelda}</td>`;
+                                } else {
+                                    fila += `<td align="center" style="background-color:${data.listaDatos[i].ListaCeldas[j].ColorCelda}"
+                                        onclick="validarDiaSemana('${data.listaDatos[i].ListaCeldas[j].HoraInicio}');">${data.listaDatos[i].ListaCeldas[j].NombreCelda}</td>`;
+
+
+                                }
+                            }
+                        }
+                        $('#tablaBahiasMes').find('tbody').append(`<tr>${fila}</tr>`);
+                    }
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito() {
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar de Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+        function Abrirmodalclientes() {
+            $('#modal_clientesbuscar').modal('show');
+             $('#tablaPaginadacitas').dataTable().fnDestroy();
+             $('#tablaPaginadacitas').find('tbody').empty();
+               //$.ajax({
+               // url: '/agendaTallerServicio/ConsultarAgendasClientes',
+               // data: {
+
+               // },
+               // type: "post",
+               // cache: false,
+               // success: function(data) {
+               //          $('#tablaPaginadacitas').dataTable().fnDestroy();
+               //          $('#tablaPaginadacitas').find('tbody').empty();
+               //          var tabla = "";
+
+               //          for (var i = 0; i < data.length; i++) {
+               //              tabla += "<tr>";
+               //              tabla += "<td align='left'>" + data[i].bodega_nombre + "</td>";
+               //              tabla += "<td align='center'>" + data[i].fecha + "</td>";
+               //              tabla += "<td align='left'>" + data[i].asesor_nombre + "</td>";
+               //              tabla += "<td align='left'>" + data[i].placa + "</td>";
+               //              tabla += "<td align='left'>" + data[i].cedula + "</td>";
+               //              tabla += "<td align='left'>" + data[i].cliente + "</td>";
+               //              tabla += "<td align='center'>" + data[i].estadoorden_nombre + "</td>";
+               //              tabla += "<td align='center'>" + data[i].ringresodescripcion + "</td>";
+               //              tabla += "</td><td width='5%' align='center'><button class='btn btn-info btn-xs' onclick='VerAgenda(" + data[i].idbodega
+               //                  + ","+data[i].tipo_bahia+",\""+data[i].fecha+"\")'>&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td>";
+               //              tabla += "</tr>";
+               //          }
+
+               //          $('#tablaPaginadacitas').find('tbody').append(tabla);
+
+
+
+               // },
+               //      complete: function (data) {
+               //          $('#tablaPaginadacitas').dataTable({
+                            
+               //              dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+               //              "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+               //              buttons: [
+                            
+               //              ]
+               //          });
+               //      }
+               //  });
+
+
+        }
+
+        function Filtrar() {
+            var cedula = $('#cedulatxt').val();
+            var placa = $('#placatxt').val();
+            var fechaini = $('#fechaini').val();
+            var fechafin = $('#fechafin').val();
+            if (cedula != "" || placa != "") {
+                  $('#tablaPaginadacitas').dataTable().fnDestroy();
+                 $.ajax({
+                url: '/agendaTallerServicio/ConsultarAgClienteFiltro',
+                data: {
+                    cedula: cedula,
+                    placa: placa,
+                    fechaini: fechaini,
+                    fechafin: fechafin
+                },
+                type: "post",
+                cache: false,
+                     success: function (data) {
+                       
+                         $('#tablaPaginadacitas').find('tbody').empty();
+                         var tabla = "";
+
+                         for (var i = 0; i < data.length; i++) {
+                             tabla += "<tr>";
+                             tabla += "<td align='left'>" + data[i].bodega_nombre + "</td>";
+                             tabla += "<td align='center'>" + data[i].fecha + "</td>";
+                             tabla += "<td align='left'>" + data[i].asesor_nombre + "</td>";
+                             tabla += "<td align='left'>" + data[i].placa + "</td>";
+                             tabla += "<td align='left'>" + data[i].cedula + "</td>";
+                             tabla += "<td align='left'>" + data[i].cliente + "</td>";
+                             tabla += "<td align='center'>" + data[i].estadoorden_nombre + "</td>";
+                             tabla += "<td align='center'>" + data[i].ringresodescripcion + "</td>";
+                             tabla += "</td><td width='5%' align='center'><button class='btn btn-info btn-xs' onclick='VerAgenda(" + data[i].idbodega
+                                 + ","+data[i].tipo_bahia+",\""+data[i].fecha+"\" )'>&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td>";
+                             tabla += "</tr>";
+                         }
+
+                         $('#tablaPaginadacitas').find('tbody').append(tabla);
+
+
+
+                },
+                     complete: function (data) {
+                         $('#tablaPaginadacitas').dataTable({
+                             //"ajax": 'api/datatables.json',
+                             //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                             dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                             "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                             buttons: [
+                                 //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                                 ////{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                                 ////{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                             ]
+                         });
+                     }
+                 });
+            }
+
+        }
+
+        function crearCliente(){
+            window.open('@Url.Action("tercero", "icb_terceros")','_blank');
+        }
+
+
+        function cambiarpropietario() {
+            var placa = $('#placaModal').val();
+            var cedula = $('#cedulaModal').val();
+
+                $.ajax({
+                url: '/agendaTallerServicio/cambiarPropietarioVehiculo',
+                data: {
+                    placa: placa,
+                    cedula: cedula
+                    },
+                type: "post",
+                cache: false,
+                    success: function (data) {
+                        $('#Cambiopropmensaje').show();
+                }
+            });
+
+        }
+        function VerAgenda(idbodega,tipo_bahia,fecha  ) {
+
+
+            $('#bodega').val(idbodega).trigger('change');
+            $('#cbAreas').val(tipo_bahia).trigger('change');
+            $('#fecha_agenda').val(fecha).trigger('change');
+            $('#btnFiltrar').trigger('click');
+              $('#modal_clientesbuscar').modal('hide');
+        
+        
+
+        }
+    </script>
+
+}

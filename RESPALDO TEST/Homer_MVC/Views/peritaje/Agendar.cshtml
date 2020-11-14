@@ -1,0 +1,820 @@
+﻿@{
+    ViewBag.Icono = "fa fa-calendar";
+    ViewBag.Title = "Agenda perito";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/fullcalendar/dist/fullcalendar.print.css" rel="stylesheet" media="print" />
+    <link href="~/Vendor/fullcalendar/dist/fullcalendar.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="hpanel">
+        <div id="tabs" class="tab-content">
+            <ul id="tabs-invVhNuevo" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#Agenda"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Agenda</a></li>
+                @*<li class=""><a data-toggle="tab" href="#Solicitudes" id="tabSolicitudes"><i class=""></i>&nbsp;&nbsp;Solicitudes</a></li>
+                    <li class=""><a data-toggle="tab" href="#Peritajes" id="tabPeritajes"><i class=""></i>&nbsp;&nbsp;Peritajes</a></li>
+                    <li class=""><a data-toggle="tab" href="#CompraRetoma" id="tabCompraRetoma"><i class=""></i>&nbsp;&nbsp;Compra/Retoma</a></li>*@
+            </ul>
+
+            @*Primer tab par listar el inventario de vehiculos nuevos*@
+            <div id="Agenda" class="tab-pane active">
+                <div class="panel-body">
+
+                    <div class="form-horizontal">
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-pencil-square-o"></i>&nbsp;&nbsp;&nbsp;Peritos
+                            </div>
+                            <div class="panel-body">
+                                @if (ViewBag.rol != "3")
+                                {
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Nombre Perito:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("perito_id", new SelectList(ViewBag.peritos, "Value", "Text"), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @*@Html.ValidationMessageFor(model => model.perito_id, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                <br />
+                                <div class="col-lg-12">
+                                    <div id="calendar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade hmodal-info" id="modalOpcionesCita" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Agenda</h4>
+                <small>Opciones De Cita</small>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="placaInspeccion" />
+                <input type="hidden" id="placaVehiculo" />
+
+                <div class="row" style="display:none" id="alertaCitaAtedida">
+                    <div class="alert alert-info">
+                        <strong><i class="fa fa-ban" aria-hidden="true"></i>&nbsp;&nbsp;Informaci&oacute;n!</strong><p id="mensajeCita"></p>
+                    </div>
+                </div>
+
+                @if (ViewBag.rol == "3")
+                {
+                    <div class="col-sm-12" id="OpcionAtenderCita">
+                        <div class="form-group">
+                            <input type="button" class="btn btn-primary col-md-12" value="Atender Cita" id="btnAtender">
+                        </div>
+                    </div>}
+
+                <div class="col-sm-12" id="OpcionReprogramarCita">
+                    <div class="form-group">
+                        <input type="button" class="btn btn-primary col-md-12" value="Reprogramar Cita" id="btnReprogramar" />
+                    </div>
+                </div>
+
+                <div class="col-sm-12" id="OpcionCancelarCita">
+                    <div class="form-group">
+                        <input type="button" class="btn btn-primary col-md-12" value="Cancelar Cita" id="btnCancelar" />
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <input type="button" class="btn btn-primary col-md-12" data-dismiss="modal" value="Salir" />
+                    </div>
+                </div>
+                <label></label>
+                <div class="row" style="display:none" id="alertaModalMenu">
+                    <div class="alert alert-info">
+                        <strong>Informaci&oacute;n!</strong><p id="alertaMensajeMenu"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade hmodal-info" id="modalReprogramarCita" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Reprogramar</h4>
+                <small>Asignar nueva fecha y hora</small>
+            </div>
+            <div class="modal-body">
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Fecha:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-12">
+                            <div class="input-daterange input-group">
+                                <input type="text" class="form-control datepicker pos_fec_desde desde" name="desde" id="desde" value="" />
+                                <span class="input-group-addon">hasta</span>
+                                <input type="text" class="form-control datepicker pos_fec_hasta hasta" name="hasta" id="hasta" value="" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @*<div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-12">Fecha:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-12">
+                                <input type="text" placeholder="dd/mm/yyyy" class="form-control" id="txtFechaReprogramar" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Hora:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-12">
+                                <div class="input-daterange input-group">
+                                    <select class="form-control" id="selectHoraInicioRepro"></select>
+                                    <input type="date" class="form-control datepicker2 pos_fec_desde desde" name="desde" id="desde" value="" />
+                                    <span class="input-group-addon">hasta</span>
+                                    <select class="form-control" id="selectHoraFinRepro"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>*@
+
+                <label></label>
+                <div class="row" style="display:none" id="alertaModal">
+                    <div class="alert alert-info">
+                        <strong>Informaci&oacute;n!</strong><p id="alertaMensaje"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnReprogramarConfirma">Reprogramar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/jquery-ui/jquery-ui.min.js"></script>
+    <script src="~/Vendor/slimScroll/jquery.slimscroll.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/fullcalendar/dist/fullcalendar.min.js"></script>
+    <script src="~/Vendor/fullcalendar/dist/lang-all.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#perito_id').select2();
+
+            $('.pos_fec_desde').datetimepicker({
+                minDate: '-' + new Date() + '',
+                format: 'DD/MM/YYYY HH:mm '
+            });
+
+            $('.pos_fec_hasta').datetimepicker({
+                format: 'DD/MM/YYYY HH:mm ',
+                minDate: '-' + new Date() + ''
+            });
+        });
+
+        function validarCitaAtendida(idSolicitud) {
+            $.ajax({
+                url: '/peritaje/ValidarCitaAtendida',
+                data: {
+                    id: idSolicitud
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.estado == 1 || data.estado == 2) {
+                        $('#mensajeCita').text(data.mensaje);
+                        $('#alertaCitaAtedida').show();
+                        $('#OpcionAtenderCita').hide();
+                        $('#OpcionReprogramarCita').hide();
+                        $('#OpcionCancelarCita').hide();
+                    } else if (data.estado == 3) {
+                        $('#mensajeCita').text('');
+                        $('#alertaCitaAtedida').hide();
+                        $('#OpcionAtenderCita').hide();
+                        $('#OpcionReprogramarCita').show();
+                        $('#OpcionCancelarCita').show();
+                    } else if (data.estado == 4) {
+                        $('#mensajeCita').text('');
+                        $('#alertaCitaAtedida').hide();
+                        $('#OpcionAtenderCita').show();
+                        $('#OpcionReprogramarCita').show();
+                        $('#OpcionCancelarCita').show();
+                    } else {
+                        $('#mensajeCita').text(data.mensaje);
+                        $('#alertaCitaAtedida').show();
+                        $('#OpcionAtenderCita').hide();
+                        $('#OpcionReprogramarCita').hide();
+                        $('#OpcionCancelarCita').hide();
+                    }
+                }
+            });
+        }
+
+        function BuscarCitasPerito(idPerito) {
+            $.ajax({
+                url: '/peritaje/BuscarCitasPerito',
+                data: {
+                    peritoId: idPerito
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                },
+                complete: function (data) {
+                    console.log(data);
+                    var citas = new Array();
+                    for (var i = 0; i < data.responseJSON.length; i++) {
+                        var object = {
+                            id: data.responseJSON[i].id,
+                            title: data.responseJSON[i].title,
+                            start: new Date(data.responseJSON[i].start),
+                            end: new Date(data.responseJSON[i].end),
+                        };
+                        citas.push(object);
+                    }
+
+                    /* initialize the external events
+      -----------------------------------------------------------------*/
+                    $('#external-events div.external-event').each(function () {
+                        // store data so the calendar knows to render an event upon drop
+                        $(this).data('event', {
+                            title: $.trim($(this).text()), // use the element's text as the event title
+                            stick: true // maintain when user navigates (see docs on the renderEvent method)
+                        });
+
+                        // make the event draggable using jQuery UI
+                        $(this).draggable({
+                            zIndex: 1111999,
+                            revert: true,      // will cause the event to go back to its
+                            revertDuration: 0  //  original position after the drag
+                        });
+                    });
+
+                    /* initialize the calendar
+                     -----------------------------------------------------------------*/
+                    var date = new Date();
+                    var d = date.getDate();
+                    var m = date.getMonth();
+                    var y = date.getFullYear();
+
+                    $('#calendar').fullCalendar({
+                        lang: 'es',
+                        header: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'month,agendaWeek,agendaDay'
+                        },
+                        editable: true,
+                        droppable: true, // this allows things to be dropped onto the calendar
+                        drop: function () {
+                            // is the "remove after drop" checkbox checked?
+                            if ($('#drop-remove').is(':checked')) {
+                                // if so, remove the element from the "Draggable Events" list
+                                $(this).remove();
+                            }
+                        },
+                        events: citas,//data.responseJSON,
+                        eventDrop: function (event, delta, revertFunc, jsEvent, ui, view) {
+
+                        },
+                        eventClick: function (calEvent, jsEvent, view) {
+                            var placa = calEvent.title.substring(1, 7);
+                            console.log(placa)
+
+                            $('#placaInspeccion').val(calEvent.title);
+                            $('#placaVehiculo').val(placa);
+                            validarCitaAtendida(calEvent.id);
+                            $('#modalOpcionesCita').modal('show');
+                            //alert('Event: ' + calEvent.title);
+                            //alert('Coordinates: ' + jsEvent.pageX + ',' + jsEvent.pageY);
+                            //alert('View: ' + view.name);
+                            //window.location.href = 'Url.Action("InspeccionPeritaje", "InspeccionPeritaje")?placa='+calEvent.title;
+
+                            // change the border color just for fun
+                            $(this).css('border-color', 'red');
+                        }
+                    });
+                }
+            });
+        }
+
+        $('#btnAtender').click(function () {
+            window.location.href = '@Url.Action("InspeccionPeritaje", "InspeccionPeritaje")?menu='+@ViewBag.id_menu+'&&placa=' + $('#placaVehiculo').val();
+        });
+
+        $('#btnReprogramar').click(function () {
+            buscarHorariosPeritajes();
+        });
+
+        $('#btnCancelar').click(function () {
+            $.ajax({
+                url: '/peritaje/CancelarCita',
+                data: {
+                    placa: $('#placaInspeccion').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#alertaMensajeMenu').text(data);
+                    $('#alertaModalMenu').show();
+                    setTimeout(function () {
+                        $("#alertaModalMenu").fadeOut(1500);
+                        location.reload();
+                    }, 3000);
+                }
+            });
+        });
+
+        $('#btnReprogramarConfirma').click(function () {
+            if ($.trim($('#desde').val()) == '' || $.trim($('#hasta').val()) == '' || ($.trim($('#desde').val()) >= $.trim($('#hasta').val()) )) {
+                $('#alertaMensaje').text('Debe seleccionar fechas validas');
+                $('#alertaModal').show();
+                setTimeout(function () {
+                    $("#alertaModal").fadeOut(1500);
+                }, 3000);
+            } else {
+                reprogramarCita();
+            }
+        });
+
+        function reprogramarCita() {
+            $.ajax({
+                url: '/peritaje/ReprogramarCita',
+                data: {
+                    placa: $('#placaInspeccion').val(),
+                    desde: $('#desde').val(),
+                    hasta: $('#hasta').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#alertaMensaje').text(data.mensaje);
+                    $('#alertaModal').show();
+                    if (data.estado == true) {
+                        setTimeout(function () {
+                            $("#alertaModal").fadeOut(1500);
+                            location.reload();
+                        }, 3000);
+                    } else {
+                        setTimeout(function () {
+                            $("#alertaModal").fadeOut(1500);
+                        }, 3000);
+                    }
+                },
+                complete: function (data) {
+
+                }
+            });
+        }
+
+        function buscarHorariosPeritajes() {
+            $.ajax({
+                url: '/peritaje/BuscarHorariosPeritajes',
+                data: {},
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectHoraInicioRepro').append($('<option>', {
+                            value: data[i].Value,
+                            text: data[i].Text
+                        }));
+                        $('#selectHoraFinRepro').append($('<option>', {
+                            value: data[i].Value,
+                            text: data[i].Text
+                        }));
+                    }
+                    $('#txtFechaReprogramar').datepicker({
+                        format: 'dd/mm/yyyy'
+                    });
+                    $('#selectHoraInicioRepro').select2();
+                    $('#selectHoraFinRepro').select2();
+                },
+                complete: function (data) {
+                    $('#modalReprogramarCita').modal('show');
+                }
+            });
+        }
+
+        $('#perito_id').change(function () {
+            BuscarCitasPerito($('#perito_id').val());
+            $('#calendar').fullCalendar('destroy');
+        });
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+        //$('#buscarPerito').click(function () {
+        //    var date = new Date();
+        //    var d = date.getDate();
+        //    var m = date.getMonth();
+        //    var y = date.getFullYear();
+        //    /*  className colors
+        //    className: default(transparent), important(red), chill(pink), success(green), info(blue)
+        //    */
+        //    /* initialize the external events
+        //    -----------------------------------------------------------------*/
+        //    $('#external-events div.external-event').each(function () {
+        //        // create an Event Object (http://arshaw.com/fullcalendar/docs/event_data/Event_Object/)
+        //        // it doesn't need to have a start or end
+        //        var eventObject = {
+        //            title: $.trim($(this).text()) // use the element's text as the event title
+        //        };
+        //        // store the Event Object in the DOM element so we can get to it later
+        //        $(this).data('eventObject', eventObject);
+        //        // make the event draggable using jQuery UI
+        //        $(this).draggable({
+        //            zIndex: 999,
+        //            revert: true,      // will cause the event to go back to its
+        //            revertDuration: 0  //  original position after the drag
+        //        });
+        //    });
+        //    /* initialize the calendar
+        //    -----------------------------------------------------------------*/
+        //    var calendar = $('#calendar').fullCalendar({
+        //        header: {
+        //            left: 'title',
+        //            center: 'agendaDay,agendaWeek,month',
+        //            right: 'prev,next today'
+        //        },
+        //        editable: true,
+        //        firstDay: 1, //  1(Monday) this can be changed to 0(Sunday) for the USA system
+        //        selectable: true,
+        //        defaultView: 'month',
+        //        axisFormat: 'h:mm',
+        //        columnFormat: {
+        //            month: 'ddd',    // Mon
+        //            week: 'ddd d', // Mon 7
+        //            day: 'dddd M/d',  // Monday 9/7
+        //            agendaDay: 'dddd d'
+        //        },
+        //        titleFormat: {
+        //            month: 'MMMM yyyy', // September 2009
+        //            week: "MMMM yyyy", // September 2009
+        //            day: 'MMMM yyyy'                  // Tuesday, Sep 8, 2009
+        //        },
+        //        allDaySlot: false,
+        //        selectHelper: true,
+        //        select: function (start, end, allDay) {
+        //            $('#fechaPeritaje').val(start.toLocaleDateString('es-ES'));
+        //            $('#modalPeritaje').modal('show');
+        //            //var title = prompt('Event Title:');
+        //            //if (title) {
+        //            //    calendar.fullCalendar('renderEvent',
+        //            //        {
+        //            //            title: title,
+        //            //            start: start,
+        //            //            end: end,
+        //            //            allDay: allDay
+        //            //        },
+        //            //        true // make the event "stick"
+        //            //    );
+        //            //}
+        //            calendar.fullCalendar('unselect');
+        //        },
+        //        droppable: true, // this allows things to be dropped onto the calendar !!!
+        //        drop: function (date, allDay) { // this function is called when something is dropped
+        //            // retrieve the dropped element's stored Event Object
+        //            var originalEventObject = $(this).data('eventObject');
+        //            // we need to copy it, so that multiple events don't have a reference to the same object
+        //            var copiedEventObject = $.extend({}, originalEventObject);
+        //            // assign it the date that was reported
+        //            copiedEventObject.start = date;
+        //            copiedEventObject.allDay = allDay;
+        //            // render the event on the calendar
+        //            // the last `true` argument determines if the event "sticks" (http://arshaw.com/fullcalendar/docs/event_rendering/renderEvent/)
+        //            $('#calendar').fullCalendar('renderEvent', copiedEventObject, true);
+        //            // is the "remove after drop" checkbox checked?
+        //            if ($('#drop-remove').is(':checked')) {
+        //                // if so, remove the element from the "Draggable Events" list
+        //                $(this).remove();
+        //            }
+        //        },
+        //        events: [
+        //            {
+        //                title: 'All Day Event',
+        //                start: new Date(y, m, 1)
+        //            },
+        //            {
+        //                id: 999,
+        //                title: 'Repeating Event',
+        //                start: new Date(y, m, d - 3, 16, 0),
+        //                allDay: false,
+        //                className: 'info'
+        //            },
+        //            {
+        //                id: 999,
+        //                title: 'Repeating Event',
+        //                start: new Date(y, m, d + 4, 16, 0),
+        //                allDay: false,
+        //                className: 'info'
+        //            },
+        //           {
+        //               title: 'Meeting',
+        //               start: new Date(y, m, d, 10, 30),
+        //               allDay: false,
+        //               className: 'important'
+        //           },
+        //		{
+        //		    title: 'Lunch',
+        //		    start: new Date(y, m, d, 12, 0),
+        //		    end: new Date(y, m, d, 14, 0),
+        //		    allDay: false,
+        //		    className: 'important'
+        //		},
+        //            {
+        //                title: 'Birthday Party',
+        //                start: new Date(y, m, d + 1, 19, 0),
+        //                end: new Date(y, m, d + 1, 22, 30),
+        //                allDay: false,
+        //            },
+        //            {
+        //                title: 'Click for Google',
+        //                start: new Date(y, m, 28),
+        //                end: new Date(y, m, 29),
+        //                url: 'http://google.com/',
+        //                className: 'success'
+        //            }
+        //        ],
+        //    });
+        //});
+
+        //$('#marcas').append($('<option>', {
+        //    value: '-1',
+        //    text: 'Otro'
+        //}));
+
+        //$('#modelos').append($('<option>', {
+        //    value: '-2',
+        //    text: 'OTRO'
+        //}));
+        //$('#marcas').select2();
+        //$('#modelos').select2();
+        //$('#color').select2();
+        //$('#clasificacion').select2();
+
+        @*$('#tabPeritajes').click(function () {
+            window.location.href = '@Url.Action("Peritajes","peritaje")';
+        });
+
+        $('#tabCompraRetoma').click(function () {
+            window.location.href = '@Url.Action("CompraRetoma","peritaje")';
+        });
+
+        $('#tabSolicitudes').click(function () {
+            window.location.href = '@Url.Action("Solicitud","peritaje")';
+        });*@
+
+        //$('#buscarTercero').click(function () {
+        //    if ($('#cedulaTercero').val() == '') {
+        //        $('#errorBuscaTercero').show('2000');
+        //    } else {
+        //        $.ajax({
+        //            url: '/peritaje/BuscarTerceroPorDocumento',
+        //            data: {
+        //                docTercero: $('#cedulaTercero').val()
+        //            },
+        //            type: "post",
+        //            cache: false,
+        //            success: function (data) {
+        //                console.log(data);
+        //                if (data.length == 0) {
+        //                    $('#errorBuscaTercero').show('2000');
+        //                } else {
+        //                    $('#tipoDocumento').text(data[0].tpdoc_nombre);
+        //                    $('#numeroDocumento').text(data[0].doc_tercero);
+        //                    $('#primerNombre').text(data[0].prinom_tercero);
+        //                    $('#segundoNombre').text(data[0].segnom_tercero);
+        //                    $('#apellidos').text(data[0].apellido_tercero);
+        //                    $('#telefono').text(data[0].telf_tercero);
+        //                    $('#celular').text(data[0].celular_tercero);
+        //                    $('#email').text(data[0].email_tercero);
+        //                    $('#ciudad').text(data[0].ciu_nombre);
+        //                    $('#direccion').text(data[0].direc_tercero);
+        //                    $('#datosTercero').show();
+        //                    $('#panelInfoVehiculo').show('8000');
+        //                    $('#panelAgenda').show('8000');
+        //                    $('#cedulaTercero').attr('disabled', 'disabled');;
+        //                    $('#errorBuscaTercero').hide('2000');
+        //                }
+        //            }
+        //        })
+        //    }
+        //});
+
+        // Accion del boton agregar marca en caso de que se agregue una nueva marca en el modal
+        //$('#AceptarMarca').click(function () {
+        //    if ($('#nombreMarca').val() == '') {
+        //        $('#mensajeInfoMarca').text('Campo nombre vacio');
+        //        $('#alertMarca').show();
+        //    } else {
+        //        $.ajax({
+        //            url: '/peritaje/AgregarMarca',
+        //            data: { nombreMarca: $('#nombreMarca').val() },
+        //            type: "post",
+        //            cache: false,
+        //            success: function (data) {
+        //                if (data > 0) {
+        //                    $('#mensajeInfoMarca').text('Registro de marca agregado!');
+        //                    $('#alertMarca').show();
+        //                } else {
+        //                    $('#mensajeInfoMarca').text('Registro no se agrego!');
+        //                    $('#alertMarca').show();
+        //                }
+        //            },
+        //            complete: function (data) {
+        //                $('#marcas').append($('<option>', {
+        //                    value: data.responseJSON,
+        //                    text: $('#nombreMarca').val()
+        //                }));
+        //                $("#marcas option:last").attr("selected", "selected");
+        //                $('#marcas').select2();
+        //                $('#modalMarca').modal('hide');
+        //                $('#nombreMarca').val('');
+        //                $('#mensajeInfoMarca').text('');
+        //                $('#alertMarca').hide();
+        //            }
+        //        })
+        //    }
+        //});
+
+        // Accion del boton agregar modelo en caso de que se agregue una nueva marca en el modal
+        //$('#AceptarModelo').click(function () {
+        //    if ($('#nombreModelo').val() == '') {
+        //        $('#mensajeInfoModelo').text('Campo nombre vacio');
+        //        $('#alertModelo').show();
+        //    } else {
+        //        $.ajax({
+        //            url: '/peritaje/AgregarModelo',
+        //            data: {
+        //                nombreModelo: $('#nombreModelo').val(),
+        //                marcaModelo: $('#marcas').val()
+        //            },
+        //            type: "post",
+        //            cache: false,
+        //            success: function (data) {
+        //                if (data > 0) {
+        //                    $('#mensajeInfoModelo').text('Registro del modelo agregado!');
+        //                    $('#alertModelo').show();
+        //                } else {
+        //                    $('#mensajeInfoModelo').text('Registro no se agrego!');
+        //                    $('#alertModelo').show();
+        //                }
+        //            },
+        //            complete: function (data) {
+        //                $('#modelos').append($('<option>', {
+        //                    value: data.responseJSON,
+        //                    text: $('#nombreModelo').val()
+        //                }));
+        //                $("#modelos option:last").attr("selected", "selected");
+        //                $('#modelos').select2();
+        //                $('#modalModelo').modal('hide');
+        //                $('#nombreModelo').val('');
+        //                $('#mensajeInfoModelo').text('');
+        //                $('#alertModelo').hide();
+        //            }
+        //        })
+        //    }
+        //});
+
+        // El boton cerrar del modal limpia los campos
+        //$('#CerrarMarca').click(function () {
+        //    $('#nombreMarca').val('');
+        //    $('#mensajeInfoMarca').text('');
+        //    $('#alertMarca').hide();
+        //    $("#marcas").select2("val", "");
+        //});
+
+        // El boton cerrar del modal limpia los campos
+        //$('#CerrarModelo').click(function () {
+        //    $('#nombreModelo').val('');
+        //    $('#mensajeInfoModelo').text('');
+        //    $('#alertModelo').hide();
+        //    $("#modelos").select2("val", "-1");
+        //});
+
+        // Validar marcas para rellenar campo modelo
+        //$('#marcas').change(function () {
+        //    if ($('#marcas').val() == '-1') {
+        //        $('#modelos').empty();
+        //        $('#modalMarca').modal('show');
+        //    } else {
+        //        var value = '';
+        //        $.ajax({
+        //            url: '/peritaje/BuscarModelos',
+        //            data: { marca: $('#marcas').val() },
+        //            type: "post",
+        //            cache: false,
+        //            success: function (data) {
+        //                $('#modelos').empty();
+        //                $('#modelos').append($('<option>', {
+        //                    value: '-1',
+        //                    text: 'Seleccione'
+        //                }));
+        //                for (var i = 0; i < data.length; i++) {
+        //                    $('#modelos').append($('<option>', {
+        //                        value: data[i].modvh_id,
+        //                        text: data[i].modvh_nombre
+        //                    }));
+        //                }
+        //                $('#modelos').val('-1');
+        //                $('#modelos').select2();
+        //                $('#modelos').append($('<option>', {
+        //                    value: '-2',
+        //                    text: 'OTRO'
+        //                }));
+        //                //}
+        //            }
+        //        })
+        //    }
+        //});
+
+        //// Validar maodelos en caso de que la opcion seleccionada sea otro
+        //$('#modelos').change(function () {
+        //    if ($('#modelos').val() == '-2') {
+        //        $('#modalModelo').modal('show');
+        //    }
+        //});
+
+    </script>
+
+    @if (ViewBag.rol == "3")
+    {
+        <script type="text/javascript">
+            BuscarCitasPerito('@Session["user_usuarioid"]');
+        </script>
+    }
+
+}

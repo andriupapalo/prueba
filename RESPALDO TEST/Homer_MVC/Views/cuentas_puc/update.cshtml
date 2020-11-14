@@ -1,0 +1,666 @@
+﻿@model Homer_MVC.IcebergModel.cuenta_puc
+
+@{
+    ViewBag.Icono = "fa fa-history";
+    ViewBag.Title = "Cuentas PUC";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Actualizar @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="" onclick="buscarAjaxCuentasPUC();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <a class="btn btn-info" href="../../cntpuc?menu=@ViewBag.id_menu"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Crear nuevo</a>&nbsp;&nbsp;
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.HiddenFor(model => model.cntpuc_id)
+                        @Html.HiddenFor(model => model.cntpucid_licencia)
+                        @Html.HiddenFor(model => model.cntpucfec_creacion)
+                        @Html.HiddenFor(model => model.cntpucuserid_creacion)
+                        @Html.HiddenFor(model => model.cntpucuserid_actualizacion)
+                        @Html.HiddenFor(model => model.cntpucfec_actualizacion)
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos Generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número Cuenta:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.cntpuc_numero, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                                                @Html.ValidationMessageFor(model => model.cntpuc_numero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Descripción:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.cntpuc_descp, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.cntpuc_descp, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Es Afectable:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.esafectable, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tercero Administrativo:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.terceroadministrativo, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Estado:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.cntpuc_estado, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12 col-md-offset-6" id="inactividad" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2">Razón Inactividad:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-3">
+                                                @Html.EditorFor(model => model.cntpucrazoninactivo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Razón Inactividad", @required = "" } })
+                                                @Html.ValidationMessageFor(model => model.cntpucrazoninactivo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="camposOcultos" style="display:none">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Movimiento:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.mov_cnt, ViewBag.mov_cnt.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.mov_cnt, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cuenta Reversión:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.ctareversion, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Cuenta Reversión" } })
+                                                    @Html.ValidationMessageFor(model => model.ctareversion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Porcentaje:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.porcentaje, new { htmlAttributes = new { @class = "form-control", @type = "number", @placeholder = "Digite Porcentaje" } })
+                                                    @Html.ValidationMessageFor(model => model.porcentaje, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Concepto Niif:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.concepniff, ViewBag.concepniff.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.concepniff, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6 infoNiif" style="display:none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cuenta Niif:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.cuentaniff, ViewBag.cuentaniff as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.cuentaniff, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @*<div class="col-sm-6 infoNiif"  style="display:none">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Nombre Niif:&nbsp;<span class="text-danger"></span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.EditorFor(model => model.nombreniff, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Nombre Niif" } })
+                                                        @Html.ValidationMessageFor(model => model.nombreniff, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>*@
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cuenta Cartera:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <label class="control-label col-md-4">
+                                                        <span class="text-danger">&nbsp;</span>
+                                                        @Html.CheckBoxFor(model => model.cuentacartera, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cuenta Proveedor:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <label class="control-label col-md-4">
+                                                        <span class="text-danger">&nbsp;</span>
+                                                        @Html.CheckBoxFor(model => model.cuentaproveedor, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cuenta Impuestos:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <label class="control-label col-md-4">
+                                                        <span class="text-danger">&nbsp;</span>
+                                                        @Html.CheckBoxFor(model => model.cuentaimpuestos, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cuenta Presupuesto:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <label class="control-label col-md-4">
+                                                        <span class="text-danger">&nbsp;</span>
+                                                        @Html.CheckBoxFor(model => model.cuentapresupuesto, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Flujo De Caja:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <label class="control-label col-md-4">
+                                                        <span class="text-danger">&nbsp;</span>
+                                                        @Html.CheckBoxFor(model => model.flujodecaja, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tercero Administrativo:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <label class="control-label col-md-4">
+                                                        <span class="text-danger">&nbsp;</span>
+                                                        @Html.CheckBoxFor(model => model.terceroadministrativo, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+
+                            <div class="hpanel camposOcultos">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos Cuentas Contables
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">C Costos:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <label class="control-label col-md-4">
+                                                    <span class="text-danger">&nbsp;</span>
+                                                    @Html.CheckBoxFor(model => model.ccostos, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tercero:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <label class="control-label col-md-4">
+                                                    <span class="text-danger">&nbsp;</span>
+                                                    @Html.CheckBoxFor(model => model.tercero, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Documento:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <label class="control-label col-md-4">
+                                                    <span class="text-danger">&nbsp;</span>
+                                                    @Html.CheckBoxFor(model => model.documeto, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Base:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <label class="control-label col-md-4">
+                                                    <span class="text-danger">&nbsp;</span>
+                                                    @Html.CheckBoxFor(model => model.manejabase, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-info-circle"></i>&nbsp;&nbsp;&nbsp;Información
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-3 small">
+                                        <p>Creado por: @ViewBag.user_nombre_cre</p>
+                                    </div>
+
+                                    <div class="col-sm-3 small">
+                                        <p>Fecha creación: @Html.DisplayFor(model => model.cntpucfec_creacion)</p>
+                                    </div>
+
+                                    <div class="col-sm-3 small">
+                                        <p>
+                                            Actualizado por:  @{if (ViewBag.user_nombre_act == null)
+                                                {
+                                                <p class="text-danger">no se han realizado actualizaciones</p>
+                                            }
+                                            @ViewBag.user_nombre_act
+                                            }
+                                            </p>
+                                        </div>
+
+                                        <div class="col-sm-3 small">
+                                            <p>
+                                                Ultima actualización:  @{if (Model.cntpucfec_actualizacion == null)
+                                                    {
+                                                    <p class="text-danger">no se han realizado actualizaciones</p>
+                                                }
+                                                @Html.DisplayFor(model => model.cntpucfec_actualizacion)
+                                                }
+                                                </p>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                            }
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Número</th>
+                                        <th style="text-align:center">Descripción</th>
+                                        <th style="text-align:center">Tipo</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalCuentaInactiva" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header">
+                <h4 class="modal-title">Inactivar Cuenta</h4>
+                <small class="font-bold">Cuenta Activa.</small>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <strong>La cuenta no puede desabilitarse </strong> ya que se encuentra activa en algunos movimientos contables.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            //if (!$('#cntpuc_estado').prop('checked')) {
+            //    $('#inactividad').show();
+            //} else {
+            //    $('#inactividad').hide();
+            //}
+
+            if (!$('#cntpuc_estado').prop('checked')) {
+                $('#inactividad').show();
+            } else {
+                $('#cntpucrazoninactivo').val('No aplica');
+                $('#inactividad').hide();
+            }
+
+
+            $('.js-source-states').select2();
+            if ($('#esafectable').prop('checked')) {
+                $('.camposOcultos').show();
+            }
+
+            if ($('#concepniff').val() == 1 || $('#concepniff').val() == 4) {
+                $('.infoNiif').show();
+            }else {
+                $('.infoNiif').hide();
+            }
+            $('#cuentaniff').val(@ViewBag.cuentaniffSelected).select2();
+
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000);
+        });
+
+        $('#concepniff').change(function () {
+            debugger;
+            if ($('#concepniff').val() == 1 || $('#concepniff').val() == 4) {
+                $('.infoNiif').show();
+            }else {
+                $('.infoNiif').hide();
+            }
+        });
+
+        $('#cuentacartera').change(function(){
+            if ($('#cuentacartera').prop('checked')) {
+                $('#cuentaproveedor').attr('checked', false).change();
+                $('#cuentaimpuestos').attr('checked', false).change();
+                $('#flujodecaja').attr('checked', false).change();
+            }
+        });
+
+        $('#cuentaproveedor').change(function(){
+            if ($('#cuentaproveedor').prop('checked')) {
+                $('#cuentacartera').attr('checked', false).change();
+                $('#cuentaimpuestos').attr('checked', false).change();
+                $('#flujodecaja').attr('checked', false).change();
+            }
+        });
+
+        $('#cuentaimpuestos').change(function(){
+            if ($('#cuentaimpuestos').prop('checked')) {
+                $('#cuentaproveedor').attr('checked', false).change();
+                $('#cuentacartera').attr('checked', false).change();
+                $('#flujodecaja').attr('checked', false).change();
+            }
+        });
+
+        $('#flujodecaja').change(function(){
+            if ($('#flujodecaja').prop('checked')) {
+                $('#cuentaproveedor').attr('checked', false).change();
+                $('#cuentaimpuestos').attr('checked', false).change();
+                $('#cuentacartera').attr('checked', false).change();
+            }
+        });
+
+        $('#esafectable').change(function () {
+            if ($('#esafectable').prop('checked')) {
+                $('.camposOcultos').show();
+            } else {
+                $('.camposOcultos').hide();
+            }
+        });
+
+        var alertaActiva = false;
+        $('#cntpuc_estado').change(function () {
+            if(alertaActiva == false){
+                if ($('#cntpuc_estado').prop('checked')) {
+                    $('#inactividad').hide();
+                    $('#cntpucrazoninactivo').prop('required', false);
+                    $('#cntpucrazoninactivo').val('');
+                } else {
+                    $.ajax({
+                        url: '/cuentas_puc/BuscarCuentaConMovimiento',
+                        data: {
+                            id_cuenta: $('#cntpuc_id').val()
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            if (data.cuentaTieneMovimientos == true) {
+                                alertaActiva = true;
+                                $('#cntpuc_estado').prop('checked', true).change();
+                                $('#modalCuentaInactiva').modal('show');
+                            }
+                        },
+                        complete: function (data) {
+                            if (data.responseJSON.cuentaTieneMovimientos == true) {
+                                alertaActiva = false;
+                            } else {
+                                $('#cntpucrazoninactivo').prop('required', true);
+                                $('#cntpucrazoninactivo').val('');
+                                $('#inactividad').show();
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        function valida(id) {
+            window.location.href = '@Url.Action("update", "cuentas_puc")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        function buscarAjaxCuentasPUC() {
+            $("#tablaPaginada").dataTable().fnDestroy();
+            $.ajax({
+                url: '/cuentas_puc/BuscarCuentasPUCPaginadas',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="right">'
+                            + data[i].cntpuc_numero + '</td><td align="left">'
+                            + data[i].cntpuc_descp + '</td><td align="left">'
+                            + data[i].mov_cnt + '</td><td align="left">'
+                            + data[i].cntpuc_estado + '</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                            + '\'' + data[i].cntpuc_id
+                            + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' }
+                            //,
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+        $('#mov_cnt').val('@ViewBag.tipoCuenta');
+
+    </script>
+
+}

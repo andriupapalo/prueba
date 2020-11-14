@@ -1,0 +1,1851 @@
+﻿@*k*@
+@model Homer_MVC.IcebergModel.icb_terceros
+
+@{
+    ViewBag.Title = "Terceros";
+    ViewBag.Icono = "fa fa-users";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    @*<link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />*@
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Actualizar @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li id="terceroT" class="active"><a data-toggle="tab" href="#terceros"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li id="clienteT" style="display:none"><a data-toggle="tab" href=""><i class="fa fa-user"></i>&nbsp;&nbsp;Cliente</a></li>
+                <li id="proveedorT" style="display:none"><a data-toggle="tab" href=""><i class="fa fa-user"></i>&nbsp;&nbsp;Proveedor</a></li>
+                <li id="empleadoT" style="display:none"><a data-toggle="tab" href=""><i class="fa fa-user"></i>&nbsp;&nbsp;Empleado</a></li>
+                <li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="terceros" class="tab-pane active">
+                <div class="panel-body">
+
+                    <div class="form-horizontal">
+
+                        @using (Html.BeginForm())
+                        {
+                            <div class="panel-body-btns text-right">
+                                <a class="btn btn-info" href="../../terceros?menu=@ViewBag.id_menu"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Crear nuevo</a>&nbsp;
+                                <button class="btn btn-info" type="submit" id="btnActualizarParteSuperior"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                                <input type="hidden" id="id_rol_log" value="@ViewBag.rol" />
+
+                            </div>
+
+                            @Html.AntiForgeryToken()
+                            @Html.Hidden("menu")
+                            @Html.HiddenFor(model => model.tercero_id)
+                            @Html.HiddenFor(model => model.terceroid_licencia)
+                            @Html.HiddenFor(model => model.tercerofec_creacion)
+                            @Html.HiddenFor(model => model.tercerouserid_creacion)
+                            @Html.HiddenFor(model => model.digito_verificacion)
+                            @*@Html.HiddenFor(model => model.tpdoc_id)*@
+                            @Html.HiddenFor(model => model.prospecto)
+                            //   @Html.HiddenFor(model => model.tpregimen_id)
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Información general
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.tpdoc_id, ViewBag.tpdoc_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.tpdoc_id, "", new { @class = "text-danger" })
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número Documento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-4">
+                                                @Html.EditorFor(model => model.doc_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Número Documento", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.doc_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-2" id="DV">
+
+                                                @if (TempData["errorDigitoVerificacion"] != null)
+                                                {
+                                                    @Html.EditorFor(model => model.digito_verificacion, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "D.V" } })
+                                                    <p class="text-danger">Campo Requerido</p>
+                                                }
+                                                else
+                                                {
+                                                    @Html.EditorFor(model => model.digito_verificacion, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "D.V", @id = "asd", @readonly = "" } })
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div id="razonSocial" style="display: none">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Razón Social:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.razon_social, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese razón social" } })
+                                                    @Html.ValidationMessageFor(model => model.razon_social, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div id="personas" style="display: none">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Primer Nombre:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.prinom_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese primer nombre" } })
+                                                    @Html.ValidationMessageFor(model => model.prinom_tercero, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Segundo Nombre:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.segnom_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese segundo nombre" } })
+                                                    @Html.ValidationMessageFor(model => model.segnom_tercero, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Primer Apellido:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.apellido_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese primer apellido" } })
+                                                    @Html.ValidationMessageFor(model => model.apellido_tercero, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Segundo Apellido:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.segapellido_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese segundo apellido" } })
+                                                    @Html.ValidationMessageFor(model => model.segapellido_tercero, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="nombres" style="display: none">
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Fecha Nacimiento:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.EditorFor(model => model.fec_nacimiento, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese fecha nacimiento" } })
+                                                        @Html.ValidationMessageFor(model => model.fec_nacimiento, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Genero:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.DropDownListFor(model => model.genero_tercero, ViewBag.genero_tercero.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                        @Html.ValidationMessageFor(model => model.genero_tercero, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    @*Actualizado el 290818 inicio *@
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Teléfono:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.telf_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese teléfono", @pattern = ".{7,10}", @required = "" } })
+                                                @Html.ValidationMessageFor(model => model.telf_tercero, "", new { @class = "text-danger" })
+                                                <p class="text-danger" id="mns_telefono" style="display: none">El telefono debe contener minimo 7 caracteres</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Celular:<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.celular_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese celular", @maxlength = "10", @pattern = ".{10,10}", @required = "" } })
+                                                @Html.ValidationMessageFor(model => model.celular_tercero, "", new { @class = "text-danger" })
+                                                <p class="text-danger" id="mns_celular" style="display: none">El celular debe contener 10 caracteres</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*Actualizado el 290818 fin *@
+
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">E-mail:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.email_tercero, new { htmlAttributes = new { @class = "form-control", @type = "email", @placeholder = "nombre@ejemplo.com", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.email_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div hidden id="infoContable">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cuenta Bancaria:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.cuenta_banco, new { htmlAttributes = new { @class = "form-control", @placeholder = "Cuenta Bancaria" } })
+                                                    @Html.ValidationMessageFor(model => model.cuenta_banco, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Tipo Régimen:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.DropDownListFor(model => model.tpregimen_id, ViewBag.tpregimen_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                        @Html.ValidationMessageFor(model => model.tpregimen_id, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Actividad Económica:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.DropDownListFor(model => model.id_acteco, null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                        @Html.ValidationMessageFor(model => model.id_acteco, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Ref. Fuente:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.retfuente, ViewBag.retfuente.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.retfuente, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Ref. Iva:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.retiva, ViewBag.retiva.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.retiva, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Ref. Ica:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.retica, ViewBag.retica.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.retica, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Autorretención:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.autorretencion, ViewBag.autorretencion.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.autorretencion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6" id="estado_cliente">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Estado:<span class="text-danger">*&nbsp;</span></label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.tercero_estado, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6"></div>
+                                    <div class="col-sm-6" id="inactividad" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Razón Inactividad:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.razoninactivo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Razón Inactividad", @required = "" } })
+                                                @Html.ValidationMessageFor(model => model.razoninactivo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="panelDireccion">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-map-marker"></i>&nbsp;&nbsp;&nbsp;Direcciones
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Pais:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <select class="form-control js-source-states" id="slcPais" name="slcPais" placeholder="Seleccione">
+                                                    <option value=""></option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Departamento:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <select class="form-control js-source-states" id="slcDpto" name="slcDpto" placeholder="Seleccione">
+                                                    <option value=""></option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Ciudad:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <select class="form-control js-source-states" id="ciu_id" name="ciu_id" placeholder="Seleccione">
+                                                    <option value=""></option>
+                                                </select>
+                                            </div>
+                                            <p class="text-danger" id="mns_ciudad" style="display:none">La ciudad es obligatoria</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Sector:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <select class="form-control js-source-states" id="sector_id" name="sector" placeholder="Seleccione">
+                                                    <option value=""></option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    @*==================================================================================================*@
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Dirección:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.direc_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese direccion" } })
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    <div class="col-sm-12">
+                                        <hr />
+                                        <table style="width: 100%">
+                                            <tr>
+                                                <td>
+                                                    <select name="tp_via" id="tp_via" class="form-control js-source-states" placeholder="Tipo de vía">
+                                                        <option value=""></option>
+                                                        <option value="AV">Avenida</option>
+                                                        <option value="AC">Av Calle</option>
+                                                        <option value="AK">Av Carrera</option>
+                                                        <option value="CL">Calle</option>
+                                                        <option value="AUTOP">Autopista</option>
+                                                        <option value="KR">Carrera</option>
+                                                        <option value="CCV">Circunvalar</option>
+                                                        <option value="Dg">Diagonal</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input name="num_via" id="num_via" class="form-control" value="" placeholder="Numero de vía" />
+                                                </td>
+                                                @*<td>
+                                                        <select name="sector_via" id="sector_via" class="form-control js-source-states" placeholder="Sector vía">
+                                                            <option value=""></option>
+                                                            <option value="SUR">Sur</option>
+                                                            <option value="NORTE">Norte</option>
+                                                            <option value="ESTE">Este</option>
+                                                            <option value="OESTE">Oeste</option>
+                                                        </select>
+                                                    </td>*@
+                                                <td>&nbsp;#&nbsp;</td>
+                                                <td>
+                                                    <input name="num_via_generadora" id="num_via_generadora" class="form-control" value="" placeholder="Numero vía" />
+                                                </td>
+                                                <td>&nbsp;-&nbsp;</td>
+                                                <td>
+                                                    <input name="num_placa" id="num_placa" class="form-control" type="number" value="" placeholder="Numero placa" />
+                                                </td>
+                                                <td>
+                                                    <select name="sector_via_generadora" id="sector_via_generadora" class="form-control js-source-states" placeholder="Sector vía">
+                                                        <option value=""></option>
+                                                        <option value="SUR">Sur</option>
+                                                        <option value="NORTE">Norte</option>
+                                                        <option value="ESTE">Este</option>
+                                                        <option value="OESTE">Oeste</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input name="otros" id="otros" class="form-control" value="" placeholder="Interior , apartamento, manzana" />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    <div class="col-sm-12">
+                                        <div class="panel-body-btns text-right">
+                                            <button class="btn btn-primary" type="button" onclick="agregarDireccion()"><i class="fa fa-plus-circle"></i>&nbsp;&nbsp;&nbsp;Agregar</button>
+                                        </div>
+                                    </div>
+
+                                    <input type="hidden" name="lista_direcciones" id="lista_direcciones" value="" />
+                                    <div class="col-sm-12">
+                                        <table class="table table-striped table-bordered table-hover" id="tablaDirecciones">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">#</th>
+                                                    <th style="text-align:center">Pais</th>
+                                                    <th style="text-align:center">Departamento</th>
+                                                    <th style="text-align:center">Ciudad</th>
+                                                    <th style="text-align:center">Sector</th>
+                                                    <th style="text-align:center">Dirección</th>
+                                                    <th style="text-align:center">Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (Model.terceros_direcciones != null)
+                                                {
+                                                    var i = 0;
+                                                    foreach (var item in Model.terceros_direcciones)
+                                                    {
+                                                        <tr style="text-align:center">
+                                                            <td>@i</td>
+                                                            <td>
+                                                                @if (item.nom_ciudad != null)
+                                                                {@item.nom_ciudad.nom_departamento.nom_pais.pais_nombre}
+                                                            </td>
+                                                            <td>
+                                                                @if (item.nom_ciudad != null)
+                                                                {@item.nom_ciudad.nom_departamento.dpto_nombre}
+                                                            </td>
+                                                            <td>
+                                                                @if (item.nom_ciudad != null)
+                                                                {@item.nom_ciudad.ciu_nombre}
+                                                            </td>
+                                                            <td>@item.sector</td>
+                                                            <td>@item.direccion</td>
+                                                            <td><button class="btn btn-danger btn-circle" id="@item.id" type="button" onclick="eliminarDireccionDB(this.id)"><i class="fa fa-remove"></i></button></td>
+                                                        </tr>
+                                                    }
+                                                }
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-key"></i>&nbsp;&nbsp;&nbsp;Información habeas data
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Correo:&nbsp;</label>
+                                            <div class="col-md-8">
+
+                                                @Html.CheckBoxFor(model => model.habdtautor_correo, new { @data_toggle = "toggle", @data_size = "mini" })
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Celular:&nbsp;</label>
+                                            <div class="col-md-8">
+
+                                                @Html.CheckBoxFor(model => model.habdtautor_celular, new { @data_toggle = "toggle", @data_size = "mini" })
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">MSM:&nbsp;</label>
+                                            <div class="col-md-8">
+
+                                                @Html.CheckBoxFor(model => model.habdtautor_msm, new { @data_toggle = "toggle", @data_size = "mini" })
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Whatsapp:&nbsp;</label>
+                                            <div class="col-md-8">
+
+                                                @Html.CheckBoxFor(model => model.habdtautor_watsap, new { @data_toggle = "toggle", @data_size = "mini" })
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        }
+
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-key"></i>&nbsp;&nbsp;&nbsp;Contactos
+                            </div>
+                            <div class="panel-body">
+
+                                <form id="Contactform" onsubmit="return false" method="post" name="myForm">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Contacto:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("tipo_contacto", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states FormularioContacto", @placeholder = "Seleccione", @required = "required" })
+                                                <p id="alertaTipoContacto" class="text-danger" style="display:none">Campo requerido</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Nombre:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("NombreContacto", new { htmlAttributes = new { @class = "form-control FormularioContacto", @placeholder = "Ingrese nombre", @required = "required" } })
+                                                <p id="alertaNombreContacto" class="text-danger" style="display:none">Campo requerido</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Documento:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("tipo_documento", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", })
+                                                <p id="alertaTipoContacto" class="text-danger" style="display:none">Campo requerido</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cedula:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("cedula", new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese Documento" } })
+                                                <p id="alertaCedulaContacto" class="text-danger" style="display:none">Campo requerido</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Dirección:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("DireccionContacto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese dirección" } })
+                                                <p id="alertaDireccionContacto" class="text-danger" style="display:none">Campo requerido</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Telefono:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("TelefonoContacto", new { htmlAttributes = new { @class = "form-control FormularioContacto", @placeholder = "Ingrese telefono", @required = "required" } })
+                                                <p id="alertaTelefonoContacto" class="text-danger" style="display:none">Campo requerido</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Cumpleaños:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("cumpleanosContacto", new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese fecha Cumpleaños" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Correo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("correoContacto", new { htmlAttributes = new { @class = "form-control FormularioContacto", @placeholder = "Ingrese correo", @required = "required" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <div class="col-md-6 col-md-offset-4">
+                                                <input type="submit" class="btn btn-success" id="btnAgregarContacto" value="Agregar" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </form>
+
+                                <br />
+                                <div class="col-sm-12">
+                                    <div class="panel-body-busqueda">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table class="table table-striped table-bordered table-hover" id="tablaContactos">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Nombre Contacto</th>
+                                                        <th style="text-align:center">Documento</th>
+                                                        <th style="text-align:center">Direccion</th>
+                                                        <th style="text-align:center">Telefono</th>
+                                                        <th style="text-align:center">Correo</th>
+                                                        <th style="text-align:center">Fecha Cumpleaños</th>
+                                                        <th style="text-align:center">Tipo Contacto</th>
+                                                        <th style="text-align:center">Acción</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+
+
+
+
+                        <div class="hpanel" id="panelHabeasData">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="glyphicon glyphicon-user"></i>&nbsp;&nbsp;&nbsp;Perfiles
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Cliente:&nbsp;</label>
+                                        <div class="col-md-6">
+
+                                            <input type="checkbox" id="radioCliente" data-toggle="toggle" data-size="mini" disabled />
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6" id="check_proveedor">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Proveedor:&nbsp;</label>
+                                        <div class="col-md-6">
+
+                                            <input type="checkbox" id="radioProveedor" data-toggle="toggle" data-size="mini" disabled />
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6" id="check_empleado">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Empleado:&nbsp;</label>
+                                        <div class="col-md-6">
+
+                                            <input type="checkbox" id="radioEmpleado" data-toggle="toggle" data-size="mini" disabled />
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+
+                    <div class="hpanel" id="panelHabeasData">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                            </div>
+                            <i class="fa fa-info-circle"></i>&nbsp;&nbsp;&nbsp;Información
+                        </div>
+                        <div class="panel-body">
+
+                            <div class="col-sm-3 small">
+                                <p>Creado por: @ViewBag.user_nombre_cre</p>
+                            </div>
+
+                            <div class="col-sm-3 small">
+                                <p>Fecha creación: @Html.DisplayFor(model => model.tercerofec_creacion)</p>
+                            </div>
+
+                            <div class="col-sm-3 small">
+                                <p>
+                                    Actualizado por:  @{if (ViewBag.user_nombre_act == null)
+                                        {
+                                        <p class="text-danger">No se han realizado actualizaciones</p>
+                                    }
+                                    @ViewBag.user_nombre_act
+                                    }
+                                    </p>
+                                </div>
+
+                                <div class="col-sm-3 small">
+                                    <p>
+                                        Ultima actualización:  @{if (Model.tercerofec_actualizacion == null)
+                                            {
+                                            <p class="text-danger">No se han realizado actualizaciones</p>
+                                        }
+                                        @Html.DisplayFor(model => model.tercerofec_actualizacion)
+                                        }
+                                        </p>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="panel-body-btns text-right">
+                                <button class="btn btn-info" type="button" id="btnActualizarParteInferior"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <div id="cliente" class="tab-pane">
+                        <div class="panel-body">
+                        </div>
+                    </div>
+
+
+
+                    <div id="proveedor" class="tab-pane">
+                        <div class="panel-body">
+                        </div>
+                    </div>
+
+
+
+                    <div id="empleado" class="tab-pane">
+                        <div class="panel-body">
+                        </div>
+                    </div>
+
+                    <div id="buscar" class="tab-pane">
+                        <div class="panel-body">
+                            <div class="panel-body-busqueda">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">Documento</th>
+                                                <th style="text-align:center">Nombre</th>
+                                                <th style="text-align:center">Ciudad</th>
+                                                <th style="text-align:center">Estado</th>
+                                                <th style="text-align:center">Fecha creacion</th>
+                                                <th style="text-align:center">Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="contenido"></tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <br />
+        <br />
+
+
+        @section Scripts {
+
+            @Scripts.Render("~/bundles/select2/js")
+            <script src="~/Vendor/moment/min/moment.min.js"></script>
+
+            <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+
+            <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script> @*AC*@
+
+            <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+            <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+            <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+            <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+            <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+            <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+            <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+            <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+            <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+            <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+            <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+            <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+            <script type="text/javascript">
+                var i = 0;
+
+                $('#btnActualizarParteInferior').click(function(){
+                    $('#btnActualizarParteSuperior').trigger('click');
+                });
+
+               
+
+
+            </script>
+            @if (TempData["mensaje"] != null)
+            {
+                <script type="text/javascript">
+                    if ($('#empleadoT').on('click', function() {
+                      window.location.href = '@Url.Action("updateEmpleado", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+                    }));
+
+                    if ($('#clienteT').on('click', function() {
+                        window.location.href = '@Url.Action("updateCliente","icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+                    }));
+
+                    if ($('#proveedorT').on('click', function() {
+                        window.location.href = '@Url.Action("updateProveedor", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+                    }));
+
+
+                </script>
+            }
+            else{
+                <script type="text/javascript">
+                     $('#clienteT').on('click', function(){
+                    $('#btnActualizarParteSuperior').trigger('click');
+                    setTimeout(function(){
+                        $('#clienteT').removeClass('active');
+                        $('li#clienteT.active').removeClass('active');
+                        $('#terceroT').addClass('active');
+                    }, 100);
+                  
+                    window.location.href = '@Url.Action("updateCliente","icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+                });
+
+                $('#proveedorT').on('click', function(){
+                    $('#btnActualizarParteSuperior').trigger('click');
+                    setTimeout(function(){
+                        $('#proveedorT').removeClass('active');
+                        $('li#proveedorT.active').removeClass('active');
+                        $('#terceroT').addClass('active');
+                    }, 100);
+                   
+                    window.location.href = '@Url.Action("updateProveedor", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+                });
+
+                $('#empleadoT').on('click', function(){
+                    $('#btnActualizarParteSuperior').trigger('click');
+                    setTimeout(function(){
+                        $('#empleadoT').removeClass('active');
+                        $('li#empleadoT.active').removeClass('active');
+                        $('#terceroT').addClass('active');
+                    }, 100);
+                    window.location.href = '@Url.Action("updateEmpleado", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+                });
+
+                </script>
+
+            }
+            <script type="text/javascript">
+
+            </script>
+            @if (TempData["mensaje_error"] != null)
+            {
+                <script type="text/javascript">
+                    if ($('#doc_tercero').val() != '') {
+                        $('#doc_tercero').removeAttr('readOnly', 'readOnly')
+                        $('#doc_tercero').val('');
+                    }
+                </script>
+            }
+            <script type="text/javascript">
+
+                $("#telf_tercero").change(function () {
+                    if ($("#telf_tercero").val().length < 7) {
+                        $("#mns_telefono").show();
+                    }
+                    else {
+                        $("#mns_telefono").hide();
+                    }
+                });
+
+                $("#celular_tercero").change(function () {
+                    if ($("#celular_tercero").val().length < 10) {
+                        $("#mns_celular").show();
+                    }
+                    else {
+                        $("#mns_celular").hide();
+                    }
+                });
+
+                function editarDir() {
+                    $('#editarDir').show();
+                }
+
+                function calculoDV() {
+                    var documento = $('#doc_tercero').val()
+                    var numero = 0;
+                    var numeros = [3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71];
+                    var datos = documento.length;
+
+                    for (i = 0; i < documento.length; i++) {
+                        //console.log("pos " + i)
+                        //console.log(documento.substring(datos - 1, datos) + "*" + numeros[i])
+                        numero += documento.substring(datos - 1, datos) * numeros[i];
+                        //console.log("total " + numero)
+                        //console.log("===========")
+                        datos--;
+                    }
+
+                    var digito_verificacion = numero % 11;
+
+                    if (digito_verificacion > 1) {
+                        digito_verificacion = 11 - digito_verificacion;
+                    }
+
+                    $('#asd').val(digito_verificacion);
+                }
+
+                function buscarPermisos(){
+                    var permisosContables = 0;
+                    $.ajax({
+                        url: '/prospectos/buscarPermisos',
+                        data: {
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            console.log(data)
+                            for (var i = 0; i < data.length; i++) {
+                                if (data[i] == 20) {
+                                    $('#celular_tercero').prop('required', false)
+                                }
+                                if (data[i] == 21) {
+                                    $('#email_tercero').prop('required', false)
+                                }
+
+                                if (data[i] == 24) {
+                                    $('#radioProveedor').prop('disabled', false)
+                                }
+                                if (data[i] == 25) {
+                                    $('#radioEmpleado').prop('disabled', false)
+                                }
+                                if (data[i] == 26) {
+                                    $('#radioCliente').prop('disabled', false)
+                                }
+                                if (data[i] != 9 && permisosContables == 0) {
+                                    $('#tpregimen_id').prop('required', false);
+                                    $('#id_acteco').prop('required', false);
+                                }
+                                if (data[i] == 9) {
+                                    permisosContables++;
+                                    $('#infoContable').show();
+                                    $('#tpregimen_id').prop('required', true);
+                                    $('#id_acteco').prop('required', true);
+                                }
+                            }
+                        },
+                        complete: function (data) { }
+                    });
+                }
+
+                $(document).ready(function () {
+
+
+                    $('#menu').val(@ViewBag.id_menu);
+                    buscarPermisos();
+                    setTimeout(function () {
+                        $("#mensaje").fadeOut(1500);
+                    }, 3000);
+                    setTimeout(function () {
+                        $("#mensaje_error").fadeOut(1500);
+                    }, 3000);
+
+                    if (!$('#tercero_estado').prop('checked')) {
+                        $('#inactividad').show();
+                    } else {
+                        $('#razoninactivo').val('No aplica');
+                        $('#inactividad').hide();
+                    }
+
+                    //if ($('#tpdoc_id').val() != '1') {
+                    //    $('#digito_verificacion').hide();
+                    //    $('#nombres').show();
+                    //} else {
+                    //    $('#digito_verificacion').show();
+                    //    $('#razonSocial').show();
+                    //}
+
+                    if($('#doc_tercero').val() != ''){
+                        $('#doc_tercero').attr('readOnly', 'readOnly')
+                        $('#tpdoc_id').attr('readOnly', 'readOnly')
+                        calculoDV();
+                    }
+
+                    $('#doc_tercero').change(function(){
+                        calculoDV();
+                    });
+
+                    validarTipoDocumento();
+                    buscarPais();
+
+                    //buscarCiudad();
+                    //buscarSector();
+
+                    $('.js-source-states').select2();
+
+                    @*$('#fec_nacimiento').datepicker({
+                        format: 'dd/mm/yyyy',
+                        //startDate: '-3d'
+                    }).datepicker("setDate", "@ViewBag.fechaNac");
+                    $('#cumpleanosContacto').datepicker({
+                        format: 'dd/mm/yyyy'
+                    }).datepicker();*@
+
+                    //AC modificado
+                    $('#fec_nacimiento').datetimepicker({
+                        format: 'YYYY/MM/DD',
+                        minDate: new Date(1899,12,01),
+                        maxDate: new Date(),
+                    }).datetimepicker("","");
+                    $('#fec_nacimiento').val('@ViewBag.fechaNac')
+                    //$('#cumpleanosContacto').datepicker({
+                    //    format: 'YYYY/MM/DD',
+
+                    //}).datepicker();
+                    $('#cumpleanosContacto').datetimepicker({
+                        format: 'YYYY/MM/DD'
+                    });
+
+                    buscarAjaxTerceros();
+                    actualizarTablaContactos();
+
+                    var ids = '@ViewBag.tiposTercero'.split(',');
+                    //console.log(" Esto es tipo Tercero" + ids);
+                    for (var i = 0; i < ids.length;i++){
+                        if(ids[i]==1){
+                            $('#clienteT').show();
+                            setTimeout(function(){
+                                $('#radioCliente').bootstrapToggle('on');
+                            },1000)
+
+                        }
+                        if (ids[i] == 2) {
+                            $('#proveedorT').show();
+                            setTimeout(function(){
+                                $('#radioProveedor').bootstrapToggle('on');
+                            },1000)
+
+                        }
+                        if (ids[i] == 3) {
+                            $('#empleadoT').show();
+                            setTimeout(function(){
+                                $('#radioEmpleado').bootstrapToggle('on');
+                            },1000)
+
+                        }
+                    }
+
+                    $('form select').each(function (i) {
+                        this.addEventListener('invalid', function (e) {
+                            var _s2Id = 's2id_' + e.target.id; //s2 autosuggest html ul li element id
+                            var _posS2 = $('#' + _s2Id).position();
+                            //get the current position of respective select2
+                            $('#' + _s2Id + ' ul').addClass('_invalid'); //add this class with border:1px solid red;
+                            //this will reposition the hidden select2 just behind the actual select2 autosuggest field with z-index = -1
+                            $('#' + e.target.id).attr('style', 'display:block !important;position:absolute;z-index:-1;top:' + (0 - $('#' + _s2Id).outerHeight() + 30) + 'px;left:' + (15 - ($('#' + _s2Id).width() / 10)) + 'px;');
+                            /*
+                            //Adjust the left and top position accordingly
+                            */
+                            //remove invalid class after 3 seconds
+                            setTimeout(function () {
+                                $('#' + _s2Id + ' ul').removeClass('_invalid');
+                            }, 3000);
+                            return true;
+                        }, false);
+                    });
+
+                    var elements = document.getElementsByClassName("FormularioContacto");
+                    for (var i = 0; i < elements.length; i++) {
+                        elements[i].oninvalid = function(e) {
+                            e.target.setCustomValidity("");
+                            if (!e.target.validity.valid) {
+                                e.target.setCustomValidity("Ingrese este campo");
+
+                            }
+                        };
+                        elements[i].oninput = function(e) {
+                            e.target.setCustomValidity("");
+                        };
+                    }
+
+                    if ($('#tpdoc_id').val() != '1') {
+                        $('#digito_verificacion').hide();
+                        $('#personas').show();
+                        //console.log ("docuemnt ready  personal");
+                        $('#celular_tercero').prop("required", true);
+                        $('#telf_tercero').removeAttr("required");
+                    } else {
+                       // console.log ("docuemnt ready empresa");
+                        $('#digito_verificacion').show();
+                        $('#razonSocial').show();
+
+                        $('#telf_tercero').prop("required", true);
+                        $('#celular_tercero').removeAttr("required");
+                    }
+
+
+                    if ($('#id_rol_log').val() == "4" || $('#id_rol_log').val() == "2028") {
+
+                        $('#check_proveedor').hide()
+                        $('#check_empleado').hide()
+                        $('#proveedorT').hide()
+                        $('#empleadoT').hide()
+                        $('#estado_cliente').hide()
+                    }
+
+                });
+
+                $('#tercero_estado').change(function () {
+                    if ($('#tercero_estado').prop('checked')) {
+                        $('#inactividad').hide();
+                        $('#razoninactivo').prop('required', false);
+                        $('#razoninactivo').val('');
+                    } else {
+                        $('#razoninactivo').prop('required', true);
+                        $('#razoninactivo').val('');
+                        $('#inactividad').show();
+                    }
+                });
+
+                $('#Contactform').submit(function() {
+                    $.ajax({
+                        url: '/icb_terceros/AgregarContactoTercero',
+                        data: {
+                            idTercero: $('#tercero_id').val(),
+                            nombre: $('#NombreContacto').val(),
+                            direccion: $('#DireccionContacto').val(),
+                            telefono: $('#TelefonoContacto').val(),
+                            cumpleanos: $('#cumpleanosContacto').val(),
+                            cedula: $('#cedula').val(),
+                            tipo_documento: $('#tipo_documento').val(),
+                            correo: $('#correoContacto').val(),
+                            tipo_contacto: $('#tipo_contacto').val(),
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            if (data > 0) {
+                                actualizarTablaContactos();
+                            }
+                            $('#NombreContacto').val('');
+                            $('#cedula').val('');
+                            $('#DireccionContacto').val('');
+                            $('#TelefonoContacto').val('');
+                            $('#cumpleanosContacto').val('');
+                            $('#correoContacto').val('');
+                        }
+                    });
+                });
+
+                function buscarDirecciones() {
+                    $.ajax({
+                        url: '/icb_terceros/buscarDirecciones',
+                        data: {
+                            tercero_id: ('#tercero_id').val(),
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            var option = "<option value=''></option>";
+                            for (var j = 0; j < data.length; j++) {
+                                option += ' <option value="' + data[j].id + '">' + data[j].nombre + '</option>'
+                            }
+                            $('#slcPais').empty();
+                            $('#slcPais').append(option);
+                            $('#slcPais').val('@ViewBag.pais_id')
+                        },
+                        complete: function (data) {
+
+                        }
+                    });
+                }
+
+                function agregarDireccion() {
+                    if ($("#ciu_id").val() == '') {
+                        $("#mns_ciudad").show();
+                    }
+                    else
+                    {
+                        $("#mns_ciudad").hide();
+
+                        i++;
+                        var btnEliminar = '<button class="btn btn-danger btn-circle" id="' + i + '" type="button" onclick="eliminarDireccion(this.id)"><i class="fa fa-remove"></i></button>'
+
+                        $('#lista_direcciones').val(i);
+
+                        $('#tablaDirecciones').find('tbody').append('<tr id="item' + i + '">' +
+                                                 + '<td align="center"></td>'
+                                                 + '<td align="left">Direccion ' + i + '</td>'
+                                                 + '<td align="left"><input type="hidden" name="pais' + i + '" id="pais' + i + '" value="' + $('#slcPais').val() + '"/>' + $('#slcPais option:selected').text() + '</td>'
+                                                 + '<td align="left"><input type="hidden" name="dpto' + i + '" id="dpto' + i + '" value="' + $('#slcDpto').val() + '"/>' + $('#slcDpto option:selected').text() + '</td>'
+                                                 + '<td align="left"><input type="hidden" name="ciudad' + i + '" id="ciudad' + i + '" value="' + $('#ciu_id').val() + '"/>' + $('#ciu_id option:selected').text() + '</td>'
+                                                 + '<td align="left"><input type="hidden" name="sector' + i + '" id="sector' + i + '" value="' + $('#sector_id').val() + '"/>' + $('#sector_id option:selected').text() + '</td>'
+                                                 + '<td align="left"><input type="hidden" name="direccion' + i + '" id="direccion' + i + '" value="'
+                                                 + $('#tp_via').val() + ' '
+                                                 + $('#num_via').val() + ' '
+                                                 //+ $('#sector_via').val() + ' '
+                                                 + ' # '
+                                                 +$('#num_via_generadora').val() + ' '
+                                                 + ' - ' +
+                                                 +$('#num_placa').val() + ' '
+                                                 + $('#sector_via_generadora').val() + ' '
+                                                 + $('#otros').val()
+                                                 + '"/>'
+                                                 + $('#tp_via').val() + ' '
+                                                 + $('#num_via').val() + ' '
+                                                 //+ $('#sector_via').val() + ' '
+                                                 + ' # '
+                                                 +$('#num_via_generadora').val() + ' '
+                                                 + ' - ' +
+                                                 +$('#num_placa').val() + ' '
+                                                 + $('#sector_via_generadora').val() + ' '
+                                                 + $('#otros').val() + '</td>'
+                                                 + '<td align="center">' + btnEliminar + '</td>'
+                                                 + '</tr>');
+                    }
+                }
+
+                function eliminarDireccion(id) {
+                    $("#item" + id + "").remove();
+                }
+
+                function eliminarDireccionDB(id) {
+                    swal({
+                        title: "Esta seguro que desea eliminar?",
+                        text: "El registro se eliminara de la base de datos",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Si, Eliminar!",
+                        cancelButtonText: "No, cancelar!",
+                        closeOnConfirm: false,
+                        closeOnCancel: false
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                $.ajax({
+                                    url: '/icb_terceros/EliminarDireccion',
+                                    data: {
+                                        id: id
+                                    },
+                                    type: "post",
+                                    cache: false,
+                                    success: function () {
+                                        swal("Eliminado!", "El registro se ha eliminado correctamente.", "success");
+                                        location.reload(true);
+                                    }
+                                });
+
+                            } else {
+                                swal("Cancelado", "Se ha cancelado la operación", "error");
+                            }
+                        });
+                }
+
+                $('#tpdoc_id').change(function () {
+                    validarTipoDocumento();
+                });
+
+                function validarTipoDocumento() {
+                    if ($('#tpdoc_id').val() != '1') {
+
+                        $('#DV').hide();
+                        $('#razonSocial').hide();
+                        $('#nombres').show();
+                        $('#personas').show();
+                        $('#razon_social').prop("required", false);
+
+                        //console.log("Validar tipo docuemnto Persona");
+                        $('#celular_tercero').prop("required", true);
+                        $('#telf_tercero').removeAttr("required");
+
+
+                        //$('#telf_tercero').prop("required", false);
+                        //$('#celular_tercero').prop("required", true);
+
+
+                        $('#lprimer_nombre').html('<label class="control-label col-md-4">Primer Nombre:&nbsp;<span class="text-danger">*</span></label>');
+                        $('#lprimer_apellido').html('<label class="control-label col-md-4">Primer Apellido:&nbsp;<span class="text-danger">*</span></label>');
+                        $('#genero_tercero').prop("required", true);
+                        $('#prinom_tercero').prop("required", true);
+                        $('#apellido_tercero').prop("required", true);
+                        $('#fec_nacimiento').prop("required", true);
+                    } else {
+                        $('#DV').show();
+                        $('#razonSocial').show();
+                        $('#nombres').hide();
+                        $('#personas').hide();
+
+                        //console.log("Validar tipo docuemnto Empresa");
+                        //$('#telf_tercero').prop("required", true);
+                        //$('#celular_tercero').prop("required", false);
+
+                        $('#telf_tercero').prop("required", true);
+                        $('#celular_tercero').removeAttr("required");
+
+
+                        $('#razon_social').prop("required", true);
+                        $('#genero_tercero').prop("required", false);
+                        $('#prinom_tercero').prop("required", false);
+                        $('#apellido_tercero').prop("required", false);
+                        $('#fec_nacimiento').prop("required", false);
+                        $('#lprimer_nombre').html('<label class="control-label col-md-4">Primer Nombre:</label>');
+                        $('#lprimer_apellido').html('<label class="control-label col-md-4">Primer Apellido:</label>');
+                    }
+                }
+
+                $('#slcPais').change(function () {
+                    $('#ciud_id').empty();
+                    $('#sector_id').empty();
+                    buscarDepartamento();
+                });
+
+                $('#slcDpto').change(function () {
+                    buscarCiudad()
+                });
+
+                $('#ciu_id').change(function () {
+                    buscarSector();
+                });
+
+                function buscarPais() {
+                    $.ajax({
+                        url: '/icb_terceros/buscarPais',
+                        data: {
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            var option = "<option value=''></option>";
+                            for (var j = 0; j < data.length; j++) {
+                                option += ' <option value="' + data[j].id + '">' + data[j].nombre + '</option>'
+                            }
+                            $('#slcPais').empty();
+                            $('#slcPais').append(option);
+
+                        },
+                        complete: function (data) {
+                            buscarDepartamento();
+                        }
+                    });
+                }
+
+                function buscarDepartamento() {
+                    $.ajax({
+                        url: '/icb_terceros/buscarDepartamentos',
+                        data: {
+                            idPais: $('#slcPais').val(),
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            var option = "<option value=''></option>";
+                            for (var j = 0; j < data.length; j++) {
+                                option += ' <option value="' + data[j].id + '">' + data[j].nombre + '</option>'
+                            }
+                            $('#slcDpto').empty();
+                            $('#slcDpto').append(option).val('').select2();
+                        },
+                        complete: function (data) {
+                            buscarCiudad();
+                        }
+                    });
+                }
+
+                function buscarCiudad() {
+                    $.ajax({
+                        url: '/icb_terceros/buscarCiudades',
+                        data: {
+                            idDepto: $('#slcDpto').val(),
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            var option = "<option value=''></option>";
+                            for (var j = 0; j < data.length; j++) {
+                                option += ' <option value="' + data[j].id + '">' + data[j].nombre + '</option>'
+                            }
+                            $('#ciu_id').empty();
+                            $('#ciu_id').append(option).val('').select2();
+                        },
+                        complete: function (data) {
+
+                        }
+                    });
+                }
+
+                function buscarSector() {
+                    $.ajax({
+                        url: '/icb_terceros/buscarSector',
+                        data: {
+                            idCiudad: $('#ciu_id').val()
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            var option = "<option value=''></option>";
+                            for (var j = 0; j < data.length; j++) {
+                                option += ' <option value="' + data[j].id + '">' + data[j].nombre + '</option>'
+                            }
+
+                            $('#sector_id').empty();
+                            $('#sector_id').append(option).val('').select2();
+                        },
+                        complete: function (data) {
+                            //buscarSector();
+                        }
+                    });
+                }
+
+                function agregarTipoTerceroAjax(tipo) {
+                    $.ajax({
+                        url: '/icb_terceros/AgregarTipoTercero',
+                        data: {
+                            idTercero: $("#tercero_id").val(),
+                            idTipo: tipo,
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                        },
+                        complete: function (data) {
+
+                        }
+                    });
+                }
+
+                function borrarTipoTerceroAjax(tipo) {
+                    $.ajax({
+                        url: '/icb_terceros/BorrarTipoTercero',
+                        data: {
+                            idTercero: $("#tercero_id").val(),
+                            idTipo: tipo,
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                        },
+                        complete: function (data) {
+
+                        }
+                    });
+                }
+
+                $('#radioCliente').change(function () {
+                    if ($('#radioCliente').is(":checked")) {
+                        //console.log("pasa por radioCliente agrega");
+                        agregarTipoTerceroAjax(1);
+                        $('#clienteT').show();
+                    } else {
+                        //console.log("pasa por radioCliente borra");
+                        borrarTipoTerceroAjax(1);
+                        $('#clienteT').hide();
+                    }
+                });
+
+                $('#radioProveedor').change(function(){
+                    if ($('#radioProveedor').is(":checked")) {
+                        //console.log("pasa por radioProveedor agrega");
+                        agregarTipoTerceroAjax(2);
+                        $('#proveedorT').show();
+                    } else {
+                        //console.log("pasa por radioProveedor borra");
+                        borrarTipoTerceroAjax(2);
+                        $('#proveedorT').hide();
+                    }
+                });
+
+                $('#radioEmpleado').change(function () {
+                    if ($('#radioEmpleado').is(":checked")) {
+                        //console.log("pasa por radioEmpleado agrega");
+                        agregarTipoTerceroAjax(3);
+                        $('#empleadoT').show();
+                    }
+                    else {
+                        //console.log("pasa por radioEmpleado borra");
+                        borrarTipoTerceroAjax(3);
+                        $('#empleadoT').hide();
+                    }
+                });
+
+                function valida(id) {
+                    window.location.href = '@Url.Action("update","icb_terceros")?menu='+@ViewBag.id_menu+'&&id=' + id;
+                }
+
+                function buscarAjaxTerceros() {
+                    $.ajax({
+                        url: '/icb_terceros/BuscarTercerosPaginados',
+                        data: {
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            $('#tablaPaginada').find('tbody').empty();
+                            for (var i = 0; i < data.length; i++) {
+                                $('#tablaPaginada').find('tbody').append
+                                    ('<tr>      <td align="right">' + data[i].doc_tercero + '</td><td align="left">'
+                                        + data[i].nombre_completo + '</td><td align="left">'
+                                        + data[i].ciu_nombre + '</td><td align="left">'
+                                        + data[i].tercero_estado + '</td><td align="right">'
+                                        + data[i].fechaCreacion + '</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                                        + '\'' + data[i].tercero_id
+                                        + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                            }
+                        },
+                        complete: function (data) {
+                            $('#tablaPaginada').dataTable({
+                                //"ajax": 'api/datatables.json',
+                                //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                                dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                                buttons: [
+                                    { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                                    //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                                    //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                                ]
+                            });
+                        }
+                    });
+                }
+
+                function eliminarContacto(idContac) {
+                    event.preventDefault();
+                    $.ajax({
+                        url: '/icb_terceros/EliminarContacto',
+                        data: {
+                            idContacto: idContac,
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            if (data) {
+                                actualizarTablaContactos();
+                            }
+                        }
+                    });
+                }
+
+                function actualizarTablaContactos() {
+                    $.ajax({
+                        url: '/icb_terceros/ActualizarContactos',
+                        data: {
+                            idTercero: $('#tercero_id').val(),
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            console.log(data);
+                            $('#tablaContactos').find('tbody').empty();
+                            for (var i = 0; i < data.length; i++) {
+                                $('#tablaContactos').find('tbody').append('<tr><td align="left">' + data[i].con_tercero_nombre + '</td><td align="right">'
+                                    + data[i].cedula + '</td><td align="left">'
+                                    + data[i].con_tercero_direccion + '</td><td align="left">'
+                                    + data[i].con_tercero_telefono + '</td><td align="left">'
+                                    + data[i].correo + '</td><td align="right">'
+                                    + data[i].cumpleanos + '</td><td align="left">'
+                                    + data[i].tipo_contacto + '</td><td width="5%"><button class="btn btn-danger btn-xs" onclick="eliminarContacto(' + data[i].con_tercero_id
+                                    + ')">&nbsp;&nbsp;<i class="fa fa-times" aria-hidden="true"></i>&nbsp;&nbsp;</button></td></tr>');
+                            }
+                        }
+                    });
+                }
+
+                //$('#btnAgregarContacto').click(function () {
+                //    if ($.trim($('#NombreContacto').val()) == '' || $.trim($('#DireccionContacto').val()) == '' || $.trim($('#TelefonoContacto').val()) == ''
+                //        || $.trim($('#tipo_contacto').val()) == '' || $('#cumpleanosContacto').val() == '') {
+                //        $('#alertaNombreContacto').hide();
+                //        $('#alertaDireccionContacto').hide();
+                //        $('#alertaTelefonoContacto').hide();
+                //        if ($.trim($('#NombreContacto').val()) == '') {
+                //            $('#NombreContacto').setCustomValidity('Invalid');
+                //            $('#alertaNombreContacto').show();
+                //        }
+                //        if ($.trim($('#DireccionContacto').val()) == '') {
+                //            $('#alertaDireccionContacto').show();
+                //        }
+                //        if ($.trim($('#TelefonoContacto').val()) == '') {
+                //            $('#alertaTelefonoContacto').show();
+                //        }
+                //        if ($.trim($('#tipo_contacto').val()) == '') {
+                //            $('#alertaTipoContacto').show();
+                //        }
+                //    } else {
+                //        $('#alertaNombreContacto').hide();
+                //        $('#alertaDireccionContacto').hide();
+                //        $('#alertaTelefonoContacto').hide();
+                //    }
+                //});
+
+                function AgregarQuitarFavorito(){
+                    $.ajax({
+                        url: '/Inicio/AgregarQuitarFavorito',
+                        data: {
+                            id_menu: @ViewBag.id_menu,
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            if (data.esFavorito == true) {
+                                $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                            } else {
+                                $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                            }
+                        }
+                    });
+                }
+
+                @*$(function () {
+            var valor = parseInt($('#tipoDoc').val())
+            if (valor === 1) {
+                $('#panel_persona').hide()
+                $('#panel_razonsocial').show()
+            } else {
+                $('#panel_persona').show()
+                $('#panel_razonsocial').hide()
+            }
+        })
+
+        $(function () {
+            $('#config').click(function () {
+                var valor1 = parseInt($('#perfil').val())
+                if (valor1 == 1) {
+                    $('#clienteT').show();
+                } else if (valor1 == 2) {
+                    $('#proveedorT').show();
+                } else if (valor1 == 3) {
+                    $('#empleadoT').show();
+                } else {
+                    location.href = '../../terceros';
+                }
+            })
+        })
+
+        if(@ViewBag.mensaje>0)
+
+        {
+            $('#clienteT').show();
+        }
+        else
+        {
+            $('#clienteT').hide();
+        }
+
+        if(@ViewBag.mensaje1>0)
+
+        {
+            $('#proveedorT').show();
+        }
+        else
+        {
+            $('#proveedorT').hide();
+        }
+
+
+        if(@ViewBag.mensaje2>0)
+
+        {
+            $('#empleadoT').show();
+        }
+        else
+        {
+            $('#empleadoT').hide();
+        }
+
+        ////////  Paginacion con busqueda
+
+        function valida(id) {
+            window.location.href = '@Url.Action("update", "icb_terceros")?id='+id;
+        }
+
+        function buscarAjaxTercerosAux() {
+            $.ajax({
+                url: '/icb_terceros/BuscarTercerosCant',
+                data: {
+                    texto: $("#txBusqueda").val(),
+                    pagina: 1
+                },
+                type: "post",
+                cache: false,
+                success: function (retorno) {
+                   console.log(retorno);
+                    //cantBuscada=retorno;
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.responseJSON.result2.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="center">' + data.responseJSON.result2[i].terceroNombre + '</td><td>'
+                                       + data.responseJSON.result2[i].terceroApelldos +'</td><td>' + data.responseJSON.result2[i].terceroTelefono +'</td><td>'
+                                       + data.responseJSON.result2[i].terceroCelular +'</td><td>'+ data.responseJSON.result2[i].terceroEmail +'</td><td>'
+
+                                       + data.responseJSON.result2[i].terceroDireccion +'</td><td>'
+                                       + data.responseJSON.result2[i].terceroDocumento + '</td><td>' + data.responseJSON.result2[i].terceroEstado
+                                       + '</td><td width="5%"><button class="btn btn-info" onclick="valida(' +'\''+ data.responseJSON.result2[i].terceroId
+                                       + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                    }
+                    $('#page-selection').bootpag({
+                        page: 1,
+                        total: parseInt((data.responseJSON.result + 4) / 5),
+                        maxVisible: 10
+                    });
+                    //$('#div-mensaje-buscar').html('<div class="alert alert-danger" style="text-align: left;"><button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button><p><i style="font-size: 15pt;" class="fa fa-warning"></i>  Se ha producido un error, intente mas tarde</p></div>')
+                }
+            });
+
+
+            $('#page-selection').on("page", function (event, /* page number here */ num) {
+                $.ajax({
+                    url: '/icb_terceros/BuscarTercerosCant',
+                    data: {
+                        texto: $("#txBusqueda").val(),
+                        pagina: num
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                    },
+                    complete: function (data) {
+                        $('#tablaPaginada').find('tbody').empty();
+                        for (var i = 0; i < data.responseJSON.result2.length; i++) {
+                            $('#tablaPaginada').find('tbody').append('<tr><td align="center">' + data.responseJSON.result2[i].terceroNombre + '</td><td>' + data.responseJSON.result2[i].terceroApelldos + '</td><td>'
+                                        + data.responseJSON.result2[i].terceroTelefono +'</td><td>' + data.responseJSON.result2[i].terceroCelular +'</td><td>'+ data.responseJSON.result2[i].terceroEmail +'</td><td>'
+                                        + data.responseJSON.result2[i].terceroDireccion +'</td><td>'
+                                        + data.responseJSON.result2[i].terceroDocumento + '</td><td>' + data.responseJSON.result2[i].terceroEstado + '</td><td width="5%"><button class="btn btn-info" onclick="valida('
+                                        + data.responseJSON.result2[i].terceroId + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                        }
+                    }
+                })
+            });
+
+        }*@
+                //////////////////// Fin del paginacion
+
+            </script>
+
+        }

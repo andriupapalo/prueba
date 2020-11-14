@@ -1,0 +1,343 @@
+﻿
+@{
+    ViewBag.Title = "Browser Proveedores";
+    ViewBag.Icono = "fa fa-users";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    @*<link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />*@
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+
+    <style>
+        .modal-dialog {
+          width: 90%;
+          height: 90%;
+          margin: 0 auto;
+          padding: 0;
+        }
+
+        .modal-content {
+          height: auto;
+          max-height: 90%;
+          border-radius: 0;
+        }
+
+    </style>
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+            <div id="hbreadcrumb" class="pull-right">
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>@ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#buscar"><i class="fa fa-users"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+            </ul>
+
+            @Html.Hidden("menu")
+
+            <div id="buscar" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Proveedor</th>
+                                    <th style="text-align:center">Saldo</th>
+                                    <th style="text-align:center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bd-example-modal-lg" id="modalDetalle" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="text-align:center"><b>Facturas Con Saldo Pendiente</b></h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <input type="hidden" name="nitOculto" id="nitOculto" value="" />
+                    <div class="col-sm-12" id="filtro" style="text-align:center;">
+                        <div class="col-md-2"></div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Tipo Documento:&nbsp;</label>
+                                <div class="col-md-6">
+                                    @Html.DropDownList("tipo_documentoFiltro", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Factura:&nbsp;</label>
+                                <div class="col-md-8">
+                                    @Html.Editor("txtFactura", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite numero factura" } })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="col-sm-12" style="text-align:center;">
+                            <div class="col-sm-10">
+                                <label class="control-label col-md-2">Fechas:&nbsp;</label>
+                                <div class="input-daterange input-group">
+                                    <input class="input-sm form-control" type="datetime" placeholder="Desde" name="desde" id="desde" autocomplete="off">
+                                    <span class="input-group-addon">a</span>
+                                    <input class="input-sm form-control" type="datetime" placeholder="Hasta" name="hasta" id="hasta" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="col-sm-2">
+                                <button class="btn btn-primary" type="button" onclick="ver()"><i class="fa fa-filter"></i></button>
+                            </div>
+
+                            <div class="col-md-10" id="errorFechas" style="display:none">
+                                <div class="alert alert-danger" role="alert">
+                                    La fecha inicial debe ser menor a la fecha final
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaFacturas">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Tipo</th>
+                                <th style="text-align:center">Numero</th>
+                                <th style="text-align:center">Fecha</th>
+                                <th style="text-align:center">Fecha vencimiento</th>
+                                <th style="text-align:center">Días libres</th>
+                                <th style="text-align:center">Valor</th>
+                                <th style="text-align:center">Valor Aplicado</th>
+                                <th style="text-align:center">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="panel-body-btns text-right">
+                        <button class="btn btn-success btn" type="button" id="btnPagar" name="btnPagar"><i class="fa fa-money"></i>&nbsp;&nbsp;&nbsp;Ir a Pagar</button>                       
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/moment/min/moment-with-locales.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $('.js-source-states').select2()
+
+            $('#desde').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: new Date(),
+                locale: 'es'
+            });
+
+            $('#hasta').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: new Date(),
+                locale: 'es'
+            });
+
+            cargarInfo();
+        });
+
+        function cargarInfo() {
+            $.ajax({
+                url: '/tesoreria/cargarInfo',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr>'
+                            +'<td align="left">' + data[i].nombre  +'</td>'
+                            +'<td align="right">' + data[i].suma  +'</td>'
+                            +'<td align="center">'
+                                + '<button class="btn btn-info btn" type="button" onclick="ver(' + data[i].llave + ')">Detalle</button>'
+                            +'</td>'
+                            +'</tr>');
+                    }
+                },
+                complete: function(data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        }
+
+        var nitEnvio = 0;
+        function ver(nit) {
+            if (nit != null) {
+                $('#nitOculto').val(nit)
+                nitEnvio = $('#nitOculto').val()
+            }else {
+                nitEnvio = $('#nitOculto').val()
+            }
+            $("#tablaFacturas").dataTable().fnDestroy();
+            $("#tablaFacturas").find("tbody").empty()
+            $.ajax({
+                url: '/tesoreria/pendientesProveedor',
+                data: {
+                    nit: nitEnvio,
+                    desde: $('#desde').val(),
+                    hasta: $('#hasta').val(),
+                    id_documento: $('#tipo_documentoFiltro').val(),
+                    factura: $('#txtFactura').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    for (var h = 0; h < data.length; h++) {
+                        $('#tablaFacturas').find('tbody').append('<tr align="center">'
+                                 + '<td style="text-align: left">'
+                                    //En este campo oculto estpy mandando el id del tipo de factura a pagar
+                                    + '<input name="tipo' + h + '" id="tipo' + h + '" class="form-control" type="hidden" value="' + data[h].idTipo + '" >'
+                                    //En este campo oculto estpy mandando el id del encabezado de la factura a pagar
+                                    + '<input name="id' + h + '" id="id' + h + '" class="form-control" type="hidden" value="' + data[h].id + '" >'
+                                    + data[h].tipo
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="numero' + h + '" id="numero' + h + '" class="form-control" type="hidden" value="' + data[h].numero + '" >' + data[h].numero
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + data[h].fecha
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + data[h].vencimiento
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + 15
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="valor_total' + h + '" id="valor_total' + h + '" class="form-control" type="hidden" value="' + data[h].valor_total + '">' + addComas(data[h].valor_total)
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="valor_aplicado' + h + '" id="valor_aplicado' + h + '" class="form-control" type="hidden" value="' + data[h].valor_aplicado + '">' + addComas(data[h].valor_aplicado)
+                                 + '</td>'
+                                 + '<td style="text-align: right">'
+                                    + '<input name="saldo' + h + '" id="saldo' + h + '" class="form-control" type="hidden" value="' + data[h].saldo + '">' + addComas(data[h].saldo)
+                                 + '</td>'
+                             + '</tr>');
+                    }
+                },
+                complete: function(data) {
+                    $('#tablaFacturas').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                    $('#modalDetalle').modal('show');
+                    $('#desde').val('')
+                    $('#hasta').val('')
+                    $('#tipo_documentoFiltro').val('').select2()
+                    $('#txtFactura').val('')
+                }
+            })
+        }
+
+        $('#btnPagar').click(function() {
+            window.open('@Url.Action("Create", "generarcheques")?menu?'+@ViewBag.id_menu+'&idNitPagar=' + nitEnvio, '_blank');
+        });
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+    </script>
+
+}

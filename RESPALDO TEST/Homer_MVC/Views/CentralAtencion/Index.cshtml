@@ -1,0 +1,787 @@
+﻿@{
+    ViewBag.Icono = "fa fa-car";
+    ViewBag.Title = "Gestión de Órdenes de Taller";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/daterangepicker-master/daterangepicker.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <style>
+        .modal {
+            overflow-y: auto;
+        }
+
+        @@media (min-width: 992px) {
+            .modal-lg {
+                width: 1024px;
+            }
+        }
+    </style>
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Listado @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px">
+    <div class="hpanel">
+        <!--aqui se cargan los mensajes de exito y error-->
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+        <div id="tabs" class="tab-content">
+            <!--este no tengo idea de que hace-->
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+            <!--Aqui declaro las tabs que necesite-->
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <!--esta primera tab es la activa (la que se muestra de primero) y el href es a que tab hace referencia-->
+                @*Esta la tengo comentada mientras tanto*@
+                @*<li class=""><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>*@
+                <li class="active"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Ordenes Por Liquidar</a></li>
+                <li class=""><a data-toggle="tab" href="#buscar2"><i class="fa fa-search"></i>&nbsp;&nbsp;Solicitudes Procesadas</a></li>
+            </ul>
+
+            <div id="buscar" class="tab-pane active">
+                <div class="panel-body">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="col-sm-2"><label class="control-label">Periodo:&nbsp;</label></div>
+
+                            <div class="col-sm-4">
+                                @Html.Editor("fechaini", new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="col-sm-2"><label class="control-label">Hasta:&nbsp;</label></div>
+
+                            <div class="col-sm-4">
+                                @Html.Editor("fechafin", new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger"></span></label>
+                                <div class="col-md-8">
+                                    @Html.DropDownList("bodega", null, htmlAttributes: new { @class = "multiselect-ui form-control", @placeholder = "Seleccione", @multiple = "multiple" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3" style="padding-top:10px;">
+                            <div class="input-group">
+                                <input type="text" id="txtFiltroGeneral" placeholder="Buscar..." class="form-control"> <span class="input-group-btn">
+                                    <button type="button" class="btn btn-primary" id="botonbuscar">
+                                        <i class="fa fa-search">&nbsp;Buscar</i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-3" style="padding-top:10px;">
+                            <div class="input-group">
+                                 <button type="button" class="btn btn-danger" id="btnExportar"  onclick="ExportarExcel()">
+                                        <i class="fa fa-file-excel-o">&nbsp;Exportar</i>
+                                    </button>
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div id="paneles"></div>
+                    </div>
+
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <div id="x1"></div>
+
+
+                            <table id="tablaDisponibles" class="table table-striped table-bordered table-hover" width="100%">
+                                <thead>
+                                    <tr style="height:30px">
+                                        <th style="text-align:left">Fecha<br /></th>
+                                        <th style="text-align:left">OT<br /></th>
+                                        <th style="text-align:left">Doc. Cliente</th>
+                                        <th style="text-align:left">Nombre Cliente</th>
+                                        <th style="text-align:left">Placa</th>
+                                        <th style="text-align:left">Vin</th>
+                                        <th style="text-align:left">Kilometraje</th>
+                                        <th style="text-align:left">Asesor / Tecnico<br /></th>
+                                        <th style="text-align:left">Bahia<br /></th>
+                                        <th style="text-align:left">Razon ingreso </th>
+                                        <th style="text-align:left">Razon ingreso 2 </th>
+                                        <th style="text-align:left">Estado<br /></th>
+                                        <th style="text-align:left">Tiempo<br /></th>
+                                        <th style="text-align:left">Bodega</th>
+                                        <th style="text-align:left">Liquidacion</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="buscar2" class="tab-pane">
+                <div class="panel-body">
+
+                    <div class="col-md-12">
+                        <nav class="navbar navbar-default navbar-static">
+                            <div class="navbar-header">
+                                <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".js-navbar-collapse">
+                                    <span class="sr-only">Toggle navigation</span>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                </button>
+                                @*<a class="navbar-brand" href="#">Large Dropdown Menu</a>*@
+                            </div>
+
+
+                            <div class="collapse navbar-collapse js-navbar-collapse">
+
+                                <div class="col-md-6" style="padding-top:10px;">
+                                    <div class="input-group">
+                                        <input type="text" id="txtFiltroGeneral2" placeholder="Buscar..." class="form-control"> <span class="input-group-btn">
+                                            <button type="button" class="btn btn-primary" id="botonbuscar2">
+                                                <i class="fa fa-search"></i>
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <ul class="nav navbar-nav">
+                                        <li class="dropdown dropdown-large">
+
+                                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" style="font-size:15px;">Avanzada <b class="caret"></b></a>
+
+                                            <div class="dropdown-menu dropdown-menu-large row" id="menubusquedaxx" style="width:600px">
+                                                <div class="col-sm-12">
+
+                                                    <div id="contenido-filtro">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                            </div>
+                        </nav>
+                    </div>
+
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive" style="width:100%;">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-responsive table-bordered table-hover" id="tablaBusquedas2">
+                                <thead>
+                                    <tr>
+
+                                        <th style="text-align:left">Fecha<br /></th>
+                                        <th style="text-align:left">OT<br /></th>
+                                        <th style="text-align:left">Doc. Cliente</th>
+                                        <th style="text-align:left">Nombre Cliente</th>
+                                        <th style="text-align:left">Placa</th>
+                                        <th style="text-align:left">Vin</th>
+                                        <th style="text-align:left">Kilometraje</th>
+                                        <th style="text-align:left">Asesor / Tecnico<br /></th>
+                                        <th style="text-align:left">Bahia<br /></th>
+                                        <th style="text-align:left">Razon ingreso </th>
+                                        <th style="text-align:left">Razon ingreso 2 </th>
+                                        <th style="text-align:left">Estado<br /></th>
+                                        <th style="text-align:left">Tiempo<br /></th>
+                                        <th style="text-align:left">Bodega</th>
+                                        <th style="text-align:left">Liquidacion</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+           
+        </div>
+
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/daterangepicker-master/daterangepicker.js"></script>
+    <script src="~/Vendor/sweetalert/lib/sweet-alert.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+           
+             $('#fechaini').datetimepicker({
+                    format: 'YYYY/MM/DD'
+                });
+                $('#fechafin').datetimepicker({
+                    format: 'YYYY/MM/DD'
+                });
+            $('#bodega').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400,
+                dropDown: true
+            });
+            $('#bodega2').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400,
+                dropDown: true
+            });
+            $('#bodega3').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400,
+                dropDown: true
+            });
+            setInterval(function () {
+                buscarDisponibles(1);
+                infopaneles2();
+                console.log("refresco");
+            }, 300000);
+            buscarDisponibles(1);
+            BuscarFiltrosPestana2();
+            //infopaneles();
+            infopaneles2();
+
+
+        });
+
+        var cantidadBuscadaFiltros = 0;
+        var filtros = new Array();
+        var valorfiltros = new Array();
+        var cantidadFiltros = 0;
+
+
+        $('#botonbuscar').click(function () {
+            $('#botonbuscar').prop('disabled', true);
+            var asesor = $('#idasesor').val();
+            var tipotrans = 1;
+            buscarDisponibles(1);
+            infopaneles2();
+
+        });
+
+        $('#botonbuscar2').click(function () {
+            $('#botonbuscar2').prop('disabled', true);
+            var asesor = $('#idasesor').val();
+            var tipotrans = 1;
+            buscarDisponibles2();
+        
+        });
+
+
+
+        function valida(id){
+        window.location.href = '@Url.Action("Update", "ordenTaller")?menu='+@ViewBag.id_menu+'&&id=' + id;
+    }
+
+        function buscarDisponibles(condicion) {
+          
+            $("#tablaDisponibles").dataTable().fnDestroy();
+
+
+            var fechaini = "";  
+            var fechafin = ""; $		
+            if (condicion==1) {
+                fechaini = $('#fechaini').val();
+                fechafin = $('#fechafin').val();	
+            }
+					
+            var tipoproceso = $('#tipos_proceso').val();
+            var general = $('#txtFiltroGeneral').val();
+            var liquidacionOT = '@ViewBag.liquidarot';
+              var modificarot = '@ViewBag.modificarot';
+            var table = $('#tablaDisponibles').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "filter": true,
+                "orderMulti": false,
+                "searching": false,
+                dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                buttons: [
+                    //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm', text: 'Exportar a Excel' }
+                ],
+                "ajax": {
+                    "url": "/CentralAtencion/buscarPaginados",
+                    "type": "POST",
+                    "datatype": "json",
+                    "data": {
+                        /* filtros: cadenaFiltro,
+                         valorFiltros: cadenaValoresFiltro,*/
+                        filtroGeneral: $('#txtFiltroGeneral').val(),
+                        bodega: $('#bodega').val(),
+                         fechaini: fechaini,
+                        fechafin: fechafin,
+                        condicion: condicion
+                    }
+                },
+                "columns": [
+                      { "data": "fecha2", "name": "fecha2", "autoWidth": true},
+                      {
+                         "mData": null,
+                         "bSortable": false,
+                         "mRender": function (o) {
+                          
+                           
+                             var btn = "";
+                             if (modificarot == 'Si') {
+                                 btn = '<button class="btn btn-primary btn-xs" onclick="valida('
+                                      + o.id+ ')">&nbsp;&nbsp;' + o.codigoentrada + '&nbsp;&nbsp;</button>';
+                             } else {
+                                 btn = '<button class="btn btn-primary btn-xs"> &nbsp;&nbsp;' +
+                                     o.codigoentrada + '&nbsp;&nbsp;</button>';
+                             }
+                                       
+                             
+                             return btn;
+                         }
+                    },	
+                    { "data": "doc_tercero", "name": "doc_tercero", "autoWidth": true },
+                    { "data": "nombrecliente", "name": "nombrecliente", "autoWidth": true },
+                    { "data": "placa_plan", "name": "placa_plan", "autoWidth": true },
+                    { "data": "vin", "name": "vin", "autoWidth": true },  
+                    { "data": "kilometraje", "name": "kilometraje", "autoWidth": true },   
+                    { "data": "asesor_tecnico", "name": "asesor_tecnico", "autoWidth": true },
+                    { "data": "bahia", "name": "bahia", "autoWidth": true },
+                    { "data": "razon_ingreso", "name": "razon_ingreso", "autoWidth": true },
+                    { "data": "razon_ingreso2", "name": "razon_ingreso2", "autoWidth": true },
+                    {
+                         "mData": null,
+                         "bSortable": false,
+                         "mRender": function (o) {
+                             console.log(o);
+                             var boton = "";
+                             var texto = "";
+                                 boton += '<center><label class="label label" style="background-color:' +o.color_estado + '" >' + o.Descripcion + '</label></center>';
+                             
+                             console.log(boton);
+                             return boton;
+                         }
+                    },    
+                      { "data": "tiempo", "name": "tiempo", "autoWidth": true },
+                    { "data": "bodccs_nombre", "name": "bodccs_nombre", "autoWidth": true },
+                    {
+                    "mData": null,
+                    "bSortable": false,
+                    "mRender": function (o) {
+                        var boton = "";
+
+                        if (liquidacionOT=='Si') {
+                        if(o.fin_operacion==1 && o.terminada==1 && o.facturada==0){
+                            boton = '<button class="btn btn-info btn-xs" onclick="Facturar('
+                                                + '\'' + o.id
+                                                 + '\')">&nbsp;&nbsp;Liquidar&nbsp;&nbsp;</button>';
+                        }
+                        else if (o.terminada==1 && o.facturada==1){
+                            boton = '<button class="btn btn-info btn-xs" onclick="verDetalleFactura('
+                                                + '\'' + o.id
+                                                 + '\')">&nbsp;&nbsp;Liquidar&nbsp;&nbsp;</button>';
+                        }
+                        else{
+                            boton = '<button class="btn btn-info btn-xs" onclick="verDetalle('
+                                                + '\'' + o.id
+                                                 + '\')">&nbsp;&nbsp;Liquidar&nbsp;&nbsp;</button>';
+                        }
+                            }
+                       
+                      
+                        return boton;
+                    }
+                }
+                ]
+            });
+
+            var data = table.buttons.exportData();
+            // Buscar filtros
+            $('#botonbuscar').prop('disabled', false);
+
+
+
+        }
+
+        function buscarDisponibles2() {
+         
+            valorfiltros.length = 0;
+            var liquidacionOT = '@ViewBag.liquidarot';
+            var modificarot = '@ViewBag.modificarot';
+        
+            for(var n =0; n < cantidadFiltros; n++){
+                valorfiltros.push($('#filtro'+n+'').val());
+            }
+
+            var cadenaFiltro = filtros.join();
+            var cadenaValoresFiltro = valorfiltros.join('~');
+
+            $('#PestanaVerDetalle').hide();
+            if ( $.fn.DataTable.isDataTable( '#tablaBusquedas2' ) ) {
+                $('#tablaBusquedas2').dataTable().fnDestroy();
+            }
+
+            $("#tablaBusquedas2").dataTable().fnDestroy();            
+
+            var table = $('#tablaBusquedas2').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "filter": true,
+                "orderMulti": false,
+                "searching": false,
+                dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                buttons: [
+                    //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm', text: 'Exportar a Excel' }
+                ],
+                "ajax": {
+                    "url": "/CentralAtencion/buscarPaginados2",
+                    "type": "POST",
+                    "datatype": "json",
+                    "data": {
+                        /* filtros: cadenaFiltro,
+                         valorFiltros: cadenaValoresFiltro,*/
+                        filtros: cadenaFiltro,
+                        valorFiltros: cadenaValoresFiltro,
+                        filtroGeneral: $('#txtFiltroGeneral2').val(),      
+                        menu: @ViewBag.id_menu,
+                        fechaini: fechaini,
+                        fechafin: fechafin
+
+                    }
+                },
+                             "columns": [
+                      { "data": "fecha2", "name": "fecha2", "autoWidth": true},
+                      {
+                         "mData": null,
+                         "bSortable": false,
+                         "mRender": function (o) {
+                          
+                           
+                             var btn = "";
+                             if (modificarot == 'Si') {
+                                 btn = '<button class="btn btn-primary btn-xs" onclick="valida('
+                                      + o.id+ ')">&nbsp;&nbsp;' + o.codigoentrada + '&nbsp;&nbsp;</button>';
+                             } else {
+                                 btn = '<button class="btn btn-primary btn-xs"> &nbsp;&nbsp;' +
+                                     o.codigoentrada + '&nbsp;&nbsp;</button>';
+                             }
+                                       
+                             
+                             return btn;
+                         }
+                    },	
+                    { "data": "doc_tercero", "name": "doc_tercero", "autoWidth": true },
+                    { "data": "nombrecliente", "name": "nombrecliente", "autoWidth": true },
+                    { "data": "placa_plan", "name": "placa_plan", "autoWidth": true },
+                    { "data": "vin", "name": "vin", "autoWidth": true },  
+                    { "data": "kilometraje", "name": "kilometraje", "autoWidth": true },   
+                    { "data": "asesor_tecnico", "name": "asesor_tecnico", "autoWidth": true },
+                    { "data": "bahia", "name": "bahia", "autoWidth": true },
+                    { "data": "razon_ingreso", "name": "razon_ingreso", "autoWidth": true },
+                    { "data": "razon_ingreso2", "name": "razon_ingreso2", "autoWidth": true },
+                    {
+                         "mData": null,
+                         "bSortable": false,
+                         "mRender": function (o) {
+                            
+                             var boton = "";
+                             var texto = "";
+                                 boton += '<center><label class="label label" style="background-color:' +o.color_estado + '" >' + o.Descripcion + '</label></center>';
+                             
+                            
+                             return boton;
+                         }
+                     },                         
+                    { "data": "bodccs_nombre", "name": "bodccs_nombre", "autoWidth": true },
+                    {
+                    "mData": null,
+                    "bSortable": false,
+                    "mRender": function (o) {
+                        var boton = "";
+
+                        if (liquidacionOT=='Si') {
+                        if(o.fin_operacion==1 && o.terminada==1 && o.facturada==0){
+                            boton = '<button class="btn btn-info btn-xs" onclick="Facturar('
+                                                + '\'' + o.id
+                                                 + '\')">&nbsp;&nbsp;Liquidar&nbsp;&nbsp;</button>';
+                        }
+                        else if (o.terminada==1 && o.facturada==1){
+                            boton = '<button class="btn btn-info btn-xs" onclick="verDetalleFactura('
+                                                + '\'' + o.id
+                                                 + '\')">&nbsp;&nbsp;Liquidar&nbsp;&nbsp;</button>';
+                        }
+                        else{
+                            boton = '<button class="btn btn-info btn-xs" onclick="verDetalle('
+                                                + '\'' + o.id
+                                                 + '\')">&nbsp;&nbsp;Liquidar&nbsp;&nbsp;</button>';
+                        }
+                            }
+                       
+                      
+                        return boton;
+                    }
+                }
+                ]
+            });
+            var data = table.buttons.exportData();
+            if(cantidadBuscadaFiltros == 0){
+                //BuscarFiltrosPestana2();
+                cantidadBuscadaFiltros++;
+            }
+            $('#botonbuscar2').prop('disabled', false);
+
+        }
+
+
+        
+        function infopaneles2() {                        
+              var   fechaini = $('#fechaini').val();
+              var  fechafin = $('#fechafin').val();	
+          
+            $.ajax({
+                url: "/CentralAtencion/infopanelesfiltro",
+                type: "POST",
+                data: {
+                    bodega: $('#bodega').val(),
+                    fechaini: fechaini,
+                    fechafin: fechafin,
+                    filtroGeneral: $('#txtFiltroGeneral').val()
+                },
+                success: function (data) {
+                    $("#paneles").html(data);
+
+
+                }
+
+            });
+        }
+
+        function infopaneles() {
+            $.ajax({
+                url: "/CentralAtencion/infopaneles",
+                type: "POST",
+                data: {},
+                success: function (data) {
+                    $("#paneles").html(data);
+
+
+                }               
+
+            });
+
+
+
+
+        }
+
+        function verDetalle(idorden) {
+            window.location.href = '@Url.Action("VerOrdenTrabajo", "CentralAtencion")?menu='+@ViewBag.id_menu+'&&id=' +idorden;
+        }
+
+        function Facturar(idorden) {
+
+
+            window.location.href = '@Url.Action("LiquidacionOT", "CentralAtencion")?menu='+@ViewBag.id_menu+'&&id=' +idorden;
+        }
+
+        function verDetalleFactura(idorden) {
+
+
+            window.location.href = '@Url.Action("LiquidacionOT", "CentralAtencion")?menu='+@ViewBag.id_menu+'&&id=' +idorden;
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function BuscarFiltrosPestana2(){
+            var contenido = '';
+            $.ajax({
+                url: '/crmMenu/BuscarFiltrosPestanaDos',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    for(var i = 0; i < data.buscarFiltros.length; i++){
+                        if(data.buscarFiltros[i].menu_busqueda_tipo_campo == 'text'){
+                            contenido += '<li><div class="col-md-12">' +
+                                            '<div class="form-group">' +
+                                                '<div class="col-md-12"><label class="filter-col" style="margin-right:0;" for="pref-search">' + data.buscarFiltros[i].menu_busqueda_nombre + '</label></div>' +
+                                                '<div class="col-md-12"><input autocomplete="off" placeholder="Digite '+data.buscarFiltros[i].menu_busqueda_nombre+'" type="text" class="form-control" id="filtro' + cantidadFiltros + '"></div>' +
+                                            '</div>' +
+                                        '</div></li>';
+                            filtros.push(data.buscarFiltros[i].menu_busqueda_campo);
+                            cantidadFiltros++;
+                        }
+                        if(data.buscarFiltros[i].menu_busqueda_tipo_campo == 'date'){
+                            contenido += '<li><div class="col-md-12">' +
+                                            '<div class="form-group">' +
+                                                '<div class="col-md-12"><label class="filter-col" style="margin-right:0;" for="pref-search">' + data.buscarFiltros[i].menu_busqueda_nombre + '</label></div>' +
+                                                '<div class="col-md-12"><input autocomplete="off" placeholder="Digite '+data.buscarFiltros[i].menu_busqueda_nombre+'" type="text" class="form-control date-filter" id="filtro' + cantidadFiltros + '"></div>' +
+                                            '</div>' +
+                                        '</div></li>';
+                            filtros.push(data.buscarFiltros[i].menu_busqueda_campo);
+                            cantidadFiltros++;
+                        }
+                    }
+
+                    for(var i = 0; i < data.listas.length; i++){
+                        var opcionesDeSelect = '';
+                        opcionesDeSelect += '<option value="">Todos</option>';
+                        for(var j = 0; j < data.listas[i].items.length; j++){
+                            opcionesDeSelect += '<option value="' + data.listas[i].items[j].Value + '">"'+data.listas[i].items[j].Text+'"</option>';
+                        }
+                        var multiple="";
+                        var id="";
+                        if(data.listas[i].multiple==1){
+                            multiple="multiple";
+                        }
+
+                        contenido += '<li><div class="col-md-12">' +
+                                           '<div class="form-group">' +
+                                               '<div class="col-md-12"><label class="filter-col" style="margin-right:0;" for="pref-search">' + data.listas[i].NombreAMostrar + '</label></div>' +
+                                               '<div class="col-md-12"><select placeholder="Seleccione..." class="form-control autoSelect" id="filtro' + cantidadFiltros + '" '+multiple+'>"'+opcionesDeSelect+'"</select></div>' +
+                                           '</div>' +
+                                       '</div></li>';
+                        filtros.push(data.listas[i].NombreCampo);
+                        cantidadFiltros++;
+                    }
+
+                    contenido += '<li><div class="col-md-12">' +
+                                            '<div class="form-group">' +
+                                              '<div class="col-md-8 col-md-offset-4"><button type="button" class="btn btn-primary" onclick="buscarDisponibles2();" id="" name="">Buscar&nbsp;<i class="fa fa-search"></i></button></div>' +
+                                            '</div>' +
+                                        '</div></li>';
+                    $('#contenido-filtro').html(contenido);
+                },
+                complete: function(data){
+                    $('.date-filter').daterangepicker({
+                        locale: {
+                            format: 'YYYY/MM/DD',
+                            "customRangeLabel":"Otro rango",
+                        },
+                        autoApply: true,
+                        drops:'up',
+                        showDropdowns: true,
+                        ranges: {
+                            'Hoy': [moment(), moment()],
+                            'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                            'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+                            'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+                            'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+                            'Mes Pasado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                        }
+                    });
+                    //$('.date-filter').datetimepicker({
+
+                    //        format: 'YYYY/MM/DD'
+
+
+                    //});
+                    $('.autoSelect').select2();
+                    // $('.autoSelect').val(null).trigger('change');
+
+                }
+            })
+        }
+
+
+        function ExportarExcel() {
+            debugger;
+            var cadena = $('#bodega').val();
+            var cadena2 = "";
+            if (cadena != null) {
+                cadena2 = cadena.join('~');
+            }
+            var fechaini = $('#fechaini').val();
+            var fechafin = $('#fechafin').val();
+            window.open('@Url.Action("DescargarExcel", "CentralAtencion")?filtroGeneral=' + $('#txtFiltroGeneral').val() + "&bodegax=" + cadena2 + "&fechaini=" + fechaini + "&fechafin=" + fechafin, '_blank');
+        }
+    </script>
+
+}
+
+
+
+
+
+
+
+
+
+

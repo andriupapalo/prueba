@@ -1,0 +1,1054 @@
+﻿@*@model Homer_MVC.IcebergModel.crm_encuesta_respuestas*@
+
+@{
+    ViewBag.Title = "Calculo de Tramites";
+    ViewBag.Icono = "fa fa-calculator";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Usados como nuevos</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear">Calcular</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @*@using (Html.BeginForm())
+                        {*@
+
+                    <div class="panel-body-btns text-right">
+                        <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                    </div>
+
+                    @*@Html.AntiForgeryToken()*@
+                    <div class="form-horizontal">
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Vehículo:</label>
+                                <div class="col-md-6">
+                                    @Html.DropDownList("vehiculo", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Fecha Tramite:</label>
+                                <div class="col-md-6">
+                                    <input type="date" value="" class="form-control" name="fecha_tramite" id="fecha_tramite" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Modelo:</label>
+                                <div class="col-md-6">
+                                    <input type="number" value="" class="form-control" name="modelo" id="modelo" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Placa:</label>
+                                <div class="col-md-6">
+                                    <input type="text" value="" class="form-control" name="placa" id="placa" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Ciudad Placa:</label>
+                                <div class="col-md-6">
+                                    @Html.DropDownList("ciudadp", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Ciudad Tramite:</label>
+                                <div class="col-md-6">
+                                    @Html.DropDownList("ciudadt", null, "", htmlAttributes: new { @class = "form-control buscar js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Avaluo:</label>
+                                <div class="col-md-6">
+                                    <input type="number" value="" class="form-control" name="avaluo" id="avaluo" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Fecha Factura:</label>
+                                <div class="col-md-6">
+                                    <input type="date" value="" class="form-control" name="fecha_factura" id="fecha_factura" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">SOAT:</label>
+                                <div class="col-md-6">
+                                    <select class="form-control soat js-source-states" name="soat" id="soat">
+                                        <option value="si">Si</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Fecha Inicial Tecnomecanica:</label>
+                                <div class="col-md-6">
+                                    <input type="date" value="" class="form-control tecno" name="fecha_inicial_tecnomecanica" id="fecha_inicial_tecnomecanica" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Fecha Fin SOAT:</label>
+                                <div class="col-md-6">
+                                    <input type="date" value="" class="form-control soat" name="fecha_fin_soat" id="fecha_fin_soat" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Fecha Final Tecnomecanica:</label>
+                                <div class="col-md-6">
+                                    <input type="date" value="" class="form-control tecno" name="fecha_final_tecnomecanica" id="fecha_final_tecnomecanica" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Valor SOAT:</label>
+                                <div class="col-md-6">
+                                    <input type="number" value="" class="form-control soat" name="valor_soat" id="valor_soat" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Valor Tecnomecanica:</label>
+                                <div class="col-md-6">
+                                    <input type="number" value="" class="form-control tecno" name="valor_tecnomecanica" id="valor_tecnomecanica" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Antecedentes:</label>
+                                <div class="col-md-6">
+                                    <select class="form-control js-source-states" name="antecedentes" id="antecedentes">
+                                        <option value="si">Si</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Prenda:</label>
+                                <div class="col-md-6">
+                                    <select class="form-control buscar js-source-states" name="prenda" id="prenda">
+                                        <option value="si">Si</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">SIJIN:</label>
+                                <div class="col-md-6">
+                                    <select class="form-control buscar js-source-states" name="sijin" id="sijin">
+                                        <option value="si">Si</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Recibo Impuestos:</label>
+                                <div class="col-md-6">
+                                    <select class="form-control js-source-states" name="recibo_impuestos" id="recibo_impuestos">
+                                        <option value="si">Si</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Asesor:</label>
+                                <div class="col-md-6">
+                                    @Html.DropDownList("asesor", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Tipo Análisis:</label>
+                                <div class="col-md-6">
+                                    <select class="form-control js-source-states" name="tipo_analisis" id="tipo_analisis" placeholder="Seleccione">
+                                        <option value="comprador">Comprador</option>
+                                        <option value="vendedor">Vendedor</option>
+                                        <option value="doble">Doble Traspaso</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 text-center">
+                            <label class="label label-info" style="font-size: 15px; text-align: center"></label>
+                        </div>
+                        <div class="col-sm-2 text-center vendedor">
+                            <label class="label label-info" style="font-size: 15px; text-align: center">Vendedor</label>
+                        </div>
+                        <div class="col-sm-2 text-center comprador">
+                            <label class="label label-info" style="font-size: 15px; text-align: center">Comprador</label>
+                        </div>
+                        <div class="col-sm-2 text-center">
+                            <label class="label label-info" style="font-size: 15px; text-align: center"></label><br /><br />
+                        </div>
+
+                        <div class="col-sm-6">
+                            <table class="table table-bordered table-hover" id="tablaPaginada">
+                                <tbody>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center">1</th>
+                                        <td>SEGURO OBLIGATORIO ORIGINAL</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center">2</th>
+                                        <td>REVISION TECNICO MECANICA</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center">3</th>
+                                        <td>REVISION SIJIN</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center">4</th>
+                                        <td>REV.ANTEC.-TRADICION-PAZ Y SALVOS</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center">5</th>
+                                        <td>CERTIFICADO DE TRADICION</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center">6</th>
+                                        <td>INSCRIPCION/LEVANTAMIENTO DE PRENDA</td>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center">7</th>
+                                        <td>IMPUESTOS AÑO ACTUAL</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center">8</th>
+                                        <td>TRASLADO DE CUENTA</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center">9</th>
+                                        <td>RADICACION DE PLACAS</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center">10</th>
+                                        <td>RETEFUENTE</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center" role="tab" id="headingOne">11</th>
+                                        <td>
+                                            <a data-toggle="collapse" data-parent="#accordion" href=".11" aria-expanded="true" aria-controls="collapseOne">
+                                                SERVICIOS DE TRANSITO, TRASPASO <i class="fa fa-caret-down"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>TRASPASO</td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>TARJETA</td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>CONSIG. MINIST. TTE</td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>SISTEMATIZACION</td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>ESTAMPILLAS</td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>CERTIFICADO DE TRANSITO</td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>SEMAFORIZACION</td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>DERECHOS DE TRANSITO</td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>RUNT</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center">12</th>
+                                        <td>SERVICIO DE TRAMITADOR</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center" role="tab" id="headingTwo">13</th>
+                                        <td>
+                                            <a data-toggle="collapse" data-parent="#accordion" href=".13" aria-expanded="true" aria-controls="collapseOne">
+                                                OTROS <i class="fa fa-caret-down"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>IMPUESTOS AÑOS ANTERIORES</td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>COMPARENDOS</td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <th style="text-align: center"></th>
+                                        <td>ADICIONAL TRAMITADOR</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <th style="text-align: center" colspan="2">VALOR APROXIMADO DE GASTOS</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="col-sm-2 vendedor">
+                            <table class="table table-bordered table-hover">
+                                <tbody>
+                                    <tr>
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_soat" id="vr_soat" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_tecnomecanica" id="vr_tecnomecanica" value="" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_sijin" id="vr_sijin" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_pazysalvo" id="vr_pazysalvo" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_certradicion" id="vr_certradicion" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_prenda" id="vr_prenda" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_impuestos" id="vr_impuestos" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td>-</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td>-</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_retefuente" id="vr_retefuente" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_servtraspaso" id="vr_servtraspaso" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_traspaso" id="vr_traspaso" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_tarjeta" id="vr_tarjeta" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_consgMin" id="vr_consgMin" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_sistematizacion" id="vr_sistematizacion" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_estampillas" id="vr_estampillas" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_certransito" id="vr_certransito" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_semaforizacion" id="vr_semaforizacion" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_dertransito" id="vr_dertransito" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_runt" id="vr_runt" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_servtramitador" id="vr_servtramitador" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_otros" id="vr_otros" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_impuestos_ant" id="vr_impuestos_ant" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_comparendos" id="vr_comparendos" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_adicional_tramitador" id="vr_adicional_tramitador" value="" /></td>
+                                    </tr>
+                                    <tr>
+                                        <th style="text-align: right" id="valor_total_vendedor">&nbsp;</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="col-sm-2 comprador">
+                            <table class="table table-bordered table-hover">
+                                <tbody>
+                                    <tr>
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_soat_c" id="vr_soat_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_tecnomecanica_c" id="vr_tecnomecanica_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td>-</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td>-</td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_certradicion_c" id="vr_certradicion_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_prenda_c" id="vr_prenda_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_impuestos_c" id="vr_impuestos_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_trasladocuenta_c" id="vr_trasladocuenta_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_placas_c" id="vr_placas_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_retefuente_c" id="vr_retefuente_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_servtraspaso_c" id="vr_servtraspaso_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_traspaso_c" id="vr_traspaso_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_tarjeta_c" id="vr_tarjeta_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_consgMin_c" id="vr_consgMin_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_sistematizacion_c" id="vr_sistematizacion_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_estampillas_c" id="vr_estampillas_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_certransito_c" id="vr_certransito_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_semaforizacion_c" id="vr_semaforizacion_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_dertransito_c" id="vr_dertransito_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_runt_c" id="vr_runt_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_servtramitador_c" id="vr_servtramitador_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_otros_c" id="vr_otros_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_impuestos_ant_c" id="vr_impuestos_ant_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_comparendos_c" id="vr_comparendos_c" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_adicional_tramitador_c" id="vr_adicional_tramitador_c" value="" /></td>
+                                    </tr>
+                                    <tr>
+                                        <th style="text-align: right" id="valor_total_comprador">&nbsp;</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="col-sm-2 doble">
+                            <table class="table table-bordered table-hover">
+                                <tbody>
+                                    <tr>
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_soat_d" id="vr_soat_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_tecnomecanica_d" id="vr_tecnomecanica_d" value="" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_sijin_d" id="vr_sijin_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_pazysalvo_d" id="vr_pazysalvo_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_certradicion_d" id="vr_certradicion_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_prenda_d" id="vr_prenda_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_impuestos_d" id="vr_impuestos_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_trasladocuenta_d" id="vr_trasladocuenta_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_placas_d" id="vr_placas_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_retefuente_d" id="vr_retefuente_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_servtraspaso_d" id="vr_servtraspaso_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_traspaso_d" id="vr_traspaso_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_tarjeta_d" id="vr_tarjeta_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_consgMin_d" id="vr_consgMin_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_sistematizacion_d" id="vr_sistematizacion_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_estampillas_d" id="vr_estampillas_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_certransito_d" id="vr_certransito_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_semaforizacion_d" id="vr_semaforizacion_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_dertransito_d" id="vr_dertransito_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 11" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_runt_d" id="vr_runt_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_servtramitador_d" id="vr_servtramitador_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_otros_d" id="vr_otros_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_impuestos_ant_d" id="vr_impuestos_ant_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:1px"><input style="text-align: right" class="form-control sumaDoble" name="vr_comparendos_d" id="vr_comparendos_d" value="" /></td>
+                                    </tr>
+                                    <tr style="text-align: center" class="panel-collapse collapse 13" role="tabpanel" aria-labelledby="headingOne">
+                                        <td style="padding:2px"><input style="text-align: right" class="form-control sumaDoble" name="vr_adicional_tramitador_d" id="vr_adicional_tramitador_d" value="" /></td>
+                                    </tr>
+                                    <tr>
+                                        <th style="text-align: right" id="valor_total_domprador">&nbsp;</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                    @* } *@
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('.select').select2();
+
+            //$('#tablaPaginada').dataTable({
+            //    //"ajax": 'api/datatables.json',
+            //    dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+            //    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+            //    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            //    buttons: [
+            //        { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+            //        { extend: 'pdf', className: 'btn-sm', text: 'PDF' },
+            //        //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+            //    ]
+            //});
+        });
+
+        $('.js-source-states').select2();
+
+        $('#fecha_tramite').change(function () {
+            $('#fecha_factura').val($('#fecha_tramite').val())
+        });
+
+        $('.soat').change(function () {
+            calcularVrSoat();
+        });
+
+        $('.tecno').change(function () {
+            carcularVrTecnomecanica();
+        });
+
+        $('.sumaDoble').change(function () {
+            sumarValores()
+        });
+
+        $('.buscar').change(function () {
+            buscarValores()
+        });
+
+        $('#avaluo').change(function () {
+            var avaluo = (parseFloat($('#avaluo').val()) * 1) / 100
+            $('#vr_retefuente').val(avaluo)
+        });
+
+        $('#vr_retefuente').change(function () {
+            $('#vr_retefuente_d').val(parseFloat($('#vr_retefuente').val()) + parseFloat($('#vr_retefuente_c').val()))
+        });
+
+        $('#vr_retefuente_c').change(function () {
+            $('#vr_retefuente_d').val(parseFloat($('#vr_retefuente').val()) + parseFloat($('#vr_retefuente_c').val()))
+        });
+
+        $('#tipo_analisis').change(function () {
+            if ($('#tipo_analisis').val() == "comprador") {
+                $('.vendedor').hide()
+                $('.comprador').show()
+                $('.doble').hide()
+            }
+            if ($('#tipo_analisis').val() == "vendedor") {
+                $('.vendedor').show()
+                $('.comprador').hide()
+                $('.doble').hide()
+            }
+            if ($('#tipo_analisis').val() == "doble") {
+                $('.vendedor').show();
+                $('.comprador').show();
+                $('.doble').show();
+            }
+        });
+
+        function calcularVrSoat() {
+
+            if ($('#soat').val() == "si")
+            {
+                var fecha1 = moment($('#fecha_factura').val());
+                var fecha2 = moment($('#fecha_fin_soat').val());
+                var soat = $('#valor_soat').val() / 12
+
+                //vendedor
+                var cantDias2 = (fecha1.diff(fecha2, 'days')) / 30
+                var total = Math.round((soat * cantDias2) / 1000) * 1000
+                $('#vr_soat').val(addComas(total))
+
+                //comprador
+                var cantDias = (fecha2.diff(fecha1, 'days')) / 30
+                var total2 = Math.round((soat * cantDias) / 1000) * 1000
+                $('#vr_soat_c').val(addComas(total2))
+
+                //doble
+                $('#vr_soat_d').val(total + total2)
+            }
+            else
+            {
+                $('#vr_soat').val(0);
+                $('#vr_soat_c').val(0);
+            }
+            sumarValores();
+        }
+
+        function carcularVrTecnomecanica() {
+
+            var fechaInicial = moment($('#fecha_inicial_tecnomecanica').val());
+            var fechaFin = moment($('#fecha_final_tecnomecanica').val());
+            var fechaFactura = moment($('#fecha_factura').val());
+
+            //comprador
+            var cantDias = (fechaFin.diff(fechaFactura, 'days')) / 30;
+            var cantDias2 = (fechaFin.diff(fechaInicial, 'days')) / 30;
+            var valor = parseFloat($('#valor_tecnomecanica').val() / cantDias2);
+            if (fechaFin < fechaFactura)
+            {
+                var total = 0;
+            }
+            else
+            {
+                var total = Math.round((valor * cantDias) / 1000) * 1000;
+            }
+            $('#vr_tecnomecanica_c').val(addComas(total));
+
+            //vendedor
+            var cantDias_c = (fechaFactura.diff(fechaFin, 'days')) / 30;
+            var cantDias2_c = (fechaFin.diff(fechaInicial, 'days')) / 30;
+            var valor_c = parseFloat($('#valor_tecnomecanica').val() / cantDias2_c);
+            var total_c = Math.round((valor_c * cantDias_c) / 1000) * 1000;
+            $('#vr_tecnomecanica').val(addComas(total_c))
+
+            //doble
+            $('#vr_tecnomecanica_d').val(total_c + total)
+
+            sumarValores();
+        }
+
+        function buscarValores() {
+
+            $.ajax({
+                url: '/calculoTramites/BuscarValores',
+                data: {
+                    ciudad: parseInt($('#ciudadt').val())
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+
+                    $('#vr_sijin').val('');
+                    $('#vr_prenda_c').val('');
+                    $('#vr_traspaso').val('');
+                    $('#vr_traspaso_c').val('');
+                    $('#vr_tarjeta').val('');
+                    $('#vr_tarjeta_c').val('');
+                    $('#vr_consgMin').val('');
+                    $('#vr_consgMin_c').val('');
+                    $('#vr_sistematizacion').val('');
+                    $('#vr_sistematizacion_c').val('');
+                    $('#vr_estampillas').val('');
+                    $('#vr_estampillas_c').val('');
+                    $('#vr_certransito').val('');
+                    $('#vr_certransito_c').val('');
+                    $('#vr_semaforizacion').val('');
+                    $('#vr_semaforizacion_c').val('');
+                    $('#vr_runt').val('');
+                    $('#vr_runt_c').val('');
+                    $('#vr_servtramitador').val('');
+                    $('#vr_servtramitador_c').val('');
+                    sumarValores();
+
+                    if ($('#sijin').val() == "si") {
+                        $('#vr_sijin').val(data[0].sijin);
+                        $('#vr_sijin_d').val(data[0].sijin);
+                    }
+                    else {
+                        $('#vr_sijin').val(0);
+                    }
+
+                    if ($('#prenda').val() == "si") {
+                        $('#vr_prenda_c').val(data[0].prenda);
+                        $('#vr_prenda_d').val(data[0].prenda + parseFloat($('#vr_prenda').val()));
+                    }
+                    else {
+                        $('#vr_prenda_c').val(0);
+                    }
+
+                    $('#vr_traspaso').val(data[0].traspaso);
+                    $('#vr_traspaso_c').val(data[0].traspaso);
+                    $('#vr_traspaso_d').val(data[0].traspaso * 2);
+
+                    if ($('#tipo_analisis').val() == "doble") {
+                        $('#vr_tarjeta').val(0);
+                    }
+                    else {
+                        $('#vr_tarjeta').val(data[0].tarjeta);
+                    }
+                    $('#vr_tarjeta_c').val(data[0].tarjeta);
+                    $('#vr_tarjeta_d').val($('#vr_tarjeta_c').val() + $('#vr_tarjeta').val());
+
+                    $('#vr_consgMin').val(data[0].consig_minist_tte);
+                    $('#vr_consgMin_c').val(data[0].consig_minist_tte);
+                    $('#vr_consgMin_d').val(data[0].consig_minist_tte * 2);
+
+                    $('#vr_sistematizacion').val(data[0].sistematizacion);
+                    $('#vr_sistematizacion_c').val(data[0].sistematizacion);
+                    $('#vr_sistematizacion').val(data[0].sistematizacion * 2);
+
+                    $('#vr_estampillas').val(data[0].estampillas);
+                    $('#vr_estampillas_c').val(data[0].estampillas);
+                    $('#vr_estampillas_d').val(data[0].estampillas * 2);
+
+                    $('#vr_certransito').val(data[0].cert_transito);
+                    $('#vr_certransito_c').val(data[0].cert_transito);
+                    $('#vr_certransito_d').val(data[0].cert_transito * 2);
+
+                    $('#vr_semaforizacion').val(data[0].semaforizacion);
+                    $('#vr_semaforizacion_c').val(data[0].semaforizacion);
+                    $('#vr_semaforizacion_d').val(data[0].semaforizacion * 2);
+
+                    $('#vr_dertransito').val('');
+                    $('#vr_dertransito_c').val('');
+                    $('#vr_dertransito').val(data[0].derechos_transito);
+                    $('#vr_dertransito_c').val(data[0].derechos_transito);
+                    $('#vr_dertransito_d').val(data[0].derechos_transito * 2);
+
+                    $('#vr_runt').val(data[0].runt);
+                    $('#vr_runt_c').val(data[0].runt);
+                    $('#vr_runt_d').val(data[0].runt * 2);
+
+                    $('#vr_servtramitador').val(data[0].serv_tramitador);
+                    $('#vr_servtramitador_c').val(data[0].serv_tramitador);
+                    $('#vr_servtramitador_d').val(data[0].serv_tramitador * 2);
+
+                    sumarValores();
+                },
+                complete: function (data) {
+
+                }
+            });
+        }
+
+        function sumarValores() {
+
+            $('.sumaDoble').each(function () {
+                if ($(this).val() == '') {
+                    $(this).val(0)
+                }
+            });
+
+            var servtraspaso = parseFloat($('#vr_traspaso').val())
+              + parseFloat($('#vr_tarjeta').val())
+              + parseFloat($('#vr_consgMin').val())
+              + parseFloat($('#vr_sistematizacion').val())
+              + parseFloat($('#vr_estampillas').val())
+              + parseFloat($('#vr_certransito').val())
+              + parseFloat($('#vr_semaforizacion').val())
+              + parseFloat($('#vr_dertransito').val())
+              + parseFloat($('#vr_runt').val())
+            $('#vr_servtraspaso').val(servtraspaso)
+
+            var servtraspaso_c = parseFloat($('#vr_traspaso_c').val())
+               + parseFloat($('#vr_tarjeta_c').val())
+               + parseFloat($('#vr_consgMin_c').val())
+               + parseFloat($('#vr_sistematizacion_c').val())
+               + parseFloat($('#vr_estampillas_c').val())
+               + parseFloat($('#vr_certransito_c').val())
+               + parseFloat($('#vr_semaforizacion_c').val())
+               + parseFloat($('#vr_dertransito_c').val())
+               + parseFloat($('#vr_runt_c').val())
+            $('#vr_servtraspaso_c').val(servtraspaso_c);
+
+            var sumaOtros_c = parseFloat($('#vr_impuestos_ant_c').val())
+             + parseFloat($('#vr_comparendos_c').val())
+             + parseFloat($('#vr_adicional_tramitador_c').val())
+            $('#vr_otros_c').val(sumaOtros_c)
+
+            var sumaOtros = parseFloat($('#vr_impuestos_ant').val())
+               + parseFloat($('#vr_comparendos').val())
+               + parseFloat($('#vr_adicional_tramitador').val())
+            $('#vr_otros').val(sumaOtros)
+
+            var total_comprador = parseFloat($('#vr_soat_c').val())
+               + parseFloat($('#vr_tecnomecanica_c').val())
+               + parseFloat($('#vr_certradicion_c').val())
+               + parseFloat($('#vr_prenda_c').val())
+               + parseFloat($('#vr_impuestos_c').val())
+               + parseFloat($('#vr_trasladocuenta_c').val())
+               + parseFloat($('#vr_placas_c').val())
+               + parseFloat($('#vr_retefuente_c').val())
+               + parseFloat($('#vr_servtraspaso_c').val())
+               + parseFloat($('#vr_servtramitador_c').val())
+               + parseFloat($('#vr_otros_c').val())
+            $('#valor_total_comprador').text(addComas(total_comprador))
+
+            var total_vendedor = parseFloat($('#vr_soat').val())
+              + parseFloat($('#vr_tecnomecanica').val())
+              + parseFloat($('#vr_sijin').val())
+              + parseFloat($('#vr_pazysalvo').val())
+              + parseFloat($('#vr_certradicion').val())
+              + parseFloat($('#vr_prenda').val())
+              + parseFloat($('#vr_impuestos').val())
+              + parseFloat($('#vr_retefuente').val())
+              + parseFloat($('#vr_servtraspaso').val())
+              + parseFloat($('#vr_servtramitador').val())
+              + parseFloat($('#vr_otros').val())
+            $('#valor_total_vendedor').text(addComas(total_vendedor))
+
+            $('#vr_soat_d').val(parseFloat($('#vr_soat').val()) + parseFloat($('#vr_soat_c').val()))
+            $('#vr_tecnomecanica_d').val(parseFloat($('#vr_tecnomecanica').val()) + parseFloat($('#vr_tecnomecanica_c').val()))
+            $('#vr_sijin_d').val(parseFloat($('#vr_sijin').val()))
+            $('#vr_pazysalvo_d').val(parseFloat($('#vr_pazysalvo').val()))
+            $('#vr_certradicion_d').val(parseFloat($('#vr_certradicion').val()) + parseFloat($('#vr_certradicion_c').val()))
+            $('#vr_prenda_d').val(parseFloat($('#vr_prenda').val()) + parseFloat($('#vr_prenda_c').val()))
+            $('#vr_impuestos_d').val(parseFloat($('#vr_impuestos').val()) + parseFloat($('#vr_impuestos_c').val()))
+            $('#vr_trasladocuenta_d').val(parseFloat($('#vr_trasladocuenta_c').val()))
+            $('#vr_placas_d').val(parseFloat($('#vr_placas_c').val()))
+            $('#vr_retefuente_d').val(parseFloat($('#vr_retefuente').val()) + parseFloat($('#vr_retefuente_c').val()))
+            $('#vr_servtraspaso_d').val(parseFloat($('#vr_servtraspaso').val()) + parseFloat($('#vr_servtraspaso_c').val()))
+            $('#vr_traspaso_d').val(parseFloat($('#vr_traspaso').val()) + parseFloat($('#vr_traspaso_c').val()))
+            $('#vr_tarjeta_d').val(parseFloat($('#vr_tarjeta').val()) + parseFloat($('#vr_tarjeta_c').val()))
+            $('#vr_consgMin_d').val(parseFloat($('#vr_consgMin').val()) + parseFloat($('#vr_consgMin_c').val()))
+            $('#vr_sistematizacion_d').val(parseFloat($('#vr_sistematizacion').val()) + parseFloat($('#vr_sistematizacion_c').val()))
+            $('#vr_estampillas_d').val(parseFloat($('#vr_estampillas').val()) + parseFloat($('#vr_estampillas_c').val()))
+            $('#vr_certransito_d').val(parseFloat($('#vr_certransito').val()) + parseFloat($('#vr_certransito_c').val()))
+            $('#vr_semaforizacion_d').val(parseFloat($('#vr_semaforizacion').val()) + parseFloat($('#vr_semaforizacion_c').val()))
+            $('#vr_dertransito_d').val(parseFloat($('#vr_dertransito').val()) + parseFloat($('#vr_dertransito_c').val()))
+            $('#vr_runt_d').val(parseFloat($('#vr_runt').val()) + parseFloat($('#vr_runt_c').val()))
+            $('#vr_servtramitador_d').val(parseFloat($('#vr_servtramitador').val()) + parseFloat($('#vr_servtramitador_c').val()))
+            $('#vr_otros_d').val(parseFloat($('#vr_otros').val()) + parseFloat($('#vr_otros_c').val()))
+            $('#vr_impuestos_ant_d').val(parseFloat($('#vr_impuestos_ant').val()) + parseFloat($('#vr_impuestos_ant_c').val()))
+            $('#vr_comparendos_d').val(parseFloat($('#vr_comparendos').val()) + parseFloat($('#vr_comparendos_c').val()))
+            $('#vr_adicional_tramitador_d').val(parseFloat($('#vr_adicional_tramitador').val()) + parseFloat($('#vr_adicional_tramitador_c').val()))
+            $('#valor_total_domprador').text(addComas(parseFloat($('#valor_total_comprador').text()) + parseFloat($('#valor_total_vendedor').text())))
+
+            $('.sumaDoble').each(function () {
+                if (parseFloat($(this).val()) < 0) {
+                    $(this).addClass("text-danger")
+                }
+                //$(this).val(addComas(parseFloat($(this).val())))
+            });
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+}

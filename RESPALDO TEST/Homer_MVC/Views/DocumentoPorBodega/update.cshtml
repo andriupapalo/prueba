@@ -1,0 +1,413 @@
+﻿@model Homer_MVC.IcebergModel.icb_doc_consecutivos
+
+@{
+    ViewBag.Title = "Documento Por Bodega";
+    ViewBag.Icono = "fa fa-folder-open-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+<link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Actualizar @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="" onclick="buscarAjaxGrupos();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <a class="btn btn-info" href="../../DocumentoPorBodega?menu=@ViewBag.id_menu"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Crear nuevo</a>&nbsp;&nbsp;
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(model => model.doccons_id)
+                        @Html.HiddenFor(model => model.doccons_feccreacion)
+                        @Html.HiddenFor(model => model.doccons_fecactualizacion)
+                        @Html.HiddenFor(model => model.doccons_usucreacion)
+                        @Html.HiddenFor(model => model.doccons_usuactualizacion)
+                        @Html.Hidden("menu")
+                        @Html.Hidden("grupo")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Documento:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select id="doccons_idtpdoc" name="doccons_idtpdoc" class="col-md-12" required="required">
+                                                        @foreach (var item in ViewBag.doccons_idtpdoc)
+                                                        {
+                                                            <option value="@item.tpdoc_id">(@item.prefijo)&nbsp;@item.tpdoc_nombre</option>
+                                                        }
+                                                    </select>
+                                                    @Html.ValidationMessageFor(model => model.doccons_idtpdoc, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodega(s):&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select id="bodccs_cod" name="bodccs_cod" multiple="multiple" required="required">
+                                                        @foreach (var item in ViewBag.bodccs_cod)
+                                                        {
+                                                            <option value="@item.id">@item.bodccs_nombre</option>
+                                                        }
+                                                    </select>
+                                                    @Html.ValidationMessageFor(model => model.doccons_bodega, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número Consecutivo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.doccons_siguiente, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Numero Consecutivo", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.doccons_siguiente, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                   
+                                        <div class="col-sm-6" id="campoAnio" style="display:none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Año:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.doccons_ano, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Año", @min = "2000" } })
+                                                    @Html.ValidationMessageFor(model => model.doccons_ano, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                  
+                                        <div class="col-sm-6" id="campoMes" style="display:none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Mes:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select id="doccons_mes" name="doccons_mes" class="form-control" placeholder="Mes">
+                                                        <option value=""></option>
+                                                        <option value="1">Enero</option>
+                                                        <option value="2">Febrero</option>
+                                                        <option value="3">Marzo</option>
+                                                        <option value="4">Abril</option>
+                                                        <option value="5">Mayo</option>
+                                                        <option value="6">Junio</option>
+                                                        <option value="7">Julio</option>
+                                                        <option value="8">Agosto</option>
+                                                        <option value="9">Septiembre</option>
+                                                        <option value="10">Octubre</option>
+                                                        <option value="11">Noviembre</option>
+                                                        <option value="12">Diciembre</option>
+                                                    </select>
+                                                    @Html.ValidationMessageFor(model => model.doccons_mes, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    
+                                </div>
+                            </div>
+
+                          </div>
+                       }
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Prefijo</th>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+<script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $('#doccons_mes').val('@ViewBag.doccons_mes').select2();
+            $('#menu').val(@ViewBag.id_menu);
+            var bodegas = '@ViewBag.bodegasSeleccionadas';
+            var res = bodegas.split(",");
+            $('#bodccs_cod').val(res);
+            $('#bodccs_cod').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400
+            });
+
+            $('#numeroConsecutivo').val('@ViewBag.numeroConsecutivo');
+            $('#grupo').val('@ViewBag.grupo');
+            $('#doccons_idtpdoc').val('@ViewBag.tipoDocumentoElegido').select2();
+
+            buscarAnioMesRequerido();
+
+            //if ($('#doccons_requiere_anio').prop('checked')) {
+            //    $('#campoAnio').show();
+            //}
+            //if ($('#doccons_requiere_mes').prop('checked')) {
+            //    $('#campoMes').show();
+            //}
+
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000);
+        });
+
+
+
+        //$('#doccons_requiere_anio').change(function () {
+        //    if (!$('#doccons_requiere_anio').prop('checked')) {
+        //        $("#doccons_requiere_mes").prop("checked", function (i, val) {
+        //            return false;
+        //        });
+        //        $('#campoMes').hide();
+        //        $('#campoAnio').hide();
+        //    } else {
+        //        $("#doccons_requiere_mes").prop("checked", function (i, val) {
+        //            return false;
+        //        });
+        //        $('#campoAnio').show();
+        //    }
+        //});
+
+
+
+        //$('#doccons_requiere_mes').change(function () {
+        //    if (!$('#doccons_requiere_mes').prop('checked')) {
+        //        $('#campoMes').hide();
+        //    } else {
+        //        $("#doccons_requiere_anio").prop("checked", function (i, val) {
+        //            return true;
+        //        });
+        //        $('#campoAnio').show();
+        //        $('#campoMes').show();
+        //    }
+        //});
+
+
+
+
+        function buscarAnioMesRequerido(){
+            $.ajax({
+                url: '/DocumentoPorBodega/DocumentoAnioMesRequerido',
+                data: {
+                    id_tipo_documento: $('#doccons_idtpdoc').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.consecano){
+                        $('#doccons_ano').prop('required',true);
+                        $('#doccons_mes').prop('required',false);
+                        $('#campoAnio').show();
+                        $('#campoMes').hide();
+                    }else if(data.consecmes){
+                        $('#doccons_ano').prop('required',true);
+                        $('#doccons_mes').prop('required',true);
+                        $('#campoAnio').show();
+                        $('#campoMes').show();
+                    }else{
+                        $('#doccons_ano').prop('required',false);
+                        $('#doccons_mes').prop('required',false);
+                        $('#campoAnio').hide();
+                        $('#campoMes').hide();
+                    }
+                },
+                complete: function (data) {
+
+                }
+            })
+        }
+
+
+        $('#doccons_idtpdoc').change(function(){
+            buscarAnioMesRequerido();
+        });
+
+
+
+
+        function valida(id) {
+            window.location.href = '@Url.Action("update", "DocumentoPorBodega")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+
+        function VerResolucion(id, idDoc) {
+            window.location.href = '@Url.Action("Create", "resolucionFacturas")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+
+
+        function buscarAjaxGrupos() {
+
+            $('#tablaPaginada').dataTable().fnDestroy();
+            $.ajax({
+                url: '/DocumentoPorBodega/BuscarDocumentosPorBodega',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="left">'
+                                        + data[i].tpdoc_prefijo + '</td><td align="left">'
+                                        + data[i].tpdoc_nombre + '</td><td align="left">'
+                                       + data[i].bodccs_nombre + '</td><td width="16%" align="center"><button class="btn btn-info btn-xs" onclick="valida(' + data[i].grupo
+                                       + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>&nbsp;&nbsp;<button class="btn btn-primary btn-xs" onclick="VerResolucion(' + data[i].grupo
+                                       + ')">&nbsp;&nbsp;Resoluci&oacute;n&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+
+                }
+            })
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+    </script>
+
+    }

@@ -1,0 +1,649 @@
+﻿@model Homer_MVC.IcebergModel.UsuarioModel
+
+@{
+    ViewBag.Icono = "fa fa-user";
+    ViewBag.Title = "Usuarios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Actualizar @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-update" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                    <div class="panel-body-btns text-right">
+                        <a class="btn btn-info" href="../../usuario?menu=@ViewBag.id_menu"><i class="@ViewBag.Icono-plus"></i>&nbsp;&nbsp;&nbsp;Crear nuevo</a>&nbsp;&nbsp;
+                        <button class="btn btn-info" id="btnGuardar" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                    </div>
+
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(model => model.user_id)
+                    @Html.HiddenFor(model => model.user_password)
+                    @Html.HiddenFor(model => model.user_confirPassword)
+                    @Html.HiddenFor(model => model.userid_creacion)
+                    @Html.HiddenFor(model => model.userid_actualizacion)
+                    @Html.HiddenFor(model => model.userfec_actualizacion)
+                    @Html.HiddenFor(model => model.userfec_creacion)
+                    @Html.Hidden("menu")
+
+                    <div class="form-horizontal">
+
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-key"></i>&nbsp;&nbsp;&nbsp;Datos Personales
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("tpdoc_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            @Html.ValidationMessageFor(model => model.tpdoc_id, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Número Identificación:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.user_numIdent, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese número de identificación" } })
+                                            @Html.ValidationMessageFor(model => model.user_numIdent, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Nombre:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.user_nombre, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese nombre" } })
+                                            @Html.ValidationMessageFor(model => model.user_nombre, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Apellido:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.user_apellido, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese apellido" } })
+                                            @Html.ValidationMessageFor(model => model.user_apellido, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-key"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Rol:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("rol_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            @Html.ValidationMessageFor(model => model.rol_id, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Tipo Trámites:&nbsp;<span class="text-danger"></span></label>
+                                        <div class="col-md-6">
+                                            <select id="icb_tptramite_prospecto" name="icb_tptramite_prospecto" multiple="multiple">
+                                                @foreach (var item in ViewBag.icb_tptramite_prospecto)
+                                                {
+                                                    <option value="@item.tptrapros_id">@item.tptrapros_descripcion</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Departamento:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownListFor(model => model.dpto_id, ViewBag.dpto_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                            @Html.ValidationMessageFor(model => model.dpto_id, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Ciudad:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownListFor(model => model.ciu_id, ViewBag.ciu_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                            @Html.ValidationMessageFor(model => model.ciu_id, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">E-mail:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.user_email, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese correo electrónico" } })
+                                            @Html.ValidationMessageFor(model => model.user_email, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Teléfono:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.user_telefono, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese teléfono" } })
+                                            @Html.ValidationMessageFor(model => model.user_telefono, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Dirección:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.user_direccion, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese dirección" } })
+                                            @Html.ValidationMessageFor(model => model.user_direccion, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Bodega(s):&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            <select id="bodccs_cod" name="bodccs_cod" multiple="multiple">
+                                                @foreach (var item in ViewBag.bodccs_cod)
+                                                {
+                                                    <option value="@item.id">@item.bodccs_nombre</option>
+                                                }
+                                            </select>
+                                            @Html.ValidationMessageFor(model => model.bodccs_cod, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Bodega(s) Indicadores:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            <select id="bodegas_visualizacion" name="bodegas_visualizacion" multiple="multiple" required>
+                                                @foreach (var item in ViewBag.bodegas_visualizacion)
+                                                {
+                                                    <option value="@item.id">@item.bodccs_nombre</option>
+                                                }
+                                            </select>
+                                            @Html.ValidationMessageFor(model => model.bodegas_visualizacion, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Recibir Repuestos:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            <label class="control-label col-md-3">
+                                                @Html.CheckBoxFor(model => model.aut_repuestos, new { @data_toggle = "toggle", @checked = "unchecked", @data_size = "mini" })
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-key"></i>&nbsp;&nbsp;&nbsp;Credenciales
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Usuario:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.user_usuario, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese nombre de usuario" } })
+                                            @Html.ValidationMessageFor(model => model.user_usuario, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Estado:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            <label class="control-label col-md-3">
+                                                @Html.CheckBoxFor(model => model.user_estado, new { @data_toggle = "toggle", @checked = "checked", @data_size = "mini" })
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6"></div>
+                                <div class="col-sm-6" id="inactividad" style="display:none">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Razón Inactividad:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.user_razoninactivo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese razon de inactivo" } })
+                                            @Html.ValidationMessageFor(model => model.user_razoninactivo, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-key"></i>&nbsp;&nbsp;&nbsp;Fechas En Planta
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Fecha Inicio:&nbsp;</label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.fechainiplanta, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese fecha inicial" } })
+                                            @Html.ValidationMessageFor(model => model.fechainiplanta, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Fecha Fin:&nbsp;</label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.fechafinplanta, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese fecha final" } })
+                                            @Html.ValidationMessageFor(model => model.fechafinplanta, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <br />
+
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                            </div>
+                            <i class="fa fa-info-circle"></i>&nbsp;&nbsp;&nbsp;Información
+                        </div>
+                        <div class="panel-body">
+                            <div class="col-sm-3 small">
+                                <p>Creado por: @ViewBag.user_nombre_cre</p>
+                            </div>
+
+                            <div class="col-sm-3 small">
+                                <p>Fecha creación: @Html.DisplayFor(model => model.userfec_creacion)</p>
+                            </div>
+
+                            <div class="col-sm-3 small">
+                                <p>
+                                    Actualizado por:  @{if (ViewBag.user_nombre_act == null)
+                                            {
+                                <p class="text-danger">no se han realizado actualizaciones</p>
+                                            }
+                                @ViewBag.user_nombre_act
+                                    }
+                                    </p>
+                                </div>
+
+                                <div class="col-sm-3 small">
+                                    <p>
+                                        Ultima actualización:  @{if (Model.userfec_actualizacion == null)
+                                                {
+                                    <p class="text-danger">no se han realizado actualizaciones</p>
+                                                }
+                                    @Html.DisplayFor(model => model.userfec_actualizacion)
+                                        }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-body-btns text-right">
+                                <button class="btn btn-info" name="guardarAbajo" id="guardarAbajo" type="button"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                            </div>
+                                                }
+                </div>
+            </div>
+
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Apellido</th>
+                                        <th style="text-align:center">Usuario</th>
+                                        <th style="text-align:center">Rol</th>
+                                        <th style="text-align:center">Última Actualización</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            var bodegas = '@ViewBag.bodegasSeleccionadas';
+            var res = bodegas.split(",");
+            $('#bodccs_cod').val(res);
+            $('#bodccs_cod').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400,
+                dropUp: true
+            });
+
+            var bodegas2 = '@ViewBag.bodegasSeleccionadas2';
+            var res2 = bodegas2.split(",");
+            $('#bodegas_visualizacion').val(res2);
+            $('#bodegas_visualizacion').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400,
+                dropUp: true
+            });
+            buscarCiudad()
+            var tramites = '@ViewBag.tramitesSeleccionados';
+            var res2 = tramites.split(",");
+            $('#icb_tptramite_prospecto').val(res2);
+            $('#icb_tptramite_prospecto').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400
+            });
+
+            $('.js-source-states').select2();
+
+            $('#fechainiplanta').datetimepicker({
+                format: 'YYYY/MM/DD'
+            });
+            $('#fechafinplanta').datetimepicker({
+                format: 'YYYY/MM/DD'
+            });
+
+            if (!$('#user_estado').prop('checked')) {
+                $('#inactividad').show();
+            } else {
+                $('#inactividad').hide();
+            }
+
+            buscarAjaxUsuarios();
+
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000)
+        });        
+
+        $('#dpto_id').change(function(){
+            $.ajax({
+                url: '/cotizacion/buscarCuidadesDepartamento',
+                data: {
+                    id: $('#dpto_id').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#ciu_id').empty();
+                    $('#ciu_id').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#ciu_id').append($('<option>', {
+                            value: data[i].ciu_id,
+                            text: data[i].ciu_nombre
+                        }));
+                    }
+                    //$('#modvh_codigo').val('').select2();
+                    $('#ciu_id').select2();
+                }
+            });
+        })
+            function buscarCiudad(){
+                $.ajax({
+                    url: '/cotizacion/buscarCuidadesDepartamento',
+                    data: {
+                        id: $('#dpto_id').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        console.log(data)
+                        $('#ciu_id').empty();
+                        $('#ciu_id').append($('<option>', {
+                            value: '',
+                            text: ''
+                        }));
+                        for (var i = 0; i < data.length; i++) {
+                            $('#ciu_id').append($('<option>', {
+                                value: data[i].ciu_id,
+                                text: data[i].ciu_nombre,
+                                selected: '@ViewBag.ciu_id',
+                                 
+                            }));
+                        }
+                        //$('#modvh_codigo').val('').select2();
+                        $('#ciu_id').select2();
+                    }
+                });
+            }    
+
+        $('#user_estado').change(function () {
+            if ($('#user_estado').prop('checked')) {
+                $('#user_razoninactivo').val('');
+                $('#inactividad').hide();
+                $('#user_razoninactivo').prop('required', false);
+            } else {
+                $('#user_razoninactivo').prop('required', true);
+                $('#user_razoninactivo').val('');
+                $('#inactividad').show();
+            }
+        });
+
+
+
+        function valida(idUser) {
+            window.location.href = '@Url.Action("update", "users")?menu='+@ViewBag.id_menu+'&&id=' + idUser;
+        }
+
+
+
+        function buscarAjaxUsuarios() {
+
+            $.ajax({
+                url: '/users/BuscarUsuariosPaginados',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="left">' + data[i].user_nombre + '</td><td align="left">'
+                                          + data[i].user_apellido + '</td><td align="left">' + data[i].user_usuario
+                                          + '</td><td align="left">' + data[i].roluser
+                                          + '</td><td align="right">' + data[i].userfec_actualizacion
+                                          + '</td><td align="left">' + data[i].estadoUsuario
+                                          + '</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                                          + '\'' + data[i].user_id
+                                          + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            })
+        }
+
+        $('#guardarAbajo').click(function(){
+            $('#btnGuardar').trigger('click');
+        })
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar de Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+
+
+    </script>
+
+
+}

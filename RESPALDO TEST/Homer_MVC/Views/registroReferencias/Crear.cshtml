@@ -1,0 +1,856 @@
+﻿@model Homer_MVC.Models.RegistroReferenciasModel
+
+@{
+    ViewBag.Title = "Referencias";
+    ViewBag.Icono = "fa fa-address-book-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color: white; border: solid 1px; border-color: #e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top: 0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-check fa-2x"></i> @TempData["mensaje"]
+                </p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]
+                </p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active">
+                    <a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a>
+                </li>
+                <li class="">
+                    <a href="@Url.Action("BuscarDatos", "registroReferencias", new {menu = ViewBag.id_menu})"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a>
+                </li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            <div class="panel-body-btns text-right">
+                                <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                            </div>
+
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color: #e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Código:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-4">
+                                                    @Html.EditorFor(model => model.ref_codigo, new { htmlAttributes = new { @class = "form-control", required = "required", placeholder = "Digite codigo" } })
+                                                    @Html.ValidationMessageFor(model => model.ref_codigo, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <button class="btn btn-info form-control" id="btn_variosB" name="btn_variosB" type="button">VARIOSB</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Descripción:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.ref_descripcion, new { htmlAttributes = new { @class = "form-control", required = "required", placeholder = "Digite descripción" } })
+                                                    @Html.ValidationMessageFor(model => model.ref_descripcion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-md-6 col-lg-6">
+                                            <div class="form-group ">
+                                                <label class="control-label col-md-4">Descripción Alternativa:&nbsp;</label>
+                                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                                    @Html.EditorFor(model => model.ref_alternativa, new { htmlAttributes = new { @class = "form-control", placeholder = "Digite una descripción alternativa" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Porcentaje iva venta:<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @*@Html.EditorFor(model => model.por_iva, new { htmlAttributes = new { @class = "form-control", @type = "number" } })*@
+                                                    @Html.DropDownList("por_iva", null, "", new { @class = "form-control js-source-states", required = "required", placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.por_iva, "", new { @class = "text-danger" })
+                                                    <input name="textIVAVenta" id="textIVAVenta" class="form-control" type="hidden" value="">
+                                                    <input name="valIVAVenta" id="valIVAVenta" class="form-control" type="hidden" value="">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Porcentaje iva compra:<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @*@Html.EditorFor(model => model.por_iva, new { htmlAttributes = new { @class = "form-control", @type = "number" } })*@
+                                                    @Html.DropDownList("por_iva_compra", null, "", new { @class = "form-control js-source-states", required = "required", placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.por_iva_compra, "", new { @class = "text-danger" })
+                                                    <input name="textIVACompra" id="textIVACompra" class="form-control" type="hidden" value="">
+                                                    <input name="valIVACompra" id="valIVACompra" class="form-control" type="hidden" value="">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Unidad de Medida:<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("unidad_medida", null, "", new { @class = "form-control js-source-states", required = "required", placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.unidad_medida, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Porcentaje Descuento:</label>
+                                                <div class="col-md-6">
+                                                    @*<input id="por_dscto" name="por_dscto_1" class="form-control" type="text" min="0" max="100" step="any" onkeypress="return valida(event, this.id)" placeholder="Digite descuento (%)" />*@
+                                                    @Html.EditorFor(model => model.por_dscto, new { htmlAttributes = new { @class = "form-control", type = "text", min = "0", max = "100", step = "any", onkeypress = "return valida(event, this.id)", placeholder = "Digite descuento (%)" } })
+                                                    @Html.ValidationMessageFor(model => model.por_dscto, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Porcentaje Descuento Maximo:</label>
+                                                <div class="col-md-6">
+                                                    @*<input id="por_dscto_max" name="por_dscto_max_1" class="form-control" type="text" min="0" max="100" step="any" onkeypress="return valida(event, this.id)" placeholder="Digite descuento maximo (%)" />*@
+                                                    @Html.EditorFor(model => model.por_dscto_max, new { htmlAttributes = new { @class = "form-control", type = "text", min = "0", max = "100", step = "any", onkeypress = "return valida(event, this.id)", placeholder = "Digite descuento maximo (%)" } })
+                                                    @Html.ValidationMessageFor(model => model.por_dscto_max, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <div id="error_cantidad_max" style="display: none" class="alert alert-warning">
+                                                    <strong>Error</strong> El valor de cantidad mínima no puede ser superior al máximo
+                                                </div>
+
+                                                <label class="control-label col-md-4">Cantidad Máxima:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @*<input id="ref_cantidad_max" name="ref_cantidad_max_1" class="form-control" type="text" value="" onkeypress="return soloNumeros(event)" placeholder="Digite Cantidad Máxima" />*@
+                                                    @Html.EditorFor(model => model.ref_cantidad_max, new { htmlAttributes = new { @class = "form-control", type = "number", required = "required", placeholder = "Digite cantidad máxima" } })
+                                                    @Html.ValidationMessageFor(model => model.ref_cantidad_max, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Costo Emergencia:</label>
+                                                <div class="col-md-6">
+                                                    @*<input id="costo_emergencia" name="costo_emergencia_1" class="form-control" type="text" value="" onkeyUp="return miles(this.id)" placeholder="Digite Costo Emergencia" />*@
+                                                    @Html.EditorFor(model => model.costo_emergencia, new { htmlAttributes = new { @class = "form-control", type = "text", value = "", onkeyUp = "return miles(this.id)", placeholder = "Digite costo emergencia" } })
+                                                    @Html.ValidationMessageFor(model => model.costo_emergencia, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Proveedor: <span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("proveedor_ppal", null, "", new { @class = "form-control js-source-states", required = "required", placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.proveedor_ppal, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @*<div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Cantidad Mínima:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <input id="ref_cantidad_min" name="ref_cantidad_min_1" class="form-control" type="text" onkeypress="return soloNumeros(event)" placeholder="Digite cantidad mínima" />
+                                                        @Html.EditorFor(model => model.ref_cantidad_min, new { htmlAttributes = new { @class = "form-control", @type = "number", @placeholder = "Digite cantidad mínima", @min = "0" } })
+                                                        @Html.ValidationMessageFor(model => model.ref_cantidad_min, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>*@
+                                    </div>
+                                    <div class="row">
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Vida útil:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.vida_util, new { htmlAttributes = new { @class = "form-control", type = "text", placeholder = "Digite vida útil (años)" } })
+                                                    @Html.ValidationMessageFor(model => model.vida_util, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @*</div>
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-4">Clasificación ABC:</label>
+                                                        <div class="col-md-6">
+                                                            @Html.EditorFor(model => model.clasificacion_ABC, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite clasificacion", @maxlength = "1" } })
+                                                            @Html.ValidationMessageFor(model => model.clasificacion_ABC, "", new { @class = "text-danger" })
+                                                        </div>
+                                                    </div>
+                                                </div>*@
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Perfil Contable:</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("perfil", null, "", new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.perfil, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Manejo de Inventario:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <label class="control-label col-md-8">
+                                                        @Html.CheckBoxFor(model => model.manejo_inv, new { data_toggle = "toggle", data_size = "mini" })
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Estado:&nbsp;<span class="text-danger">*&nbsp;</span></label>
+                                                <div class="col-md-6">
+                                                    <label class="control-label col-md-8">
+                                                        @Html.CheckBoxFor(model => model.ref_estado, new { data_toggle = "toggle", data_size = "mini" })
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div id="inactividad" style="display: none">
+                                            <div class="col-md-6"></div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Razón Inactividad:&nbsp;<span class="text-danger">*&nbsp;</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.EditorFor(model => model.ref_razon_inactivo, new { htmlAttributes = new { @class = "form-control" } })
+                                                        @Html.ValidationMessageFor(model => model.ref_razon_inactivo, " ", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color: #e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Clasificación
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("tipo_id", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                                                @Html.ValidationMessageFor(model => model.tipo_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Clasificación:<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("clasificacion_id", null, "", new { @class = "form-control js-source-states", required = "required", placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.clasificacion_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Familia:</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("familia_id", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.familia_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Grupo:</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("grupo_id", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.grupo_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Línea:</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("linea_id", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.linea_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Sub Grupo:</label>
+                                            <div class="col-md-6">
+                                                <select class="form-control js-source-states" id="subgrupo" name="subgrupo" placeholder="Seleccione">
+                                                    <option value="">Seleccione</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color: #e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Precios
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-xs-12 col-sm-12 col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio Venta:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @*<input id="precio_1" name="precio_1" class="form-control" value="" onkeyUp="miles(this.id); agregar_precio(this.id);" placeholder="Digite valor unitario" />*@
+                                                    @Html.EditorFor(model => model.ref_valor_unitario, new { htmlAttributes = new { @class = "form-control", value = "", onkeyUp = "miles(this.id); agregar_precio(this.id);", required = "required", placeholder = "" } })
+                                                    @Html.ValidationMessageFor(model => model.ref_valor_unitario, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-12 col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio Alterno:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @*<input id="precio_alterno" name="precio_alterno" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor" />*@
+                                                    @Html.EditorFor(model => model.precio_alterno, new { htmlAttributes = new { @class = "form-control", value = "", onkeyUp = "return miles(this.id)", required = "required", placeholder = "" } })
+                                                    @Html.ValidationMessageFor(model => model.precio_alterno, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xs-12 col-sm-12 col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio Garantia:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @*<input id="precio_garantia" name="precio_garantia" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor unitario" />*@
+                                                    @Html.EditorFor(model => model.precio_garantia, new { htmlAttributes = new { @class = "form-control", value = "", onkeyUp = "return miles(this.id)", required = "required", placeholder = "" } })
+                                                    @Html.ValidationMessageFor(model => model.precio_garantia, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-12 col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio Diesel:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @*<input id="precio_diesel" name="precio_diesel" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor unitario" />*@
+                                                    @Html.EditorFor(model => model.precio_diesel, new { htmlAttributes = new { @class = "form-control", value = "", onkeyUp = "return miles(this.id)", required = "required", placeholder = "" } })
+                                                    @Html.ValidationMessageFor(model => model.precio_diesel, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @*Precios del 2 al 9 retirados del formulario*@
+                                    <div style="display: none;">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio 2:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input id="precio_2" name="precio_2" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor unitario" />
+                                                    @* @Html.EditorFor(model => model.ref_valor_unitario, new { htmlAttributes = new { @class = "form-control", @value = "", @onkeyUp = "return miles(this.id)", @placeholder = "Digite valor unitario" } })*@
+                                                    @Html.ValidationMessageFor(model => model.ref_valor_unitario, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio 3:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input id="precio_3" name="precio_3" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor unitario" />
+                                                    @* @Html.EditorFor(model => model.ref_valor_unitario, new { htmlAttributes = new { @class = "form-control", @value = "", @onkeyUp = "return miles(this.id)", @placeholder = "Digite valor unitario" } })*@
+                                                    @Html.ValidationMessageFor(model => model.ref_valor_unitario, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio 4:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input id="precio_4" name="precio_4" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor unitario" />
+                                                    @* @Html.EditorFor(model => model.ref_valor_unitario, new { htmlAttributes = new { @class = "form-control", @value = "", @onkeyUp = "return miles(this.id)", @placeholder = "Digite valor unitario" } })*@
+                                                    @Html.ValidationMessageFor(model => model.ref_valor_unitario, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio 5:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input id="precio_5" name="precio_5" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor unitario" />
+                                                    @* @Html.EditorFor(model => model.ref_valor_unitario, new { htmlAttributes = new { @class = "form-control", @value = "", @onkeyUp = "return miles(this.id)", @placeholder = "Digite valor unitario" } })*@
+                                                    @Html.ValidationMessageFor(model => model.ref_valor_unitario, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio 6:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input id="precio_6" name="precio_6" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor unitario" />
+                                                    @* @Html.EditorFor(model => model.ref_valor_unitario, new { htmlAttributes = new { @class = "form-control", @value = "", @onkeyUp = "return miles(this.id)", @placeholder = "Digite valor unitario" } })*@
+                                                    @Html.ValidationMessageFor(model => model.ref_valor_unitario, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio 7:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input id="precio_7" name="precio_7" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor unitario" />
+                                                    @* @Html.EditorFor(model => model.ref_valor_unitario, new { htmlAttributes = new { @class = "form-control", @value = "", @onkeyUp = "return miles(this.id)", @placeholder = "Digite valor unitario" } })*@
+                                                    @Html.ValidationMessageFor(model => model.ref_valor_unitario, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio 8:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input id="precio_8" name="precio_8" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor unitario" />
+                                                    @* @Html.EditorFor(model => model.ref_valor_unitario, new { htmlAttributes = new { @class = "form-control", @value = "", @onkeyUp = "return miles(this.id)", @placeholder = "Digite valor unitario" } })*@
+                                                    @Html.ValidationMessageFor(model => model.ref_valor_unitario, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio 9:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input id="precio_9" name="precio_9" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor unitario" />
+                                                    @* @Html.EditorFor(model => model.ref_valor_unitario, new { htmlAttributes = new { @class = "form-control", @value = "", @onkeyUp = "return miles(this.id)", @placeholder = "Digite valor unitario" } })*@
+                                                    @Html.ValidationMessageFor(model => model.ref_valor_unitario, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio Garantía:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input id="precioGarantia" name="precioGarantia" class="form-control" value="" onkeyUp="return miles(this.id)" placeholder="Digite valor unitario" />
+                                                    @* @Html.EditorFor(model => model.ref_valor_unitario, new { htmlAttributes = new { @class = "form-control", @value = "", @onkeyUp = "return miles(this.id)", @placeholder = "Digite valor unitario" } })*@
+                                                    @Html.ValidationMessageFor(model => model.ref_valor_unitario, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                                <div class="panel-body-btns text-right">
+                                    <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="modal fade" id="modal_porcentajes" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Error en porcentaje</h5>
+            </div>
+            <div class="modal-body">
+                El valor del porcentaje no puede ser mayor a 100
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js">
+    </script>
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+            $('#costo_emergencia').val('');
+            $('#por_dscto').val('');
+            $('#costo_unitario').val('');
+            $('#ref_cantidad_max').val('');
+            $('#ref_cantidad_min').val('');
+            $('#por_dscto_max').val('');
+
+
+            $('#menu').val(@ViewBag.id_menu);
+            $('.js-source-states').select2();
+            if (!$('#ref_estado').prop('checked')) {
+                //$('#cntpucrazoninactivo').val('');
+                $('#ref_razon_inactivo').prop('required', true);
+                $('#inactividad').show();
+            }
+            $('#stock').hide();
+            //recalcular()
+
+            $('form select').each(function(i) {
+                this.addEventListener('invalid',
+                    function(e) {
+                        var _s2Id = `s2id_${e.target.id}`; //s2 autosuggest html ul li element id
+                        const _posS2 = $(`#${_s2Id}`).position();
+                        //get the current position of respective select2
+                        $(`#${_s2Id} ul`).addClass('_invalid'); //add this class with border:1px solid red;
+                        //this will reposition the hidden select2 just behind the actual select2 autosuggest field with z-index = -1
+                        $(`#${e.target.id}`).attr('style',
+                            `display:block !important;position:absolute;z-index:-1;top:${0 -
+                            $(`#${_s2Id}`).outerHeight() +
+                            30}px;left:${15 - ($(`#${_s2Id}`).width() / 10)}px;`);
+                        /*
+                        //Adjust the left and top position accordingly
+                        */
+                        //remove invalid class after 3 seconds
+                        setTimeout(function() {
+                                $(`#${_s2Id} ul`).removeClass('_invalid');
+                            },
+                            3000);
+                        return true;
+                    },
+                    false);
+            });
+        });
+
+        function agregar_precio(id) {
+            $('#precio_alterno').val($(`#${id}`).val());
+            $('#precio_diesel').val($(`#${id}`).val());
+        }
+
+        $('#btn_variosB').click(function() {
+            $.ajax({
+                url: '/registroReferencias/buscarconsecutivo',
+                data: {},
+                type: 'post',
+                cache: false,
+                success: function(codigo) {
+                    console.log(codigo);
+                    if (codigo.noExiste == true) {
+                        swal({
+                                title: 'No hay un consecutivo',
+                                text:
+                                    'Debe iniciar un consecutivo para poder crear referencias VARIOSB, ¿Desea iniciarlo?',
+                                type: "warning",
+                                showCancelButton: true,
+                                confirmButtonColor: "#DD6B55",
+                                confirmButtonText: "Si, Iniciar!",
+                                cancelButtonText: "No, cancelar!",
+                                closeOnConfirm: true,
+                                closeOnCancel: false
+                            },
+                            function(isConfirm) {
+                                if (isConfirm) {
+                                    window.open('@Url.Action("Index", "iniciovariosb")');
+                                } else {
+                                    swal("Cancelado", "", "error");
+                                }
+                            });
+                    }
+                    if (codigo.noExiste == false) {
+                        $('#ref_codigo').val(codigo.ref_cod);
+                    }
+                }
+            });
+        });
+
+        function recalcular() {
+            $.ajax({
+                url: '/registroReferencias/recalcularClasificacionABC'
+            });
+        }
+
+        function validarCantidades() {
+            var mini = 0;
+            var max = 0;
+            if ($('#ref_cantidad_min').val() == "") {
+                mini = 0;
+            } else {
+                var mini = parseInt($('#ref_cantidad_min').val());
+            }
+
+            if ($('#ref_cantidad_max').val() == "") {
+                max = 0;
+            } else {
+                var max = parseInt($('#ref_cantidad_max').val());
+            }
+            if (mini > max) {
+                $('#error_cantidad_max').show();
+                setTimeout(function() {
+                        $('#error_cantidad_max').hide();
+                    },
+                    5000);
+
+                $('#ref_cantidad_max').val('');
+            } else {
+                $('#error_cantidad_max').hide();
+            }
+        }
+
+        $('#ref_cantidad_max').change(function() {
+            validarCantidades();
+        });
+
+        $('#ref_cantidad_min').change(function() {
+            validarCantidades();
+        });
+
+        $('#ref_estado').change(function() {
+            if ($('#ref_estado').prop('checked')) {
+                $('#inactividad').hide();
+                $('#ref_razon_inactivo').prop('required', false);
+            } else {
+                $('#ref_razon_inactivo').prop('required', true);
+                $('#ref_razon_inactivo').val('');
+                $('#inactividad').show();
+            }
+        });
+
+        $('#por_iva').change(function() {
+            $('#textIVAVenta').val($('#por_iva option:selected').text());
+            $('#valIVAVenta').val($('#por_iva option:selected').val());
+        });
+
+        $('#por_iva_compra').change(function() {
+            $('#textIVACompra').val($('#por_iva_compra option:selected').text());
+            $('#valIVACompra').val($('#por_iva_compra option:selected').val());
+        });
+
+        $('#grupo_id').change(function() {
+            $.ajax({
+                url: '/registroReferencias/buscarSubGrupo',
+                data: {
+                    grupo: $('#grupo_id').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    var option = "<option></option>";
+                    for (let j = 0; j < data.length; j++) {
+                        option += ` <option value="${data[j].codigo}">${data[j].Descripcion}</option>`;
+                    }
+                    $('#subgrupo').empty();
+                    $('#subgrupo').append(option);
+                },
+                complete: function(data) {
+
+                }
+            });
+        });
+
+        var numero_miles = "";
+
+        function formatNumber(n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles(id) {
+            numero_miles = formatNumber($(`#${id}`).val());
+            $(`#${id}`).val(numero_miles);
+            //console.log($('#'+id+'').val);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? `.${x[1]}` : '';
+            const rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            //console.log(nStr);
+            const s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        function valida(e, id) //Solo numeros y SOLO 1 punto decimal
+        {
+            const key = (document.all) ? e.which : e.keyCode;
+            cadena = $(`#${id}`).val();
+            if (cadena.indexOf('.') == -1) {
+                return (key <= 13 || (key >= 48 && key <= 57) || key == 46);
+            } else {
+                return (key <= 13 || (key >= 48 && key <= 57));
+            }
+        }
+
+        $("#por_dscto_max").change(function() {
+            const max = parseInt(this.max);
+            const valor = parseInt(this.value);
+            if (valor > max) {
+                $("#modal_porcentajes").modal('show');
+                this.value = max;
+            }
+        });
+
+        $("#por_dscto").change(function() {
+            const max = parseInt(this.max);
+            const valor = parseInt(this.value);
+            if (valor > max) {
+                $("#modal_porcentajes").modal('show');
+                this.value = max;
+            }
+        });
+
+        //----Funcion que valida que el campo solo tenga permitido el ingreso de numeros
+        function soloNumeros(e) {
+            key = e.keyCode || e.which;
+            tecla = String.fromCharCode(key).toLowerCase();
+            letras = "1234567890";
+            especiales = "8-37-39-46";
+
+            tecla_especial = false;
+            for (let i in especiales) {
+                if (key == especiales[i]) {
+                    tecla_especial = true;
+                    break;
+                }
+            }
+            if (letras.indexOf(tecla) == -1 && !tecla_especial) {
+                return false;
+            }
+        }
+
+        function AgregarQuitarFavorito() {
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+}

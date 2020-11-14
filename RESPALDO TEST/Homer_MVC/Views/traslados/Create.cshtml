@@ -1,0 +1,698 @@
+﻿@model Homer_MVC.Models.TrasladoModel
+
+@{
+    ViewBag.Icono = "fa fa-file-pdf-o";
+    ViewBag.Title = "Traslado vehículos entre bodegas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.themes.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="principal active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="busqueda" onclick="buscarAjaxTraslados();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Busqueda</a></li>
+                <li class="" onclick="destinoTraslados();"><a data-toggle="tab"><i class="fa fa-arrow-circle-o-right"></i>&nbsp;&nbsp;Recepción Traslados </a></li>
+            </ul>
+
+            @*<ul id="tabs-crear" class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                    <li class="" onclick="buscarAjaxTraslados();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+                    <li><a href="@Url.Action("destinoTraslado","traslados")"><i class="fa fa-arrow-circle-o-right"></i>&nbsp;&nbsp;Recepción Traslados</a></li>
+                </ul>*@
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos Generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("TipoDocumento", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.TipoDocumento, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Origen:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.BodegaOrigen, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.BodegaOrigen, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Destino:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("BodegaDestino", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.BodegaDestino, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Destinatario:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.UsuarioRecepcion, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "" })
+                                                    @Html.ValidationMessageFor(model => model.UsuarioRecepcion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Perfil Contable:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.PerfilContable, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.PerfilContable, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Referencia:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @*@Html.EditorFor(model => model.Referencia, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Referencia" } })
+                                                        @Html.ValidationMessageFor(model => model.Referencia, "", new { @class = "text-danger" })*@
+                                                    <input id="codigo" name="codigo" placeholder="Digite Referencia" class="form-control" onkeyup="traerSerie(this.id)" required="required" />
+                                                </div>
+                                                <div class="col-md-2">
+                                                    @*<button type="button" class="btn btn-default" id="btnBuscarReferencia"><i class="fa fa-search" aria-hidden="true"></i></button>*@
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Costo:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input class="form-control" type="text" name="costoValor" id="costoValor" value="" readonly />
+                                                    @*@Html.EditorFor(model => model.Costo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Costo", @type = "text" , @readonly="readonly" } })
+                                                        @Html.ValidationMessageFor(model => model.Costo, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Modelo:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.Editor("modeloVehiculo", new { htmlAttributes = new { @class = "form-control", @placeholder = "Modelo", @readonly = "readonly" } })
+                                                    @*@Html.ValidationMessageFor(model => model.Referencia, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Color:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.Editor("colorVehiculo", new { htmlAttributes = new { @class = "form-control", @placeholder = "Color", @readonly = "readonly" } })
+                                                    @*@Html.ValidationMessageFor(model => model.Costo, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Motivo de traslado:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("MotivosTraslado", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.mot_traslado, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-5" style="text-align:right">
+                                            <button type="button" name="btnAgregarVH" id="btnAgregarVH" class="btn btn-success"><i class="fa fa-plus">&nbsp;Agregar&nbsp;</i></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="row" id="areaAlerta" style="display:none;">
+                                        <div class="col-sm-12">
+                                            <div class="form-group">
+                                                <div class="alert alert-warning text-center">
+                                                    <strong>Alerta!</strong><p id="alertaMensaje"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-car"></i>&nbsp;&nbsp;&nbsp;Veh&iacute;culos a trasladar
+                                </div>
+                                <div class="panel-body">
+                                    <div class="panel-body-busqueda">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <input type="hidden" name="listaTrasladoVH" id="listaTrasladoVH" value="" />
+                                            <table class="table table-striped table-bordered table-hover" id="tablaVHtraslados">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Veh&iacute;culo</th>
+                                                        <th style="text-align:center">Costo</th>
+                                                        <th style="text-align:center">Modelo</th>
+                                                        <th style="text-align:center">Color</th>
+                                                        <th style="text-align:center">Origen</th>
+                                                        <th style="text-align:center">Destino</th>
+                                                        <th style="text-align:center">Motivo Traslado</th>
+                                                        <th style="text-align:center">Acci&oacute;n</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    }
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">N&uacute;mero</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Origen</th>
+                                        <th style="text-align:center">Destino</th>
+                                        <th style="text-align:center">Plan Mayor</th>
+                                        <th style="text-align:center">Vehiculo</th>
+                                        <th style="text-align:center">Motivo Traslado</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/EasyAutocomplete-1.3.5/jquery.easy-autocomplete.min.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $('.js-source-states').select2();
+            $('#TipoDocumento').val('@ViewBag.documentoSeleccionado').select2();
+            buscarBodegasPorDocumento();
+            buscarUsuariosBodegas();
+            buscarPerfilesContables();
+            var series = {
+                data: []
+            };
+            $("#codigo").easyAutocomplete(series);
+            var codigo2 = "" ;
+        });
+        
+        function destinoTraslados(id) {
+            window.location.href = '@Url.Action("destinoTraslado", "traslados")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        $('#codigo').on('change', function() {
+            BuscarReferencia();
+        });
+
+        $("#codigo").on('paste', function () {
+            setTimeout( function() {
+            $.ajax({
+                    url: '/traslados/BuscarReferenciasVh',
+                    data: {
+                        serie: $('#codigo').val(),
+                        bodega_origen: $('#BodegaOrigen').val()
+                    },
+                    type: "post",
+                    cache: false,
+                success: function (data) {
+                    if (data.length == 1) {
+                        $('#codigo').val(data);
+                    } else if (data.length > 1) {
+                        var series = {
+                            data: data,
+                            list: {
+                                match: {
+                                    enabled: true
+                                }
+                            }
+                        };
+                        $("#codigo").easyAutocomplete(series);
+                        $("#codigo").focus();
+                    } else {
+                        swal("Error!", "La referencia " + $('#codigo').val() + " no existe.", "error");
+                        $('#codigo').val('')
+                    }
+                }
+            });
+            }, 100);            
+        })
+
+        function traerSerie(id) {
+            var conteo_caracteres = $('#'+id).val().length;
+            if (conteo_caracteres == 2 || conteo_caracteres == 5) {
+                	
+                $.ajax({
+                    url: '/traslados/BuscarReferenciasVh',
+                    data: {
+                        serie: $('#' + id).val(),
+                        bodega_origen: $('#BodegaOrigen').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        var series = {
+                            data: data,
+                            list: {
+                                match: {
+                                    enabled: true
+                                }
+                            }
+                        };
+                        $("#codigo").easyAutocomplete(series);
+                        $("#codigo").focus();
+                    }
+                });
+            }
+        }
+
+        function buscarBodegasPorDocumento() {
+            $.ajax({
+                url: '/traslados/BuscarBodegasPorDocumento',
+                data: {
+                    idTpDoc: $('#TipoDocumento').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+
+                    $('#BodegaOrigen').empty();
+                    $('#BodegaOrigen').append($('<option>', {
+                        value: '',
+                        text: 'Seleccione'
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#BodegaOrigen').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+                },
+                complete: function (data) {
+                    $('#BodegaOrigen').val('@ViewBag.bodegaSeleccionada').select2();
+                }
+            })
+        }
+
+        $('#TipoDocumento').change(function () {
+            buscarBodegasPorDocumento();
+            buscarPerfilesContables();
+        });
+
+        $('#BodegaOrigen').change(function(){
+            buscarbodegasDestino();
+        });
+
+        function buscarbodegasDestino (){
+            var tipoDocumento=$('#TipoDocumento').val();
+            var bodegaOrigen=$('#BodegaOrigen').val();
+
+            $.ajax({
+                url: '/traslados/BuscarBodegasPorDocumentoDestino',
+                data: {
+                    idTpDoc: tipoDocumento,
+                    idBodega:bodegaOrigen
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+
+                    $('#BodegaDestino').empty();
+                    $('#BodegaDestino').append($('<option>', {
+                        value: '',
+                        text: 'Seleccione'
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#BodegaDestino').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].nombre
+                        }));
+                    }
+                },
+            })
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function BuscarReferencia() {
+            var code=$('#codigo').val();
+            if ((code.indexOf('|') > -1)/* || (j!=="" && j!==undefined)*/)
+            {
+                var codigo="";
+                if(code!=""){
+                     var codigo_arr = $('#codigo').val().split("|");
+                     codigo2 = codigo_arr[0].trim();
+                }
+            }
+            $.ajax({
+                url: '/traslados/BuscarReferencia',
+                data: {
+                    referencia: codigo2,
+                    bodega_origen:$('#BodegaOrigen').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    if (data.encontrado == true) {
+                        $('#btnAgregarVH').prop('disabled',false);
+                        $('#areaAlerta').hide();
+                        $('#costoValor').val(addCommas(parseInt(data.buscarReferencia.costo)));
+                        $('#modeloVehiculo').val(data.buscarReferencia.modelo);
+                        $('#colorVehiculo').val(data.buscarReferencia.color);
+                        codigo2 = data.buscarReferencia.planmayor;
+                    } else {
+                        $('#alertaMensaje').text(data.alerta);
+                        $('#areaAlerta').show();
+                        $('#costoValor').val('');
+                        $('#modeloVehiculo').val('');
+                        $('#colorVehiculo').val('');
+                        $('#btnAgregarVH').prop('disabled',true);
+
+                    }
+                },
+            })
+        }
+
+        var contador = 0;
+        $('#btnAgregarVH').click(function() {
+            if ($('#Referencia').val() != "" && $('#costoValor').val() != "" || $('#modeloVehiculo').val() != "" || $('#colorVehiculo').val() != "" || $('#BodegaOrigen').val() != "" || $('#BodegaDestino').val() != "") {
+                if (contador > 0) {
+                    var flag = false;
+                    $('.vh').each(function(){
+                        flag = (this.value == $('#Referencia').val())
+                        if (flag == true){
+                            return false;
+                        }
+                    })
+                    if (flag == true) {
+                        swal("Error!", "El vehículo no puede ser agregado porque ya se encuentra en la tabla de vehículos a trasladar", "error");
+                    }else {
+                        $('#tablaVHtraslados').find('tbody').append('<tr id="row'+contador+'">'
+                                                        +'<td align="right"><input class="vh" type="hidden" name="txtPlanMayor'+contador+'"  id="txtPlanMayor'+contador+'" value="'+codigo2+'"      />' + codigo2 + '</td>'
+                                                        +'<td align="right"><input type="hidden" name="txtCosto'+contador+'"      id="txtCosto'+contador+'"     value="'+$('#costoValor').val()+'"      />' + $('#costoValor').val() + '</td>'
+                                                        +'<td align="left" ><input type="hidden" name="txtModelo'+contador+'"     id="txtModelo'+contador+'"    value="'+$('#modeloVehiculo').val()+'"  />' + $('#modeloVehiculo').val() + '</td>'
+                                                        +'<td align="left" ><input type="hidden" name="txtColor'+contador+'"      id="txtColor'+contador+'"     value="'+$('#colorVehiculo').val()+'"   />' + $('#colorVehiculo').val() + '</td>'
+                                                        +'<td align="left" ><input type="hidden" name="txtOrigen'+contador+'"     id="txtOrigen'+contador+'"    value="'+$('#BodegaOrigen').val()+'"    />' + $('#BodegaOrigen option:selected').text() + '</td>'
+                                                        +'<td align="left" ><input type="hidden" name="txtDestino'+contador+'"    id="txtDestino'+contador+'"   value="'+$('#BodegaDestino').val()+'"   />' + $('#BodegaDestino option:selected').text() + '</td>'
+                                                        +'<td align="left" ><input type="hidden" name="txtMotivo'+contador+'"     id="txtMotivo'+contador+'"   value="'+$('#MotivosTraslado').val()+'"   />' + $('#MotivosTraslado option:selected').text() + '</td>'
+                                                        +'<td align="center"><button class="btn btn-danger btn-circle" type="button" onclick="eliminarVH(' + contador + ')"><i class="fa fa-remove"></i></button></td>'
+                                                    +'</tr>');
+                        contador++;
+                        $('#listaTrasladoVH').val(contador);
+                    }
+                }else {
+                    $('#tablaVHtraslados').find('tbody').append('<tr id="row'+contador+'">'
+                                                        +'<td align="right"><input class="vh" type="hidden" name="txtPlanMayor'+contador+'"  id="txtPlanMayor'+contador+'" value="'+codigo2+'"      />' + codigo2 + '</td>'
+                                                        +'<td align="right"><input type="hidden" name="txtCosto'+contador+'"      id="txtCosto'+contador+'"     value="'+$('#costoValor').val()+'"      />' + $('#costoValor').val() + '</td>'
+                                                        +'<td align="left" ><input type="hidden" name="txtModelo'+contador+'"     id="txtModelo'+contador+'"    value="'+$('#modeloVehiculo').val()+'"  />' + $('#modeloVehiculo').val() + '</td>'
+                                                        +'<td align="left" ><input type="hidden" name="txtColor'+contador+'"      id="txtColor'+contador+'"     value="'+$('#colorVehiculo').val()+'"   />' + $('#colorVehiculo').val() + '</td>'
+                                                        +'<td align="left" ><input type="hidden" name="txtOrigen'+contador+'"     id="txtOrigen'+contador+'"    value="'+$('#BodegaOrigen').val()+'"    />' + $('#BodegaOrigen option:selected').text() + '</td>'
+                                                        +'<td align="left" ><input type="hidden" name="txtDestino'+contador+'"    id="txtDestino'+contador+'"   value="'+$('#BodegaDestino').val()+'"   />' + $('#BodegaDestino option:selected').text() + '</td>'
+                                                        +'<td align="left" ><input type="hidden" name="txtMotivo'+contador+'"     id="txtMotivo'+contador+'"   value="'+$('#MotivosTraslado').val()+'"   />' + $('#MotivosTraslado option:selected').text() + '</td>'
+                                                        +'<td align="center"><button class="btn btn-danger btn-circle" type="button" onclick="eliminarVH(' + contador + ')"><i class="fa fa-remove"></i></button></td>'
+                                                    +'</tr>');
+                    contador++;
+                    $('#listaTrasladoVH').val(contador);
+                }
+            }
+            $('#Referencia').val() = "";
+            $('#costoValor').val() = "";
+            $('#modeloVehiculo').val() = "";
+            $('#colorVehiculo').val() = "";
+            $('#BodegaOrigen').val() = "";
+            $('#BodegaDestino').val() = "";
+        });
+
+        function eliminarVH(pos) {
+            $("#row" + pos + "").remove();
+        }
+
+        $('#BodegaDestino').change(function () {
+            buscarUsuariosBodegas();
+        });
+
+        function buscarUsuariosBodegas() {
+            $.ajax({
+                url: '/traslados/BuscarUsuariosPorBodega',
+                data: {
+                    idBodega: $('#BodegaDestino').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+
+                    $('#UsuarioRecepcion').empty();
+                    $('#UsuarioRecepcion').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#UsuarioRecepcion').append($('<option>', {
+                            value: data[i].user_id,
+                            text: data[i].user_nombre + ' ' + data[i].user_apellido
+                        }));
+                    }
+                },
+                complete: function (data) {
+                    $('#UsuarioRecepcion').val('@ViewBag.usuarioSeleccionado').select2();
+                }
+            })
+        }
+
+        function buscarPerfilesContables() {
+            $.ajax({
+                url: '/traslados/BuscarPerfilesContables',
+                data: {
+                    idTpDoc: $('#TipoDocumento').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $('#PerfilContable').empty();
+                    $('#PerfilContable').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#PerfilContable').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].descripcion
+                        }));
+                    }
+                    $('#PerfilContable').val('@ViewBag.perfilSeleccionado').select2();
+                },
+            })
+        }
+
+        function valida(id) {
+            window.location.href = '@Url.Action("Ver", "trasladoRepuestos")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        function buscarAjaxTraslados() {
+            $('#tablaPaginada').dataTable().fnDestroy();
+            $.ajax({
+                url: '/traslados/BuscarTrasladosVehiculos',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+
+                        var referencias = '';
+                        var codigo = '';
+                        for (var j = 0; j < data[i].referencias.length; j++) {
+                            referencias += data[i].referencias[j].ref_descripcion
+                            codigo = data[i].referencias[j].ref_codigo;
+                        }
+
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="right">'
+                                        + data[i].numero + '</td><td align="right">'
+                                           + data[i].fecha + '</td><td align="left">'
+                                           + data[i].origen + '</td><td align="left">'
+                                       + data[i].destino + '</td><td align="right">'
+                                       + codigo + '</td><td align="left">'
+                            + referencias + '</td>'
+                            + '<td align="left">'+ data[i].motivo +'</td>'
+                            + '</tr > ');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+    </script>
+
+}

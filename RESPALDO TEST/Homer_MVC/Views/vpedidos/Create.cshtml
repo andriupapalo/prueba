@@ -1,0 +1,1174 @@
+﻿@model Homer_MVC.IcebergModel.VehiculoPedidoModel
+@* jairo01 *@
+@{
+    ViewBag.Title = "Pedido Vehículos";
+    ViewBag.Icono = "fa fa-file-text-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/metisMenu/dist/metisMenu.css" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+
+    @Styles.Render("~/bundles/select2/css")
+}
+
+@*laura actualizacion*@
+<div class="panel-body">
+    <div class="panel-heading" style="background-color: white; border: solid 1px; border-color: #e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top: 0px;">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-check fa-2x"></i> @TempData["mensaje"]
+                </p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]
+                </p>
+            </div>
+        }
+        @if (TempData["mensaje_obligatorios"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    @Html.Raw(@TempData["mensaje_obligatorios"])
+                </p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active">
+                    <a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Crear</a>
+                </li>
+                <li class="">
+                    <a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a>
+                </li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-btns text-right">
+                        <a href="../../vpedidos" class="btn btn-info" id="btnCancelar" type="button"><i class="fa fa-reply"></i>&nbsp;&nbsp;&nbsp;Cancelar</a>
+                        <button type="button" class="btn btn-info" id="btnGuardarSimulacion" @*style="display: none"*@ onclick="validarObligatorios()"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                    </div>
+
+                    @using (Html.BeginForm())
+                    {
+                        // @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color: #e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                    </div>
+                                    <i class="fa fa-user"></i> Datos Generales
+                                </div>
+                                <div class="panel-body">
+
+                                    @if (ViewBag.numpedido != null)
+                                    {
+                                        <div class="col-sm-10">
+                                            <div class="form-group">
+                                                <label class="control-label label label-info" style="font-size: 13px">Número de Pedido: @ViewBag.numpedido&nbsp;</label>
+                                                <div class="col-md-6">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número de Cotización: &nbsp;</label>
+                                            <div class="col-md-6">
+                                                @*@Html.DropDownList("idcotizacion", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })*@
+                                                <select id="idcotizacion" name="idcotizacion" class="form-control js-source-states">
+                                                    <option></option>
+                                                    @foreach (var item in ViewBag.idcotizacion)
+                                                    {
+                                                        <option value="@item.cot_idserial">@item.cot_numcotizacion - ( @item.icb_terceros.doc_tercero ) @item.icb_terceros.prinom_tercero @item.icb_terceros.segnom_tercero @item.icb_terceros.apellido_tercero @item.icb_terceros.segapellido_tercero @item.icb_terceros.razon_social</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <div id="div_nit">
+                                                <label class="control-label col-md-4">Cédula / Nit:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("nit", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.nit, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                            <label id="mns_clienteNoExiste" style="display: none" target="_blank" class="control-label col-md-12 text-warning"></label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12"></div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <input type="hidden" style="display: none" id="idTercero" />
+                                            <dl class="dl-horizontal">
+                                                <dt>Nombres: </dt>
+                                                <dd id="nombre"></dd>
+                                                <dt>Ciudad: </dt>
+                                                <dd id="ciudad"></dd>
+                                                @*<dt>Sector: </dt>
+                                                    <dd id="sector"></dd>*@
+                                                <dt>Telefono: </dt>
+                                                <dd id="telefono"></dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <dl class="dl-horizontal">
+                                                <dt>Correo: </dt>
+                                                <dd id="correo"></dd>
+                                                <dt>Dirección: </dt>
+                                                <dd id="direccion"></dd>
+                                                <dt>Celular: </dt>
+                                                <dd id="celular"></dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="divNit2">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cédula / Nit Asegurado:</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("nit_asegurado", null, "Seleccione", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.nit_asegurado, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="divNit2">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cédula / Nit 2:</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("nit2", null, "Seleccione", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.nit2, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="divNit3">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cédula / Nit 3:</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("nit3", null, "Seleccione", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.nit3, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="divNit4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cédula / Nit 4:</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("nit4", null, "Seleccione", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.nit4, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="divNit5">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cédula / Nit 5:</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("nit5", null, "Seleccione", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.nit5, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Asesor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @if (ViewBag.Permiso2 == 1)
+                                                {
+                                                    @Html.DropDownList("vendedor", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", /*required = "required"*/})
+                                                    @Html.ValidationMessageFor(model => model.vendedor, "", new { @class = "text-danger" })
+                                                }
+                                                else
+                                                {
+                                                    @Html.HiddenFor(model => model.vendedor, new { @class = "form-control" })
+                                                    @Html.Editor("nombreAsesor", new { htmlAttributes = new { @class = "form-control", @readonly = "readonly", placeholder = ViewBag.nombreAsesor, @name = "nombreAsesor" } })
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Código Flota:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("codflota", null, "Seleccione", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                @*<select class="form-control js-source-states" name="codflota" id="codflota">
+                                                        <option value="">Seleccione</option>
+                                                        @foreach (var item in ViewBag.codflota)
+                                                        {
+                                                            <option value="@item.id">@item.codigo  @item.Descripcion</option>
+                                                        }
+                                                    </select>*@
+                                            </div>
+                                            <span class="control-label col-md-6" id="nitFlota"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="flotaNumero">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número Flota:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("flota", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.flota, "", new { @class = "text-danger" })
+                                                <button class="btn btn-info btn-xs" style="display: none" type="button" data-toggle="modal" data-target="#modal_doc_flotas" id="div_abrir_modal">Ver Documentos</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12" id="modal_doc_flotas" style="display: none">
+                                        <div class="hpanel">
+                                            <div class="panel-heading hbuilt" style="background-color: #e4e5e7">
+                                                <div class="panel-tools">
+                                                    <a class="showhide">
+                                                        <i class="fa fa-chevron-up"></i>
+                                                    </a>
+                                                </div>
+                                                Documentos requeridos para la flota
+                                            </div>
+                                            <div class="panel-body">
+                                                <small class="font-bold">Seleccione los documentos que se encuentren listos para entregar</small><br /><br />
+                                                <div class="table-responsive">
+                                                    <table class="table table-striped table-bordered table-hover" id="tabla_doc_flotas">
+                                                        <thead>
+                                                            <tr>
+                                                                <th style="text-align: center">Seleccione</th>
+                                                                <th style="text-align: center">Documento</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody></tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            @*panel de seleccion de vehiculos cotizados*@
+                            <div class="hpanel" id="div_vhcotizados">
+                                <div class="panel-heading hbuilt" style="background-color: #e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                    </div>
+                                    <i class="fa fa-check-square" aria-hidden="true"></i> Vehículos Cotizados
+                                </div>
+                                <div class="panel-body">
+                                    <div class="panel-body-busqueda">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar">
+                                                <p>Por favor selecione un vehículo</p>
+                                            </div>
+                                            <table class="table table-striped table-bordered table-hover" id="tablaVehiculos">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align: center">Seleccione</th>
+                                                        <th style="text-align: center">Modelo</th>
+                                                        <th style="text-align: center">Año Modelo</th>
+                                                        <th style="text-align: center">Precio</th>
+                                                        <th style="text-align: center">Color</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td align="center">
+                                                            <input class="vhseleccion" type="radio" name="vhseleccion" value="Ninguno" />
+                                                        </td>
+                                                        <td align="center" colspan="4">Ninguno</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <div class="panel-body-btns text-right">
+                                                <button class="btn btn-info" type="button" onclick="enviarSeleccion()" id="enviarSeleccionx"><i class="fa fa-check"></i>&nbsp;&nbsp;&nbsp;Aceptar</button>
+                                            </div>
+                                            @*<div class="row" hidden id="obligatorioSeleccion">
+                                                    <p>Por favor selecione una cotizacion o seleccione una cedula, depende del caso</p>
+                                                </div>*@
+                                            <div class="alert alert-danger" hidden role="alert" id="obligatorioSeleccion">
+                                                Por favor selecione una cotización o seleccione una cedúla y seleccione un asesor...
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="div_datospedido" style="display: none">
+                                <div class="panel-heading hbuilt" style="background-color: #e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                    </div>
+                                    <i class="fa fa-check-square" aria-hidden="true"></i> Datos Pedido
+                                </div>
+
+                                <div class="panel-body" id="vehiculo1">
+
+                                    <div class="text-center m-b-md" id="wizardControl">
+                                        <a class="btn btn-primary vehiculo" href="#vehiculo" data-toggle="tab">Vehículo</a>
+                                        <a class="btn btn-default accesorios" href="#accesorios" data-toggle="tab">Accesorios</a>
+                                        <a class="btn btn-default retomas" href="#retomas" data-toggle="tab">Retomas</a>
+                                        <a class="btn btn-default retomas" href="#costos" data-toggle="tab">Costos Adiciones</a>
+                                        <a class="btn btn-default formaDepago" href="#formaDepago" data-toggle="tab">Forma de pago</a>
+                                        @*<a class="btn btn-default negocioIntegral" href="#negocioIntegral" data-toggle="tab">Negocio Integral</a>*@
+                                    </div>
+
+                                    <div class="tab-content">
+                                        <div id="vehiculo" class="p-m tab-pane active">
+                                            <div class="row" id="vhcotizado">
+                                                <div class="col-lg-3 text-center">
+                                                    <i class="fa fa-car big-icon text-muted"></i>
+                                                    <p class="small m-t-md">Registre los datos del vehículo</p><br />
+                                                    <div class="vhcotizado" style="display: none">
+                                                        <label>Tipo Vehículo:&nbsp;</label>
+                                                        <h4 id="tipo_vh"></h4>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-9">
+                                                    <div class="row">
+                                                        <div class="form-group col-lg-12 vhotro" style="display: none">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Tipo Vehículo: &nbsp;<span class="text-danger">*</span></label>
+                                                                <div class="col-md-3">
+                                                                    <input type="radio" name="tipoVh" value="Nuevo" id="nuevo" checked="checked">&nbsp;&nbsp;Nuevo<br>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <input type="radio" name="tipoVh" value="Usado" id="usado">&nbsp;&nbsp;Usado<br>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-sm-6" @*style="display: none"*@>
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Marca:&nbsp;<span class="text-danger">*</span></label>
+                                                                <div class="col-md-7">
+                                                                    @Html.DropDownList("marcvh_id", null, "", new { @class = "form-control js-source-states", @placeholder = "Seleccione", @name = "marcvh_id" /*@required = "required"*/})
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-5">Modelo: <span class="text-danger">*</span></label>
+                                                                <div class="col-md-7">
+                                                                    @Html.DropDownList("modelo", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", @name = "modelo"/*required = "required"*/})
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Año Modelo: <span class="text-danger">*</span></label>
+                                                                <div class="col-md-7">
+                                                                    @Html.DropDownList("id_anio_modelo", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-5">Color Deseado: </label>
+                                                                <div class="col-md-7">
+                                                                    @Html.DropDownList("Color_Deseado", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Color Opcional:</label>
+                                                                <div class="col-md-7">
+                                                                    @Html.DropDownList("color_opcional", null, "Seleccione", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-5">Terminación Placa:</label>
+                                                                <div class="col-md-7">
+                                                                    @Html.EditorFor(model => model.rango_placa, new { htmlAttributes = new { @class = "form-control" } })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Servicio: <span class="text-danger">*</span></label>
+                                                                <div class="col-md-7">
+                                                                    @Html.DropDownList("servicio", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", @name = "servicio"/*required = "required"*/})
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Par</label>
+                                                                <div class="col-md-2">
+                                                                    @Html.CheckBoxFor(model => model.placapar, new { data_toggle = "toggle", data_size = "mini" })
+                                                                </div>
+                                                                <label class="control-label col-md-3">Impar</label>
+                                                                <div class="col-md-2">
+                                                                    @Html.CheckBoxFor(model => model.placaimpar, new { data_toggle = "toggle", data_size = "mini" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Departamento matrícula:</label>
+                                                                <div class="col-md-7">
+                                                                    @Html.DropDownListFor(model => model.iddepartamento, ViewBag.iddepartamento.Items as List<SelectListItem>, "Seleccione", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                                    @Html.ValidationMessageFor(model => model.iddepartamento, "", new { @class = "text-danger" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-5">Ciudad matrícula:&nbsp;</label>
+                                                                <div class="col-md-7">
+                                                                    @Html.DropDownListFor(model => model.idciudad, Enumerable.Empty<SelectListItem>(), "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                                    @Html.ValidationMessageFor(model => model.idciudad, "", new { @class = "text-danger" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Nit Prenda:</label>
+                                                                <div class="col-md-7">
+                                                                    @Html.DropDownList("nit_prenda", null, "Seleccione", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group col-lg-12">
+                                                        <hr />
+                                                    </div>
+
+                                                    <div class="col-sm-12">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-1 text-primary">Matricula</label>
+                                                            <label class="control-label col-md-2">A cargo de:</label>
+                                                            <div class="col-md-3">
+                                                                @Html.DropDownList("cargomatricula", null, "", new { @class = "form-control js-source-states ", placeholder = "Seleccione" })
+                                                            </div>
+                                                            <div id="divValorMatricula" style="display: none">
+                                                                <label class="control-label col-md-2">Valor Matricula: $</label>
+                                                                <div class="col-md-3">
+                                                                    <input type="hidden" name="matriculaOculto" id="matriculaOculto" class="form-control" value="" />
+                                                                    @Html.EditorFor(model => model.valormatricula, new { htmlAttributes = new { @class = "form-control number valorMatricula ", style = "text-align:right", onkeyUp = "return miles(this.id)", onchange = "calcular_valor_total()" } })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-12">
+                                                        <div class="form-group">
+                                                            <div class="col-md-6"></div>
+                                                            <div id="divPorcObsequio" style="display: none">
+                                                                <label class="control-label col-md-2">% Obsequio:</label>
+                                                                <div class="col-md-3">
+                                                                    @Html.EditorFor(model => model.obsequioporcen, new { htmlAttributes = new { @class = "form-control", style = "text-align:right", onchange = "calcular_valor_total()" } })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group col-lg-12">
+                                                        <hr />
+                                                    </div>
+
+                                                    @*<div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-5">Bono: $</label>
+                                                                <div class="col-md-7">
+                                                                    @Html.EditorFor(model => model.bono, new { htmlAttributes = new { @class = "form-control" , @type="number", @style = "text-align:right" } })
+                                                                </div>
+                                                            </div>
+                                                        </div>*@
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-5">Valor Poliza: $</label>
+                                                            <div class="col-md-7">
+                                                                @Html.EditorFor(model => model.valorPoliza, new { htmlAttributes = new { @class = "form-control number", type = "text", style = "text-align:right", onkeyUp = "return miles(this.id)", onchange = "calcular_valor_total()" } })
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-4">Valor Unitario: $</label>
+                                                            <div class="col-md-7">
+                                                                @Html.EditorFor(model => model.valor_unitario, new { htmlAttributes = new { @class = "form-control number suma", type = "text", style = "text-align:right", onkeyUp = "return miles(this.id)", onchange = "calcular_valor_total()" } })
+                                                                @Html.ValidationMessageFor(model => model.valor_unitario, "", new { @class = "text-danger" })
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-5">SOAT: $</label>
+                                                            <div class="col-md-7">
+                                                                @Html.EditorFor(model => model.valorsoat, new { htmlAttributes = new { @class = "form-control number", type = "text", style = "text-align:right", onkeyUp = "return miles(this.id)", onchange = "calcular_valor_total()" } })
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-4">% Descuento:</label>
+                                                            <div class="col-md-3">
+                                                                @Html.EditorFor(model => model.pordscto, new { htmlAttributes = new { @readonly = "true", @class = "form-control", type = "number", style = "text-align:right", min = "0", max = "100", pattern = "^[0-9]+", onchange = "calcular_valor_total()" } })
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                @Html.EditorFor(model => model.vrdescuento, new { htmlAttributes = new { @class = "form-control resta", @readonly = "", style = "text-align:right" } })
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-5">Tipo Carroceria: </label>
+                                                            <div class="col-md-7">
+                                                                @Html.DropDownList("tipo_carroceria", null, "", new { @class = "form-control js-source-states ", placeholder = "Seleccione" })
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6"></div>
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-4">% Iva :</label>
+                                                            <div class="col-md-3">
+                                                                @Html.EditorFor(model => model.porcentaje_iva, new { htmlAttributes = new { @class = "form-control", type = "number", style = "text-align:right", readOnly = "readonly", onchange = "calcular_valor_total()" } })
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <input class="form-control suma" id="valor_iva" value="" disabled style="text-align: right" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-5">Valor Carroceria: $</label>
+                                                            <div class="col-md-7">
+                                                                @Html.EditorFor(model => model.vrcarroceria, new { htmlAttributes = new { @class = "form-control number", type = "text", style = "text-align:right", onkeyUp = "return miles(this.id)", onchange = "calcular_valor_total()" } })
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6"></div>
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-4">% Impuesto Consumo:</label>
+                                                            <div class="col-md-3">
+                                                                @Html.EditorFor(model => model.porcentaje_impoconsumo, new { htmlAttributes = new { @class = "form-control", type = "number", style = "text-align:right", readOnly = "readonly" } })
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <input class="form-control suma" id="valor_impuesto" value="" style="text-align: right" disabled />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    @*<div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-5">Otros Valores: $</label>
+                                                                <div class="col-md-7">
+                                                                    @Html.EditorFor(model => model.otrosValores, new { htmlAttributes = new { @class = "form-control number", @type = "text", @style = "text-align:right", @onkeyUp = "return miles(this.id)" } })
+                                                                </div>
+                                                            </div>
+                                                        </div>*@
+
+                                                    <div class="col-md-6"></div>
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-4">Valor Total: $</label>
+                                                            <div class="col-md-7">
+                                                                @Html.EditorFor(model => model.vrtotal, new { htmlAttributes = new { @class = "form-control", @readonly = "", style = "text-align:right" } })
+                                                                @Html.ValidationMessageFor(model => model.vrtotal, "", new { @class = "text-danger" })
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group col-lg-12">
+                                                        <hr />
+                                                    </div>
+
+                                                    <div class="form-group col-lg-12">
+                                                        <label>Observaciones: </label>
+                                                        @Html.TextAreaFor(model => model.notas1, new RouteValueDictionary(new { @class = "someClass", style = "width: 100%; height:50px;" }))
+                                                    </div>
+                                                    @*<div id="ocultar">  ------------!!!!!!!! Se solicita eliminar esta parte ticket 1571 ¡¡¡¡¡¡¡¡¡¡¡¡----------------
+                                                            <div class="form-group col-lg-3">
+                                                                <label>Es Canje: </label>
+                                                                @Html.CheckBoxFor(model => model.escanje, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                            </div>
+
+                                                            <div class="form-group col-lg-3">
+                                                                <label>Es Chevyplan: </label>
+                                                                @Html.CheckBoxFor(model => model.eschevyplan, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                            </div>
+
+                                                            <div class="form-group col-lg-3">
+                                                                <label>Es Reposición: </label>
+                                                                @Html.CheckBoxFor(model => model.esreposicion, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                            </div>
+
+                                                            <div class="form-group col-lg-3">
+                                                                <label>Es Leasing: </label>
+                                                                @Html.CheckBoxFor(model => model.esLeasing, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                            </div>
+
+                                                            <div class="form-group col-lg-3">
+                                                                <label>Venta Gerencia:&nbsp;&nbsp; </label>
+                                                                @Html.CheckBoxFor(model => model.venta_gerencia, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                            </div>
+                                                        </div>*@
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="formaDepago" class="p-m tab-pane">
+                                            <div class="col-lg-12">
+                                                <center>
+                                                    <label class="label label-primary" style="font-size: 14px">Créditos solicitados por el cliente</label>
+                                                </center>
+                                            </div>
+                                            <div class="row" id="tieneCreditos" style="display: none">
+                                                <div class="col-lg-12">
+                                                    <input type="hidden" id="idcreditoseleccionado" name="idcreditoseleccionado" value="" />
+                                                    <div class="table-responsive">
+                                                        <div id="div-mensaje-buscar"></div>
+                                                        <table class="table table-striped table-bordered table-hover" id="tablatieneCreditos">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="text-align: center">Selecion</th>
+                                                                    <th style="text-align: center">Fecha Solicitud</th>
+                                                                    <th style="text-align: center">Estado</th>
+                                                                    <th style="text-align: center">Valor Solicitado</th>
+                                                                    <th style="text-align: center">Valor Aprobado</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-3 text-center">
+                                                    <i class="fa fa-credit-card-alt big-icon text-muted"></i>
+                                                    <p class="small m-t-md">
+                                                        Registrar Formas de Pago
+                                                    </p>
+                                                    <input type="hidden" value="" name="lista_pagos" id="lista_pagos" />
+                                                </div>
+                                                <div class="col-lg-9" id="pagos">
+                                                    <div class="row">
+                                                        <div class="form-group col-md-6">
+                                                            <input type="hidden" class="form-control" id="parametros" value="" />
+                                                            <label>Forma de pago: &nbsp;<span class="text-danger">*</span></label>
+                                                            <select class="multiselect-ui form-control fpago_select" id="slcCondicion">
+                                                                <option value=""></option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="form-group col-md-6">
+                                                            <label>Valor $:&nbsp;<span class="text-danger">*</span></label>
+                                                            <input class="form-control number fpago_input" id="txtValor" onkeyUp="return miles(this.id)" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="form-group col-md-6">
+                                                            <label>Fecha a Pagar <span class="text-danger">*</span></label>
+                                                            <input class="form-control  fecha_formapago fpago_input" id="txtFecpago" value="" />
+                                                        </div>
+                                                        <div class="form-group col-md-6">
+                                                            <label>Banco </label>
+                                                            <select class="multiselect-ui form-control fpago_select" id="slcBanco">
+                                                                <option value=""></option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="form-group col-md-6">
+                                                            <label>Observaciones </label>
+                                                            <textarea class="form-control fpago_input" id="txtObservacion"></textarea>
+                                                        </div>
+                                                        <div class="form-group col-md-1 btn">
+                                                            <div class="panel-body-btns text-right">
+                                                                <button id="btnAgregar" class="btn btn-success" type="button" onclick="agregarPago()"><i class="fa fa-plus"></i> Agregar</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <label class="label label-primary" style="font-size: 14px">Valor Faltante: <span id="txt_valor_faltante"></span></label>
+                                                </div>
+                                                <div class="row">
+                                                    <small><b>Nota:</b> No puede guardar el pedido hasta que el valor faltante sea 0</small>
+                                                </div>
+                                                <div class="col-lg-12">
+                                                    <div class="table-responsive">
+                                                        <div id="div-mensaje-buscar"></div>
+                                                        <table class="table table-striped table-bordered table-hover" id="tablaPagos">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="text-align: center">Forma de pago</th>
+                                                                    <th style="text-align: center">Valor</th>
+                                                                    <th style="text-align: center">Fecha a Pagar</th>
+                                                                    <th style="text-align: center">Banco</th>
+                                                                    <th style="text-align: center">Observaciones</th>
+                                                                    <th style="text-align: center">Acciones</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="tablaPagosBody"></tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-offset-6 col-md-offset-6 col-lg-offset-6">
+                                                    <button type="button" class="btn btn-info" @*style="display: none"*@ id="btnGuardarSimulacion2" onclick="validarObligatorios()"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="accesorios" class="p-m tab-pane">
+                                            <div class="row">
+                                                <div class="col-lg-3 text-center">
+                                                    <i class="fa fa-wrench big-icon text-muted"></i>
+                                                    <p class="small m-t-md">Registrar los accesorios</p><br />
+                                                    <input type="hidden" value="" name="lista_repuestos" id="lista_repuestos" />
+                                                </div>
+                                                <div class="col-lg-9" id="repuestos">
+
+                                                </div>
+                                                <div class="col-lg-12">
+                                                    <div class="table-responsive">
+                                                        <div id="div-mensaje-buscar"></div>
+                                                        <table class="table table-striped table-bordered table-hover" id="tablaRepuestos">
+                                                            <thead>
+                                                                <tr>
+                                                                    @*<th style="text-align:center">Código</th>*@
+                                                                    <th style="text-align: center">Accesorio</th>
+                                                                    <th style="text-align: center">Obsequio</th>
+                                                                    <th style="text-align: center">Valor</th>
+                                                                    <th style="text-align: center">Descuento</th>
+                                                                    <th style="text-align: center">Cantidad</th>
+                                                                    <th style="text-align: center">Total</th>
+                                                                    <th style="text-align: center">Acción</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <div id="retomas" class="p-m tab-pane">
+                                            <div class="row">
+                                                <div class="col-lg-3 text-center">
+                                                    <i class="fa fa-bus big-icon text-muted"></i>
+                                                    <p class="small m-t-md">Registro de Retomas</p><br />
+                                                </div>
+                                                <input type="hidden" name="lista_retomas" id="lista_retomas" />
+                                                <div class="col-lg-9" id="divRetomas">
+                                                </div>
+                                                <div class="col-lg-12">
+                                                    <div class="table-responsive">
+                                                        <div id="div-mensaje-buscar"></div>
+                                                        <table class="table table-striped table-bordered table-hover" id="tablaRetomas">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="text-align: center">Modelo</th>
+                                                                    <th style="text-align: center">Placa</th>
+                                                                    <th style="text-align: center">Kilometraje</th>
+                                                                    <th style="text-align: center">Valor</th>
+                                                                    <th style="text-align: center">Obligaciones</th>
+                                                                    <th style="text-align: center">Valor Obligaciones</th>
+                                                                    <th style="text-align: center">Acción</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="costos" class="p-m tab-pane">
+                                            <div class="row">
+                                                <div class="col-lg-3 text-center">
+                                                    <i class="fa fa-wrench big-icon text-muted"></i>
+                                                    <p class="small m-t-md">Registrar los costos adicionales</p><br />
+                                                    <input type="hidden" value="" name="lista_costos" id="lista_costos" />
+                                                </div>
+                                                <div class="col-lg-9" id="repuestos">
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-4">Descripción:&nbsp;<span class="text-danger">*</span></label>
+                                                            <div class="col-md-6">
+                                                                <input name="txtDescripcion_costo" type="text" id="txtDescripcion_costo" class="form-control" value="" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-2">Valor:&nbsp;<span class="text-danger">*</span></label>
+                                                            <div class="col-md-6">
+                                                                <input name="txtValor_costo" id="txtValor_costo" type="text" class="form-control number" value="0" onkeyUp="return miles(this.id)" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-4">Obsequio:&nbsp;<span class="text-danger">*</span></label>
+                                                            <div class="col-md-6">
+                                                                <input name="txtObsequio_costo" type="checkbox" id="txtObsequio_costo" data-toggle="toggle" , data-size="mini" value="true" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <button class="btn btn-success" type="button" onclick="agregarCostos()"><i class="fa fa-plus"></i> Agregar</button>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                                <div class="col-lg-12">
+                                                    <div class="table-responsive">
+                                                        <div id="div-mensaje-buscar"></div>
+                                                        <table class="table table-striped table-bordered table-hover" id="tablaCostos">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="text-align: center">Descripcion</th>
+                                                                    <th style="text-align: center">Obsequio</th>
+                                                                    <th style="text-align: center">Valor</th>
+                                                                    <th style="text-align: center">Acción</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="m-t-md">
+                                                <div class="panel-body-btns text-right">
+                                                    <input type="hidden" name="formas_depago_json" id="formas_depago_json" value="" />
+                                                    <input type="hidden" name="accesorios_json" id="accesorios_json" value="" />
+                                                    <input type="hidden" name="costos_json" id="costos_json" value="" />
+                                                    <button type="button" class="btn btn-info" id="btnGuardarSimulacion" @*style="display: none"*@ onclick="validarObligatorios()"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                                                    <button class="btn btn-info" id="btnGuardar" type="submit" style="display: none"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @*modal documentos flotas*@
+                        @*<div class="modal fade hmodal-info" id="modal_doc_flotas" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="color-line"></div>
+                                        <div class="modal-header text-center">
+                                            <h4 class="modal-title">Documentos Flotas</h4>
+                                            <small class="font-bold">Seleccione los documentos que se encuentren listos para entregar</small><br />
+                                        </div>
+                                        <div class="modal-body">
+                                            <small class="font-bold">Seleccione los documentos que se encuentren listos para entregar</small><br /><br />
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-bordered table-hover" id="tabla_doc_flotas">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="text-align:center">Seleccione</th>
+                                                            <th style="text-align:center">Documento</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                                            <button type="button" id="btnGuardarDocumentos" data-dismiss="modal" class="btn btn-primary">Aceptar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>*@
+                    }
+                </div>
+
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: center"># Pedido</th>
+                                        <th style="text-align: center">Bodega</th>
+                                        <th style="text-align: center">Asesor</th>
+                                        <th style="text-align: center">Modelo</th>
+                                        @*<th style="text-align:center">Valor total</th>*@
+                                        <th style="text-align: center">Cliente</th>
+                                        <th style="text-align: center">Fecha</th>
+                                        <th style="text-align: center">Fuente</th>
+                                        <th style="text-align: center">Subfuente</th>
+                                        <th style="text-align: center">Plan Mayor</th>
+                                        <th style="text-align: center">Fecha Asignación</th>
+                                        <th style="text-align: center">Facturado</th>
+                                        <th style="text-align: center"># Factura</th>
+                                        <th style="text-align: center">Anulado</th>
+                                        <th style="text-align: center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+</div>
+
+@*modal afregar pago erroneo*@
+<div class="modal fade" id="modal_agregarPago" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Error Campos Obligatorios</h5>
+            </div>
+            <div class="modal-body">
+                Por favor diligencie los campos marcados con (*), estos son obligatorios; O la forma de pago seleccionada requiere seleccion de un banco
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal Pedido registrado*@
+<div id="modalPedido" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Pedido registrado con éxito</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align: center;">
+                    <h4>Se registro el pedido con el número</h4>
+                    <h3>
+                        <span class="label label-default">@ViewBag.numPedidoCreado</span>
+                    </h3>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal porcentaje erroneo*@
+<div class="modal fade" id="modal_porcentajes" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Error en porcentaje</h5>
+            </div>
+            <div class="modal-body">
+                El valor del porcentaje no puede ser mayor a 100
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/moment/min/moment.min.js">
+    </script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.js"></script>
+    <script src="~/Scripts/js/gestion_vpedidos.js?fecha=ViewBag.parametro"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#menu').val(@ViewBag.id_menu);
+            if (@ViewBag.rol == 1 || @ViewBag.rol == 14 || @ViewBag.rol == 2036) {
+                $('#pordscto').prop('readonly', false);
+            }
+        });
+
+        function valida(id) {
+            window.location.href = `@Url.Action("Edit", "vpedidos")?menu=${@ViewBag.id_menu}&id=${id}`;
+        }
+
+        function seguimiento(id) {
+            window.location.href = `@Url.Action("Seguimiento", "vpedidos")?menu?${@ViewBag.id_menu}&id=${id}`;
+        }
+
+        function icbTerceros(id_tercero) {
+            window.location.href = `@Url.Action("Seguimiento", "vpedidos")?menu=${@ViewBag.id_menu}&id=${id}`;
+            window.location.href = `@Url.Action("update", "icb_terceros")?id=${data.cot[0].id_tercero}`;
+        }
+
+        function AgregarQuitarFavorito() {
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+    </script>
+
+}
+
+@if (TempData["mensaje"] != null)
+{
+    <script type="text/javascript">
+        $('#modalPedido').show();
+    </script>
+}
+
+@*@if (TempData["mensaje"] != null)
+    {
+        <script type="text/javascript">
+            window.open('@Url.Action("FacturaProforma", "vpedidos")?id='+@ViewBag.pedidoId, '_blank');
+        </script>
+    }*@

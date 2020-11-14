@@ -1,0 +1,361 @@
+﻿@model IEnumerable<Homer_MVC.IcebergModel.rprecarga>
+
+@{
+    ViewBag.Title = "Compra de Repuestos y Accesorios";
+    ViewBag.Icono = "fa fa-address-book-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+            <div id="hbreadcrumb" class="pull-right">
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+    <div id="tabs" class="tab-content">
+        <div class="m float-e-margins text-right">
+            <div class="tooltip-demo">
+                <div id="div-mensaje"></div>
+            </div>
+        </div>
+
+        <ul id="tabs-crear" class="nav nav-tabs">
+            <li class=""><a href="@Url.Action("Index","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-arrow-circle-up"></i>&nbsp;&nbsp;Pre Cargue</a></li>
+            <li class=""><a href="@Url.Action("BrowserpreCargue","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Buscar PreCargue</a></li>
+            <li class=""><a href="@Url.Action("ComprasRealizadas","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-cart-arrow-down"></i>&nbsp;&nbsp;Compras Realizadas</a></li>
+            <li class="active"><a data-toggle="tab" href="#guardarPreCargue"><i class="fa fa-save"></i>&nbsp;&nbsp;Guardar PreCargue</a></li>
+            @*<li class=""><a href="@Url.Action("BrowserBackorder","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-history"></i>&nbsp;&nbsp;BackOrder</a></li>*@
+        </ul>
+
+        <div id="guardarPreCargue" class="tab-pane active">
+            <div class="panel-body">
+
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                        Detalle Archivo
+                    </div>
+                    <div class="panel-body list">
+                        <row>
+                            <label class="label label-primary" style="font-size: 16px"># Consecutivo: @ViewBag.numero</label>
+                            <label class="label label-success" style="font-size: 16px">Valor total: $ <span class="precio"> @Convert.ToInt32(ViewBag.valor_total)</span></label>
+                            <label class="label label-warning" style="font-size: 16px">Fecha: @ViewBag.fecha</label><br /><br />
+                            @*<div class="panel-body-btns text-right">
+                                <button class="btn btn-primary text-right btn-sm" type="button" onclick="Comprar()"><i class="fa fa-cart-plus"></i> Comprar</button>
+                            </div>*@
+                        </row>
+                        <row>
+                            <button type='button' class='btn btn-xs btn-danger2'><i class='fa fa-exclamation-circle'></i> No Existe en inventario</button>
+                            <button type='button' class='btn btn-xs btn-success'><i class='fa fa-check-circle'> Existe en inventario</i></button>
+                        </row>
+                        @using (Html.BeginForm("guardarPreCargue", "compraRepuestos", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                        {
+
+                            @Html.Hidden("menu")
+
+                            <div class="table-responsive project-list">
+                                <table class="table table-striped table-bordered" id="tablaPreCargue">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" @*style="width: 15%"*@>Código</th>
+                                            <th class="text-center" @*style="width: 15%"*@>Descripción</th>
+                                            <th class="text-center" @*style="width: 10%"*@>Fecha</th>
+                                            <th class="text-center">% iva</th>
+                                            <th class="text-center" @*style="width: 11%"*@>Documento</th>
+                                            <th class="text-center" @*style="width: 7%"*@># Pedido Interno</th>
+                                            <th class="text-center"># Pedido GM</th>
+                                            @*<th class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>*@
+                                            <th class="text-center" @*style="width: 9%"*@>Valor Unitario</th>
+                                            <th class="text-center" @*style="width: 10%"*@>Valor Total</th>
+                                            <th class="text-center">Cantidad pedido</th>
+                                            <th class="text-center">Cantidad Facturada</th>
+                                            <th class="text-center">Costo promedio</th>
+                                            <th class="text-center">Precio</th>
+                                            <th class="text-center">Cantidad Recibida</th>
+                                            <th class="text-center" @*style="width: 1%"*@>R <br /><i class="fa fa-info text-primary" title="Recibido"></i></th>
+                                            <th class="text-center" @*style="width: 1%"*@>D.C <br /><i class="fa fa-info text-primary" title="Diferencia en cantidades"></i></th>
+                                            <th class="text-center" @*style="width: 1%"*@>D.V <br /><i class="fa fa-info text-primary" title="Diferencia en valores"></i></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                                <div class="panel-body-btns text-right">
+                                    <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                                </div>
+                            </div>}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+    </div>
+</div>
+<div id="modalCargandoInfo" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title" id="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center" id="cargando"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            cargarDatosPrecargue();
+            $('#modalCargandoInfo').modal({ backdrop: 'static', keyboard: false });
+            $("form").keypress(function(e) {
+                if (e.which == 13) {
+                    return false;
+                }
+            });
+        });
+
+        function cargarDatosPrecargue() {
+            $.ajax({
+                url: '/compraRepuestos/cargarDatosPrecargue',
+                data: {
+                    numero: @ViewBag.numero,
+                },
+                type: "post",
+                cache: false,
+                beforeSend: function () {
+                    $('#modalCargandoInfo').modal();
+                    $('#modal-title').html('Cargando...');
+                    $('#cerrarmodalCargandoInfo').prop('disabled', true);
+                    $('#cargando')
+                        .html(
+                            '<img  style="height:50px; width:50px;" src="/Images/engranaje-eje-paralelo-2.gif" /><br/> <h3>Cargando...<h3/>');
+                },
+                success: function (data) {
+                    $('#tablaPreCargue').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        var boton = "";
+                         var boton2 = "";
+                        if (data[i].existe == 1) {
+                            boton = "<button type='button' class='btn btn-xs btn-success'><i class='fa fa-check-circle'></i></button>";
+                            /*if (data[i].perfilcontable == 1) {
+                                boton = "<button type='button' class='btn btn-xs btn-success'><i class='fa fa-check-circle'></i></button>";
+                            } else {
+                                boton = "<button type='button' class='btn btn-xs btn-danger2'><i class='fa fa-exclamation-circle'></i></button>";
+                            }*/
+                        } else {
+                             boton = "<button type='button' class='btn btn-xs btn-danger2'><i class='fa fa-exclamation-circle'></i></button>";
+                        }
+                        if (data[i].codigo == "") {
+                            boton = "";
+                        }                        
+                        $('#tablaPreCargue').find('tbody').append('<tr id="row' + i + '">'
+                            + '<td align="right">'
+                            + '<input type="hidden" id="id" name="id" class="form control" value="' + data[i].id + '" />'
+                            + '<input type="hidden" id="codigo' + data[i].id + '" name="codigo' + data[i].id + '" class="form-control" value="' + data[i].codigo + '" />'
+                            + data[i].codigo
+                            + '&nbsp;'+boton+'</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="descripcion' + data[i].id + '" name="descripcion' + data[i].id + '" class="form-control" readonly value="' + data[i].descripcion + '" />'
+                            + data[i].descripcion
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="fecha' + data[i].id + '" name="fecha' + data[i].id + '" class="form-control" readonly value="' + data[i].fecha + '" />'
+                            + data[i].fecha
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="poriva' + data[i].id + '" name="poriva' + data[i].id + '" class="form-control" readonly value="' + data[i].iva + '" />'
+                            + data[i].iva
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="documento' + data[i].id + '" name="documento' + data[i].id + '" class="form-control" readonly value="' + data[i].documento + '" />'
+                            + data[i].documento
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="pedidoint' + data[i].id + '" name="pedidoint' + data[i].id + '" class="form-control" readonly value="' + data[i].pedidoint + '" />'
+                            + data[i].pedidoint
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="pedidogm' + data[i].id + '" name="pedidogm' + data[i].id + '" class="form-control" readonly value="' + data[i].pedidogm + '" />'
+                            + data[i].pedidogm
+                            + '</td>'
+                            //+'<td align="left">'
+                            //    + '<input type="hidden" id="valor_totalenca" name="valor_totalenca" class="form-control" readonly value="'+data[i].valor_totalenca+'" />'
+                            //    +data[i].valor_totalenca
+                            //+'</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="valor_unitario' + data[i].id + '" name="valor_unitario' + data[i].id + '" class="form-control" readonly value="' + data[i].valor_unitario + '" />'
+                            + addComas(data[i].valor_unitario)
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="valor_total' + data[i].id + '" name="valor_total' + data[i].id + '" class="form-control" readonly value="' + data[i].valor_total + '" />'
+                            + addComas(data[i].valor_total)
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="cant_ped' + data[i].id + '" name="cant_ped' + data[i].id + '" class="form-control" readonly value="' + data[i].cant_ped + '" />'
+                            + addComas(data[i].cant_ped)
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="cant_fact' + data[i].id + '" name="cant_fact' + data[i].id + '" class="form-control" readonly value="' + data[i].cant_fact + '" />'
+                            + addComas(data[i].cant_fact)
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="Promedio' + data[i].id + '" name="Promedio' + data[i].id + '" class="form-control" readonly value="' + data[i].Promedio + '" />'
+                            + addComas(data[i].Promedio)
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="precio' + data[i].id + '" name="precio' + data[i].id + '" class="form-control" readonly value="' + data[i].precio + '" />'
+                            + addComas(data[i].precio)
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input class="form-control" onchange="cambioCantidad(' + data[i].id + ')" id="cant_real' + data[i].id + '" name="cant_real' + data[i].id + '" value="" />'
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="checkbox" style="display:none" id="Aseleccion' + data[i].id + '" name="Aseleccion' + data[i].id + '" />'
+                            + '<input type="checkbox" id="seleccion' + data[i].id + '" name="seleccion' + data[i].id + '" class="i-checks" disabled="disabled" />'
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="checkbox" style="display:none" id="AdifCantidad' + data[i].id + '" name="AdifCantidad' + data[i].id + '" />'
+                            + '<input type="checkbox" id="difCantidad' + data[i].id + '" name="difCantidad' + data[i].id + '" class="i-checks" disabled="disabled" />'
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input type="checkbox" style="display:none" id="AdifCosto' + i + '" name="AdifCosto' + i + '" />'
+                            + '<input type="checkbox" id="difCosto' + i + '" name="difCosto' + i + '" class="i-checks" disabled="disabled" />'
+                            + '</td>'
+                            + '</tr>');
+                        if (data[i].Promedio < data[i].valor_unitario || data[i].precio < data[i].valor_unitario) {
+                            $('#row' + i).addClass("danger");
+                            $('#difCosto' + i).iCheck('check');
+                            $('#AdifCosto' + i).prop("checked", true);
+                            $('#AdifCosto' + i).val(1);
+                        }
+
+                        if (data[i].cant_ped == 0 && data[i].cant_fact == 0) {
+                            $('#cant_real' + data[i].id).prop("disabled", true);
+                        }
+                    }
+                },
+                error: function (data) {
+                    $('#modalCargandoInfo').modal('hide');
+                },
+                complete: function (data) {
+                    $('.i-checks').iCheck({
+                        checkboxClass: 'icheckbox_square-green',
+                        radioClass: 'iradio_square-green'
+                    });
+                    $('#modalCargandoInfo').modal('hide');
+                }
+            });
+        }
+
+        function cambioCantidad(id) {
+            if (parseInt($('#cant_real'+id).val()) != parseInt($('#cant_fact'+id).val())) {
+                $('#difCantidad'+id).iCheck('check');
+                $('#seleccion'+id).iCheck('check');
+                $('#AdifCantidad'+id).prop( "checked", true );
+                $('#AdifCantidad'+id).val(1);
+                $('#Aseleccion'+id).prop( "checked", true );
+                $('#Aseleccion'+id).val(1);
+            }else {
+                $('#difCantidad'+id).iCheck('uncheck');
+                $('#seleccion'+id).iCheck('check');
+                $('#AdifCantidad'+id).prop( "checked", false );
+                $('#AdifCantidad'+id).val(0);
+                $('#Aseleccion'+id).prop( "checked", true );
+                $('#Aseleccion'+id).val(1);
+            }
+            if ($('#cant_real'+id).val() == "" || $('#cant_real'+id).val() == 0) {
+                $('#seleccion'+id).iCheck('uncheck');
+                $('#difCantidad'+id).iCheck('uncheck');
+                $('#Aseleccion'+id).prop( "checked", true );
+                $('#Aseleccion'+id).val(1);
+                $('#AdifCantidad'+id).prop( "checked", false );
+                $('#AdifCantidad'+id).val(0);
+            }
+        }
+
+        $(".precio").text(addComas($(".precio").text()));
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+}
+

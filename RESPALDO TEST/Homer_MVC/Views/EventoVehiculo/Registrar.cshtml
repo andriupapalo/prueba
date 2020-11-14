@@ -1,0 +1,1210 @@
+﻿@model Homer_MVC.IcebergModel.icb_vehiculo_eventosModel
+
+@{
+    ViewBag.Icono = "fa fa-calendar-check-o";
+    ViewBag.Title = "Eventos Vehículo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.themes.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color: white; border: solid 1px; border-color: #e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+
+<div class="panel-body" style="padding-top: 0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li id="a" class="active">
+                    <a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a>
+                </li>
+                <li id="b" class="" onclick="buscarAjaxEventos();">
+                    <a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a>
+                </li>
+                <li id="c" class="" onclick="buscarDatosBackOffice()">
+                    <a data-toggle="tab"><i class="fa fa-refresh"></i>&nbsp;&nbsp;BrowserBackOffice</a>
+                </li>
+                <li id="d" class="nav-item" onclick="buscarMatriculas()">
+                    <a data-toggle="tab"><i class="fa fa-ravelry"></i>&nbsp;&nbsp;Pendientes por matricular</a>
+                </li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    <div class="row">
+                        @{
+                            if (Request.QueryString["id"] != null)
+                            {
+                                @Html.Action("submenuBackOffice", "vpedidos", new { id = Request.QueryString["id"] })
+                            }
+                        }
+                    </div>
+                    <br>
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color: #e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-md-12">
+                                        <div class="row">
+                                            <label class="control-label col-md-2">Plan Mayor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-4">
+                                                @Html.EditorFor(model => model.planmayor, new
+                                                {
+                                                    htmlAttributes = new
+                                                    {
+                                                        @class = "form-control",
+                                                        placeholder = "Digite el plan mayor del vehiculo",
+                                                        id = "numPlanMayor"
+                                                    }
+                                                })
+                                                @Html.ValidationMessageFor(model => model.planmayor, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-1">
+                                                @* <button class="btn btn-primary" id="btnBuscaPlanMayor"><i class="fa fa-search" aria-hidden="true"></i>&nbsp;&nbsp;Buscar</button>*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <div class="row">
+                                            <label class="control-label col-md-2">Número de serie:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-4">
+                                                @Html.HiddenFor(model => model.vin, new
+                                                {
+                                                    htmlAttributes = new
+                                                    {
+                                                        @class = "form-control",
+                                                        placeholder = "Digite número de serie",
+                                                        id = "numVin"
+                                                    }
+                                                })
+                                                <input id="codigo" name="codigo" placeholder="Ingrese número de serie" class="form-control" onkeyup="traerSerie(this.id)" />
+                                                @Html.ValidationMessageFor(model => model.vin, "", new { @class = "text-danger" })
+
+                                            </div>
+                                            <div class="col-sm-1 col-md-1 col-lg-1">
+                                                @*<button class="btn btn-primary" id="btnSearchVin"><i class="fa fa-search" aria-hidden="true"></i>&nbsp;&nbsp;Buscar</button>*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*busqueda por placa*@
+                                    <div class="col-md-12">
+                                        <div class="row">
+                                            <label class="control-label col-md-2">Placa:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-4">
+                                                @Html.EditorFor(model => model.placa, new
+                                                {
+                                                    htmlAttributes = new
+                                                    {
+                                                        @class = "form-control",
+                                                        placeholder = "Digite la placa del vehiculo",
+                                                        id = "idPlaca"
+                                                    }
+                                                })
+                                                @Html.ValidationMessageFor(model => model.placa, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <button type="button" class="btn btn-primary center-block" id="btnBuscarVeh"><i class="fa fa-search" aria-hidden="true"></i>&nbsp;&nbsp;Buscar</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="row datosOcultos2 col-md-12" style="display: none">
+                                        <div>
+                                            <label class="control-label col-md-2">Placa Vehículo:&nbsp;</label>
+                                            <div class="col-md-4">
+                                                <input type="text" class="form-control" id="plaVeh" value="" readonly="readonly" placeholder="Placa Vehículo" />
+                                                @*@Html.EditorFor(model => model.codigo_modelo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Valor", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.codigo_modelo, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="control-label col-md-2">Modelo:&nbsp;</label>
+                                            <div class="col-md-4">
+                                                <input type="text" class="form-control" id="modeloVeh" value="" readonly="readonly" placeholder="Modelo" />
+                                                @*@Html.EditorFor(model => model.descripcion_modelo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Descripcion", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.descripcion_modelo, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row datosOcultos2 col-md-12" style="display: none">
+                                        <div>
+                                            <label class="control-label col-md-2">Año:&nbsp;</label>
+                                            <div class="col-md-4">
+                                                <input type="text" class="form-control" id="annioVeh" value="" readonly="readonly" placeholder="Año" />
+                                                @*@Html.EditorFor(model => model.anio_modelo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Año", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.anio_modelo, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="control-label col-md-2">Color:&nbsp;</label>
+                                            <div class="col-md-4">
+                                                <input type="text" class="form-control" id="colorVeh" value="" readonly="readonly" placeholder="Color" />
+                                                @*@Html.EditorFor(model => model.color_modelo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Color", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.color_modelo, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 col-md-6 col-lg-6 datosOcultos" style="display: none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Evento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.id_tpevento, null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                                                @Html.ValidationMessageFor(model => model.id_tpevento, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-4"></div>
+                                            <div class="col-md-3">
+                                                <button type="button" class="btn btn-success form-control" id="botonEncuesta" name="botonEncuesta" style="display: none"><i class="fa fa-check">&nbsp;&nbsp;</i>Encuesta</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="col-sm-6 col-md-6 col-lg-6 datosOcultos" hidden>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Evento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fechaevento, new { htmlAttributes = new { @class = "form-control sinManana", placeholder = "Digite Fecha y Hora", required = "required", autocomplete = "off" } })
+                                                @Html.ValidationMessageFor(model => model.fechaevento, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6" hidden id="div_poliza">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número Póliza:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.poliza, new { htmlAttributes = new { @class = "form-control", placeholder = "Digite Póliza", autocomplete = "off" } })
+                                                @Html.ValidationMessageFor(model => model.poliza, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="camposOcultosDos">
+                                        <div class="col-sm-6 col-md-6 col-lg-6" style="display: none" id="txtPlaca">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Placa:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.placa, new { htmlAttributes = new { @class = "form-control", placeholder = "Digite Placa" } })
+                                                    @Html.ValidationMessageFor(model => model.placa, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-12 col-md-12 col-lg-12" style="display: none" id="txtUbicacion">
+                                            <div class="form-group">
+                                                <button style="display: none" class="btn btn-info" id="btnInspeccion" name="btnInspeccion" type="button"><i class="fa fa-wrench"></i>&nbsp;&nbsp;&nbsp;Inspección</button>
+                                                <label class="control-label col-md-2">Ubicación:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-3">
+                                                    @Html.DropDownList("ubicacion", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.ubicacion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6 col-md-6 col-lg-6" style="display: none" id="txtNit">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tramitador:&nbsp;<span class="text-danger">*</span></label> @*antes decia nit, la feje liliana pidio el cambio 7/12/18*@
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("nit", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.ubicacion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6 col-md-6 col-lg-6" style="display: none" id="txtTecnico">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tecnico:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                                    @Html.DropDownList("idtecnico", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.ubicacion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12 col-md-12 col-lg-12 datosOcultos" style="display: none">
+                                        <div class="form-group">
+                                            <label class="control-label col-sm-2 col-md-2 col-lg-2">Observaciones:<span class="text-danger"></span></label>
+                                            <div class="col-sm-3 col-md-3 col-lg-3">
+                                                @Html.TextAreaFor(m => m.evento_observacion, new RouteValueDictionary(new { @class = "someClass", style = "width: 100%; height:80px;" }))
+                                                @Html.ValidationMessageFor(model => model.evento_observacion, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="camposPedidoOcultos" style="display: none">
+                                        <input type="hidden" id="pedidoID" name="pedidoID" value="" />
+                                        <input type="hidden" id="pedidoNumero" name="pedidoNumero" value="" />
+                                        <input type="hidden" id="pedidoVendedor" name="pedidoVendedor" value="" />
+                                        <input type="hidden" id="parametro" name="parametro" value="" />
+                                    </div>
+
+                                </div>
+                                <div class="panel-body-btns text-right">
+                                    <button class="btn btn-info" type="button" id="validarParaEncuesta"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                                    <button type="submit" id="btnSubmit" style="display: none"></button>
+                                </div>
+
+                                <div class="hpanel datosAverias" id="panelAverias" hidden>
+                                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                        <div class="panel-tools">
+                                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                        </div>
+                                        <i class="fa fa-check-square-o"></i>&nbsp;&nbsp;&nbsp;Inspecci&oacute;n
+                                    </div>
+                                    <div class="panel-body">
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Averia:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("ave_id", ViewBag.ave_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" hidden>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Gravedad Averia:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("grave_id", ViewBag.grave_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Parte:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("zona_id", ViewBag.zona_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Medida (mm):&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <input type="number" class="form-control" name="medida_id" id="medida_id" value="" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Impacto:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("impacto_id", ViewBag.impacto_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6 datosAverias" style="display: none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Combustible:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("comb_id", ViewBag.comb_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6 datosAverias" style="display: none">
+                                            <div class="form-group">
+
+                                                <label class="control-label col-md-4">Kilometraje:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.Editor("insp_km", new { htmlAttributes = new { @class = "form-control", @placeholder = "Km" } })
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Enviar a:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("taller_averia_id", ViewBag.taller_averia_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <div class="form-group">
+                                                <div class="col-md-6 col-md-offset-2">
+                                                    <button class="btn btn-danger" type="button" id="btnAgregarAveria"><i class="fa fa-calendar-check-o" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;Agregar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="col-sm-12" style="display:none" id="ErrorCamposVacios">
+                                            <div class="form-group">
+                                                <div class="alert alert-danger">
+                                                    <strong>Error!&nbsp;&nbsp;&nbsp;</strong> Los campos marcados con (*) son obligatorios.
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="hpanel datosAverias" id="panelTablaInspecciones" hidden>
+                                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                        <div class="panel-tools">
+                                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                        </div>
+                                        <i class="fa fa-check-square-o"></i>&nbsp;&nbsp;&nbsp;Inspecci&oacute;nes Realizadas
+                                    </div>
+                                    <div class="panel-body">
+
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table class="table table-striped table-bordered table-hover" id="tablaInspecciones">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Averia</th>
+                                                        <th style="text-align:center">Impacto</th>
+                                                        <th style="text-align:center">Zona</th>
+                                                        <th style="text-align:center">Medida (mm)</th>
+                                                        <th style="text-align:center">Observación</th>
+                                                        <th style="text-align:center">Accion</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table id="tablaPaginada" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: center">Plan Mayor</th>
+                                        <th style="text-align: center">Serie</th>
+                                        <th style="text-align: center">Modelo</th>
+                                        <th style="text-align: center">A&ntilde;o</th>
+                                        <th style="text-align: center">Acci&oacute;n</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalEventos" class="modal fade hmodal-info" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Eventos</h4>
+                <small>Lista De Eventos Por Vehiculo</small>
+            </div>
+            <div class="modal-body">
+
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar"></div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaPaginadaEventos">
+                        <thead>
+                            <tr>
+                                <th style="text-align: center">Codigo Evento</th>
+                                <th style="text-align: center">Descripcion</th>
+                                <th style="text-align: center">Fecha</th>
+                                <th style="text-align: center">Responsable</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Action("modalesBackOffice", "vpedidos")
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/EasyAutocomplete-1.3.5/jquery.easy-autocomplete.min.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Scripts/submenuBackOffice.js?fec=@DateTime.Now"></script>
+    <script type="text/javascript">
+        var vin = "";
+        var plan = "";
+
+        $(document).ready(function() {
+            debugger;
+            vin = $('#codigo').val();
+            plan = $('#numPlanMayor').val();
+            placa = $('#idPlaca').val();
+            $('.sinManana').datetimepicker({
+                format: 'YYYY/MM/DD HH:mm',
+                maxDate: `-${new Date()}`,
+            });
+            verificarRolUsuario();
+            $('#menu').val(@ViewBag.id_menu);
+            $('.js-source-states').select2();
+            ValidarPlanMayor();
+            buscarCampoRequeridoEvento();
+            var series = {
+                data: []
+            };
+            $("#codigo").easyAutocomplete(series);
+            setTimeout(function() {
+                    $("#mensaje").fadeOut(1500);
+                    $("#mensaje_error").fadeOut(1500);
+                },
+                3000);
+            $('form input').on('keypress',
+                function(e) {
+                    return e.which !== 13;
+                });
+            buscarMatriculas();
+        });
+
+        $('#codigo').on('change',
+            function() {
+                vin = $('#codigo').val();
+                plan = "no";
+                console.log(vin);
+                if (vin.trim()) {
+                    $('#numPlanMayor').attr('readonly', true);
+                    $('#idPlaca').attr('readonly', true);
+                } else {
+                    $('#numPlanMayor').attr('readonly', false);
+
+                }
+            });
+
+        $('#numPlanMayor').on('keyup',
+            function() {
+                plan = $('#numPlanMayor').val();
+                vin = "no";
+                placa = "no";
+                console.log(plan);
+                if (plan.trim()) {
+                    $('#codigo').attr('disabled', true);
+                    $('#idPlaca').attr('disabled', true);
+                } else {
+                    $('#codigo').attr('disabled', false);
+                    $('#idPlaca').attr('disabled', false);
+                }
+            });
+
+        $('#idPlaca').on('keyup', function () {
+            placa = $('#idPlaca').val();
+            plan = "no";
+            vin = "no";
+            if (placa.trim()) {
+                $('#codigo').attr('disabled', true);
+                $('#numPlanMayor').attr('disabled', true);
+            } else {
+                $('#codigo').attr('disabled', false);
+                $('#numPlanMayor').attr('disabled', false);
+            }
+        });
+
+        function verificarRolUsuario() {
+            $.ajax({
+                url: '/vpedidos/verificarRolUsuario',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    console.log(data);
+                    if (data == 2031) {
+                        $('#a').show();
+                        $('#b').hide();
+                        $('#c').show();
+                        $('#d').show();
+                    } else {
+                        $('#a').show();
+                        $('#b').show();
+                        $('#c').hide();
+                        $('#d').hide();
+                    }
+                }
+            });
+        }
+
+        function buscarDatosBackOffice() {
+            window.location.href = `@Url.Action("BrowserBackOffice", "vpedidos")?menu?${@ViewBag.id_menu}`;
+        }
+
+        function buscarMatriculas() {
+            window.open(`@Url.Action("BrowserPendientesMatricula","vpedidos")`, '_blank');
+        }
+
+        function traerSerie(id) {
+            var conteo_caracteres = $('#'+id).val().length;
+
+            if (conteo_caracteres==3) {
+                $.ajax({
+                    url: '/EventoVehiculo/traerSeries',
+                    data: {
+                        serie: $('#' + id).val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        var series = {
+                            data: data,
+                            list: {
+                                match: {
+                                    enabled: true
+                                }
+                            }
+                        };
+                        $("#codigo").easyAutocomplete(series);
+                        $("#codigo").focus();
+                    }
+                });
+            }
+        }
+
+        $('#planmayor').keypress(function() {
+            $('.datosOcultos').hide();
+            $('#placa').val('');
+            $('#nit').val('');
+            $('#ubicacion').val('');
+            $('#txtPlaca').hide();
+            $('#txtNit').hide();
+            $('#txtUbicacion').hide();
+            $('#id_tpevento').val('');
+            $('#btnInspeccion').hide();
+        });
+
+        function ValidarPlanMayor() {
+            $.ajax({
+                url: '/EventoVehiculo/BuscarPlanMayor',
+                data: {
+                    planMayor: $('#numPlanMayor').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data == true) {
+                        $('.datosOcultos').show();
+                    } else {
+                        $('.datosOcultos').hide();
+                        $('#txtPlaca').hide();
+                        $('#txtNit').hide();
+                        $('#txtUbicacion').hide();
+                    }
+                },
+                complete: function(data) {
+                    //buscarCampoRequeridoEvento();
+                }
+            });
+        }
+
+        function validateVin() {
+            $.ajax({
+                url: '/EventoVehiculo/BuscarPlanMayor',
+                data: {
+                    vin: $('#vin').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data == true) {
+                        $('.datosOcultos').show();
+                    } else {
+                        $('.datosOcultos').hide();
+                        $('#txtNit').hide();
+                        $('#txtUbicacion').hide();
+                    }
+                },
+                complete: function(data) {
+                }
+            });
+        }
+
+        $('#validarParaEncuesta').click(function() {
+            const id_tpevento = $('#id_tpevento').val();
+            const plan_mayor = $('#numPlanMayor').val();
+            validarCampos(id_tpevento, plan_mayor);
+        });
+
+        function validarCampos(id_tpevento, plan_mayor) {
+            $.ajax({
+                url: '/EventoVehiculo/validarParaEncuesta',
+                data: {
+                    id_tpevento: id_tpevento,
+                    plan_mayor: plan_mayor
+                },
+                cache: false,
+                success: function(data) {
+                    debugger;
+                    if (data == 1) {
+                        $('#btnSubmit').trigger('click');
+                    }
+                    if (data == 2) {
+                        swal("Falta completar la encuesta de satisfacción!", "", "warning");
+                    }
+                    if (data == 3) {
+                        $('#btnSubmit').trigger('click');
+                    }
+                }
+            });
+        }
+
+        $('#btnBuscarVeh').click(function() {
+            debugger;
+            if (plan != "no") {
+                event.preventDefault();
+                BuscaVehi(plan);
+            } else if (vin != "no") {
+                var code = $('#codigo').val();
+                var longitud=code.replace(/ /g, '').length;
+                if ((code.indexOf('|') > -1) || longitud>=4)
+                {
+                    var codigo="";
+                    if(code!=""){
+                        var codigo_arr = $('#codigo').val().split("|");
+                        codigo2 = codigo_arr[0].trim();
+                    }
+                }
+                const srh = codigo2.replace(/ /g, '').length;
+                if (srh >= 4) {
+                    event.preventDefault();
+                    BuscaVehi(codigo2);
+                } else {
+                    swal("La búsqueda se realiza mínimo con 4 digitos", "", "warning");
+                }
+            }
+            else if (placa != "no") {
+                event.preventDefault();
+                BuscaVehi(placa);
+                console.log("Busqueda de placa digitada es: " + placa);
+            }
+        });
+
+        $('#btnBuscaPlanMayor').click(function() {
+            const idx = $('#planmayor').val();
+            event.preventDefault();
+            BuscaVehi(idx);
+            ValidarPlanMayor();
+        });
+
+        $('#btnSearchVin').click(function() {
+            const srh = $('#vin').val().replace(/ /g, '').length;
+            if (srh >= 4) {
+                event.preventDefault();
+                BuscaVehi(srh);
+            } else {
+                swal("la busqueda se realiza mínimo con 4 digitos", "", "warning");
+            }
+        });
+
+        function buscarCampoRequeridoEvento() {
+            var evento = $('#id_tpevento').val();
+            if (evento == null || evento == '') {
+                evento = -1;
+            }
+            $.ajax({
+                url: '/EventoVehiculo/ValidarTipoEvento',
+                data: {
+                    idEvento: evento
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#txtPlaca').hide();
+                    $('#txtNit').hide();
+                    $('#txtUbicacion').hide();
+                    $('#txtTecnico').hide();
+                    if (data.pplaca == true) {
+                        $('#txtPlaca').show();
+                    }
+                    if (data.ptercero == true) {
+                        $('#txtNit').show();
+                    }
+                    if (data.pubicacion == true) {
+                        $('#txtUbicacion').show();
+                    }
+                    if (data.ptecnico == true) {
+                        $('#idtecnico').prop('required', true);
+                        $('#txtTecnico').show();
+                    }
+                }
+            });
+        }
+
+        $('#id_tpevento').change(function () {
+            evento = $('#id_tpevento').val();
+            const res = evento.split(",");
+            if (res[2] == "P30") {
+                $('#botonEncuesta').show();
+            } else {
+                $('#botonEncuesta').hide();
+            }
+            if (res[1] == 8 && res[2] == 'P94') {
+                $('#div_poliza').show();
+            }
+            if (res[1] == 15) {
+                $('.datosAverias').show();
+                buscarInspecciones();
+            } else {
+                $('.datosAverias').hide();
+            }
+            buscarCampoRequeridoEvento();
+            buscarParamentro();
+            buscarInspecciones();
+        });
+
+        $('#btnAgregarAveria').click(function () {
+            $.ajax({
+                url: '/EventoVehiculo/ValidarEventoAnterior',
+                data: {
+                    vin: $('#numPlanMayor').val()
+                },
+                type: "POST",
+                success: function (data) {
+                    if (data.resultado == 1) {
+                        agregarAveria();
+                    } else {
+                        swal(data.mensaje,"","error");
+                    }
+                }
+            });
+        });
+
+        function agregarAveria() {
+            if ($.trim($('#ave_id').val()) != '' && $.trim($('#medida_id').val()) != '' && $.trim($('#zona_id').val()) != ''
+                && /*$.trim($('#impacto_id').val()) != '' && $.trim($('#grave_id').val()) != ''*/ $.trim($('#insp_km').val()) != '' && $.trim($('#comb_id').val()) != ''
+                && $.trim($('#taller_averia_id').val()) != '' &&  $('#fechaevento').val() != '') {
+                $('#ErrorCamposVacios').hide('1000');
+
+                $.ajax({
+                    url: '/InspeccionVh/AgregarInspeccion',
+                    data: {
+                        planmayor: $('#numPlanMayor').val(),
+                        vin: $('#codigo').val(),
+                        averiaId: $("#ave_id").val(),
+                        gravedadId: $("#grave_id").val(),
+                        medidaId: $("#medida_id").val(),
+                        zonaId: $("#zona_id").val(),
+                        impactoId: $("#impacto_id").val(),
+                        observaciones: $('#evento_observacion').val(),
+                        recibidoDe: " ",
+                        recibidoEn: " ",
+                        combustible: $('#comb_id').val(),
+                        sinManual: false,
+                        sinManualGarantia: false,
+                        sinLlaves: false,
+                        sinControl: false,
+                        sucio: false,
+                        sinCintas: false,
+                        kms: parseFloat($("#insp_km").val()),
+                        taller: $('#taller_averia_id').val(),
+                        fecha: $('#fechaevento').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        console.log(data);
+                        if (data.result) {
+                            $('#ave_id').val('').select2();
+                            $('#grave_id').val('').select2();
+                            //$('#medida_id').val('').select2();
+                            $('#zona_id').val('').select2();
+                            $('#impacto_id').val('').select2();
+                            $('#taller_averia_id').val('').select2();
+                            $('#insp_observacion').val('');
+                            $("#insp_km").val('');
+                            $('#comb_id').val('').select2();
+                            $("#medida_id").val('');
+                            buscarInspecciones();
+                        }
+                    },
+                    complete: function (data) {
+
+                    }
+                });
+
+            } else {
+                $('#ErrorCamposVacios').show('1000');
+            }
+        };
+
+        function buscarInspecciones() {
+            $.ajax({
+                url: '/InspeccionVh/buscarInspecciones',
+                data: {
+                    planmayor: $('#numPlanMayor').val()
+                },
+                type: "POST",
+                success: function (data) {
+                    $('#tablaInspecciones').find('tbody').empty();
+                    for (var i = 0; i < data.inspeccionesActuales.length; i++) {
+                        $('#tablaInspecciones').find('tbody').append(
+                            '<tr>'
+                            + '<td align="left">' + data.inspeccionesActuales[i].averia + '</td>'
+                            + '<td align = "left">' + data.inspeccionesActuales[i].impacto + '</td>'
+                            + '<td align="left">' + data.inspeccionesActuales[i].zona + '</td>'
+                            + '<td align="left">' + data.inspeccionesActuales[i].medida + '</td>'
+                            + '<td align="left">' + data.inspeccionesActuales[i].observacion + '</td>'
+                            + (data.inspeccionesActuales[i].estadoid == true ? '<td align="center"><button type="button" class="btn btn-danger btn-xs" title="Eliminar" onclick="eliminarIns(' + data.inspeccionesActuales[i].id_inspeccion + ')">'
+                            + '<i class="fa fa-times"></i></button></td>' : '<td></td>')
+                            + '</tr>');
+                    }
+                }
+            });
+        }
+
+        function eliminarIns(id) {
+            $.ajax({
+                url: '/InspeccionVh/eliminarInsp',
+                data: {id},
+                type: "POST",
+                success: function (data) {
+                    if (data == true) {
+                        buscarInspecciones();
+                    } else {
+                        swal("No se pudo eliminar el registro","","error");
+                    }
+                }
+            });
+        }
+
+
+
+        $('#botonEncuesta').click(function() {
+            $.ajax({
+                url: '/EventoVehiculo/encuestaExistente',
+                data: {
+                    plan_mayor: $('#numPlanMayor').val(),
+                    id_tpevento: $('#id_tpevento').val()
+                },
+                cache: false,
+                success: function(data) {
+                    if (data == 1) {
+                        swal("La encuesta ya se realizó para este cliente asociado con este plan mayor", "", "warning");
+                    }
+                    if (data == 2) {
+                        window.open(
+                            `@Url.Action("Index", "checkListEntregas")?planmayor=${$('#numPlanMayor').val()
+                            }&parametro=P69`,
+                            '_blank');
+                    }
+                }
+            });
+        });
+
+        $('#btnInspeccion').click(function() {
+            debugger;
+            window.open(`@Url.Action("index", "InspeccionVh")?menu=${@ViewBag.id_menu}&&id=${$('#numPlanMayor').val()}`,
+                '_blank');
+        });
+
+        function buscarParamentro() {
+            evento = $('#id_tpevento').val();
+            const res = evento.split(",");
+
+            if (res[2] == "P35") {
+                $('#btnInspeccion').hide();
+                $('#fechaevento').data('DateTimePicker').destroy();
+                $('.sinManana').datetimepicker({
+                    format: 'YYYY/MM/DD HH:mm',
+                    minDate: `-${new Date()}`,
+                });
+                $('#parametro').val(res[2]);
+                traerDatosPedido();
+                $('#btnInspeccion').hide();
+            } else if (res[2] == "P8") {
+                $('#fechaevento').data('DateTimePicker').destroy();
+                $('.sinManana').datetimepicker({
+                    format: 'YYYY/MM/DD HH:mm',
+                    maxDate: `-${new Date()}`,
+                });
+                $('#parametro').val('');
+                $('#pedidoID').val('');
+                $('#pedidoNumero').val('');
+                $('#pedidoVendedor').val('');
+                $('#btnInspeccion').show();
+            } else {
+                $('#fechaevento').data('DateTimePicker').destroy();
+                $('.sinManana').datetimepicker({
+                    format: 'YYYY/MM/DD HH:mm',
+                    maxDate: `-${new Date()}`,
+                });
+                $('#parametro').val('');
+                $('#pedidoID').val('');
+                $('#pedidoNumero').val('');
+                $('#pedidoVendedor').val('');
+                $('#btnInspeccion').hide();
+            }
+        }
+
+        function traerDatosPedido() {
+            $.ajax({
+                url: '/EventoVehiculo/traerDatosPedido',
+                data: {
+                    planMayor: $('#planmayor').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#pedidoID').val(data.id);
+                    $('#pedidoNumero').val(data.numero);
+                    $('#pedidoVendedor').val(data.vendedor);
+                },
+            });
+        }
+
+        function valida(planMayor) {
+            $("#tablaPaginadaEventos").dataTable().fnDestroy();
+            $.ajax({
+                url: '/EventoVehiculo/EventosPorVehiculo',
+                data: {
+                    planMayor: planMayor
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#tablaPaginadaEventos').find('tbody').empty();
+                    for (let i = 0; i < data.length; i++) {
+                        $('#tablaPaginadaEventos').find('tbody').append(
+                            `<tr><td align="center">${data[i].codigoevento}</td><td align="center">${
+                            data[i].tpevento_nombre}</td><td align="center">${data[i].fechaevento
+                            }</td><td align="center">${data[i].responsable
+                            }</td></tr>`);
+                    }
+                },
+                complete: function(data) {
+                    $('#tablaPaginadaEventos').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                    $('#modalEventos').modal('show');
+                }
+            });
+        }
+
+        function buscarAjaxEventos() {
+            $("#tablaPaginada").dataTable().fnDestroy();
+            $.ajax({
+                url: '/EventoVehiculo/GetEventosVehiculoJson',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (let i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append(
+                            `<tr><td align="right">${data[i].planmayor}</td><td align="right">${data[i].vin
+                            }</td><td align="left">${data[i].modvh_nombre}</td><td align="right">${data[i].anio_vh
+                            }</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="valida('${
+                            data[i].planmayor.toString()
+                            }')">Ver</button></td></tr>`);
+                    }
+                },
+                complete: function(data) {
+
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito() {
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar de Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+        function BuscaVehi(idx) {
+            console.log(idx);
+            $.ajax({
+                url: '/EventoVehiculo/MostrarDatosVehiculo',
+                data: {
+                    id: idx,
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data.length > 0) {
+                        $('.datosOcultos2').show();
+                        $('#plaVeh').val(data[0].pla);
+                        $('#modeloVeh').val(data[0].mod);
+                        $('#annioVeh').val(data[0].ani);
+                        $('#colorVeh').val(data[0].col);
+                        $('#codigo').val(data[0].vin);
+                        $('#numPlanMayor').val(data[0].planmayor);
+                        $('.datosOcultos').show();
+                        $('#idPlaca').attr('disabled',true)
+                    } else {
+                        $('.datosOcultos2').hide();
+                        swal('El vehiculo ingresado no existe', '', 'error');
+                        $('#idPlaca').attr('disabled',false)
+                    }
+                }
+            });
+        }
+
+        function getParameterByName(name) {
+            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                results = regex.exec(location.search);
+            return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+
+        $("#numPlanMayor").val(getParameterByName('id'));
+    </script>
+}

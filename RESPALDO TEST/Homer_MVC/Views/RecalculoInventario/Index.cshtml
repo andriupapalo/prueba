@@ -1,0 +1,328 @@
+﻿@{
+    ViewBag.Title = "Recalculo inventario";
+    ViewBag.Icono = "fa fa-bar-chart";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+}
+<!-- App styles -->
+<link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+<link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button class="btn btn-mini btn-default" style="border-radius:25px">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+<div class="panel-body">
+    <div class="hpanel">
+        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+            <div class="panel-tools">
+                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+            </div>
+            Recálculo de inventario
+        </div>
+        <div class="panel-body">
+            <div class="form-horizontal">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label class="control-label">Año:&nbsp;</label></div>
+
+                        <div class="col-sm-4">
+                            <div class="input-append date" id="anio" data-date="10-2018" data-date-format="yyyy">
+                                <input type="text" class="form-control" name="date" size="4" data-date="10-2018" required="required">
+                                <span class="add-on"><i class="icon-th"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label class="control-label">Mes:&nbsp;</label></div>
+
+                        <div class="col-sm-4">
+                            <select class="form-control js-source-states" id="mes" name="mes" required="required">
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label>Bodega(s)</label></div>
+                        <div class="col-sm-4">
+                            <select id="listar_bodegas" name="listar_bodegas" multiple="multiple" placeholder="Selección múltiple" class="form-control"></select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label>Referencia(s)</label></div>
+                        <div class="col-sm-4">
+                            <select class="form-control js-source-states" id="codigo" name="codigo" placeholder="Seleccione">
+                                <option value="">Seleccione</option>
+                                @foreach (var item in ViewBag.codigo)
+                                {
+                                    <option value="@item.ref_codigo">@item.ref_codigo - @item.ref_descripcion</option>
+                                }
+                            </select>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <button type="button" class="btn btn-primary" id="btnFiltrar" onclick="recalculoInventario()"><i class="fa fa-filter" aria-hidden="true"></i>&nbsp;&nbsp;Filtrar</button>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="alert alert-warning" id="bodegaVacio" style="display:none">
+                            <strong>Error!</strong> Debe Seleccionar al menos una bodega.
+                        </div>
+                    </div>
+                    @*<div class="col-md-6">
+                            <div class="col-sm-2"><label>Tipo(s) documento(s)</label></div>
+                            <div class="col-sm-4">
+                                <select id="listar_documentos" name="listar_documentos" multiple="multiple" placeholder="Selección múltiple" class="form-control"></select>
+                            </div>
+                        </div>*@
+
+                    @*<div class="col-md-6">
+                            <div class="col-sm-2"><label>Numero</label></div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="numero" name="numero" type="text" onkeypress="return soloNumeros(event)" />
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>*@
+                </div>
+
+                <div style="visibility:hidden">
+                    <table>
+                        <tr>
+                            <th>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</th>
+                            <th>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</th>
+                            <th>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</th>
+                            <th>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</th>
+                            <th>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal recalculo registrado*@
+<div id="modalTerminado" class="modal fade" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title" id="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning" id="advertencia" style="display:none">
+                    <strong>Advertencia!</strong> Debe realizar el recalculo de los meses posteriores.
+                </div>
+                <div class="alert alert-danger" id="error" style="display:none">
+                    <strong>Error!</strong> Mes cerrado para trabajar..
+                </div>
+                <div style="text-align:center" id="cargando"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vendor scripts -->
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <!-- App scripts -->
+    <script src="~/Scripts/homer.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script>
+
+        $(document).ready(function () {
+            $('.js-source-states').select2();
+            var fecha = '@DateTime.Now.Year';
+            $("#anio").val(fecha);
+            $('#anio').find('input').val(fecha);
+
+            $("#anio").datepicker({
+                format: "yyyy",
+                viewMode: "years",
+                minViewMode: "years",
+                autoclose: true
+            });
+
+            buscarBodegas();
+            //buscarDocumentos();
+        });
+
+        function soloNumeros(e) {
+            key = e.keyCode || e.which;
+            tecla = String.fromCharCode(key).toLowerCase();
+            letras = "1234567890";
+            especiales = "8-37-39-46";
+
+            tecla_especial = false
+            for (var i in especiales) {
+                if (key == especiales[i]) {
+                    tecla_especial = true;
+                    break;
+                }
+            }
+            if (letras.indexOf(tecla) == -1 && !tecla_especial) {
+                return false;
+            }
+        }
+
+        function recalculoInventario() {
+            var mesActual = @DateTime.Now.Month;
+            var mesFiltrado = $('#mes').val()
+            $('#advertencia').hide();
+            $('#error').hide();
+            if ($('#listar_bodegas').val() == null) {
+                $('#bodegaVacio').show();
+            }else{
+                $('#bodegaVacio').hide();
+                $.ajax({
+                    url: '/RecalculoInventario/RecalculoInventario',
+                    data: {
+                        anio: $('#anio').find('input').val(),
+                        mes: $('#mes').val(),
+                        bodega: $('#listar_bodegas').val(),
+                        codigo: $('#codigo').val(),
+                        //documento: $('#listar_documentos').val(),
+                        //numero: $('#numero').val(),
+                    },
+                    type: "post",
+                    cache: false,
+                    beforeSend: function () {
+                        $('#modalTerminado').modal();
+                        $('#modal-title').html('Recalculando...');
+                        $('#cargando').html('<img style="height:50px; width:50px;" src="/Images/engranaje-eje-paralelo-2.gif" /><br/> <h3>Cargando...<h3/>');
+                    },
+                    success: function (data) {
+                        if (data.cerrado == false) {
+                            $('#cargando').html('<h3>Completado<h3/>');
+                            $('#modal-title').html('Recalculo finalizado con éxito');
+                            if (mesFiltrado < mesActual) {
+                                $('#advertencia').show();
+                            }
+
+                        } else {
+                            $('#modal-title').html('No es posible realizar el recalculo');
+                            $('#cargando').html('');
+                            $('#error').show();
+
+                        }
+                    }
+                });
+            }
+        }
+
+        function buscarBodegas() {
+            $.ajax({
+                url: '/IndicadoresGraficos/BuscarBodegas',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#listar_bodegas').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#listar_bodegas').append($('<option>', {
+                            value: data[i].id_bodega,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+
+                    $('#listar_bodegas').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 800,
+                    });
+                    $('#listar_bodegas').multiselect('refresh');
+                }
+            });
+        }
+
+        //function buscarDocumentos() {
+        //    $.ajax({
+        //        url: '/RecalculoInventario/BuscarDocumentos',
+        //        data: {
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //            console.log(data)
+        //            $('#listar_documentos').empty();
+        //            for (var i = 0; i < data.length; i++) {
+        //                $('#listar_documentos').append($('<option>', {
+        //                    value: data[i].tpdoc_id,
+        //                    text: data[i].tpdoc_nombre
+        //                }));
+        //            }
+
+        //            $('#listar_documentos').multiselect("destroy").multiselect({
+        //                includeSelectAllOption: true,
+        //                maxHeight: 800,
+        //            });
+        //            $('#listar_documentos').multiselect('refresh');
+        //        }
+        //    })
+        //}
+
+    </script>
+}

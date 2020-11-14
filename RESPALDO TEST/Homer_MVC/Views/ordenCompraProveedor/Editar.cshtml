@@ -1,0 +1,1382 @@
+﻿@model Homer_MVC.IcebergModel.rordencompra
+@{
+    ViewBag.Icono = "fa fa-pencil-square-o";
+    ViewBag.Title = "Orden de Compra";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Actualizar @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="" onclick="buscarOrdenes();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <a class="btn btn-info" href="../../ordenCompraProveedor?menu=@ViewBag.id_menu"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Crear nuevo</a>&nbsp;&nbsp;
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.HiddenFor(model => model.idorden)
+                        @Html.HiddenFor(model => model.valor)
+                        @Html.HiddenFor(model => model.numero)
+                        @Html.HiddenFor(model => model.descuentopie)
+                        @Html.HiddenFor(model => model.fletes)
+                        @Html.HiddenFor(model => model.id_licencia)
+                        @Html.HiddenFor(model => model.fec_creacion)
+                        @Html.HiddenFor(model => model.userid_creacion)
+                        @Html.HiddenFor(model => model.fec_actualizacion)
+                        @Html.HiddenFor(model => model.user_idactualizacion)
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-10">
+                                        <div class="form-group">
+                                            <label class="control-label label label-info" style="font-size: 13px">Número Orden de compra: @ViewBag.numOC&nbsp;</label>
+                                            <div class="col-md-6">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("idtipodoc", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.idtipodoc, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.bodega, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.bodega, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Compra:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("tipoorden", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.tipoorden, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Días Validez:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.diasvalidez, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Días", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.diasvalidez, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Proveedor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("proveedor", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.proveedor, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Celular Proveedor:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("txtCelularProveedor", new { htmlAttributes = new { @class = "form-control", @placeholder = "No encontrado", @readonly = "readonly" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Correo Proveedor:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("txtCorreoProveedor", new { htmlAttributes = new { @class = "form-control", @placeholder = "No encontrado", @readonly = "readonly" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Direccion(es):&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.direccion, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.direccion, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Destinatario:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.destinatario, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Nombre" } })
+                                                @Html.ValidationMessageFor(model => model.destinatario, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Asesor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("vendedor", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.vendedor, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Condición Pago:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("condicion_pago", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.condicion_pago, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Notas:<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.TextAreaFor(m => m.notas, new RouteValueDictionary(new { @class = "someClass", style = "width: 100%; height:80px;", @placeholder = "Digite notas..." }))
+                                                @Html.ValidationMessageFor(model => model.notas, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Detalles
+                                </div>
+                                <div class="panel-body">
+
+                                    <input type="hidden" value="" name="lista_referencias" id="lista_referencias" />
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Referencia:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("id_referencia", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Precio:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("txtPrecio", new { htmlAttributes = new { @class = "form-control calculoSubTotal", @placeholder = "Digite precio", @onkeyUp = "return miles(this.id)", @autocomplete = "off" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cantidad:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("txtCantidad", new { htmlAttributes = new { @class = "form-control calculoSubTotal", @placeholder = "Digite Cantidad", @onkeyUp = "return miles(this.id)", @autocomplete = "off" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Descuento (%):&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("txtDescuentoPorcentaje", new { htmlAttributes = new { @class = "form-control calculoSubTotal", @placeholder = "Digite descuento", @type = "number", @autocomplete = "off" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Iva Compra:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("txtIvaPorcentaje", new { htmlAttributes = new { @class = "form-control calculoSubTotal", @placeholder = "Digite Iva (%)", @type = "text", @autocomplete = "off" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Valor Iva:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("txtIvaValor", new { htmlAttributes = new { @class = "form-control", @placeholder = "($)", @readonly = "readonly" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Subtotal:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("txtSubtotal", new { htmlAttributes = new { @class = "form-control", @placeholder = "($)", @readonly = "readonly" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <div class="col-md-6 col-md-offset-4">
+                                                <button type="button" class="btn btn-primary" id="btnAgregarReferencia">Agregar&nbsp;&nbsp;<i class="fa fa-plus"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12" style="display:none;" id="areaAlertaReferencias">
+                                        <div class="alert alert-info text-center">
+                                            <strong>Alerta!</strong> Los campos marcados con (*) son obligatorios.
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12" id="areaTablaReferencias">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table id="tablaReferencias" class="table table-striped table-bordered table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Referencia</th>
+                                                        <th style="text-align:center">Precio</th>
+                                                        <th style="text-align:center">Cantidad</th>
+                                                        <th style="text-align:center">Valor antes de IVA</th>
+                                                        <th style="text-align:center">(%) Descuento</th>
+                                                        <th style="text-align:center">Valor Descuento ($)</th>
+                                                        <th style="text-align:center">(%) Iva</th>
+                                                        <th style="text-align:center">Valor Iva ($)</th>
+                                                        <th style="text-align:center">Total</th>
+                                                        <th style="text-align:center">Acción</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Valores Totales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6"></div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-6">Subtotal:&nbsp;</label>
+                                            <div class="col-md-4">
+                                                @Html.Editor("txtTotalSubTotales", new { htmlAttributes = new { @class = "form-control", @readonly = "readonly", @style = "text-align:right" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Descuento ($):&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.descuentopie, new { htmlAttributes = new { @class = "form-control recalcular", @placeholder = "Digite Valor Descuento", @onkeyUp = "return miles(this.id)" } })
+                                                </div>
+                                            </div>
+                                        </div>*@
+                                    <div class="col-sm-6"></div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-6">Iva Total ($):&nbsp;</label>
+                                            <div class="col-md-4">
+                                                @Html.Editor("txtTotalIva", new { htmlAttributes = new { @class = "form-control", @readonly = "readonly", @placeholder = "($)", @style = "text-align:right" } })
+                                                @*@Html.EditorFor(model => model.iva, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Iva", @type = "number", @readonly="readonly" } })*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6"></div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-6">Fletes ($):&nbsp;</label>
+                                            <div class="col-md-4">
+                                                @Html.Editor("fletes", new { htmlAttributes = new { @class = "form-control recalcular", @placeholder = "Digite Fletes", @onkeyUp = "return miles(this.id)", @style = "text-align:right" } })
+                                                @*@Html.EditorFor(model => model.fletes, new { htmlAttributes = new { @class = "form-control recalcular", @placeholder = "Digite Fletes" } })*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6"></div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-6">Iva Fletes (%):&nbsp;</label>
+                                            <div class="col-md-2">
+                                                @Html.EditorFor(model => model.ivafletes, new { htmlAttributes = new { @class = "form-control recalcular", @placeholder = "Digite % Iva", @type = "number", @style = "text-align:right" } })
+                                            </div>
+                                            <div class="col-md-2">
+                                                @Html.Editor("txtFleteCalculado", new { htmlAttributes = new { @class = "form-control", @placeholder = "($)", @readonly = "readonly", @style = "text-align:right" } })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6"></div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-6">Total:&nbsp;</label>
+                                            <div class="col-md-4">
+                                                @Html.Editor("txtValor", new { htmlAttributes = new { @class = "form-control", @readonly = "readonly", @placeholder = "($)", @style = "text-align:right" } })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-info-circle"></i>&nbsp;&nbsp;&nbsp;Información
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-3 small">
+                                        <p>Creado por: @ViewBag.user_nombre_cre</p>
+                                    </div>
+
+                                    <div class="col-sm-3 small">
+                                        <p>Fecha creación: @Html.DisplayFor(model => model.fec_creacion)</p>
+                                    </div>
+
+                                    <div class="col-sm-3 small">
+                                        <p>
+                                            Actualizado por:  @{if (ViewBag.user_nombre_act == null)
+                                                {
+                                                <p class="text-danger">no se han realizado actualizaciones</p>
+                                            }
+                                            @ViewBag.user_nombre_act
+                                            }
+                                            </p>
+                                        </div>
+
+                                        <div class="col-sm-3 small">
+                                            <p>
+                                                Ultima actualización:  @{if (Model.fec_actualizacion == null)
+                                                    {
+                                                    <p class="text-danger">no se han realizado actualizaciones</p>
+                                                }
+                                                @Html.DisplayFor(model => model.fec_actualizacion)
+                                                }
+                                                </p>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                            }
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Número Orden Compra</th>
+                                        <th style="text-align:center">Bodega</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Tipo Compra</th>
+                                        <th style="text-align:center">Valor</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script type="text/javascript">
+
+        var contadorReferencias = 0;
+        var cantidadActual = 0;
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $('.js-source-states').select2();
+            buscarBodegas();
+            buscarProveedor();
+            buscarReferenciasExistentes();
+            $('#txtDescuentoPorcentaje').val(0);
+            $('#txtIvaPorcentaje').val(0);
+        });
+
+        $('#id_referencia').change(function buscarBodegas() {
+            $.ajax({
+                url: '/ordenCompraProveedor/buscarDatosReferencia',
+                data: {
+                    idReferencia: $('#id_referencia').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $('#txtIvaPorcentaje').val(data)
+                    $('#txtIvaPorcentaje').prop('disabled', true)
+
+                },
+                complete: function (data) {
+
+                }
+            });
+        });
+
+        function modificarDatosReferencia(id) {
+            $("#id_referencia").val($("#id_referenciaTable" + id).val())
+            $("#id_referencia").select2()
+            $("#txtPrecio").val(addCommas($("#precio_referenciaTable" + id).val()))
+            $("#txtCantidad").val($("#cantidad_referenciaTable" + id).val())
+            $("#txtDescuentoPorcentaje").val($("#por_descuento_referenciaTable" + id).val())
+            $("#txtIvaPorcentaje").val($("#por_iva_referenciaTable" + id).val())
+            $("#txtIvaPorcentaje").prop('disabled', true)
+            $("#txtIvaValor").val(addCommas($("#valor_iva_referenciaTable" + id).val()))
+            $("#txtSubtotal").val(addCommas($("#valor_subtotal_referenciaTable" + id).val()))
+            eliminarReferencia(id);
+        }
+
+        var numero_miles = "";
+
+        function formatNumber (n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles (id) {
+            numero_miles = formatNumber($('#'+id+'').val());
+            $('#'+id+'').val(numero_miles);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            var s = nStr.replace(/\./g, "");
+        }
+
+        function CalcularSubtotal(){
+            var precio = $.trim($('#txtPrecio').val());
+            if(precio == ''){
+                precio = 0;
+            }else{
+                precio = $('#txtPrecio').val().replace(/\./g, "");
+            }
+            var cantidad = $('#txtCantidad').val();
+            if(cantidad == ''){
+                cantidad = 0;
+            }else{
+                cantidad = $('#txtCantidad').val().replace(/\./g, "");
+            }
+            var descuento_porcentaje = $('#txtDescuentoPorcentaje').val();
+            if(descuento_porcentaje == ''){
+                descuento_porcentaje = 0;
+            }
+            var iva_porcentaje = $('#txtIvaPorcentaje').val();
+            if(iva_porcentaje == ''){
+                iva_porcentaje = 0;
+            }
+            var valorIva = Math.round((parseFloat(precio)*parseFloat(iva_porcentaje)/100)*parseFloat(cantidad));
+            var valorDescuento = Math.round((parseFloat(precio)*parseFloat(descuento_porcentaje)/100)*parseFloat(cantidad));
+            var valorSubTotal = parseFloat(precio)*parseFloat(cantidad) + valorIva - valorDescuento;
+            $('#txtIvaValor').val(addComas(valorIva));
+            $('#txtSubtotal').val(addComas(valorSubTotal));
+        }
+
+        $('.calculoSubTotal').keyup(function(){
+            CalcularSubtotal();
+        });
+
+        function buscarReferenciasExistentes(){
+            $.ajax({
+                url: '/ordenCompraProveedor/BuscarDetallesOrden',
+                data: {
+                    id: $('#idorden').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        var valorDescuento = 0;
+                        var valorAntes = 0;
+                        var valorTotal = 0;
+                        var valorIVA = 0;
+                     
+                        valorDescuento = Math.round((data[i].valorunitario * data[i].cantidad) * data[i].porcendescto / 100);
+                        valorAntes = Math.round(data[i].valorunitario * data[i].cantidad);
+                        valorIVA = Math.round((((valorAntes - valorDescuento) * data[i].porceniva) / 100));
+                        valorTotal = Math.round((data[i].valorunitario * data[i].cantidad) - valorDescuento + valorIVA)
+                        $('#tablaReferencias').find('tbody').append('<tr id="fila' + contadorReferencias + '">'
+                            + '<td align="left">'
+                            + '<input type="text" style="display:none" value="' + data[i].codigo_referencia + '" id="id_referenciaTable' + contadorReferencias + '" name="id_referenciaTable' + contadorReferencias + '"/>'
+                            + data[i].ref_descripcion
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="text" style="display:none" value="' + data[i].valorunitario + '" id="precio_referenciaTable' + contadorReferencias + '" name="precio_referenciaTable' + contadorReferencias + '"/>$ '
+                            + addComas(data[i].valorunitario)
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="text" style="display:none" value="' + data[i].cantidad + '" id="cantidad_referenciaTable' + contadorReferencias + '" name="cantidad_referenciaTable' + contadorReferencias + '"/>'
+                            + addComas(data[i].cantidad)
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="text" style="display:none" value="' + valorAntes + '" id="valorAntes' + contadorReferencias + '" name="valorAntes' + contadorReferencias + '"/>'
+                            + addComas(valorAntes)
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="text" style="display:none" value="' + data[i].porcendescto + '" id="por_descuento_referenciaTable' + contadorReferencias + '" name="por_descuento_referenciaTable' + contadorReferencias + '"/>'
+                            + data[i].porcendescto
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="text" style="display:none" value="' + valorDescuento + '" id="descuento' + contadorReferencias + '" name="descuento' + contadorReferencias + '"/>'
+                            + addComas(valorDescuento)
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="text" style="display:none" value="' + data[i].porceniva + '" id="por_iva_referenciaTable' + contadorReferencias + '" name="por_iva_referencia' + contadorReferencias + '"/>'
+                            + data[i].porceniva
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="text" style="display:none" value="' + data[i].valorIva + '" id="valor_iva_referenciaTable' + contadorReferencias + '" name="valor_iva_referenciTablaTable' + contadorReferencias + '"/>$ '
+                            + addComas(Math.round(data[i].valorIva))
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="text" style="display:none" value="' + valorTotal + '" id="valor_subtotal_referenciaTable' + contadorReferencias + '" name="valor_subtotal_referenciaTable' + contadorReferencias + '"/>$ '
+                            + addComas(valorTotal)
+                            + '</td>'
+                            + '<td width="15%" align="center">'
+                            + '<button type="button" class="btn btn-danger btn-xs" onclick="eliminarReferencia(' + contadorReferencias + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                            + '<button type="button" class="btn btn-info btn-xs" onclick="modificarDatosReferencia(' + contadorReferencias + ')">&nbsp;&nbsp;<i class="fa fa-pencil"></i>&nbsp;&nbsp;</button>'
+                            + '</td>'
+                            + '</tr>');
+                        contadorReferencias++;
+                        cantidadActual++;
+                        $('#lista_referencias').val(contadorReferencias);
+                    }
+                },
+                complete: function (data) {
+                    $('#txtDescuentopie').val(addComas(Math.round(parseFloat($('#descuentopie').val()))));
+                    $('#txtFletes').val(addComas(Math.round(parseFloat($('#fletes').val()))));
+                    CalcularTotales();
+                }
+            });
+        }
+
+        function CalcularTotales(){
+            var subTotales = 0;
+            var valorAntes = 0;
+            var ivaTotales = 0;
+            for(var i = 0; i < contadorReferencias; i++){
+                if( typeof($('#valor_subtotal_referenciaTable'+i+'').val()) != "undefined"){
+                    subTotales += parseInt($('#valor_subtotal_referenciaTable'+i+'').val());
+                }
+                if( typeof($('#valor_iva_referenciaTable'+i+'').val()) != "undefined"){
+                    ivaTotales += parseInt($('#valor_iva_referenciaTable'+i+'').val());
+                }
+                if( typeof($('#valorAntes'+i+'').val()) != "undefined"){
+                    valorAntes += parseInt($('#valorAntes'+i+'').val());
+                }
+            }
+
+            var valorFletes = $.trim($('#fletes').val());
+            var valorDescuento = $.trim($('#descuentopie').val());
+            var porcentaje_iva_flete = $.trim($('#ivafletes').val());
+
+            if(valorFletes == ''){
+                valorFletes = 0;
+            }else{
+                valorFletes = $('#fletes').val().replace(/\./g, "");
+            }
+            if(valorDescuento == ''){
+                valorDescuento = 0;
+            }else{
+                valorDescuento = $('#descuentopie').val().replace(/\./g, "");
+            }
+            if(porcentaje_iva_flete == ''){
+                porcentaje_iva_flete = 0;
+            }
+
+            var valorFlete = Math.round((parseFloat(valorFletes)*parseFloat(porcentaje_iva_flete))/100);
+            var valorTotal = subTotales - parseFloat(valorDescuento) + parseFloat(valorFlete) + parseFloat(valorFletes);
+            $('#txtFleteCalculado').val(addComas(valorFlete));
+            $('#txtTotalSubTotales').val(addComas(valorAntes));
+            $('#txtTotalIva').val(addComas(ivaTotales));
+            $('#txtValor').val(addComas(subTotales));
+        }
+
+
+        $('.recalcular').keyup(function(){
+            CalcularTotales();
+        });
+
+
+        function eliminarReferencia(posicion){
+            $("#fila" + posicion + "").remove();
+            cantidadActual--;
+            CalcularTotales();
+            if(cantidadActual > 0){
+                $('#areaTablaReferencias').show();
+            }else{
+                $('#areaTablaReferencias').hide();
+            }
+        }
+
+        $('#btnAgregarReferencia').click(function(){
+            if($('#id_referencia').val() != '' && $.trim($('#txtPrecio').val()) != '' && $.trim($('#txtCantidad').val()) != ''
+                && $.trim($('#txtDescuentoPorcentaje').val()) != '' && $.trim($('#txtIvaPorcentaje').val()) != ''){
+
+                var precio = $.trim($('#txtPrecio').val());
+                if(precio == ''){
+                    precio = 0;
+                }else{
+                    precio = $('#txtPrecio').val().replace(/\./g, "");
+                }
+                var cantidad = $('#txtCantidad').val();
+                if(cantidad == ''){
+                    cantidad = 0;
+                }else{
+                    cantidad = $('#txtCantidad').val().replace(/\./g, "");
+                }
+                var descuento_porcentaje = $('#txtDescuentoPorcentaje').val();
+                if(descuento_porcentaje == ''){
+                    descuento_porcentaje = 0;
+                }
+                var iva_porcentaje = $('#txtIvaPorcentaje').val();
+                if(iva_porcentaje == ''){
+                    iva_porcentaje = 0;
+                }
+
+                var valorAntes = Math.round((parseFloat(precio)*parseFloat(cantidad)));
+                var valorDescuento = Math.round((parseFloat(precio)*parseFloat(descuento_porcentaje)/100)*parseFloat(cantidad));
+                var valorIva = Math.round(((parseFloat(precio)*parseFloat(cantidad) - valorDescuento) * parseFloat(iva_porcentaje)/100));
+                var valorSubTotal = parseFloat(precio)*parseFloat(cantidad) + valorIva - valorDescuento;
+
+                //$('#tablaReferencias').find('tbody').append(
+                //    '<tr id="fila'+contadorReferencias+'"><td align="left">'
+                //        +'<input type="text" style="display:none" value="'+$('#id_referencia').val()+'" id="id_referenciaTable'+contadorReferencias+'" name="id_referenciaTable'+contadorReferencias+'"/>'+ $( "#id_referencia option:selected" ).text()
+                //    + '</td>'
+                //    +'<td align="right">'
+                //        +'<input type="text" style="display:none" value="'+$('#txtPrecio').val()+'" id="precio_referenciaTable'+contadorReferencias+'" name="precio_referenciaTable'+contadorReferencias+'"/>$ ' + addComas($('#txtPrecio').val())
+                //    + '</td>'
+                //    +'<td align="right">'
+                //        +'<input type="text" style="display:none" value="'+$('#txtCantidad').val()+'" id="cantidad_referenciaTable'+contadorReferencias+'" name="cantidad_referenciaTable'+contadorReferencias+'"/>'+ addComas($('#txtCantidad').val())
+                //    + '</td>'
+                //    +'<td align="right">'
+                //        +'<input type="text" style="display:none" value="'+$('#txtDescuentoPorcentaje').val()+'" id="por_descuento_referenciaTable'+contadorReferencias+'" name="por_descuento_referenciaTable'+contadorReferencias+'"/>'+ $('#txtDescuentoPorcentaje').val()
+                //    + '</td>'
+                //    +'<td align="right">'
+                //        +'<input type="text" style="display:none" value="'+$('#txtIvaPorcentaje').val()+'" id="por_iva_referenciaTable'+contadorReferencias+'" name="por_iva_referenciaTable'+contadorReferencias+'"/>'+ $('#txtIvaPorcentaje').val()
+                //    + '</td>'
+                //    +'<td align="right">'
+                //        +'<input type="text" style="display:none" value="'+ valorIva +'" id="valor_iva_referenciaTable'+contadorReferencias+'" name="valor_iva_referenciaTable'+contadorReferencias+'"/>$ '+ addComas(valorIva)
+                //    + '</td>'
+                //    +'<td align="right">'
+                //        +'<input type="text" style="display:none" value="'+ valorSubTotal +'" id="valor_subtotal_referenciaTable'+contadorReferencias+'" name="valor_subtotal_referenciaTable'+contadorReferencias+'"/>$ '+ addComas(valorSubTotal)
+                //    + '</td>'
+                //    +'<td width="15%" align="center">'
+                //        +'<button type="button" class="btn btn-danger btn-xs" onclick="eliminarReferencia('+ contadorReferencias + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                //        +'<button type="button" class="btn btn-info btn-xs" onclick="modificarDatosReferencia(' + contadorReferencias + ')">&nbsp;&nbsp;<i class="fa fa-pencil"></i>&nbsp;&nbsp;</button>'
+                //    +'</td></tr>');
+
+                $('#tablaReferencias').find('tbody').append('<tr id="fila'+contadorReferencias+'">'
+                                                                +'<td align="left">'
+                                                                    +'<input type="text" style="display:none" value="'+$('#id_referencia').val()+'" id="id_referenciaTable'+contadorReferencias+'" name="id_referenciaTable'+contadorReferencias+'"/>'
+                                                                    + $( "#id_referencia option:selected" ).text()
+                                                                + '</td>'
+                                                                +'<td align="right">'
+                                                                    +'<input type="text" style="display:none" value="'+$('#txtPrecio').val()+'" id="precio_referenciaTable' +contadorReferencias+'" name="precio_referenciaTable'+contadorReferencias+'"/>$ '
+                                                                    + addComas($('#txtPrecio').val())
+                                                                +'</td>'
+                                                                +'<td align="right">'
+                                                                    +'<input type="text" style="display:none" value="'+$('#txtCantidad').val()+'" id="cantidad_referenciaTable'+contadorReferencias+'" name="cantidad_referenciaTable'+contadorReferencias+'"/>'
+                                                                    + addComas($('#txtCantidad').val())
+                                                                +'</td>'
+                                                                +'<td align="right">'
+                                                                    +'<input type="text" style="display:none" value="'+valorAntes+'" id="valorAntes'+contadorReferencias+'" name="valorAntes'+contadorReferencias+'"/>'
+                                                                    + addComas(valorAntes)
+                                                                +'</td>'
+                                                                +'<td align="right">'
+                                                                    +'<input type="text" style="display:none" value="'+$('#txtDescuentoPorcentaje').val()+'" id="por_descuento_referenciaTable'+contadorReferencias+'" name="por_descuento_referenciaTable'+contadorReferencias+'"/>'
+                                                                    + $('#txtDescuentoPorcentaje').val()
+                                                                +'</td>'
+                                                                +'<td align="right">'
+                                                                    +'<input type="text" style="display:none" value="'+valorDescuento+'" id="descuento'+contadorReferencias+'" name="descuento'+contadorReferencias+'"/>'
+                                                                    + addComas(valorDescuento)
+                                                                +'</td>'
+                                                                +'<td align="right">'
+                                                                    +'<input type="text" style="display:none" value="'+$('#txtIvaPorcentaje').val()+'" id="por_iva_referenciaTable'+contadorReferencias+'" name="por_iva_referenciaTable'+contadorReferencias+'"/>'
+                                                                    + $('#txtIvaPorcentaje').val()
+                                                                +'</td>'
+                                                                +'<td align="right">'
+                                                                    +'<input type="text" style="display:none" value="'+ valorIva +'" id="valor_iva_referenciaTable'+contadorReferencias+'" name="valor_iva_referenciaTable'+contadorReferencias+'"/>$ '
+                                                                    + addComas(valorIva)
+                                                                +'</td>'
+                                                                +'<td align="right">'
+                                                                    +'<input type="text" style="display:none" value="'+ valorSubTotal +'" id="valor_subtotal_referenciaTable'+contadorReferencias+'" name="valor_subtotal_referenciaTable'+contadorReferencias+'"/>$ '
+                                                                    + addComas(valorSubTotal)
+                                                                +'</td>'
+                                                                +'<td width="15%" align="center">'
+                                                                    +'<button type="button" class="btn btn-danger btn-xs" onclick="eliminarReferencia('+ contadorReferencias + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                                                                    +'<button type="button" class="btn btn-info btn-xs" onclick="modificarDatosReferencia(' + contadorReferencias + ')">&nbsp;&nbsp;<i class="fa fa-pencil"></i>&nbsp;&nbsp;</button>'
+                                                                +'</td>'
+                                                            +'</tr>');
+
+                contadorReferencias++;
+                cantidadActual++;
+                $('#lista_referencias').val(contadorReferencias);
+                CalcularTotales();
+                $('#id_referencia').val('').prop('style','visible:visible').select2();
+                $('#txtPrecio').val('');
+                $('#txtCantidad').val('');
+                $('#txtDescuentoPorcentaje').val('')
+                $('#txtIvaPorcentaje').val('');
+                $('#txtIvaValor').val('');
+                $('#txtSubtotal').val('');
+                $('#areaTablaReferencias').show();
+            }else{
+                $('#areaAlertaReferencias').show();
+                setTimeout(function () {
+                    $("#areaAlertaReferencias").hide(1500);
+                }, 3000);
+            }
+        });
+
+        function buscarProveedor(){
+            $.ajax({
+                url: '/ordenCompraProveedor/BuscarCedulaProveedor',
+                data: {
+                    id_tercero: $('#proveedor').val(),
+                    id_orden: $('#idorden').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    if (data.encontrado == true) {
+                        $('#txtCelularProveedor').val(data.buscarDestinatario.celular_tercero);
+                        $('#txtCorreoProveedor').val(data.buscarDestinatario.email_tercero);
+                        $('#direccion').empty();
+                        $('#direccion').append($('<option>', {
+                            value: '',
+                            text: ''
+                        }));
+                        for (var i = 0; i < data.buscarDestinatario.direcciones.length; i++) {
+                            $('#direccion').append($('<option>', {
+                                value: data.buscarDestinatario.direcciones[i].id,
+                                text: data.buscarDestinatario.direcciones[i].direccion + ' (' + data.buscarDestinatario.direcciones[i].ciu_nombre + ')'
+                            }));
+                        }
+                        $('#direccion').val(data.buscarDireccion.id_direccion).prop('style', 'visible:visible').select2();
+                    } else {
+                        $('#txtCelularDestinatario').val('');
+                        $('#txtCorreoDestinatario').val('');
+                        $('#direccion').empty().select2();
+                    }
+                }
+            });
+        }
+
+        //function buscarReferenciasExistentes() {
+        //    $.ajax({
+        //        url: '/ordenCompraProveedor/BuscarDetallesOrden',
+        //        data: {
+        //            id: $('#idorden').val()
+        //        },
+        //        type: 'post',
+        //        dataType: 'json',
+        //        cache: false,
+        //        success: function (data) {
+        //            for (var j = 0; j < data.buscarDetalles.length; j++) {
+        //                i++;
+        //                var btnEliminar = '<button class="btn btn-danger btn-circle" id="referencia' + i + '" type="button" onclick="eliminarPedido(this.id)"><i class="fa fa-remove"></i></button>'
+        //                $('#lista_referencias').val(i);
+        //                var option = '';
+        //                //var btnAgregar = '<button class="btn btn-success btn-circle" type="button" onclick="agregarReferencia()"><i class="fa fa-plus"></i></button>';
+        //                if (i == data.buscarDetalles.length) {
+        //                    btnEliminar = '<button class="btn btn-success btn-circle" type="button" onclick="agregarReferencia()"><i class="fa fa-plus"></i></button>';
+        //                    //$("div.btn").replaceWith(btnAgregar);
+        //                }
+        //                option = '<option value=""></option>'
+        //                for (var k = 0; k < data.referencias.length; k++) {
+        //                    if (data.referencias[k].codigo == data.buscarDetalles[j].codigo_referencia) {
+        //                        option += '<option selected value="' + data.referencias[k].codigo + '">' + data.referencias[k].codigo + '</option>'
+        //                    } else {
+        //                        option += '<option value="' + data.referencias[k].codigo + '">' + data.referencias[k].codigo + '</option>'
+        //                    }
+        //                }
+        //                $('#tablaCotizacion').find('tbody').append('<tr class="referencia' + i + '">'
+        //                       + '<td>'
+        //                            + '<div class="col-sm-12">'
+        //                                + '<label class="control-label col-md-3 input-sm">Ref:<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-9">'
+        //                                    + '<select class="multiselect-ui form-control input-sm" onchange="buscarPrecios(this.value,' + i + ')" id="referencia' + i + '" name="referencia' + i + '" required = "required" >'
+        //                                        + option
+        //                                    + '</select>'
+        //                                + '</div>'
+        //                            + '</div>'
+        //                        + '</td>'
+        //                        + '<td>'
+        //                              + '<div class="col-sm-12">'
+        //                                + '<label class="control-label col-md-2 input-sm">Precio:<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control  input-sm" value="' + data.buscarDetalles[j].valorunitario + '" onkeyup="calcularSubTotal(' + i + ');" id="precio' + i + '" name="precio' + i + '" value="" required = "required" type="number" placeholder="$">'
+        //                                + '</div>'
+        //                                + '<label class="control-label col-md-2 input-sm">% Dto:</label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control input-sm" value="' + data.buscarDetalles[j].porcendescto + '" onkeyup="calcularSubTotal(' + i + ');" id="descuento' + i + '" name="descuento' + i + '"  type="number">'
+        //                                + '</div>'
+        //                             + '</div>'
+        //                        + '</td>'
+        //                        + '<td>'
+        //                            + '<div class="col-sm-12">'
+        //                                + '<label class="control-label col-md-2 input-sm">% iva: &nbsp;<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control input-sm" value="' + data.buscarDetalles[j].porceniva + '" onkeyup="calcularSubTotal(' + i + ');" id="iva' + i + '" name="iva' + i + '" required = "required" type="number">'
+        //                                + '</div>'
+        //                                 + '<label class="control-label col-md-2 input-sm">Cantidad:<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control input-sm" value="' + data.buscarDetalles[j].cantidad + '" onkeyup="calcularSubTotal(' + i + ');" id="cantidad' + i + '" name="cantidad' + i + '" required = "required" type="number">'
+        //                                + '</div>'
+        //                             + '</div>'
+        //                        + '</td>'
+        //                        + '<td>'
+        //                            + '<div class="col-sm-12">'
+        //                                + '<label class="control-label col-md-2 input-sm">$ iva: &nbsp;<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control input-sm" value="' + data.buscarDetalles[j].valorIva + '" readonly="readonly" id="ValorIva' + i + '" name="ValorIva' + i + '" type="number">'
+        //                                + '</div>'
+        //                                 + '<label class="control-label col-md-2 input-sm">Subtotal:<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control input-sm" value="' + data.buscarDetalles[j].subtotal + '" readonly="readonly" id="subtotalPorReferencia' + i + '" name="subtotalPorReferencia' + i + '" type="number">'
+        //                                + '</div>'
+        //                             + '</div>'
+        //                        + '</td>'
+        //                        + '<td>'
+        //                            + '<div class="col-sm-12">'
+        //                                + '<center>'
+        //                                     + '<div class="btn">'
+        //                                        + btnEliminar
+        //                                     + '</div>'
+        //                                + '</center>'
+        //                            + '</div>'
+        //                        + '</td>'
+        //                    + '</tr>');
+        //            }
+        //        },
+        //        complete: function (data) {
+        //            calcularSubTotal(0);
+        //        }
+        //    })
+        //}
+
+        function buscarBodegas() {
+            $.ajax({
+                url: '/ordenCompraProveedor/BuscarBodegasPorDocumento',
+                data: {
+                    idTpDoc: $('#idtipodoc').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $('#bodega').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#bodega').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+                    $('#bodega').select2();
+                },
+                complete: function (data) {
+                    if ('@ViewBag.bodegaSeleccionado' != '') {
+                        $('#bodega').val('@ViewBag.bodegaSeleccionado').select2();
+                    }
+                }
+            });
+        }
+
+        $('#idtipodoc').change(function () {
+            buscarBodegas();
+        });
+
+        //function buscarDestinatario() {
+        //    $.ajax({
+        //        url: '/ordenCompraProveedor/BuscarCedulaDestinatario',
+        //        data: {
+        //            id_tercero: $('#destinatario').val()
+        //        },
+        //        type: 'post',
+        //        dataType: 'json',
+        //        cache: false,
+        //        success: function (data) {
+        //            if (data.encontrado == true) {
+        //                //$('#destinatario').val(data.buscarDestinatario.tercero_id);
+        //                $('#txtPrimerNombreDestinatario').val(data.buscarDestinatario.prinom_tercero);
+        //                $('#txtSegundoNombreDestinatario').val(data.buscarDestinatario.segnom_tercero);
+        //                $('#txtPrimerApellidoDestinatario').val(data.buscarDestinatario.apellido_tercero);
+        //                $('#txtSegundoApellidoDestinatario').val(data.buscarDestinatario.segapellido_tercero);
+        //                $('#txtCelularDestinatario').val(data.buscarDestinatario.celular_tercero);
+        //                $('#txtCorreoDestinatario').val(data.buscarDestinatario.email_tercero);
+        //                $('#direccion').empty();
+        //                for (var i = 0 ; i < data.buscarDestinatario.direcciones.length; i++) {
+        //                    $('#direccion').append($('<option>', {
+        //                        value: data.buscarDestinatario.direcciones[i].id,
+        //                        text: data.buscarDestinatario.direcciones[i].direccion + ' (' + data.buscarDestinatario.direcciones[i].ciu_nombre + ')'
+        //                    }));
+        //                }
+        //                $('#direccion').select2();
+        //            } else {
+        //                $('#destinatario').val('');
+        //                $('#txtPrimerNombreDestinatario').val('');
+        //                $('#txtSegundoNombreDestinatario').val('');
+        //                $('#txtPrimerApellidoDestinatario').val('');
+        //                $('#txtSegundoApellidoDestinatario').val('');
+        //                $('#txtCelularDestinatario').val('');
+        //                $('#txtCorreoDestinatario').val('');
+        //                $('#direccion').empty().select2();
+        //            }
+        //        }
+        //    })
+        //}
+
+        $('#btnVerificaVacios').click(function () {
+            if ($.trim($('#idtipodoc').val()) != '' && $.trim($('#bodega').val()) != '' && $.trim($('#tipoorden').val()) != '' && $.trim($('#diasvalidez').val()) != ''
+                && $.trim($('#proveedor').val()) != '' && $.trim($('#destinatario').val()) != '' && $.trim($('#direccion').val()) != '' && $.trim($('#condicion_pago').val()) != '') {
+                $("#alertaCamposVacios").hide(1500);
+                $('#btnGuardar').trigger('click');
+            } else {
+                $("#alertaCamposVacios").show();
+                setTimeout(function () {
+                    $("#alertaCamposVacios").hide(1500);
+                }, 3000);
+            }
+        });
+
+        //$('#destinatario').change(function () {
+        //    buscarDestinatario();
+        //});
+
+        //function eliminarPedido(id) {
+        //    $("." + id + "").remove();
+        //}
+
+        //function agregarReferencia() {
+        //    //$('#tablaPedido').find('tbody').empty()
+        //    var btnEliminar = '<button class="btn btn-danger btn-circle" id="referencia' + i + '" type="button" onclick="eliminarPedido(this.id)"><i class="fa fa-remove"></i></button>'
+        //    i++;
+        //    $('#lista_referencias').val(i);
+        //    var option = '';
+        //    var btnAgregar = '<button class="btn btn-success btn-circle" type="button" onclick="agregarReferencia()"><i class="fa fa-plus"></i></button>';
+        //    if (i > 1) {
+        //        $("div.btn").replaceWith(btnEliminar);
+        //    }
+        //    $.ajax({
+        //        url: '/ordenCompraProveedor/BuscarReferencias',
+        //        data: {
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //            option += '<option value=""></option>'
+        //            for (var j = 0; j < data.length; j++) {
+        //                option += '<option value="' + data[j].codigo + '">' + data[j].codigo + '</option>'
+        //            }
+        //            $('#tablaCotizacion').find('tbody').append('<tr class="referencia' + i + '">'
+        //                       + '<td>'
+        //                            + '<div class="col-sm-12">'
+        //                                + '<label class="control-label col-md-3 input-sm">Ref:<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-9">'
+        //                                    + '<select class="multiselect-ui form-control input-sm" onchange="buscarPrecios(this.value,' + i + ')" id="referencia' + i + '" name="referencia' + i + '" required = "required" >'
+        //                                        + option
+        //                                    + '</select>'
+        //                                + '</div>'
+        //                            + '</div>'
+        //                        + '</td>'
+        //                        + '<td>'
+        //                              + '<div class="col-sm-12">'
+        //                                + '<label class="control-label col-md-2 input-sm">Precio:<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control  input-sm" value="" onkeyup="calcularSubTotal(' + i + ');" id="precio' + i + '" name="precio' + i + '" value="" required = "required" type="number" placeholder="$">'
+        //                                + '</div>'
+        //                                + '<label class="control-label col-md-2 input-sm">% Dto:</label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control input-sm" value="" onkeyup="calcularSubTotal(' + i + ');" id="descuento' + i + '" name="descuento' + i + '"  type="number">'
+        //                                + '</div>'
+        //                             + '</div>'
+        //                        + '</td>'
+        //                        + '<td>'
+        //                            + '<div class="col-sm-12">'
+        //                                + '<label class="control-label col-md-2 input-sm">% iva: &nbsp;<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control input-sm" value="" onkeyup="calcularSubTotal(' + i + ');" id="iva' + i + '" name="iva' + i + '" required = "required" type="number">'
+        //                                + '</div>'
+        //                                 + '<label class="control-label col-md-2 input-sm">Cantidad:<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control input-sm" value="" onkeyup="calcularSubTotal(' + i + ');" id="cantidad' + i + '" name="cantidad' + i + '" required = "required" type="number">'
+        //                                + '</div>'
+        //                             + '</div>'
+        //                        + '</td>'
+        //                        + '<td>'
+        //                            + '<div class="col-sm-12">'
+        //                                + '<label class="control-label col-md-2 input-sm">$ iva: &nbsp;<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control input-sm" value="" readonly="readonly" id="ValorIva' + i + '" name="ValorIva' + i + '" type="number">'
+        //                                + '</div>'
+        //                                 + '<label class="control-label col-md-2 input-sm">Subtotal:<span class="text-danger">*</span></label>'
+        //                                + '<div class="col-md-4">'
+        //                                    + '<input class="form-control input-sm" value="" readonly="readonly" id="subtotalPorReferencia' + i + '" name="subtotalPorReferencia' + i + '" type="number">'
+        //                                + '</div>'
+        //                             + '</div>'
+        //                        + '</td>'
+        //                        + '<td>'
+        //                            + '<div class="col-sm-12">'
+        //                                + '<center>'
+        //                                     + '<div class="btn">'
+        //                                        + btnAgregar
+        //                                     + '</div>'
+        //                                + '</center>'
+        //                            + '</div>'
+        //                        + '</td>'
+        //                    + '</tr>');
+        //        },
+        //        complete: function (data) {
+        //        }
+        //    });
+        //}
+
+        function buscarPrecios(ref, pos) {
+            $("#precio" + pos + "").val('')
+            $("#descuento" + pos + "").val('')
+            $("#iva" + pos + "").val('')
+
+            $.ajax({
+                url: '/inventario_repuesto/buscarPrecios',
+                data: {
+                    codigo: ref
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+
+                    for (var i = 0; i < data.length; i++) {
+                        $("#precio" + pos + "").val(data[i].precio)
+                        $("#descuento" + pos + "").val(data[i].descuento)
+                        $("#iva" + pos + "").val(data[i].iva)
+                        $("#cantidad" + pos + "").val('1')
+                        $("#ValorIva" + pos + "").val((data[i].precio * data[i].iva) / 100)
+                        $("#subtotalPorReferencia" + pos + "").val(data[i].precio - (data[i].precio * data[i].descuento) / 100)
+                    }
+                },
+                complete: function (data) {
+                    calcularSubTotal(pos);
+                }
+            });
+        }
+
+        //function calcularSubTotal(posicion) {
+        //    var cantidadAgregados = $('#lista_referencias').val();
+        //    var valorTotal = 0;
+        //    var sumaIvasTotal = 0;
+        //    for (var j = 1; j <= cantidadAgregados; j++) {
+        //        var precio = parseInt($('#precio' + j).val()) || 0;
+        //        var sumaIvasParcial = 0;
+        //        var valorParcial = 0;
+        //        if (precio == '' || typeof precio === "undefined") {
+        //            // Significa que se borro o que esta en banco el campo precio, por tanto no se suma
+        //        } else {
+        //            var porcentajeIva = parseInt($('#iva' + j).val()) || 0;
+        //            if (porcentajeIva != '' || typeof porcentajeIva !== "undefined") {
+        //                var iva = parseFloat(precio) * parseFloat(porcentajeIva) / 100;
+        //                sumaIvasParcial += iva;
+        //                //valorParcial += parseFloat(iva);
+        //            }
+        //            var porcentajeDcto = parseInt($('#descuento' + j).val()) || 0;
+        //            if (porcentajeDcto != '' || typeof porcentajeDcto !== "undefined") {
+        //                var descuento = parseFloat(precio) * parseFloat(porcentajeDcto) / 100;
+        //                valorParcial -= parseFloat(descuento);
+        //            }
+        //            valorParcial += parseFloat(precio);
+        //            var cantidades = parseInt($('#cantidad' + j).val()) || 0;
+        //            if (cantidades != '' || typeof cantidades !== "undefined") {
+        //                valorParcial *= cantidades;
+        //                sumaIvasParcial *= cantidades;
+        //            }
+        //            valorTotal += valorParcial;
+        //            sumaIvasTotal += sumaIvasParcial;
+        //        }
+        //    }
+        //    $('#iva').val(Math.round(sumaIvasTotal));
+        //    $('#subTotalNumerico').val(valorTotal);
+        //    $('#txtSubTotal').val(addComas(Math.round(valorTotal)));
+        //    var precioFilaActual = parseInt($('#precio' + posicion).val()) || 0;
+        //    var descuentoFilaActual = parseInt($('#descuento' + posicion).val()) || 0;
+        //    var ivaFilaActual = parseInt($('#iva' + posicion).val()) || 0;
+        //    var cantidadFilaActual = parseInt($('#cantidad' + posicion).val()) || 0;
+        //    var subtotalFilaActual = 0;
+        //    var ValorIvaFilaActual = 0;
+        //    if (precioFilaActual != '' || typeof precioFilaActual !== "undefined") {
+        //        subtotalFilaActual += precioFilaActual;
+        //        if (descuentoFilaActual != '' || typeof descuentoFilaActual !== "undefined") {
+        //            subtotalFilaActual -= (precioFilaActual * descuentoFilaActual / 100);
+        //        }
+        //        if (ivaFilaActual != '' || typeof ivaFilaActual !== "undefined") {
+        //            ValorIvaFilaActual += (precioFilaActual * ivaFilaActual / 100);
+        //        }
+        //    }
+        //    if (cantidadFilaActual != '' || typeof cantidadFilaActual !== "undefined") {
+        //        subtotalFilaActual = subtotalFilaActual * cantidadFilaActual;
+        //        ValorIvaFilaActual = ValorIvaFilaActual * cantidadFilaActual;
+        //    }
+        //    $('#ValorIva' + posicion + '').val(Math.round(ValorIvaFilaActual));
+        //    $('#subtotalPorReferencia' + posicion + '').val(subtotalFilaActual);
+        //    $('#descuentopie').val(Math.round(parseFloat($('#descuentopie').val().toString().replace(',', '.'))));
+        //    $('#fletes').val(Math.round(parseFloat($('#fletes').val().toString().replace(',', '.'))));
+        //    $('#ivafletes').val(Math.round(parseFloat($('#ivafletes').val().toString().replace(',', '.'))));
+        //    calcularTotal();
+        //}
+
+        //function replaceAll(text, busca, reemplaza) {
+        //    while (text.toString().indexOf(busca) != -1)
+        //        text = text.toString().replace(busca, reemplaza);
+        //    return text;
+        //}
+
+        //function calcularTotal() {
+        //    var descuento = parseFloat($('#descuentopie').val()) || 0;
+        //    var iva = parseFloat($('#iva').val()) || 0;
+        //    var fletes = parseFloat($('#fletes').val()) || 0;
+        //    var ivaFletes = parseFloat($('#ivafletes').val()) || 0;
+        //    var totalActual = $('#subTotalNumerico').val();
+        //    //iva = iva * (parseFloat(totalActual) - descuento) / 100;
+        //    ivaFletes = ivaFletes * fletes / 100;
+        //    $('#txtFleteCalculado').val(ivaFletes);
+        //    //totalActual = parseFloat(totalActual) + iva + fletes + ivaFletes - descuento;
+        //    var totalActual = Math.round(parseFloat($('#valor').val().toString().replace(',', '.')));
+        //    $('#txtValor').val(addComas(totalActual));
+        //    $('#valor').val(totalActual.toString().replace('.', ','));
+        //}
+
+        //$('#descuentopie').keyup(function () {
+        //    calcularTotal();
+        //});
+
+        //$('#iva').keyup(function () {
+        //    calcularTotal();
+        //});
+
+        //$('#fletes').keyup(function () {
+        //    calcularTotal();
+        //});
+
+        //$('#ivafletes').keyup(function () {
+        //    calcularTotal();
+        //});
+
+        @*function valida(id) {
+            window.location.href = '@Url.Action("ver", "ordenCompraProveedor")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }*@
+
+        function validaPDF(id) {
+            window.open('@Url.Action("OrdenCompraPDF", "ordenCompraProveedor")?menu='+@ViewBag.id_menu+'&&id='+id, '_blank');
+        }
+
+        function Editar(id) {
+            window.location.href = '@Url.Action("Editar", "ordenCompraProveedor")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+
+
+        function buscarOrdenes() {
+            $('#tablaPaginada').dataTable().fnDestroy();
+            $.ajax({
+                url: '/ordenCompraProveedor/BuscarOrdenesCompra',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="left">(' + data[i].prefijo + ') ' + data[i].tpdoc_nombre + '</td><td align="right">' + data[i].numero
+                            + '</td><td align="left">('
+                            + data[i].bodccs_cod + ') ' + data[i].bodccs_nombre + '</td><td align="right">'
+                            + data[i].fec_creacion + '</td><td>'
+                            + data[i].tipo_compra + '</td><td align="right">$'
+                            + data[i].valor + '</td><td width="15%" align="center"><button class="btn btn-info btn-xs" onclick="Editar('
+                            + data[i].idorden + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>&nbsp;&nbsp;<button class="btn btn-success btn-xs" onclick="validaPDF('
+                            + data[i].idorden + ')">&nbsp;&nbsp;PDF&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+}

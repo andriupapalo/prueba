@@ -1,0 +1,250 @@
+﻿@{
+    ViewBag.Title = "Lista Precios";
+    ViewBag.Icono = "fa fa-money";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section Styles {
+    <link rel="stylesheet" href="~/vendor/chartist/custom/chartist.css" />
+    <style>
+        .stock{
+            text-align:center
+        }
+        .valor {
+            text-align: right;
+        }
+    </style>
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Consulta @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div id="modalStock" class="modal fade hmodal-info" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Stock En Bodegas</h4>
+            </div>
+            <div class="modal-body">
+
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar"></div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaPaginadaStock">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#repuestos"><i class="fa fa-cogs"></i>&nbsp;&nbsp;Repuestos</a></li>
+            </ul>
+
+            <div id="repuestos" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-6" style="padding-top:10px;">
+                            <div class="input-group">
+                                <input type="text" id="txtFiltroGeneral" placeholder="Buscar..." class="form-control"> <span class="input-group-btn">
+                                    <button type="button" class="btn btn-primary" id="botonbuscar">
+                                        <i class="fa fa-search">&nbsp;Buscar</i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">                       
+                        <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Referencia</th>
+                                    <th style="text-align:center">Descripcion</th>
+                                    <th style="text-align:center">Costo Promedio</th>
+                                    <th style="text-align:center">Precio Venta Sin Iva</th>
+                                    <th style="text-align:center">Precio Venta Con Iva</th>
+                                    <th style="text-align:center">Cantidades</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/chartist/dist/chartist.min.js"></script>
+    <script src="~/Vendor/chartjs/Chart.min.js"></script>
+    <script src="~/vendor/d3/d3.min.js"></script>
+    <script src="~/vendor/c3/c3.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            buscarDatos();            
+        });
+
+        $('#botonbuscar').click(function () {
+            $('#botonbuscar').prop('disabled', true);
+            buscarDatos();
+
+        });
+
+        function buscarDatos() {
+            $("#tablaPaginada").dataTable().fnDestroy();
+
+            var general = $('#txtFiltroGeneral').val();
+
+            var table = $('#tablaPaginada').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "filter": true,
+                "orderMulti": false,
+                "searching": false,
+                dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                buttons: [],
+                "ajax": {
+                    "url": "/rlistaPrecios/buscarDatos",
+                    "type": "POST",
+                    "datatype": "json",
+                    "data": {
+                        filtroGeneral: general
+                    }
+                },
+                "columns": [
+                    { "data": "ref_codigo", "name": "ref_codigo", "autoWidth": true },
+                    { "data": "ref_descripcion", "name": "ref_descripcion", "autoWidth": true },
+                    { "data": "costo_promedio", "name": "costo_promedio", "autoWidth": true, "className": "valor" },
+                    { "data": "precio_venta", "name": "precio_venta", "autoWidth": true, "className": "valor" },
+                    { "data": "precio_iva", "name": "precio_iva", "autoWidth": true, "className": "valor" },
+                    {
+                        "mData": null,
+                        "bSortable": false,
+                        "className": "stock",
+                        "mRender": function (o) {
+                            //console.log(o);
+                            var boton = "<button class='btn btn-info btn-xs' onclick='buscarStock(\"" + o.ref_codigo + "\")'>STOCK</button>";
+                            return boton;
+                        }
+                    },
+                ]
+            });
+
+            var data = table.buttons.exportData();
+            $('#botonbuscar').prop('disabled', false);
+        }
+
+        function buscarStock(cod) {
+            $.ajax({
+                url: '/rlistaPrecios/buscarStock',
+                data: { cod },
+                type: "POST",
+                success: function (data) {
+                    $('#tablaPaginadaStock').dataTable().fnDestroy();
+                    $('#tablaPaginadaStock').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i].stock > 0) {
+
+                            $('#tablaPaginadaStock').find('tbody').append(
+                                '<tr>'
+                                + '<td>' + data[i].bodega + '</td>'
+                                + '<td>' + data[i].stock + '</td>'
+                                + '</tr>'
+                            );
+                        }
+                    }
+                },
+                complete: function () {
+                    $('#tablaPaginadaStock').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                    $('#modalStock').modal('show');
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+    </script>
+
+}

@@ -1,0 +1,538 @@
+﻿@model IEnumerable<Homer_MVC.IcebergModel.rseparacionmercancia>
+
+@{
+    ViewBag.Title = "Separación de Mercancia";
+    ViewBag.Icono = "fa fa-address-book-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class=""><a href="@Url.Action("Create","rseparacionmercancias", new { menu = @ViewBag.id_menu })"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="active"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="buscar" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center; width:130px">Número Separación</th>
+                                        <th style="text-align:center; width:70px"># Pedido</th>
+                                        <th style="text-align:center; width:230px;">Documento </th>
+                                        <th style="text-align:center; width:230px;">Cliente</th>
+                                        <th style="text-align:center; width:130px;">Fecha</th>
+                                        <th style="text-align:center; width:130px;">Fecha Final</th>
+                                        <th style="text-align:center">Bodega</th>
+                                        <th style="text-align:center; width:100px;">Estado</th>
+                                        <th style="text-align:center; width:100px;">Valor</th>
+                                        <th style="text-align:center; width:100px;">Referencias</th>
+                                        @*<th style="text-align:center">Acciones</th>*@
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade hmodal-info" id="referenciaseparacion" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Detalles</h4>
+                <small class="font-bold">Esta separacion de mercancia tiene los siguientes detalles.</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                        <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos Referencias
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered table-hover" id="tablaDetallesRef">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Referencia</th>
+                                        <th style="text-align:center">Descripcion</th>
+                                        <th style="text-align:center">Cantidad</th>
+                                        <th style="text-align:center">Valor Unitario</th>
+                                        <th style="text-align:center">Valor Total</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detalles"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                        <i class="fa fa-fax"></i>&nbsp;&nbsp;&nbsp;Anticipos Relacionados
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-striped table-bordered table-hover" id="tablaAnticiposRef">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Documento</th>
+                                    <th style="text-align:center"># Documento</th>
+                                    <th style="text-align:center">Fecha</th>
+                                    <th style="text-align:center">Valor Total</th>
+                                    <th style="text-align:center">Nota</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detalles"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <div class="hpanel" id="paneldocumentos">
+                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                        </div>
+                        <i class="fa fa-calendar-check-o"></i>&nbsp;&nbsp;&nbsp;Documentos Asociadoss
+                    </div>
+                    <div class="panel-body">
+
+                        <div class="col-lg-12">
+                            <div class="table-responsive">
+                                <div id="div-mensaje-buscar"></div>
+                                <table class="table table-striped table-bordered table-hover" id="tabladocumentos">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:center">Tipo Documento</th>
+                                            <th style="text-align:center">Num. Documento</th>
+                                            <th style="text-align:center">Fecha</th>
+                                            <th style="text-align:center">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                        <i class="fa fa-comments"></i>&nbsp;&nbsp;&nbsp;Seguimiento
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-striped table-bordered table-hover" id="tablaSeguimiento">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Nota</th>
+                                    <th style="text-align:center">Fecha</th>
+                                    <th style="text-align:center">Responsable</th>
+                                </tr>
+                            </thead>
+                            <tbody id="seguimiento"></tbody>
+                        </table>
+                        <label>Nota</label>
+                        <textarea class="form-control" id="nota" style="resize:none"></textarea>
+                        <button class="btn btn-success" id="btnSeguimiento" type="button" style="float:right; margin-top:15px;"><i class="fa fa-plus"></i>&nbsp;&nbsp;&nbsp;Agregar</button>
+                        <input type="hidden" id="numSeparacion" value="" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnimprimirpdf" onclick="" data-dismiss="modal" class="btn btn-success">
+                    PDF
+                </button>
+                <button type="button" id="btnCerrar" data-dismiss="modal" class="btn btn-danger">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade hmodal-info" id="descomprometer" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Descomprometer Accesorios</h4>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <input type="hidden" id="idseparacionDes" />
+                        <label class="control-label col-md-4" style="text-align:right; vertical-align:central">Referencia:</label>
+                        <div class="col-md-6">
+                            <input class="form-control" type="text" id="ref" readonly />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4" style="text-align:right;vertical-align:central">Cantidad:</label>
+                        <div class="col-md-6">
+                            <input class="form-control" type="number" min="0" id="cantidadDes" />
+                            <input type="hidden" id="cantidadDesActual" value="" />
+                        </div>
+                    </div>
+                </div>
+                <button type="button" id="btnGuardarDes" class="btn btn-success">Guardar</button>
+                <button type="button" id="btnCerrar" data-dismiss="modal" class="btn btn-danger">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            browser();
+        });
+        var cod= 1;
+        function browser(){
+            $.ajax({
+                url: '/rseparacionmercancias/BusquedaBrowser',
+                data: {},
+                type: 'POST',
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').dataTable().fnDestroy();
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        //var tablaref="";
+                        //if(data[i].listadoreferencias.length>0){
+                        //     tablaref="<table id='tabla_"+i+"' style='border:solid 1px'><thead><tr><th>Referencia</th><th>Cantidad</th></tr></thead><tbody><tr>";
+                        //     for(var j=0;j<data[i].listadoreferencias.length;j++){
+                        //        tablaref+="<td>"+data[i].listadoreferencias[j].descripcion+"</td><td>"+data[i].listadoreferencias[j].cantidad+"</td>";
+                        //    }
+                        //     tablaref+="</tr></tbody></table>";
+                        //     console.log(tablaref);
+                        //}
+
+                        $('#tablaPaginada').find('tbody').append(
+                            '<tr>'
+                            + '<td align="left">' + data[i].idSeparacion + '</td>'
+                            + '<td align="left">' + data[i].numPedido + '</td>'
+                            + '<td>' + data[i].doc_tercero + '</td>'
+                            + '<td>' + data[i].cliente + '</td>'
+                            + '<td align="right">' + data[i].fecha + '</td>'
+                            + '<td align="right">' + data[i].fechaFinal + '</td>'
+                            + '<td>' + data[i].bodega + '</td>'
+                            + '<td>' + data[i].estado + '</td>'
+                            + '<td align="right">' + data[i].total + '</td>'
+                            + '<td align="center">'
+                            + '<button type="button" class="btn btn-info btn-xs" onclick="detallesRef(' + data[i].idSeparacion + ')">Detalles</button>&nbsp;&nbsp;'
+                            + '<button type="button" class="btn btn-info btn-xs" onclick="Imprimirpdf(' + data[i].idSeparacion + ')">PDF</button>'
+                            + '</td>'
+                            //+'<td align="center">'
+                            //+'<button type="button" class="btn btn-info btn-xs" onclick="editar('+data[i].id+')">Ver</button>'
+                            //+'</td>'
+                            + '</tr>'
+                        )
+                    }
+                },
+                complete: function () {
+                    $('#tablaPaginada').dataTable({
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function Imprimirpdf(id) {
+               window.open('@Url.Action("/Descargarrseparacion", "rseparacionmercancias")?id=' + id, '_blank');   
+              
+               }
+
+        function Imprimirpdfbtn() {
+            var id = $('#numSeparacion').val();
+               window.open('@Url.Action("/Descargarrseparacion", "rseparacionmercancias")?id=' + id, '_blank');   
+              
+               }
+
+
+
+        $('#btnSeguimiento').click(function () {
+            if ($('#nota').val() != "") {
+                $.ajax({
+                    url: '/rseparacionmercancias/agregarSeguimiento',
+                    data: {
+                        separacion: $('#numSeparacion').val(),
+                        nota: $('#nota').val()
+                    },
+                    type: "POST",
+                    success: function (data) {
+                        if (data == true) {
+                            swal("Seguimiento Agregado", "", "success");
+                            $('#nota').val('');
+                            detallesRef($('#numSeparacion').val());
+                        } else {
+                            swal("No se pudo agregar el seguimiento", "", "error");
+                            detallesRef($('#numSeparacion').val());
+                        }
+                    }
+                });
+            } else {
+                swal("El campo Nota es obligatorio","","error");
+            }
+        });
+
+        function PermisoDescomprometer() {
+            $.ajax({
+                url: '/rseparacionmercancias/permisoDescomprometer',
+                type: "POST",
+                success: function (data) {
+                    debugger;
+                    if (data == true) {
+                        $('.descomprometer').prop('disabled', false);
+                    } else {
+                        $('.descomprometer').prop('disabled', true);
+                    }
+                }
+            });
+        }
+
+        function detallesRef(id) {
+            $('#detalles').empty();
+            $('#referenciaseparacion').modal('show');
+            $('#numSeparacion').val(id);
+            $.ajax({
+                url: '/rseparacionmercancias/detallesRef',
+                data: { id },
+                type: 'post',
+                success: function (data) {
+                    $('#tablaAnticiposRef').find('tbody').empty();
+                    $('#tablaSeguimiento').find('tbody').empty();
+                    for (var i = 0; i < data.data[0].listadoreferencias.length; i++) {
+                        $('#tablaDetallesRef').find('tbody').append(
+                            '<tr>'
+                            + '<td align="center">' + data.data[0].listadoreferencias[i].codigoreferencia + '</td>'
+                            + '<td align="center">' + data.data[0].listadoreferencias[i].descripcion + '</td>'
+                            + '<td align="center">' + data.data[0].listadoreferencias[i].cantidad + '</td>'
+                            + '<td align="center">' + addCommas(data.data[0].listadoreferencias[i].vr_unitario) + '</td>'
+                            + '<td align="center">' + addCommas(data.data[0].listadoreferencias[i].vr_total) + '</td>'
+                            + '<td align="center">'
+                            + (data.data[0].listadoreferencias[i].estado == true ?
+                                '<button type="button" class="btn btn-success btn-xs descomprometer" onclick="descomprometer(\'' + data.data[0].listadoreferencias[i].id + '\',\'' + data.data[0].listadoreferencias[i].codigoreferencia + '\',\'' + data.data[0].listadoreferencias[i].descripcion + '\',\'' + data.data[0].listadoreferencias[i].cantidad + '\')">Descomprometer</button>'
+                                : '<button type="button" class="btn btn-xs descomprometer" disabled>Descomprometer</button>')
+                            + '</td>'
+                            + '</tr>'
+                        )
+                    }
+                    for (var j = 0; j < data.data2.length; j++) {
+                        $('#tablaAnticiposRef').find('tbody').append(
+                            '<tr>'
+                            + '<td style="text-align: left">' + data.data2[j].documento + '</td>'
+                            + '<td style="text-align: right">' + addCommas(data.data2[j].numero) + '</td>'
+                            + '<td style="text-align: right">' + data.data2[j].fecha + '</td>'
+                            + '<td style="text-align: right">' + addCommas(data.data2[j].valor_total) + '</td>'
+                            + '<td style="text-align: left">' + data.data2[j].nota1 + '</td>'
+                            + '</tr>'
+                        );
+                    }
+                    for (var h = 0; h < data.seguimientos.length; h++) {
+                        $('#tablaSeguimiento').find('tbody').append(
+                            '<tr>'
+                            + '<td style="text-align: left">' + data.seguimientos[h].nota + '</td>'
+                            + '<td style="text-align: right">' + data.seguimientos[h].fecha + '</td>'
+                            + '<td style="text-align: right">' + data.seguimientos[h].usuario + '</td>'
+                            + '</tr>'
+                        );
+                    }
+                    var tabla = "";
+                    $('#tabladocumentos').find('tbody').empty();
+                    console.log('documentos'+ data)
+                    for (var i = 0; i < data.listadoc.length; i++) {
+                    
+                         tabla += "<tr>";
+                        tabla += "<td align='center'>" + data.listadoc[i].tipodoc + "</td>";
+                        tabla += "<td align='center'>" + data.listadoc[i].id + "</td>";
+                        tabla += "<td align='center'>" + data.listadoc[i].fecha + "</td>";
+                        tabla += "<td align='center'>" + data.listadoc[i].estado + "</td>";
+                        tabla += "</tr>";                       
+                                             
+                    }
+              $('#tabladocumentos').find('tbody').append(tabla);
+                },
+                complete: function () {
+                    PermisoDescomprometer();
+                }
+            });
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function descomprometer(id, codigo, descripcion, cantidad) {
+            debugger;
+            $('#idseparacionDes').val(id);
+            $('#ref').val(codigo + " - " + descripcion);
+            $('#cantidadDes').val(cantidad);
+            $('#cantidadDesActual').val(cantidad);
+            $('#descomprometer').modal('show');
+        }
+
+        $('#btnGuardarDes').click(function () {
+            var cantidadActual = parseInt($('#cantidadDes').val());
+            var cantidadAnterior = parseInt($('#cantidadDesActual').val());
+            if (cantidadActual > cantidadAnterior) {
+                swal("Error!", "La cantidad ingresada no puede ser mayor a la cantidad antes establecida", "error");
+            }else if (cantidadActual < 0) {
+                swal("Error!", "La cantidad ingresada no puede ser un valor negativo", "error");
+            } else if ($('#cantidadDes').val() == "") {
+                swal("Error!", "Debe ingresar un valor en el campo cantidad", "error");
+            }else {
+                $.ajax({
+                    url: '/rseparacionmercancias/descomprometer',
+                    data: {
+                        id: $('#idseparacionDes').val(),
+                        cantidad: $('#cantidadDes').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data == true) {
+                            swal("Accesorio Descomprometido", "El accesorio se descomprometio con exito.", "success");
+                            $('#descomprometer').modal('hide');
+                            $('#referenciaseparacion').modal('hide');
+                            browser();
+                        } else {
+                            swal("Accesorio No Descomprometido", "El accesorio no se ha podido descomprometer.", "error");
+                            $('#descomprometer').modal('hide');
+                            $('#referenciaseparacion').modal('hide');
+                            browser();
+                        }
+                    }
+                });
+            }
+        });
+
+        function editar(id, idSeparacion) {
+
+            window.location.href = '@Url.Action("Edit", "rseparacionmercancias")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+}

@@ -1,0 +1,1377 @@
+﻿@{
+    ViewBag.Title = "Indicadores";
+    ViewBag.Icono = "fa fa-bar-chart";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+}
+<!-- App styles -->
+<link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+<link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/vendor/chartist/custom/chartist.css" />
+<link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        <div id="tabs" class="tab-content">
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#principal"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class=""><a data-toggle="tab" href="#metas"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Metas VS Productividad</a></li>
+            </ul>
+
+            <div id="principal" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="content">
+                        <input type="hidden" class="input-sm form-control" name="nuevo" id="nuevo" />
+                        <input type="hidden" class="input-sm form-control" name="usado" id="usado" />
+
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div>
+                                    <label>Bodega(s)</label>
+                                    <select id="listar_bodegas" name="listar_bodegas" multiple="multiple" placeholder="Selección múltiple" class="form-control"></select>
+                                </div>
+                            </div>
+                            <div class="col-md-4" id="fechas_consulta">
+                                <label>Fechas</label>
+                                <div class="input-daterange input-group" id="datepicker">
+                                    <input type="text" class="input-sm form-control" name="fechaDesde" id="fechaDesde" value="@ViewBag.fecha_desde" placeholder="Fecha Inicio" required="required" />
+                                    <span class="input-group-addon">Hasta</span>
+                                    <input type="text" class="input-sm form-control" name="fechaHasta" id="fechaHasta" value="@ViewBag.fecha_hasta" placeholder="Fecha Fin" required="required" />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="col-md-2 col-md-offset-2">
+                                <button type="button" class="btn btn-primary" id="btnFiltrar"><i class="fa fa-filter" aria-hidden="true"></i>&nbsp;&nbsp;Filtrar</button>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+
+                            <div class="col-md-3">
+                                <div id="listar_asesor_div">
+                                    <label>Asesor(es)</label>
+                                    <select id="listar_asesor" name="listar_asesor" multiple="multiple" placeholder="Selección múltiple" class="form-control"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="table-responsive">
+                                <div id="tabla_accesorios" class="col-md-4" style="height:70px; padding: 5px; width:35%; /*float:right;*/ ">
+                                    <table id="tabla_accesorios" style="width:100%" class="table table-striped table-bordered table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align: center">&nbsp;Facturados&nbsp;</th>
+                                                <th style="text-align: center">&nbsp;Total Accesorios&nbsp;</th>
+                                                <th style="text-align: center">&nbsp;Share&nbsp;</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-7">
+                                    <div id="chartdiv" style="width:100%;height:400px; margin:0; padding:0; /*float:left*/"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="metas" class="tab-pane">
+                <div class="panel-body">
+                    <div class="content">
+                        <input type="hidden" class="input-sm form-control" name="nuevo" id="nuevo" />
+                        <input type="hidden" class="input-sm form-control" name="usado" id="usado" />
+
+                        <div id="errorCampos" class="alert alert-danger" style="display:none">
+                            <strong>Error!</strong>Todos los campos son obligatorios, por favor valide.
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div>
+                                    <label>Bodega(s)</label>
+                                    <select class="form-control js-source-states" id="selectBodegas" name="selectBodegas" required="required">
+                                        <option></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4" id="fechas_consulta">
+                                <label>Fechas</label>
+                                <div class="input-daterange input-group" id="datepicker">
+                                    <input type="text" class="input-sm form-control" name="fechaDesdeMetas" id="fechaDesdeMetas" value="@ViewBag.fecha_desde" placeholder="Fecha Inicio" required="required" />
+                                    <span class="input-group-addon">Hasta</span>
+                                    <input type="text" class="input-sm form-control" name="fechaHastaMetas" id="fechaHastaMetas" value="@ViewBag.fecha_hasta" placeholder="Fecha Fin" required="required" />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="col-md-2 col-md-offset-2">
+                                <button type="button" class="btn btn-primary" id="btnFiltrarMetas"><i class="fa fa-filter" aria-hidden="true"></i>&nbsp;&nbsp;Filtrar</button>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+
+                            <div class="col-md-3">
+                                <div id="asesores">
+                                    <label>Asesor(es)</label>
+                                    <select class="form-control js-source-states" id="selectAsesor" name="selectASesor" required="required">
+                                        <option></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="table-responsive">
+                            <div class="col-md-6">
+                                <div id="metasVSproductividad"><h2><strong>METAS VS PRODUCTIVIDAD</strong></h2></div>
+                                <div id="chartdivMetas" style="width:100%;height:400px; margin:0; padding:0;"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="asesorProductivo"></div>
+                                <div id="chartdivProductivo" style="width:100%;height:400px; margin:0; padding:0; "></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="row">
+                        <div class="col-md-6">
+                            <h3>
+                                <label id="share"></label>
+                            </h3>
+                        </div>
+                        <div id="tabla_accesorios2" class="col-md-4" style="height:70px; width:50%; padding: 5px; float:right ">
+                            <table id="tabla_accesorios" style="width:100%" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: center">&nbsp;Facturados&nbsp;</th>
+                                        <th style="text-align: center">&nbsp;Total Accesorios&nbsp;</th>
+                                        <th style="text-align: center">&nbsp;Share&nbsp;</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal solicitados ===================*@
+<div class="modal fade hmodal-info" id="modal_creditos" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Creditos Solicitados</h4>
+                <small class="font-bold">Detalle de creditos solicitados</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        <span class="font-bold">Estados Creditos:</span>&nbsp;&nbsp;
+                        <label class="label label-warning">T</label>&nbsp;Tramite&nbsp;&nbsp;
+                        <label class="label label-success">A</label>&nbsp;Aprobado&nbsp;&nbsp;
+                        <label class="label label-danger">N</label>&nbsp;Negado&nbsp;&nbsp;
+                        <label class="label label-primary">C</label>&nbsp;Confirmado&nbsp;&nbsp;
+                        <label class="label label-info">D</label>&nbsp;Desembolsado&nbsp;&nbsp;
+                        <label class="label label-default">O</label>&nbsp;Desistio&nbsp;&nbsp;
+                    </div><br />
+                    <table class="table table-striped table-bordered table-hover" id="tabla_solicitados">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Pedido #</th>
+                                <th style="text-align:center">Fecha Solicitud</th>
+                                <th style="text-align:center">Valor Solicitado</th>
+                                <th style="text-align:center">Estado Credito</th>
+                                <th style="text-align:center">Plazo</th>
+                                <th style="text-align:center">Financiera</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Tipo</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal cotizaciones ===================*@
+<div class="modal fade hmodal-warning" id="modal_cotizaciones" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Cotizaciones</h4>
+                <small class="font-bold">Detalle de cotizaciones</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_cotizaciones">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Cotizacion #</th>
+                                <th style="text-align:center">Fecha</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Origen</th>
+                                <th style="text-align:center">Tipo</th>
+
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                @*<button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal prospectos ===================*@
+<div class="modal fade hmodal-primary" id="modal_prospectos" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Prospectos</h4>
+                <small class="font-bold">Detalle de prospectos por fuente</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_prospectos">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Origen</th>
+                                <th style="text-align:center">Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal pedidos ===================*@
+<div class="modal fade hmodal-success" id="modal_pedidos" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Pedidos</h4>
+                <small class="font-bold">Detalle de pedidos</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_pedidos">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Pedido #</th>
+                                <th style="text-align:center">Fecha</th>
+                                <th style="text-align:center">Modelo</th>
+                                <th style="text-align:center">Año Modelo</th>
+                                <th style="text-align:center">Color</th>
+                                <th style="text-align:center">Placa</th>
+                                <th style="text-align:center">Plan Venta</th>
+                                <th style="text-align:center">Plan Mayor</th>
+                                <th style="text-align:center">Fecha Asignacion</th>
+                                <th style="text-align:center">Valor Total</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Tipo</th>
+
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal aprobados ===================*@
+<div class="modal fade hmodal-success" id="modal_aprobados" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Aprobados</h4>
+                <small class="font-bold">Detalle De Aprobados</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_aprobados">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Pedido #</th>
+                                <th style="text-align:center">Fecha Solicitud</th>
+                                <th style="text-align:center">Valor Solicitado</th>
+                                <th style="text-align:center">Plazo</th>
+                                <th style="text-align:center">Financiera</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Tipo</th>
+
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal demos ===================*@
+<div class="modal fade hmodal-success" id="modal_demos" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Demos</h4>
+                <small class="font-bold">Detalle De Demos</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_demos">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Demo</th>
+                                <th style="text-align:center">Descripción</th>
+                                <th style="text-align:center">Fecha</th>
+                                <th style="text-align:center">Documento</th>
+                                <th style="text-align:center">Nombre</th>
+                                <th style="text-align:center">Celular</th>
+                                <th style="text-align:center">Correo</th>
+                                <th style="text-align:center">Teléfono</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Tipo</th>
+
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal facturas ===================*@
+<div class="modal fade hmodal-info" id="modal_facturas" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Facturas</h4>
+                <small class="font-bold">Detalle de facturas</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_facturas">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Factura #</th>
+                                <th style="text-align:center">Tipo Factura</th>
+                                <th style="text-align:center">Fecha</th>
+                                <th style="text-align:center">Tercero</th>
+                                <th style="text-align:center">Financiera</th>
+                                <th style="text-align:center">Forma Pago</th>
+                                <th style="text-align:center">Fecha Vencimiento</th>
+                                <th style="text-align:center">Valor Total</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Tipo</th>
+
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal matriculas ===================*@
+<div class="modal fade hmodal-info" id="modal_matriculas" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Matriculas</h4>
+                <small class="font-bold">Detalle de matriculas</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_matriculas">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Fecha Matricula</th>
+                                <th style="text-align:center">Plan Mayor</th>
+                                <th style="text-align:center">Modelo</th>
+                                <th style="text-align:center">Año</th>
+                                <th style="text-align:center">Color</th>
+                                <th style="text-align:center">Tipo</th>
+
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal detalle prospectos ===================*@
+<div class="modal fade hmodal-primary" id="modal_det_prospectos" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Prospectos</h4>
+                <small class="font-bold">Detalle de prospectos por fuente</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_det_prospectos">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Documento</th>
+                                <th style="text-align:center">DV</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Telefono</th>
+                                <th style="text-align:center">Celular</th>
+                                <th style="text-align:center">Correo</th>
+                                <th style="text-align:center">Direccion</th>
+                                <th style="text-align:center">Fecha</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Tramite</th>
+                                <th style="text-align:center">Fuente</th>
+
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Vendor scripts -->
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/vendor/d3/d3.min.js"></script>
+    <script src="~/vendor/c3/c3.min.js"></script>
+    <!-- App scripts -->
+    <script src="~/Scripts/homer.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/amcharts.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/funnel.js"></script>
+    <link href="~/Vendor/AmCharts/lib/3/plugins/export/export.css" rel="stylesheet" />
+    <script src="~/Vendor/AmCharts/lib/3/plugins/export/export.min.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/themes/light.js"></script>
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+            $('.js-source-states').select2();
+            var fecha = '@DateTime.Now.AddDays(-30)';
+            var fecha2 = '@DateTime.Now';
+            $('#fechaDesde').val(fecha);
+            $('#fechaHasta').val(fecha2);
+            $('#fechaDesdeMetas').val(fecha);
+            $('#fechaHastaMetas').val(fecha2);
+            $('#fechaDesde').datetimepicker({
+                format: 'DD/MM/YYYY',
+            });
+            $('#fechaHasta').datetimepicker({
+                format: 'DD/MM/YYYY',
+                maxDate: '-' + new Date() + '',
+            });
+            $('#fechaDesdeMetas').datetimepicker({
+                format: 'DD/MM/YYYY',
+            });
+            $('#fechaHastaMetas').datetimepicker({
+                format: 'DD/MM/YYYY',
+                maxDate: '-' + new Date() + '',
+            });
+            $('#listar_asesor_div').hide();
+            $('#metasVSproductividad').hide();
+            $('#chartdiv').show();
+            $('#chartdivProductivo').show();
+            $('#asesorProductivo').hide();
+            $('#tabla_accesorios').hide();
+            buscarBodegas();
+            PermisoVerIndicador();
+            buscarbodegasMetas();
+        });
+
+        $('#listar_bodegas').change(function () {
+            buscarAsesor();
+        })
+        $('#btnFiltrar').click(function () {
+            buscarDatos()
+            detalleAccesorios()
+            $('#chartdiv').show()
+            $('#tabla_accesorios').show()
+        });
+        $('#selectBodegas').change(function () {
+            $('#selectAsesor').empty();
+            buscarAsesorMetas();
+        });
+        $('#btnFiltrarMetas').click(function () {
+            if ($('#selectBodegas').val() == '' || $('#selectBodegas').val() == null ||
+                $('#selectAsesor').val() == '' || $('#selectAsesor').val() == null ||
+                $('#fechaDesdeMetas').val() == '' || $('#fechaDesdeMetas').val() == null ||
+                $('#fechaHastaMetas').val() == '' || $('#fechaHastaMetas').val() == null) {
+                $('#errorCampos').show();
+                setTimeout(function () {
+                    $("#errorCampos").fadeOut(1500);
+                }, 3000);
+
+            } else {
+                buscarMetas();
+                buscarMetasFijas();
+                detalleAccesoriosMetas();
+                Share();
+
+                var text_asesor = $("#selectAsesor option:selected").text();
+                var mayus = text_asesor.toUpperCase();
+                $('#asesorProductivo').html('<h2>' + '<strong>' + mayus + '</strong>' + '</h2>');
+                $('#asesorProductivo').show();
+                $('#metasVSproductividad').show();
+            }
+        });
+
+        function buscarBodegas() {
+            $.ajax({
+                url: '/IndicadoresGraficos/BuscarBodegas',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#listar_bodegas').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#listar_bodegas').append($('<option>', {
+                            value: data[i].id_bodega,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+
+                    $('#listar_bodegas').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 800,
+                    });
+                    $('#listar_bodegas').multiselect('refresh');
+                }
+            });
+        } //ok
+
+        function buscarAsesor() {
+            $.ajax({
+                url: '/IndicadoresGraficos/listarAsesorPorBodega',
+                data: {
+                    param: $('#listar_bodegas').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.info == false) {
+                        $('#listar_asesor').empty();
+                        $('#listar_asesor_div').hide();
+                    }
+                    if (data.info == true) {
+                        $('#listar_asesor').empty();
+                        $('#listar_asesor_div').show();
+
+                        for (var i = 0; i < data.lasesor.length; i++) {
+                            $('#listar_asesor').append($('<option>', {
+                                value: data.lasesor[i].user_id,
+                                text: data.lasesor[i].nombre
+                            }));
+                        }
+
+                        $('#listar_asesor').multiselect("destroy").multiselect({
+                            includeSelectAllOption: true,
+                            maxHeight: 800,
+                        });
+                        $('#listar_asesor').multiselect('refresh');
+                    }
+                }
+            });
+        } //ok
+
+        function buscarDatos() {
+
+            if ($.fn.dataTable.isDataTable('#tabla_solicitados')) {
+                $("#tabla_solicitados").dataTable().fnDestroy();
+            }
+
+            if ($.fn.dataTable.isDataTable('#tabla_aprobados')) {
+                $("#tabla_aprobados").dataTable().fnDestroy();
+            }
+
+            if ($.fn.dataTable.isDataTable('#tabla_prospectos')) {
+                $("#tabla_prospectos").dataTable().fnDestroy();
+            }
+
+            if ($.fn.dataTable.isDataTable('#tabla_cotizaciones')) {
+                $("#tabla_cotizaciones").dataTable().fnDestroy();
+            }
+
+            if ($.fn.dataTable.isDataTable('#tabla_demos')) {
+                $("#tabla_demos").dataTable().fnDestroy();
+            }
+
+            if ($.fn.dataTable.isDataTable('#tabla_pedidos')) {
+                $("#tabla_pedidos").dataTable().fnDestroy();
+            }
+
+            if ($.fn.dataTable.isDataTable('#tabla_facturas')) {
+                $("#tabla_facturas").dataTable().fnDestroy();
+            }
+
+            if ($.fn.dataTable.isDataTable('#tabla_matriculas')) {
+                $("#tabla_matriculas").dataTable().fnDestroy();
+            }
+
+            $.ajax({
+                url: '/IndicadoresGraficos/buscarDatos',
+                data: {
+                    fechaDesde: $('#fechaDesde').val(),
+                    fechaHasta: $('#fechaHasta').val(),
+                    asesor: $('#listar_asesor').val(),
+                    bodega: $('#listar_bodegas').val(),
+                    nuevo: $('#nuevo').val(),
+                    usado: $('#usado').val(),
+
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    var chart = AmCharts.makeChart("chartdiv", {
+                        "type": "funnel",
+                        "theme": "light",
+                        "dataProvider":
+                            [{
+                                "title": "Prospectos",
+                                "value": data.prospectosListados.length
+
+                            }, {
+                                "title": "Cotizaciones",
+                                "value": data.cotizaciones.length,
+                                "description": "\n" + "Grupo 1: Cotizaciones" + "\n" + "Cantidad: " + data.cotizaciones.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.cotizaciones.length / data.cotizaciones.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.cotizaciones.length / data.cotizaciones.length) * 100) + "%"
+                            }, {
+                                "title": "Créditos Solicitados",
+                                "value": data.solicitados.length,
+                                "description": "\n" + "Grupo 2: Solicitados" + "\n" + "Cantidad: " + data.solicitados.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.solicitados.length / data.cotizaciones.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.solicitados.length / data.cotizaciones.length) * 100) + "%"
+                            }, {
+                                "title": "Créditos Aprobados",
+                                "value": data.aprobados.length,
+                                "description": "\n" + "Grupo 3: Aprobados" + "\n" + "Cantidad: " + data.aprobados.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.aprobados.length / data.cotizaciones.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.aprobados.length / data.solicitados.length) * 100) + "%"
+                            }, {
+                                "title": "Demos",
+                                "value": data.demos.length,
+                                "description": "\n" + "Grupo 4: Demos" + "\n" + "Cantidad: " + data.demos.length +
+                                    "\n" + "Porcentaje con el primero: " + +parseInt((data.demos.length / data.cotizaciones.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.demos.length / data.aprobados.length) * 100) + "%"
+                            }, {
+                                "title": "Pedidos",
+                                "value": data.pedidos.length,
+                                "description": "\n" + "Grupo 5: Pedidos" + "\n" + "Cantidad: " + data.pedidos.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.pedidos.length / data.cotizaciones.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.pedidos.length / data.demos.length) * 100) + "%"
+                            }, {
+                                "title": "Facturas",
+                                "value": data.facturas.length,
+                                "description": "\n" + "Grupo 6: Facturas" + "\n" + "Cantidad: " + data.facturas.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.facturas.length / data.cotizaciones.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.facturas.length / data.pedidos.length) * 100) + "%"
+                            }, {
+                                "title": "Matrículas",
+                                "value": data.matriculas.length,
+                                "description": "\n" + "Grupo 7: Matrículas" + "\n" + "Cantidad: " + data.matriculas.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.matriculas.length / data.cotizaciones.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.matriculas.length / data.facturas.length) * 100) + "%"
+
+                            }],
+
+                        "valueField": "value",
+                        "titleField": "title",
+                        "descriptionField": "description",
+                        "marginRight": 240,
+                        "marginLeft": 50,
+                        "startX": -500,
+                        "depth3D": 100,
+                        "angle": 10,
+                        "outlineColor": "#ffffff",
+                        "outlineThickness": 2,
+                        "labelPosition": "right",
+                        "balloonText": "[[description]]",
+                        "balloon": {
+                            "fixedPosition": true,
+                            "textAlign": "left",
+                            "maxWidth": "auto"
+                        },
+                        "AmSlicedChart": {
+                            "accessible": false
+                        }
+                    });
+
+                    chart.addListener("clickSlice", function (event, index) {
+                        var posicion = event.dataItem.index;
+                        if (posicion == 0) {
+                            $('#modal_prospectos').modal('show')
+                        } else if (posicion == 1) {
+                            $('#modal_cotizaciones').modal('show')
+                        } else if (posicion == 2) {
+                            $('#modal_creditos').modal('show')
+                        } else if (posicion == 3) {
+                            $('#modal_aprobados').modal('show')
+                        } else if (posicion == 4) {
+                            $('#modal_demos').modal('show')
+                        } else if (posicion == 5) {
+                            $('#modal_pedidos').modal('show')
+                        } else if (posicion == 6) {
+                            $('#modal_facturas').modal('show')
+                        } else if (posicion == 7) {
+                            $('#modal_matriculas').modal('show')
+                        }
+
+                    });
+
+                    var funnelData = {
+                        modals: [
+                            "modal_prospectos",
+                            "modal_cotizaciones",
+                            "modal_aprobados",
+                            "modal_demos",
+                            "modal_creditos",
+                            "modal_pedidos",
+                            "modal_facturas",
+                            "modal_matriculas"
+                        ],
+                    };
+
+                    $('#tabla_solicitados').find('tbody').empty();
+                    for (var i = 0; i < data.solicitados.length; i++) {
+                        $('#tabla_solicitados').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.solicitados[i].pedido + '</td><td>'
+                            + data.solicitados[i].fecha + '</td><td>$'
+                            + addComas(data.solicitados[i].valor_solicitado) + '</td><td>'
+                            + data.solicitados[i].estado + '</td><td>'
+                            + data.solicitados[i].plazo + '</td><td>'
+                            + data.solicitados[i].financiera + '</td><td>'
+                            + data.solicitados[i].cliente + '</td><td>'
+                            + data.solicitados[i].asesor + '</td><td>'
+                            + data.solicitados[i].tipo + '</td></tr>'
+                        );
+                    }
+
+                    $('#tabla_aprobados').find('tbody').empty();
+                    for (var i = 0; i < data.aprobados.length; i++) {
+                        $('#tabla_aprobados').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.aprobados[i].numero + '</td><td>'
+                            + data.aprobados[i].fecha + '</td><td>'
+                            + addComas(data.aprobados[i].vsolicitado) + '</td><td>'
+                            + data.aprobados[i].plazo + '</td><td>'
+                            + data.aprobados[i].financiera_nombre + '</td><td>'
+                            + data.aprobados[i].cliente + '</td><td>'
+                            + data.aprobados[i].asesor + '</td><td>'
+                            + data.aprobados[i].tipo + '</td><tr>');
+
+                    }
+
+                    $('#tabla_cotizaciones').find('tbody').empty();
+                    for (var i = 0; i < data.cotizaciones.length; i++) {
+                        $('#tabla_cotizaciones').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.cotizaciones[i].cot_numcotizacion + '</td><td>'
+                            + data.cotizaciones[i].fecha + '</td><td>'
+                            + data.cotizaciones[i].asesor + '</td><td>'
+                            + data.cotizaciones[i].cliente + '</td><td>'
+                            + data.cotizaciones[i].tporigen_nombre + '</td><td>'
+                            + data.cotizaciones[i].tipo + '</td></tr>')
+                    }
+
+                    $('#tabla_demos').find('tbody').empty();
+                    for (var i = 0; i < data.demos.length; i++) {
+                        $('#tabla_demos').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.demos[i].ref_codigo + '</td><td>'
+                            + data.demos[i].ref_descripcion + '</td><td>'
+                            + data.demos[i].fecha + '</td><td>'
+                            + data.demos[i].ncliente + '</td><td>'
+                            + data.demos[i].nombre + '</td><td>'
+                            + data.demos[i].celular + '</td><td>'
+                            + data.demos[i].correo + '</td><td>'
+                            + data.demos[i].telefono + '</td><td>'
+                            + data.demos[i].asesor + '</td><td>'
+                            + data.demos[i].tipo + '</td></tr>')
+                    }
+
+                    $('#tabla_prospectos').find('tbody').empty();
+                    for (var i = 0; i < data.OrigenProspectos.length; i++) {
+                        $('#tabla_prospectos').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.OrigenProspectos[i].nombre + '</td><td><button type="button" onclick="ver_det_prospectos(' + data.OrigenProspectos[i].idorigen + ')" class="btn btn-info btn-xs" >'
+                            + data.OrigenProspectos[i].cantidad + '</button></td></tr>');
+                    }
+
+                    $('#tabla_pedidos').find('tbody').empty();
+                    for (var i = 0; i < data.pedidos.length; i++) {
+                        $('#tabla_pedidos').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.pedidos[i].numero + '</td><td>'
+                            + data.pedidos[i].fecha + '</td><td>'
+                            + data.pedidos[i].modvh_nombre + '</td><td>'
+                            + data.pedidos[i].id_anio_modelo + '</td><td>'
+                            + data.pedidos[i].colvh_nombre + '</td><td>'
+                            + data.pedidos[i].placa + '</td><td>'
+                            + data.pedidos[i].plan_venta + '</td><td>'
+                            + data.pedidos[i].plan_mayor + '</td><td>'
+                            + data.pedidos[i].fecha_asignacion + '</td><td>$'
+                            + addComas(data.pedidos[i].vrtotal) + '</td><td>'
+                            + data.pedidos[i].asesor + '</td><td>'
+                            + data.pedidos[i].cliente + '</td><td>'
+                            + data.pedidos[i].tipo + '</td></tr>'
+                        );
+                    }
+
+                    $('#tabla_facturas').find('tbody').empty();
+                    for (var i = 0; i < data.facturas.length; i++) {
+                        $('#tabla_facturas').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.facturas[i].numero + '</td><td>'
+                            + data.facturas[i].tpdoc_nombre + '</td><td>'
+                            + data.facturas[i].fecha + '</td><td>'
+                            + data.facturas[i].nombre + '</td><td>'
+                            + data.facturas[i].financiera_nombre + '</td><td>'
+                            + data.facturas[i].fpago_nombre + '</td><td>'
+                            + data.facturas[i].vencimiento + '</td><td>$'
+                            + addComas(data.facturas[i].valor_total) + '</td><td>'
+                            + data.facturas[i].asesor + '</td><td>'
+                            + data.facturas[i].tipo + '</td></tr>')
+                    }
+
+                    $('#tabla_matriculas').find('tbody').empty();
+                    for (var i = 0; i < data.matriculas.length; i++) {
+                        $('#tabla_matriculas').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.matriculas[i].fecha + '</td><td>'
+                            + data.matriculas[i].planmayor + '</td><td>'
+                            + data.matriculas[i].nombre + '</td><td>'
+                            + data.matriculas[i].anio + '</td><td>'
+                            + data.matriculas[i].color + '</td><td>'
+                            + data.matriculas[i].tipo + '</td></tr>'
+                        );
+                    }
+                },
+
+                complete: function (data) {
+                    $('#tabla_solicitados').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'copy', className: 'btn-sm' },
+                            { extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+
+                    $('#tabla_cotizaciones').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'copy', className: 'btn-sm' },
+                            { extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+
+                    $('#tabla_prospectos').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'copy', className: 'btn-sm' },
+                            { extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+
+                    $('#tabla_pedidos').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'copy', className: 'btn-sm' },
+                            { extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+
+                    $('#tabla_facturas').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'copy', className: 'btn-sm' },
+                            { extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+
+                    $('#tabla_matriculas').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'copy', className: 'btn-sm' },
+                            { extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+                }
+            });
+        } //ok
+
+        function ver_det_prospectos(id) {
+
+            if ($.fn.dataTable.isDataTable('#tabla_det_prospectos')) {
+                $("#tabla_det_prospectos").dataTable().fnDestroy();
+            }
+            $.ajax({
+                url: '/IndicadoresGraficos/buscarDetallesProspectos',
+                data: {
+                    fechaDesde: $('#fechaDesde').val(),
+                    fechaHasta: $('#fechaHasta').val(),
+                    asesor: $('#listar_asesor').val(),
+                    bodega: $('#listar_bodegas').val(),
+                    origen: id,
+                    nuevo: $('#nuevo').val(),
+                    usado: $('#usado').val(),
+
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tabla_det_prospectos').find('tbody').empty();
+                    for (var i = 0; i < data.prospectos.length; i++) {
+                        $('#tabla_det_prospectos').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.prospectos[i].documento + '</td><td>'
+                            + data.prospectos[i].dv + '</td><td>'
+                            + data.prospectos[i].cliente + '</td><td>'
+                            + data.prospectos[i].telefono + '</td><td>'
+                            + data.prospectos[i].celular + '</td><td>'
+                            + data.prospectos[i].correo + '</td><td>'
+                            + data.prospectos[i].direccion + '</td><td>'
+                            + data.prospectos[i].fec_creacion + '</td><td>'
+                            + data.prospectos[i].asesor + '</td><td>'
+                            + data.prospectos[i].tramite + '</td><td>'
+                            + data.prospectos[i].tporigen_nombre + '</td></tr>')
+                    }
+                },
+                complete: function (data) {
+                    $('#tabla_det_prospectos').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'copy', className: 'btn-sm' },
+                            { extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+                    $('#modal_det_prospectos').modal('show');
+                }
+            });
+        }//ok
+
+        function PermisoVerIndicador() {
+            $.ajax({
+                url: '/IndicadoresGraficos/PermisoVerIndicador',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i].idpermiso == 15) {
+                            $('#nuevo').val(true);
+                        } else {
+                            $('#nuevo').val(false);
+                        }
+                        if (data[i].idpermiso == 16) {
+                            $('#usado').val(true);
+                        } else {
+                            $('#usado').val(false);
+                        }
+                    }
+                },
+                complete: function (data) {
+                }
+            });
+        }//ok
+
+        function detalleAccesorios() {
+            if ($.fn.dataTable.isDataTable('#tabla_accesorios')) {
+                $("#tabla_accesorios").dataTable().fnDestroy();
+            }
+            $.ajax({
+                url: '/IndicadoresGraficos/detalleAccesorios',
+                data: {
+                    fechaDesde: $('#fechaDesde').val(),
+                    fechaHasta: $('#fechaHasta').val(),
+                    asesor: $('#listar_asesor').val(),
+                    bodega: $('#listar_bodegas').val(),
+                    nuevo: $('#nuevo').val(),
+                    usado: $('#usado').val(),
+                },
+
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tabla_accesorios').find('tbody').empty();
+                    $('#tabla_accesorios').find('tbody').append('<tr style="text-align:center"><td>'
+                        + data.cantidad + '</td><td>$'
+                        + addComas(data.valor_total) + '</td><td>$'
+                        + addComas(Math.round(data.share)) + '</td><tr>'
+                    );
+                }
+            });
+        }//ok
+
+        function detalleAccesoriosMetas() {
+            if ($.fn.dataTable.isDataTable('#tabla_accesorios2')) {
+                $("#tabla_accesorios2").dataTable().fnDestroy();
+            }
+            $.ajax({
+                url: '/IndicadoresGraficos/detalleAccesorios',
+                data: {
+                    fechaDesde: $('#fechaDesdeMetas').val(),
+                    fechaHasta: $('#fechaHastaMetas').val(),
+                    asesor: $('#selectAsesor').val(),
+                    bodega: $('#selectBodegas').val(),
+                    nuevo: $('#nuevo').val(),
+                    usado: $('#usado').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tabla_accesorios2').find('tbody').empty();
+                    $('#tabla_accesorios2').find('tbody').append('<tr style="text-align:center"><td>'
+                        + data.cantidad + '</td><td>$'
+                        + addComas(data.valor_total) + '</td><td>$'
+                        + addComas(Math.round(data.share)) + '</td><tr>'
+                    )
+                }
+            });
+        }//ok
+
+        function buscarMetas() {
+            $.ajax({
+
+                url: '/IndicadoresGraficos/metasAsesor',
+                data: {
+                    fechaDesde: $('#fechaDesdeMetas').val(),
+                    fechaHasta: $('#fechaHastaMetas').val(),
+                    asesor: $('#selectAsesor').val(),
+                    bodega: $('#selectBodegas').val(),
+                    nuevo: $('#nuevo').val(),
+                    usado: $('#usado').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                    console.log(data)
+                    var chart = AmCharts.makeChart("chartdivProductivo", {
+                        "type": "funnel",
+                        "theme": "light",
+                        "dataProvider":
+                            [{
+                                "title": "Cotizaciones",
+                                "value": data.consultaCotizacion.length,
+                                "color": data.colorCot,
+                                "description": "\n" + "Grupo 1: Cotizaciones" + "\n" + "Cantidad: " + data.consultaCotizacion.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.consultaCotizacion.length / data.consultaCotizacion.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.consultaCotizacion.length / data.consultaCotizacion.length) * 100) + "%"
+                            }, {
+                                "title": "Créditos Solicitados",
+                                "value": data.consultaCreditosSolicitados.length,
+                                "color": data.colorSol,
+                                "description": "\n" + "Grupo 2: Solicitados" + "\n" + "Cantidad: " + data.consultaCreditosSolicitados.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.consultaCreditosSolicitados.length / data.consultaCotizacion.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.consultaCreditosSolicitados.length / data.consultaCotizacion.length) * 100) + "%"
+                            }, {
+                                "title": "Créditos Aprobados",
+                                "value": data.consultaCreditosAprobados.length,
+                                "color": data.colorApr,
+                                "description": "\n" + "Grupo 3: Aprobados" + "\n" + "Cantidad: " + data.consultaCreditosAprobados.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.consultaCreditosAprobados.length / data.consultaCotizacion.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.consultaCreditosAprobados.length / data.consultaCreditosSolicitados.length) * 100) + "%"
+                            }, {
+                                "title": "Demos",
+                                "value": data.consultaDemos.length,
+                                "color": data.colorDem,
+                                "description": "\n" + "Grupo 4: Demos" + "\n" + "Cantidad: " + data.consultaDemos.length +
+                                    "\n" + "Porcentaje con el primero: " + +parseInt((data.consultaDemos.length / data.consultaCotizacion.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.consultaDemos.length / data.consultaCreditosAprobados.length) * 100) + "%"
+                            }, {
+                                "title": "Facturas",
+                                "value": data.consultaFacturas.length,
+                                "color": data.colorFac,
+                                "description": "\n" + "Grupo 6: Facturas" + "\n" + "Cantidad: " + data.consultaFacturas.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.consultaFacturas.length / data.consultaCotizacion.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.consultaFacturas.length / data.consultaPedidos.length) * 100) + "%"
+                            }, {
+                                "title": "Matrículas",
+                                "value": data.consultaMatriculas.length,
+                                "color": data.colorMat,
+                                "description": "\n" + "Grupo 7: Matrículas" + "\n" + "Cantidad: " + data.consultaMatriculas.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.consultaMatriculas.length / data.consultaCotizacion.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.consultaMatriculas.length / data.consultaFacturas.length) * 100) + "%"
+
+                            }, {
+                                "title": "Pedidos",
+                                "value": data.consultaPedidos.length,
+                                "color": data.colorPed,
+                                "description": "\n" + "Grupo 5: Pedidos" + "\n" + "Cantidad: " + data.consultaPedidos.length +
+                                    "\n" + "Porcentaje con el primero: " + parseInt((data.consultaPedidos.length / data.consultaCotizacion.length) * 100) + "%" +
+                                    "\n" + "Porcentaje con el anterior: " + parseInt((data.consultaPedidos.length / data.consultaDemos.length) * 100) + "%"
+                            }],
+
+                        "valueField": "value",
+                        "titleField": "title",
+                        "colorField": "color",
+                        "descriptionField": "description",
+                        "marginRight": 240,
+                        "marginLeft": 50,
+                        "startX": -500,
+                        "depth3D": 100,
+                        "angle": 10,
+                        "outlineColor": "#ffffff",
+                        "outlineThickness": 2,
+                        "labelPosition": "right",
+                        "balloonText": "[[description]]",
+                        "balloon": {
+                            "fixedPosition": true,
+                            "textAlign": "left",
+                            "maxWidth": "auto"
+                        },
+                        "AmSlicedChart": {
+                            "accessible": false
+                        }
+                    });
+                },
+            });
+        }//ok
+
+        function buscarMetasFijas() {
+            var dataProvider_array = [];
+            $.ajax({
+                url: '/IndicadoresGraficos/metasAsesor',
+
+                data: {
+                    fechaDesde: $('#fechaDesdeMetas').val(),
+                    fechaHasta: $('#fechaHastaMetas').val(),
+                    asesor: $('#selectAsesor').val(),
+                    bodega: $('#selectBodegas').val(),
+                    usado: $('#usado').val(),
+                    nuevo: $('#nuevo').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    for (var i = 0; i < data.consultaMetas.length; i++) {
+                        dataProvider_array.push(JSON.parse('{"title":"' + data.consultaMetas[i].meta + '","value":' + data.consultaMetas[i].valor + "}"));
+                    }
+
+                    var chart = AmCharts.makeChart("chartdivMetas", {
+
+                        "type": "funnel",
+                        "theme": "light",
+                        "dataProvider": dataProvider_array,
+
+                        "valueField": "value",
+                        "titleField": "title",
+                        "descriptionField": "description",
+                        "marginRight": 240,
+                        "marginLeft": 50,
+                        "startX": -500,
+                        "depth3D": 100,
+                        "angle": 10,
+                        "outlineColor": "#ffffff",
+                        "outlineThickness": 2,
+                        "labelPosition": "right",
+                        "balloonText": "[[description]]",
+                        "balloon": {
+                            "fixedPosition": true,
+                            "textAlign": "left",
+                            "maxWidth": "auto"
+                        },
+                        "AmSlicedChart": {
+                            "accessible": false
+
+                        }
+                    });
+                },
+            });
+        }//ok
+
+        function buscarbodegasMetas() {
+            $.ajax({
+                url: '/IndicadoresGraficos/BuscarBodegas',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#selectBodegas').empty();
+                    $('#selectBodegas').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectBodegas').append($('<option>', {
+                            value: data[i].id_bodega,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+                }
+            });
+        }//ok
+        function buscarAsesorMetas() {
+            $.ajax({
+                url: '/IndicadoresGraficos/listarAsesoresMetas',
+                data: {
+                    param: $('#selectBodegas').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.unico == true) {
+                        $('#selectAsesor').empty();
+                        $('#selectAsesor').append($('<option>', {
+                            value: '',
+                            text: ''
+                        }));
+
+                        for (var i = 0; i < data.listarUnicoAsesor.length; i++) {
+                            $('#selectAsesor').append($('<option>', {
+                                value: data.listarUnicoAsesor[i].user_id,
+                                text: data.listarUnicoAsesor[i].nombre
+                            }));
+                        }
+
+                    } else {
+                        $('#selectAsesor').empty();
+                        $('#selectAsesor').append($('<option>', {
+                            value: '',
+                            text: ''
+                        }));
+
+                        for (var i = 0; i < data.listarAsesores.length; i++) {
+                            $('#selectAsesor').append($('<option>', {
+                                value: data.listarAsesores[i].user_id,
+                                text: data.listarAsesores[i].nombre
+                            }));
+                        }
+                    }
+                }
+            });
+        } //ok
+        function Share() {
+            $.ajax({
+                url: '/IndicadoresGraficos/metasAsesor',
+                data: {
+                    fechaDesde: $('#fechaDesdeMetas').val(),
+                    fechaHasta: $('#fechaHastaMetas').val(),
+                    asesor: $('#selectAsesor').val(),
+                    bodega: $('#selectBodegas').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#share').text(addComas('META SHARE ACCESORIOS: ' + '$' + data.consultaMetaShare.valor));
+
+                }
+            });
+        } //ok
+
+    </script>
+}

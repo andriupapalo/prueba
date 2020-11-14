@@ -1,0 +1,331 @@
+﻿@model Homer_MVC.IcebergModel.NotasContablesModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Browser Solicitud Ampliación de Cupo";
+    ViewBag.Icono = "fa fa-file-text-o";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+}
+
+<style type="text/css">
+    .popover-content {
+        height: 100px;
+        width: 200px;
+    }
+</style>
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+        @Html.Hidden("menu")
+    <div id="tabs" class="tab-content">
+
+        <div class="m float-e-margins text-right">
+            <div class="tooltip-demo">
+
+                <div id="div-mensaje"></div>
+
+            </div>
+        </div>
+
+        <ul id="tabs-crear" class="nav nav-tabs">
+            <li class="active"><a data-toggle="tab" href="#buscar"><i class="fa fa-refresh"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+        </ul>
+
+        <div id="modal_denegar_solicitud" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="color-line"></div>
+                    <div class="modal-header text-center">
+                        @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                        <h5 class="modal-title" id="exampleModalLongTitle">
+                            <b>Denegacion de Ampliación de Cupo</b>
+                        </h5>
+                    </div>
+                    <div></div>
+                    <input id="idsolcupo" name="idsolcupo" type="hidden" />
+                    <div class="modal-body">
+                        <div class="row" style="text-align: left;">
+                            <label>Observacion de denegacion<span class="text-danger">*</span></label>
+                            <textarea name="observaciondenegacion" id="observaciondenegacion" cols="6" rows="4" class="form-control" required="required" ></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary btnAnular" data-dismiss="modal" onclick="denegar()">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="buscar" class="tab-pane active">
+            <div class="panel-body">
+                <div class="panel-body-busqueda">
+                    <div class="table-responsive" style="width:100%;">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaSolicitudes">
+                            <thead>
+                                <tr>
+
+
+                                    <th style="text-align:center">Solicitud Número</th>
+                                    <th style="text-align:center">Cliente</th>
+                                    <th style="text-align:center">Monto</th>
+                                    <th style="text-align:center">Razón</th>
+                                    <th style="text-align:center">Fecha Solicitud</th>
+                                    <th style="text-align:center">Tramitador</th>
+                                    <th style="text-align:center">Acciones</th>
+
+
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+    </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+        cargarTabla()
+        function cargarTabla() {
+            var botonconfirmar = "";
+            var botondenegar= "";
+            $.ajax({
+                url: '/ampliacionCupo/CargarTabla',
+                data: {},
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaSolicitudes').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        botonconfirmar = "<button type='button' onclick=confirmar(" + data[i].idSolicitud + ") class='btn btn-sm btn-success'><i class='fa fa-check' ></i>Confirmar </button>";
+                        botondenegar = "<button type='button' onclick=denegarsolicitud(" + data[i].idSolicitud + ") class='btn btn-sm btn-danger'><i class='fa fa-times'></i>Denegar</button>";
+                        $('#tablaSolicitudes').find('tbody').append('<tr class="' + data[i].info + '">'
+                            + '<td align="right">' + data[i].idSolicitud + '</td>'
+                            + '<td align="right">' + data[i].solicitante + '</td>'
+                            + '<td align="right">' + data[i].montoSolicitado + '</td>'
+                            + '<td align="left">' + data[i].motivoSolicitud + '</td>'
+                            + '<td align="left">' + data[i].fechaSolicitud + '</td>'
+                            + '<td align="left">' + data[i].empleadoSolicitud + '</td>'
+                            + '<td align="center">'
+                              +  botonconfirmar+botondenegar+'</td>'
+                        + '</tr>');
+
+                    }
+                }, complete: function (data) {
+                    $('#tablaBusquedas').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        }
+        function confirmar(id) {
+            swal({
+                title:"Confirmar solicitud ampliación de cupo",
+                text: "¿Está seguro que desea confirmar la ampliar del cupo?",
+                type: "success",
+                confirmButtonText: "si, Confirmar",
+                confirmButtonColor: "#62cb31",
+                showCancelButton: true,
+                cancelButtonText: "Cancelar",
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        url: '/ampliacionCupo/confirmarSolicitud',
+                        data: {
+                            idSolicitud: id
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            swal({
+                                title: "Confirmar solicitud ampliación de cupo",
+                                text: "El cupo fue confirmado con exito",
+                                type: "info",
+                                confirmButtonColor: "#62cb31",
+                                confirmButtonText: "OK",
+                                closeOnConfirm: false,
+                                showCancelButton: false,
+                                showConfirmButton: false,
+                                timer: 3000
+
+                            });
+                            cargarTabla();
+                        }
+                    })
+                } else {
+                    swal({
+                        title: "Confirmar solicitud ampliación de cupo",
+                        text: "El cupo no será ampliado",
+                        type: "info",
+                        confirmButtonColor: "#62cb31",
+                        confirmButtonText: "OK",
+                        closeOnConfirm: false,
+                        showCancelButton: false,
+                        showConfirmButton: false,
+                        timer: 3000
+
+                    })
+                }
+            })
+        }
+
+
+        function denegarsolicitud(id) {
+
+
+
+            $('#modal_denegar_solicitud').modal('show');
+            $('#idsolcupo').val(id);
+
+
+        }
+
+
+        function denegar() {
+
+     var id = $('#idsolcupo').val();
+            var observacion = $('#observaciondenegacion').val();
+
+            if (observacion!="" && observacion!=" " ) {
+           
+            swal({
+                title:"Denegar solicitud ampliación de cupo",
+                text: "¿Está seguro que desea denegar la ampliar del cupo?",
+                type: "warning",
+                confirmButtonText: "Denegar",
+                confirmButtonColor: "#62cb31",
+                showCancelButton: true,
+                cancelButtonText: "Cancelar",
+            }, function (isConfirm) {
+                   if (isConfirm) {
+                    $.ajax({
+                        url: '/ampliacionCupo/denegarSolicitud',
+                        data: {
+                            idSolicitud: id,
+                            Observacion: observacion
+
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            swal({
+                                title: "Denegar solicitud ampliación de cupo",
+                                text: "El cupo fue denegado",
+                                type: "info",
+                                confirmButtonColor: "#62cb31",
+                                confirmButtonText: "OK",
+                                closeOnConfirm: false,
+                                showCancelButton: false,
+                                showConfirmButton: false,
+                                timer: 3000
+
+                            })
+                               $('#modal_denegar_solicitud').modal('hide');
+                            cargarTabla();
+                        }
+                    })
+                }
+                else {
+                    swal({
+                        title: "Denegar solicitud ampliación de cupo",
+                        text: "El cupo no será denegado",
+                        type: "info",
+                        confirmButtonColor: "#62cb31",
+                        confirmButtonText: "OK",
+                        closeOnConfirm: false,
+                        showCancelButton: false,
+                        showConfirmButton: false,
+                        timer: 3000
+
+                    })
+                }
+                
+            })
+
+
+            }
+
+
+
+
+        }
+    </script>
+ 
+
+}

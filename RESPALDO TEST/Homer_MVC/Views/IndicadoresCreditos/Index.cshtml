@@ -1,0 +1,1347 @@
+﻿@{
+    ViewBag.Title = "Indicadores";
+    ViewBag.Icono = "fa fa-bar-chart";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+}
+<!-- App styles -->
+<link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/vendor/chartist/custom/chartist.css" />
+<link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="panel-body">
+
+        <div class="col-sm-4">
+            <div class="form-group">
+                @*<label class="control-label col-md-4">Rango Fechas:&nbsp;</label>*@
+                <div class="col-md-12">
+                    <div class="input-daterange input-group" id="datepicker">
+                        <input type="text" class="input-sm form-control" name="fechaDesde" id="fechaDesde" placeholder="Fecha Inicio" />
+                        <span class="input-group-addon">Hasta</span>
+                        <input type="text" class="input-sm form-control" name="fechaHasta" id="fechaHasta" placeholder="Fecha Fin" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-sm-3">
+            <div class="form-group">
+                @*<label class="control-label col-md-1">Asesor:</label>*@
+                <div class="col-md-12">
+                    @Html.DropDownList("asesor", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Asesor", })
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-sm-4">
+            <div class="form-group">
+
+                @*<label class="control-label col-md-1">Financiera:</label>*@
+                <div class="col-md-10">
+                    @Html.DropDownList("financiera", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Financiera" })
+                </div>
+
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-primary" id="btnFiltrar"><i class="fa fa-filter" aria-hidden="true"></i>&nbsp;&nbsp;Filtrar</button>
+                </div>
+            </div>
+        </div>
+
+        <br /><hr />
+        @*Modal de solicitados*@
+        <div class="row">
+            <div class="col-md-3" id="divSolicitados" style="display:none">
+                <div class="hpanel stats">
+                    <div class="panel-body h-200">
+                        <div class="stats-title pull-left">
+                            <h4>Solicitados</h4>
+                        </div>
+                        <div class="stats-icon pull-right">
+                            <i class="fa fa-user-plus fa-4x text-info"></i>
+                        </div>
+                        <div class="m-t-xl">
+                            <a href="#" data-toggle="modal" data-target="#modal_solicitados"><h1 class="m-t-xl m-b-xs text-info" id="solicitados">0</h1></a>
+                            <br />
+                            <span class="font-bold no-margins">
+                                <i class="fa fa-credit-card"></i> Créditos Solicitados
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @*Modal de aprobados*@
+            <div class="col-md-3" id="divAprobados" style="display:none">
+                <div class="hpanel stats">
+                    <div class="panel-body h-200">
+                        <div class="font-bold stats-title pull-left">
+                            <h4>Aprobados</h4>
+                        </div>
+                        <div class="stats-icon pull-right">
+                            <i class="fa fa-check-circle fa-4x text-success"></i>
+                        </div>
+                        <div class="m-t-xl m-b-xs">
+                            <a href="#" data-toggle="modal" data-target="#modal_aprobados"><h1 class="text-success" id="aprobados">0</h1></a>
+                            <br>
+                            <span class="font-bold no-margins">
+                                <i class="fa fa-credit-card"></i> Creditos Aprobados
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @*Modal de negados*@
+            <div class="col-md-3" id="divNegados" style="display:none">
+                <div class="hpanel stats">
+                    <div class="panel-body h-200">
+                        <div class="stats-title pull-left">
+                            <h4>Negados</h4>
+                        </div>
+                        <div class="stats-icon pull-right">
+                            <i class="pe-7s-close-circle fa-4x text-danger"></i>
+                        </div>
+                        <div class="m-t-xl">
+                            <a href="#" data-toggle="modal" data-target="#modal_negados"><h1 class="m-t-xl text-danger" id="negados">0</h1></a>
+                            <br />
+                            <span class="font-bold no-margins">
+                                <i class="fa fa-credit-card"></i> Creditos negados
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3" id="divDesistidos" style="display:none">
+                <div class="hpanel stats">
+                    <div class="panel-body h-200">
+                        <div class="stats-title pull-left">
+                            <h4>Desistidos</h4>
+                        </div>
+                        <div class="stats-icon pull-right">
+                            <i class="fa fa-user-times fa-4x text-warning"></i>
+                        </div>
+                        <div class="m-t-xl">
+                            <a href="#" data-toggle="modal" data-target="#modal_desistidos"><h1 class="text-warning" id="desistidos">0</h1></a>
+                            <br>
+                            <span class="font-bold no-margins">
+                                <i class="fa fa-credit-card"></i> Creditos Desistidos
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3" id="divAsesores" style="display:none">
+                <div class="hpanel">
+                    <div class="panel-body list">
+                        <div class="panel-title">Asesores</div>
+                        <small class="fo">Creditos solicitados por asesor</small>
+                        <div class="list-item-container col-md-12" id="div_asesores">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3" id="divFinancieras" style="display:none; min-height:200px">
+                <div class="hpanel">
+                    <div class="panel-body list">
+                        <div class="panel-title">Financieras</div>
+                        <small class="fo">Creditos solicitados por financieras</small>
+                        <div class="list-item-container col-md-12" id="div_financieras">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3" id="divDesembolsados" style="display:none">
+                <div class="hpanel stats">
+                    <div class="panel-body h-200">
+                        <div class="stats-title pull-left">
+                            <h4>Desembolsos</h4>
+                        </div>
+                        <div class="stats-icon pull-right">
+                            <i class="pe-7s-cash fa-4x"></i>
+                        </div>
+                        <div class="clearfix"></div>
+                        <div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-income-chart">
+                                <h2>
+                                    <a href="#" data-toggle="modal" data-target="#modal_desembolsados"><span class="text-success" id="desembolsosCount">0</span></a>
+                                </h2>
+                                <h3 class="m-xs">
+                                    <a href="#" data-toggle="modal" data-target="#modal_desembolsados">$<span class="precio" id="desembolsados"></span></a>
+                                </h3>
+                                <h4 class="font-extra-bold no-margins text-success">
+                                    Total Desembolsados
+                                </h4>
+                            </div>
+                            <div style="height:100px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3" id="divComisiones" style="display:none">
+                <div class="hpanel stats">
+                    <div class="panel-body h-200">
+                        <div class="stats-title pull-left">
+                            <h4>Comisiones</h4>
+                        </div>
+                        <div class="stats-icon pull-right">
+                            <i class="pe-7s-cash fa-4x"></i>
+                        </div>
+                        <div class="clearfix"></div>
+                        <div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-income-chart">
+                                <h1 class="m-xs">
+                                    <a href="#" data-toggle="modal" data-target="#modal_comisiones">$<span class="precio" id="comisiones"></span></a>
+                                </h1>
+                                <h3 class="font-extra-bold no-margins text-primary">
+                                    Total Facturados
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3" id="divVehFacturados" style="display:none">
+                <div class="hpanel stats">
+                    <div class="panel-body h-200">
+                        <div class="stats-title pull-left">
+                            <h4>Vehículos Facturados</h4>
+                        </div>
+                        <div class="stats-icon pull-right">
+                            <i class="pe-7s-cash fa-4x"></i>
+                        </div>
+                        <div class="clearfix"></div>
+                        <div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-income-chart">
+                                <h2>
+                                    <a href="#" data-toggle="modal" data-target="#modal_vhfacturados"><span class="text-success" id="vhfacturadosCount">0</span></a>
+                                </h2>
+                                <h3 class="m-xs">
+                                    <a href="#" data-toggle="modal" data-target="#modal_vhfacturados">$<span id="vhfacturados"></span></a>
+                                </h3>
+                                <h4 class="font-extra-bold no-margins text-primary">
+                                    Total $ de Vehículos Facturados
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @*<div class="col-md-3" id="divFacturados" style="display:none">
+                    <div class="hpanel stats">
+                        <div class="panel-body h-200">
+                            <div class="stats-title pull-left">
+                                <h4>Facturados</h4>
+                            </div>
+                            <div class="stats-icon pull-right">
+                                <i class="pe-7s-cash fa-4x"></i>
+                            </div>
+                            <div class="clearfix"></div>
+                            <div class="flot-chart">
+                                <div class="flot-chart-content" id="flot-income-chart">
+                                    <h1 class="m-xs">
+                                        <a href="#" data-toggle="modal" data-target="#modal_facturados">$<span class="precio" id="facturados"></span></a>
+                                    </h1>
+                                    <h3 class="font-extra-bold no-margins text-primary">
+                                        Total Facturados
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+
+        </div>
+    </div>
+</div>
+
+@*============= modal solicitados ===================*@
+<div class="modal fade hmodal-info" id="modal_solicitados" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Creditos Solicitados</h4>
+                <small class="font-bold">Detalle de creditos solicitados</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        <span class="font-bold">Estados Creditos:</span>&nbsp;&nbsp;
+                        <label class="label label-warning">T</label>&nbsp;Tramite&nbsp;&nbsp;
+                        <label class="label label-success">A</label>&nbsp;Aprobado&nbsp;&nbsp;
+                        <label class="label label-danger">N</label>&nbsp;Negado&nbsp;&nbsp;
+                        <label class="label label-primary">C</label>&nbsp;Confirmado&nbsp;&nbsp;
+                        <label class="label label-info">D</label>&nbsp;Desembolsado&nbsp;&nbsp;
+                        <label class="label label-default">O</label>&nbsp;Desistio&nbsp;&nbsp;
+                    </div><br />
+                    <table class="table table-striped table-bordered table-hover" id="tabla_solicitados">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Pedido #</th>
+                                <th style="text-align:center">Fecha Solicitud</th>
+                                <th style="text-align:center">Valor Solicitado</th>
+                                <th style="text-align:center">Estado Credito</th>
+                                <th style="text-align:center">Plazo</th>
+                                <th style="text-align:center">Financiera</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Plan</th>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Cuota Inicial</th>
+                                <th style="text-align:center">Responsable</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                @*<button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal cred_aprobados ===================*@
+<div class="modal fade hmodal-success" id="modal_aprobados" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Creditos Aprobados</h4>
+                <small class="font-bold">Detalle de creditos aprobados</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        <span class="font-bold">Estados Creditos:</span>&nbsp;&nbsp;
+                        <label class="label label-default">T</label>&nbsp;Tramite&nbsp;&nbsp;
+                        <label class="label label-default">A</label>&nbsp;Aprobado&nbsp;&nbsp;
+                        <label class="label label-default">N</label>&nbsp;Negado&nbsp;&nbsp;
+                        <label class="label label-default">C</label>&nbsp;Confirmado&nbsp;&nbsp;
+                        <label class="label label-default">D</label>&nbsp;Desembolsado&nbsp;&nbsp;
+                        <label class="label label-default">O</label>&nbsp;Desistio&nbsp;&nbsp;
+                    </div><br />
+                    <table class="table table-striped table-bordered table-hover" id="tabla_aprobados">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Pedido #</th>
+                                <th style="text-align:center">Fecha Aprobación</th>
+                                <th style="text-align:center">Estado Credito</th>
+                                <th style="text-align:center"># Aprobación</th>
+                                <th style="text-align:center">Valor Aprobado</th>
+                                <th style="text-align:center">Valor Solicitado</th>
+                                <th style="text-align:center">Plazo</th>
+                                <th style="text-align:center">Fecha Solicitud</th>
+                                <th style="text-align:center">Financiera</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Plan</th>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Cuota Inicial</th>
+                                <th style="text-align:center">Responsable</th>
+                                <th style="text-align:center">Comisión %</th>
+                                <th style="text-align:center">Motivo No Comisión</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                @*<button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal negados ===================*@
+<div class="modal fade hmodal-danger" id="modal_negados" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Creditos Negados</h4>
+                <small class="font-bold">Detalle de creditos negados</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        <span class="font-bold">Estados Creditos:</span>&nbsp;&nbsp;
+                        <label class="label label-warning">T</label>&nbsp;Tramite&nbsp;&nbsp;
+                        <label class="label label-success">A</label>&nbsp;Aprobado&nbsp;&nbsp;
+                        <label class="label label-danger">N</label>&nbsp;Negado&nbsp;&nbsp;
+                        <label class="label label-primary">C</label>&nbsp;Confirmado&nbsp;&nbsp;
+                        <label class="label label-info">D</label>&nbsp;Desembolsado&nbsp;&nbsp;
+                        <label class="label label-default">O</label>&nbsp;Desistio&nbsp;&nbsp;
+                    </div><br />
+                    <table class="table table-striped table-bordered table-hover" id="tabla_negados">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Pedido #</th>
+                                <th style="text-align:center">Fecha Solicitud</th>
+                                <th style="text-align:center">Valor Solicitado</th>
+                                <th style="text-align:center">Estado Credito</th>
+                                <th style="text-align:center">Fecha Negación</th>
+                                <th style="text-align:center">Comentarios</th>
+                                <th style="text-align:center">Plazo</th>
+                                <th style="text-align:center">Financiera</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Plan</th>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Cuota Inicial</th>
+                                <th style="text-align:center">Responsable</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                @*<button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal desistidos ===================*@
+<div class="modal fade hmodal-warning" id="modal_desistidos" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Creditos Desistidos</h4>
+                <small class="font-bold">Detalle de creditos desistidos</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        <span class="font-bold">Estados Creditos:</span>&nbsp;&nbsp;
+                        <label class="label label-warning">T</label>&nbsp;Tramite&nbsp;&nbsp;
+                        <label class="label label-success">A</label>&nbsp;Aprobado&nbsp;&nbsp;
+                        <label class="label label-danger">N</label>&nbsp;Negado&nbsp;&nbsp;
+                        <label class="label label-primary">C</label>&nbsp;Confirmado&nbsp;&nbsp;
+                        <label class="label label-info">D</label>&nbsp;Desembolsado&nbsp;&nbsp;
+                        <label class="label label-default">O</label>&nbsp;Desistio&nbsp;&nbsp;
+                    </div><br />
+                    <table class="table table-striped table-bordered table-hover" id="tabla_desistidos">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Pedido #</th>
+                                <th style="text-align:center">Fecha Aprobación</th>
+                                <th style="text-align:center">Estado Credito</th>
+                                <th style="text-align:center"># Aprobación</th>
+                                <th style="text-align:center">Valor Aprobado</th>
+                                <th style="text-align:center">Valor Solicitado</th>
+                                <th style="text-align:center">Fecha Solicitud</th>
+                                <th style="text-align:center">Plazo</th>
+                                <th style="text-align:center">Financiera</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Plan</th>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Cuota Inicial</th>
+                                <th style="text-align:center">Responsable</th>
+                                <th style="text-align:center">Fecha Desistimiento</th>
+                                <th style="text-align:center">Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                @*<button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal comisiones ===================*@
+<div class="modal fade hmodal-warning" id="modal_comisiones" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Comisiones</h4>
+                <small class="font-bold">Detalle de comisiones financieras</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        <span class="font-bold">Estados Creditos:</span>&nbsp;&nbsp;
+                        <label class="label label-warning">T</label>&nbsp;Tramite&nbsp;&nbsp;
+                        <label class="label label-success">A</label>&nbsp;Aprobado&nbsp;&nbsp;
+                        <label class="label label-danger">N</label>&nbsp;Negado&nbsp;&nbsp;
+                        <label class="label label-primary">C</label>&nbsp;Confirmado&nbsp;&nbsp;
+                        <label class="label label-info">D</label>&nbsp;Desembolsado&nbsp;&nbsp;
+                        <label class="label label-default">O</label>&nbsp;Desistio&nbsp;&nbsp;
+                    </div><br />
+                    <table class="table table-striped table-bordered table-hover" id="tabla_comisiones">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Pedido #</th>
+                                <th style="text-align:center">Fecha Confirmación</th>
+                                <th style="text-align:center">Valor Aprobado</th>
+                                <th style="text-align:center">Fecha Facturación Comisión</th>
+                                <th style="text-align:center">Valor Comisión</th>
+                                <th style="text-align:center">Estado Credito</th>
+                                <th style="text-align:center">Plazo</th>
+                                <th style="text-align:center">Financiera</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Plan</th>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Cuota Inicial</th>
+                                <th style="text-align:center">Responsable</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                @*<button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal desembolsados ===================*@
+<div class="modal fade hmodal-success" id="modal_desembolsados" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Desembolsos</h4>
+                <small class="font-bold">Detalle de desembolsos realizados</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        <span class="font-bold">Estados Creditos:</span>&nbsp;&nbsp;
+                        <label class="label label-warning">T</label>&nbsp;Tramite&nbsp;&nbsp;
+                        <label class="label label-success">A</label>&nbsp;Aprobado&nbsp;&nbsp;
+                        <label class="label label-danger">N</label>&nbsp;Negado&nbsp;&nbsp;
+                        <label class="label label-primary">C</label>&nbsp;Confirmado&nbsp;&nbsp;
+                        <label class="label label-info">D</label>&nbsp;Desembolsado&nbsp;&nbsp;
+                        <label class="label label-default">O</label>&nbsp;Desistio&nbsp;&nbsp;
+                    </div><br />
+                    <table class="table table-striped table-bordered table-hover" id="tabla_desembolsados">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Pedido #</th>
+                                <th style="text-align:center">Fecha Solicitud</th>
+                                <th style="text-align:center">Valor Solicitado</th>
+                                <th style="text-align:center">Fecha Aprobación</th>
+                                <th style="text-align:center">Estado Credito</th>
+                                <th style="text-align:center"># Aprobación</th>
+                                <th style="text-align:center">Valor Aprobado</th>
+                                <th style="text-align:center">Plazo</th>
+                                <th style="text-align:center">Fecha Desembolso</th>
+                                <th style="text-align:center">Financiera</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Plan</th>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Cuota Inicial</th>
+                                <th style="text-align:center">Responsable</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                @*<button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal financieras ===================*@
+<div class="modal fade hmodal-info" id="modal_financiera" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Financieras</h4>
+                <small class="font-bold">Detalle de creditos por financieras</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        <span class="font-bold">Estados Creditos:</span>&nbsp;&nbsp;
+                        <label class="label label-default">T</label>&nbsp;Tramite&nbsp;&nbsp;
+                        <label class="label label-default">A</label>&nbsp;Aprobado&nbsp;&nbsp;
+                        <label class="label label-default">N</label>&nbsp;Negado&nbsp;&nbsp;
+                        <label class="label label-default">C</label>&nbsp;Confirmado&nbsp;&nbsp;
+                        <label class="label label-default">D</label>&nbsp;Desembolsado&nbsp;&nbsp;
+                        <label class="label label-default">O</label>&nbsp;Desistio&nbsp;&nbsp;
+                    </div><br />
+                    <table class="table table-striped table-bordered table-hover" id="tabla_financieras">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Pedido #</th>
+                                <th style="text-align:center">Fecha Solicitud</th>
+                                <th style="text-align:center">Valor Solicitado</th>
+                                <th style="text-align:center">Plazo</th>
+                                <th style="text-align:center">Estado Credito</th>
+                                <th style="text-align:center">Fecha Aprobación</th>
+                                <th style="text-align:center"># Aprobación</th>
+                                <th style="text-align:center">Valor Aprobado</th>
+                                <th style="text-align:center">Fecha Negación</th>
+                                <th style="text-align:center">Fecha Desistimiento</th>
+                                <th style="text-align:center">Motivo</th>
+                                <th style="text-align:center">Fecha Desembolso</th>
+                                <th style="text-align:center">Financiera</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Plan</th>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Cuota Inicial</th>
+                                <th style="text-align:center">Responsable</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                @*<button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal Asesores ===================*@
+<div class="modal fade hmodal-info" id="modal_asesores" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Asesores</h4>
+                <small class="font-bold">Detalle de creditos por asesores</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        <span class="font-bold">Estados Creditos:</span>&nbsp;&nbsp;
+                        <label class="label label-warning">T</label>&nbsp;Tramite&nbsp;&nbsp;
+                        <label class="label label-success">A</label>&nbsp;Aprobado&nbsp;&nbsp;
+                        <label class="label label-danger">N</label>&nbsp;Negado&nbsp;&nbsp;
+                        <label class="label label-primary">C</label>&nbsp;Confirmado&nbsp;&nbsp;
+                        <label class="label label-info">D</label>&nbsp;Desembolsado&nbsp;&nbsp;
+                        <label class="label label-default">O</label>&nbsp;Desistio&nbsp;&nbsp;
+                    </div><br />
+                    <table class="table table-striped table-bordered table-hover" id="tabla_asesores">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Pedido #</th>
+                                <th style="text-align:center">Fecha Solicitud</th>
+                                <th style="text-align:center">Valor Solicitado</th>
+                                <th style="text-align:center">Plazo</th>
+                                <th style="text-align:center">Estado Credito</th>
+                                <th style="text-align:center">Fecha Aprobación</th>
+                                <th style="text-align:center"># Aprobación</th>
+                                <th style="text-align:center">Valor Aprobado</th>
+                                <th style="text-align:center">Fecha Negación</th>
+                                <th style="text-align:center">Fecha Desistimiento</th>
+                                <th style="text-align:center">Motivo</th>
+                                <th style="text-align:center">Fecha Desembolso</th>
+                                <th style="text-align:center">Financiera</th>
+                                <th style="text-align:center">Cliente</th>
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Plan</th>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Cuota Inicial</th>
+                                <th style="text-align:center">Responsable</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                @*<button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@*============= modal Vehiculos Facturados ===================*@
+<div class="modal fade hmodal-info" id="modal_vhfacturados" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Vehículos Facturados</h4>
+                <small class="font-bold">Detalle de Vehículos Facturados</small><br />
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        @*<span class="font-bold">Estados Vehiculos Facturados:</span>&nbsp;&nbsp;
+                            <label class="label label-warning">T</label>&nbsp;Tramite&nbsp;&nbsp;
+                            <label class="label label-success">A</label>&nbsp;Aprobado&nbsp;&nbsp;
+                            <label class="label label-danger">N</label>&nbsp;Negado&nbsp;&nbsp;
+                            <label class="label label-primary">C</label>&nbsp;Confirmado&nbsp;&nbsp;
+                            <label class="label label-info">D</label>&nbsp;Desembolsado&nbsp;&nbsp;
+                            <label class="label label-default">O</label>&nbsp;Desistio&nbsp;&nbs*@p;
+                    </div><br />
+                    <table class="table table-striped table-bordered table-hover" id="tabla_vhFacturados">
+                        @* id="tabla_solicitados"> *@
+                        <thead>
+                            <tr>
+                                <th style="text-align:left">Tipo</th>
+                                <th style="text-align:right"># Doc</th>
+                                <th style="text-align:right">Fecha</th>
+                                <th style="text-align:left">Cliente</th>
+                                <th style="text-align:right">Pedido</th>
+                                <th style="text-align:right">Plan M</th>
+                                <th style="text-align:left">Modelo Vehículo</th>
+                                <th style="text-align:right">Año</th>
+                                <th style="text-align:left">Color</th>
+                                <th style="text-align:right">Fecha Venta</th>
+                                <th style="text-align:right">Valor Solicitado</th>
+                                <th style="text-align:left">Financiera</th>
+                                <th style="text-align:left">Plan</th>
+                                <th style="text-align:left">Plazo</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                @*<button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Vendor scripts -->
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/chartist/dist/chartist.min.js"></script>
+    <script src="~/Vendor/chartjs/Chart.min.js"></script>
+    <script src="~/vendor/d3/d3.min.js"></script>
+    <script src="~/vendor/c3/c3.min.js"></script>
+
+    <!-- App scripts -->
+    <script src="~/Scripts/homer.js"></script>
+    <script src="~/Scripts/charts.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+            $('.js-source-states').select2();
+
+            var fecha ='@DateTime.Now.AddDays(-30)';
+            var fecha2 = '@DateTime.Now';
+
+            $('#fechaDesde').val(fecha);
+            $('#fechaHasta').val(fecha2);
+            $('#fechaDesde').datetimepicker({
+                format: 'DD/MM/YYYY',
+            });
+            $('#fechaHasta').datetimepicker({
+                format: 'DD/MM/YYYY',
+                maxDate: '-' + new Date() + '',
+            });
+
+            buscarDatos();
+            buscarAccesos();
+            buscarVehiculoFactura();
+        });
+
+        function buscarAccesos() {
+            $.ajax({
+                url: '/Inicio/buscarAccesos',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    for (var i = 0 ; i < data.length ; i++) {
+                        if (data[i].codigo == "OA41") {
+                            $('#divSolicitados').show();
+                        }
+                        if (data[i].codigo == "OA04") {
+                            $('#divAprobados').show();
+                        }
+                        if (data[i].codigo == "OA31") {
+                            $('#divNegados').show();
+                        }
+                        if (data[i].codigo == "OA17") {
+                            $('#divDesistidos').show();
+                        }
+                        if (data[i].codigo == "OA05") {
+                            $('#divAsesores').show();
+                        }
+                        if (data[i].codigo == "OA24") {
+                            $('#divFinancieras').show();
+                        }
+                        if (data[i].codigo == "OA18") {
+                            $('#divEntregados').show();
+                        }
+                        if (data[i].codigo == "OA12") {
+                            $('#divComisiones').show();
+                        }
+                        //if (data[i].idopcionAcceso == 54) {
+                        //    $('#divFacturados').show();
+                        //}
+                        if (data[i].codigo == "OA16") {
+                            $('#divDesembolsados').show();
+                        }
+                        if (data[i].codigo == "OA51") {
+                            $('#divVehFacturados').show();
+                        }
+                    }
+                }
+            });
+        }
+
+        $('#btnFiltrar').click(function () {
+            buscarDatos()
+            buscarVehiculoFactura();
+        });
+
+        function buscarDatos() {
+
+            $.ajax({
+                url: '/indicadoresCreditos/buscarDatos',
+                data: {
+                    fechaDesde: $('#fechaDesde').val(),
+                    fechaHasta: $('#fechaHasta').val(),
+                    financiera: $('#financiera').val(),
+                    asesor: $('#asesor').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    $('#solicitados').text(data.solicitados.length);
+                    $('#aprobados').text(data.aprobados.length);
+                    $('#negados').text(data.negados.length);
+                    $('#desistidos').text(data.desistidos.length);
+                    $('#desembolsados').text(addComas(Math.trunc(data.total_desembolsados)));
+                    $('#desembolsosCount').text(data.desembolsosCount);
+                    $('#comisiones').text(addComas(Math.trunc(data.total_comisiones)));
+                    $('#facturados').text(data.total_facturados);
+                    $('#vhfacturados').val(data.total_Vehiculosfacturados);
+                    $('#vhfacturadosCount').text(data.total_VehiculosfacturadosCount);
+                    $("#div_asesores").empty();
+                    for (var i = 0; i < data.asesores.length; i++) {
+                        $('#div_asesores').append('<div class="list-item">'
+                            + '<h3 class="no-margins font-extra-bold text-color3"><a href="#" onclick=buscarDetallesAsesores(' + data.asesores[i].id + ')>' + data.asesores[i].cantidad + '</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h3>'
+                            + '<p class="text-success">' + data.asesores[i].asesor + '</p>'
+                            + '</div>');
+                    }
+
+                    $("#div_financieras").empty();
+                    for (var i = 0; i < data.financieras.length; i++) {
+                        $('#div_financieras').append(
+                            '<div class="list-item">'
+                            + '<h3 class="no-margins font-extra-bold text-color3">'
+                            + '<a href="#" onclick=buscarDetallesFinancieras(' + data.financieras[i].id + ')>' + data.financieras[i].cantidad + '</a>'
+                            + '&emsp;&emsp;&emsp;&emsp;&emsp;'
+                            + '<a href="#" onclick=buscarDetallesFinancieras(' + data.financieras[i].id + ')>' + data.financieras[i].porcentaje + '%</a>'
+                            + '</h3>'
+                            + '<p class="text-success">' + data.financieras[i].financiera + '</p>'
+                            + '</div>');
+                    }
+
+                    $("#tabla_aprobados").dataTable().fnDestroy();
+                    $('#tabla_aprobados').find('tbody').empty();
+                    for (var i = 0; i < data.aprobados.length; i++) {
+                        $('#tabla_aprobados').find('tbody').append(
+                            '<tr>'
+                            + '<td align="right">' + data.aprobados[i].pedido + '</td>'
+                            + '<td align="right">' + data.aprobados[i].dateApr + '</td>'
+                            + '<td align="left">' + data.aprobados[i].estado + '&nbsp;&nbsp;'
+                            + '<span class="badge badge-' + data.aprobados[i].num_aprobacion + '">&nbsp;&nbsp;&nbsp;&nbsp;</span>'
+                            + '</td>'//aca
+                            + '<td align="right">' + data.aprobados[i].num_aprobacion + '</td>'
+                            + '<td align="right">$' + data.aprobados[i].valueApp + '</td>'
+                            + '<td align="right">$' + data.aprobados[i].reqvalue + '</td>'
+                            + '<td align="right">' + data.aprobados[i].plazo + '</td>'
+                            + '<td align="right">' + data.aprobados[i].dateReq + '</td>'
+                            + '<td align="left">' + data.aprobados[i].financiera_nombre + '</td>'
+                            + '<td align="left">' + data.aprobados[i].cliente + '</td>'
+                            + '<td align="left">' + data.aprobados[i].asesor + '</td>'
+                            + '<td align="left">' + data.aprobados[i].plan_fin + '</td>'
+                            + '<td align="left">' + data.aprobados[i].bodega + '</td>'
+                            + '<td align="right">' + data.aprobados[i].feeInit + '</td>'
+                            + '<td align="left">' + data.aprobados[i].responsable + '</td>'
+                            + '<td align="left">' + data.aprobados[i].comission + '</td>'
+                            + '<td align="left">' + data.aprobados[i].comison + '</td>'
+                            + '</tr>');
+                    }
+
+                    $("#tabla_solicitados").dataTable().fnDestroy();
+                    $('#tabla_solicitados').find('tbody').empty();
+                    for (var i = 0; i < data.solicitados.length; i++) {
+                        $('#tabla_solicitados').find('tbody').append('<tr><td align="right">'
+                            + data.solicitados[i].pedido + '</td><td align="left">'
+                            + data.solicitados[i].fec_solicitud + '</td><td align="right">$'
+                            + data.solicitados[i].valor_solicitado + '</td><td align="left">'
+                            + data.solicitados[i].estado + '</td><td align="right">'
+                            + data.solicitados[i].plazo + '</td><td align="left">'
+                            + data.solicitados[i].financiera_nombre + '</td><td align="left">'
+                            + data.solicitados[i].cliente + '</td><td align="left">'
+                            + data.solicitados[i].asesor + '</td><td align="left">'
+                            + data.solicitados[i].plan_fin + '</td><td align="left">'
+                            + data.solicitados[i].bodega + '</td><td align="left">'
+                            + data.solicitados[i].cuota + '</td><td align="left">'
+                            + data.solicitados[i].responsable + '</td></tr>');
+                    }
+
+                    $("#tabla_negados").dataTable().fnDestroy();
+                    $('#tabla_negados').find('tbody').empty();
+                    for (var i = 0; i < data.negados.length; i++) {
+                        $('#tabla_negados').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.negados[i].pedido + '</td><td>'
+                            + data.negados[i].dateReq + '</td><td>$'
+                            + data.negados[i].reqvalue + '</td><td>'
+                            + data.negados[i].estado + '</td><td>'
+                            + data.negados[i].dateDen + '</td><td>'
+                            + data.negados[i].detalle + '</td><td>'
+                            + data.negados[i].plazo + '</td><td>'
+                            + data.negados[i].financiera_nombre + '</td><td>'
+                            + data.negados[i].cliente + '</td><td>'
+                            + data.negados[i].asesor + '</td><td>'
+                            + data.negados[i].plan_fin + '</td><td>'
+                            + data.negados[i].bodega + '</td><td>'
+                            + data.negados[i].feeInit + '</td><td>'
+                            + data.negados[i].responsable + '</td></tr>')
+                    }
+
+                    $("#tabla_desistidos").dataTable().fnDestroy();
+                    $('#tabla_desistidos').find('tbody').empty();
+                    for (var i = 0; i < data.desistidos.length; i++) {
+                        $('#tabla_desistidos').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.desistidos[i].pedido + '</td><td>'
+                            + data.desistidos[i].dateApr + '</td><td>'
+                            + data.desistidos[i].estado + '</td><td>'
+                            + data.desistidos[i].num_aprobacion + '</td><td>$'
+                            + data.desistidos[i].valueApp + '</td><td>$'
+                            + data.desistidos[i].reqvalue + '</td><td>'
+                            + data.desistidos[i].dateReq + '</td><td>'
+                            + data.desistidos[i].plazo + '</td><td>'
+                            + data.desistidos[i].financiera_nombre + '</td><td>'
+                            + data.desistidos[i].cliente + '</td><td>'
+                            + data.desistidos[i].asesor + '</td><td>'
+                            + data.desistidos[i].plan_fin + '</td><td>'
+                            + data.desistidos[i].bodega + '</td><td>'
+                            + data.desistidos[i].feeInit + '</td><td>'
+                            + data.desistidos[i].responsable + '</td><td>'
+                            + data.desistidos[i].fecha_desistimiento + '</td><td>'
+                            + data.desistidos[i].motivo + '</td></tr>');
+                    }
+
+                    $("#tabla_comisiones").dataTable().fnDestroy();
+                    $('#tabla_comisiones').find('tbody').empty();
+                    for (var i = 0; i < data.comisiones.length; i++) {
+                        $('#tabla_comisiones').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.comisiones[i].pedido + '</td><td>'
+                            + data.comisiones[i].dateCon + '</td><td>$'
+                            + data.comisiones[i].valueApp + '</td><td>'
+                            + data.comisiones[i].dateRece + '</td><td>$'
+                            + data.comisiones[i].commisionVal + '</td><td>'
+                            + data.comisiones[i].estado + '</td><td>'
+                            + data.comisiones[i].plazo + '</td><td>'
+                            + data.comisiones[i].financiera_nombre + '</td><td>'
+                            + data.comisiones[i].asesor + '</td><td>'
+                            + data.comisiones[i].cliente + '</td><td>'
+                            + data.comisiones[i].plan_fin + '</td><td>'
+                            + data.comisiones[i].bodega + '</td><td>'
+                            + data.comisiones[i].feeInit + '</td><td>'
+                            + data.comisiones[i].responsable + '</td></tr>')
+                    }
+
+                    $("#tabla_desembolsados").dataTable().fnDestroy();
+                    $('#tabla_desembolsados').find('tbody').empty();
+                    for (var i = 0; i < data.desembolsados.length; i++) {
+                        $('#tabla_desembolsados').find('tbody').append('<tr><td align="right">'
+                            + data.desembolsados[i].pedido + '</td><td align="left">'
+                            + data.desembolsados[i].dateReq + '</td><td align="right">$'
+                            + data.desembolsados[i].reqvalue + '</td><td align="left">'
+                            + data.desembolsados[i].dateApp + '</td><td align="left">'
+                            + data.desembolsados[i].estado + '</td><td align="right">'
+                            + data.desembolsados[i].numfactura + '</td><td align="right">$'
+                            + data.desembolsados[i].valueApp + '</td><td align="right">'
+                            + data.desembolsados[i].plazo + '</td><td align="left">'
+                            + data.desembolsados[i].dateOut + '</td><td align="left">'
+                            + data.desembolsados[i].financiera_nombre + '</td><td align="left">'
+                            + data.desembolsados[i].cliente + '</td><td align="left">'
+                            + data.desembolsados[i].asesor + '</td><td align="left">'
+                            + data.desembolsados[i].plan_fin + '</td><td align="left">'
+                            + data.desembolsados[i].bodega + '</td><td align="left">'
+                            + data.desembolsados[i].feeInit + '</td><td align="left">'
+                            + data.desembolsados[i].responsable + '</td></tr>')
+                    }
+                },
+                complete: function (data) {
+                    $('#tabla_aprobados').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+
+                    $('#tabla_solicitados').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+
+                    $('#tabla_negados').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+
+                    $('#tabla_desistidos').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+
+                    $('#tabla_comisiones').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+
+                    $('#tabla_desembolsados').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+                    //$('#tabla_vhFacturados').dataTable({
+                    //    //"ajax": 'api/datatables.json',
+                    //    //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                    //    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    //    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    //    buttons: [
+                    //        { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                    //        //{ extend: 'copy', className: 'btn-sm' },
+                    //        //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                    //        //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                    //        //{ extend: 'print', className: 'btn-sm' }
+                    //    ]
+                    //});
+                }
+            });
+        }
+
+        function buscarDetallesFinancieras(financiera) {
+
+            $.ajax({
+                url: '/indicadoresCreditos/buscarDetallesFinancieras',
+                data: {
+                    fechaDesde: $('#fechaDesde').val(),
+                    fechaHasta: $('#fechaHasta').val(),
+                    financiera: financiera,
+                    asesor: $('#asesor').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $("#tabla_financieras").dataTable().fnDestroy();
+                    $('#tabla_financieras').find('tbody').empty();
+                    console.log(data)
+                    debugger
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tabla_financieras').find('tbody').append(
+                            '<tr>'
+                            + '<td align="right">' + data[i].pedido + '</td>'
+                            + '<td align="left">' + data[i].fecha_solicitud + '</td>'
+                            + '<td align="right">$' + addComas(data[i].valor_solicitado) + '</td>'
+                            + '<td align="right">' + data[i].plazo + '</td>'
+                            + '<td align="left">' + data[i].estado + '&nbsp;&nbsp;'
+                            + '<span class="badge badge-' + data[i].cumplimiento + '">&nbsp;&nbsp;&nbsp;&nbsp;</span>'
+                            + '</td>'
+                            + '<td align="left">' + data[i].fecha_aprobacion + '</td>'
+                            + '<td align="right">' + data[i].numero + '</td>'
+                            + '<td align="right">$' + addComas(data[i].valor_aprobado) + '</td>'
+                            + '<td align="left">' + data[i].fecha_negacion + '</td>'
+                            + '<td align="left">' + data[i].fecha_desistimiento + '</td>'
+                            + '<td align="left">' + data[i].motivo + '</td>'
+                            + '<td align="left">' + data[i].fecha_desembolso + '</td>'
+                            + '<td align="left">' + data[i].financiera + '</td>'
+                            + '<td align="left">' + data[i].cliente + '</td>'
+                            + '<td align="left">' + data[i].asesor + '</td>'
+                            + '<td align="left">' + data[i].plan + '</td>'
+                            + '<td align="left">' + data[i].bodega + '</td>'
+                            + '<td align="left">' + addComas(data[i].cuotainicial) + '</td>'
+                            + '<td align="left">' + data[i].responsable + '</td>'
+                            + '</tr>')
+                    }
+                },
+                complete: function (data) {
+                    $('#tabla_financieras').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+                    $('#modal_financiera').modal('show');
+                }
+            });
+        }
+
+        function buscarDetallesAsesores(asesor) {
+
+            $.ajax({
+                url: '/indicadoresCreditos/buscarDetallesAsesores',
+                data: {
+                    fechaDesde: $('#fechaDesde').val(),
+                    fechaHasta: $('#fechaHasta').val(),
+                    financiera: $('#financiera').val(),
+                    asesor: asesor,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $("#tabla_asesores").dataTable().fnDestroy();
+                    $('#tabla_asesores').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tabla_asesores').find('tbody').append('<tr><td align="right">'
+                            + data[i].pedido + '</td><td align="left">'
+                            + data[i].fecha_solicitud + '</td><td align="right">$'
+                            + addComas(data[i].valor_solicitado) + '</td><td align="right">'
+                            + data[i].plazo + '</td><td align="left">'
+                            + data[i].estado + '</td><td align="left">'
+                            + data[i].fecha_aprobacion + '</td><td align="right">'
+                            + data[i].numero + '</td><td align="right">$'
+                            + addComas(data[i].valor_aprobado) + '</td><td align="left">'
+                            + data[i].fecha_negacion + '</td><td align="left">'
+                            + data[i].fecha_desistimiento + '</td><td align="left">'
+                            + data[i].motivo + '</td><td align="left">'
+                            + data[i].fecha_desembolso + '</td><td align="left">'
+                            + data[i].financiera + '</td><td align="left">'
+                            + data[i].cliente + '</td><td align="left">'
+                            + data[i].asesor + '</td><td align="left">'
+                            + data[i].plan + '</td><td align="left">'
+                            + data[i].bodega + '</td><td align="left">'
+                            + addComas(data[i].cuotainicial) + '</td><td align="left">'
+                            + data[i].responsable + '</td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tabla_asesores').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+                    $('#modal_asesores').modal('show');
+                }
+            });
+        }
+
+        function buscarVehiculoFactura() {
+
+            $.ajax({
+                url: '/indicadoresCreditos/buscarVehiculoFacturacion',
+                data: {
+                    fechaDesde: $('#fechaDesde').val(),
+                    fechaHasta: $('#fechaHasta').val(),
+                    financiera: $('#financiera').val(),
+                    asesor: $('#asesor').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log('2')
+                    console.log(data)
+                    $('#vhfacturados').text(data.total_Vehiculosfacturados);
+                    $('#vhfacturadosCount').text(data.total_VehiculosfacturadosCount)
+
+                    $("#tabla_vhFacturados").dataTable().fnDestroy();
+                    //+ addComas(data.vehiculos[i].valosoli) + '</td></tr>')
+                    $('#tabla_vhFacturados').find('tbody').empty();
+                    for (var i = 0; i < data.vehiculos.length; i++) {
+                        $('#tabla_vhFacturados').find('tbody').append('<tr style="text-align:center"><td>'
+                            + data.vehiculos[i].tdoc + '</td><td>'
+                            + data.vehiculos[i].docu + '</td><td>'
+                            + data.vehiculos[i].fecha + '</td><td>'
+                            + data.vehiculos[i].cliente + '</td><td>'
+                            + data.vehiculos[i].pedido + '</td><td>'
+                            + data.vehiculos[i].planM + '</td><td>'
+                            + data.vehiculos[i].modelovh + '</td><td>'
+                            + data.vehiculos[i].anniovh + '</td><td>'
+                            + data.vehiculos[i].colorvh + '</td><td>'
+                            + data.vehiculos[i].fechaVen + '</td><td>$'
+                            + data.vehiculos[i].valosoli + '</td><td>'
+                            + data.vehiculos[i].financiera + '</td><td>'
+                            + data.vehiculos[i].plan + '</td><td>'
+                            + data.vehiculos[i].plazo + '</td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tabla_vhFacturados').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+                    //  $('#modal_vhfacturados').modal('show');
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+}

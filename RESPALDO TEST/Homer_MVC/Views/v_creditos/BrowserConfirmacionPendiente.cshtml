@@ -1,0 +1,308 @@
+﻿@{
+    ViewBag.Icono = "fa fa-pause-circle-o";
+    ViewBag.Title = "Créditos Pendientes por Confirmar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button class="btn btn-mini btn-default" style="border-radius:25px">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#buscar"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Registros</a></li>
+            </ul>
+
+        </div>
+        <div id="buscar" class="tab-pane">
+            <div class="panel-body">
+                <div class="alert alert-success" role="alert" id="confirmacionExitosa" style="display:none">
+                    Confirmación realizada con exito!
+                </div>
+                <div class="alert alert-danger" role="alert" id="sinCambios" style="display:none">
+                    No se realizaron cambios
+                </div>
+                <div class="alert alert-danger" role="alert" id="noEncontrado" style="display:none">
+                    No fue posible encontrar el usuario asociado con la cotización!
+                </div>
+                <div class="alert alert-danger" role="alert" id="datosVacios" style="display:none">
+                    No se puede buscar porque hay datos vacios
+                </div>
+                <br />
+                <div class="panel-body-busqueda">
+                    <div class="table-responsive">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Documento</th>
+                                    <th style="text-align:center">Cliente</th>
+                                    <th style="text-align:center">Contacto</th>
+                                    <th style="text-align:center">Email</th>
+                                    <th style="text-align:center">Valor Solicitado</th>
+                                    <th style="text-align:center">Valor Aprobado</th>
+                                    <th style="text-align:center">Plazo / Meses</th>
+                                    <th style="text-align:center">Financiera</th>
+                                    <th style="text-align:center">Fecha Solicitud</th>
+                                    <th style="text-align:center">Pedido</th>
+                                    <th style="text-align:center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalConfirmacion" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="row">
+                    <h5 class="modal-title col-md-10" id="exampleModalLongTitle">Confirmación de Créditos</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="idcredito" id="idcredito" value="" />
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Documento</label>
+                            <div class="col-md-6">
+                                <input type="text" name="documentoModal" id="documentoModal" class="form-control" value="" readonly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Cliente</label>
+                            <div class="col-md-6">
+                                <input type="text" name="clienteModal" id="clienteModal" class="form-control" value="" readonly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Valor Solicitado</label>
+                            <div class="col-md-6">
+                                <input type="text" name="valorModal" id="valorModal" class="form-control" value="" readonly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Valor Aprobado</label>
+                            <div class="col-md-6">
+                                <input type="text" name="aprobadoModal" id="aprobadoModal" class="form-control" value="" readonly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Financiera</label>
+                            <div class="col-md-6">
+                                <input type="text" name="financieraModal" id="financieraModal" class="form-control" value="" readonly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Fecha Confirmación<i class="text-danger">*</i></label>
+                            <div class="col-md-6">
+                                <input type="text" name="fechaConfirmacion" id="fechaConfirmacion" class="form-control" value="" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="confirmarCredito">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            cargarTabla()
+            var fecha = '@DateTime.Now';
+            $('#fechaConfirmacion').val(fecha);
+            $('#fechaConfirmacion').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: '-' + new Date() + '',
+            });
+        });
+
+        function cargarTabla() {
+
+            $.ajax({
+                url: '/v_creditos/buscarSinConfirmar',
+                data: {},
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append(
+                            '<tr>'
+                                + '<td align="right">' + data[i].documento_tercero + '</td>'
+                                + '<td>' + data[i].tercero + '</td>'
+                                + '<td>' + data[i].fijo + " / " + data[i].celular + '</td>'
+                                + '<td>' + data[i].email + '</td>'
+                                + '<td align="right">$' + data[i].valor_solicitado + '</td>'
+                                + '<td align="right">$' + data[i].valor_aprobado + '</td>'
+                                + '<td align="right">' + data[i].plazo + '</td>'
+                                + '<td>' + data[i].financiera + '</td>'
+                                + '<td align="right">' + data[i].fec_solicitud + '</td>'
+                                + '<td>' + data[i].pedido + '</td>'
+                                + '<td align="center">'
+                                    + '<button type="button" class="btn btn-success btn-sm" onclick="confirmar(\'' + data[i].Id + '\',\'' + data[i].documento_tercero + '\',\'' + data[i].tercero + '\',\'' + data[i].valor_solicitado + '\',\'' + data[i].valor_aprobado + '\',\'' + data[i].financiera + '\')">Confirmar</button>'
+                                + '</td>'
+                          + '</tr>'
+                            )
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "destroy": true,
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        ]
+                    });
+                }
+            });
+        };
+
+        function confirmar(id, documento, tercero, valorSolicitado, valorAprobado, financiera) {
+            $('#idcredito').val(id);
+            $('#documentoModal').val(documento);
+            $('#clienteModal').val(tercero);
+            $('#valorModal').val(valorSolicitado);
+            $('#aprobadoModal').val(valorAprobado);
+            $('#financieraModal').val(financiera);
+            $('#modalConfirmacion').modal('show')
+        };
+
+        $('#confirmarCredito').click(function () {
+
+            $.ajax({
+                url: '/v_creditos/confirmarCredito',
+                data: {
+                    id: $('#idcredito').val(),
+                    fecha: $('#fechaConfirmacion').val()
+                },
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    if (data == 1) {
+                        $('#modalConfirmacion').modal('hide')
+                        $('#confirmacionExitosa').show()
+                        $('#confirmacionExitosa').fadeOut(4500)
+                        setTimeout(function () {
+                            location.reload()
+                        }, 2000);
+                    }
+                    if (data == 2) {
+                        $('#modalConfirmacion').modal('hide')
+                        $('#sinCambios').show()
+                        $('#sinCambios').fadeOut(4500)
+                    }
+                    if (data==3) {
+                        $('#modalConfirmacion').modal('hide')
+                        $('#noEncontrado').show()
+                        $('#noEncontrado').fadeOut(4500)
+                    }
+                    if (data==4) {
+                        $('#modalConfirmacion').modal('hide')
+                        $('#datosVacios').show()
+                        $('#datosVacios').fadeOut(4500)
+                    }
+                }
+            })
+        })
+    </script>
+}

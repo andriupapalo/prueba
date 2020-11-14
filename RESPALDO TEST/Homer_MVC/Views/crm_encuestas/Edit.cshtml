@@ -1,0 +1,309 @@
+﻿@model Homer_MVC.IcebergModel.crm_encuestas
+
+@{
+    ViewBag.Title = "Encuentas";
+    ViewBag.Icono = "fa fa-bars";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="fa fa-pencil"></i>&nbsp;&nbsp;Crear</a></li>
+                <li class=""><a href="@Url.Action("Index", "crm_encuestas")"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+
+                        <div class="panel-body-btns text-right">
+                            <a href="../../../../crm_encuesta_modulo?menu=@ViewBag.id_menu" class="btn btn-info"><i class="fa fa-folder-open"></i>&nbsp;&nbsp;&nbsp;Crear Nuevo</a>
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Título:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.Descripcion, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite título", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Modulo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("modulo", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                    }
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@*<div class="panel-body" style="padding-top:0px;">
+        <div class="hpanel">
+            @if (TempData["mensaje"] != null)
+            {
+                <br />
+                <div class="alert alert-success  alert-dismissible" id="mensaje">
+                    <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                    <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+                </div>
+            }
+
+            @if (TempData["mensaje_error"] != null)
+            {
+                <br />
+                <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                    <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                    <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+                </div>
+            }
+
+            <div id="tabs" class="tab-content">
+
+                <div class="m float-e-margins text-right">
+                    <div class="tooltip-demo">
+                        <div id="div-mensaje"></div>
+                    </div>
+                </div>
+
+                <ul id="tabs-crear" class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#crear"><i class="fa fa-pencil"></i>&nbsp;&nbsp;Editar</a></li>
+                    <li class=""><a href="@Url.Action("Index", "crm_encuestas")"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+                </ul>
+
+                <div id="crear" class="tab-pane active">
+                    <div class="panel-body">
+                        @using (Html.BeginForm())
+                        {
+
+                        <div class="panel-body-btns text-right">
+                            <a href="../../../../crm_encuesta_modulo?menu=@ViewBag.id_menu" class="btn btn-info"><i class="fa fa-folder-open"></i>&nbsp;&nbsp;&nbsp;Crear Nuevo</a>
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            @Html.HiddenFor(x => x.id)
+                            @Html.HiddenFor(x => x.fec_creacion)
+                            @Html.HiddenFor(x => x.userid_creacion)
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Título:&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-6">
+                                        @Html.EditorFor(model => model.Descripcion, new { htmlAttributes = new { @class = "form-control" } })
+                                        @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Modulo:&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-6">
+                                        @Html.DropDownList("modulo", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                        @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $('.js-source-states').select2();
+        });
+
+    $('form select').each(function (i) {
+        this.addEventListener('invalid', function (e) {
+            var _s2Id = 's2id_' + e.target.id; //s2 autosuggest html ul li element id
+            var _posS2 = $('#' + _s2Id).position();
+            //get the current position of respective select2
+            $('#' + _s2Id + ' ul').addClass('_invalid'); //add this class with border:1px solid red;
+            //this will reposition the hidden select2 just behind the actual select2 autosuggest field with z-index = -1
+            $('#' + e.target.id).attr('style', 'display:block !important;position:absolute;z-index:-1;top:' + (0 - $('#' + _s2Id).outerHeight() + 30) + 'px;left:' + (15 - ($('#' + _s2Id).width() / 10)) + 'px;');
+            /*
+            //Adjust the left and top position accordingly
+            */
+            //remove invalid class after 3 seconds
+            setTimeout(function () {
+                $('#' + _s2Id + ' ul').removeClass('_invalid');
+            }, 3000);
+            return true;
+        }, false);
+    });
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+    </script>
+
+}

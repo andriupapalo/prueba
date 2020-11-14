@@ -1,0 +1,1434 @@
+﻿@model Homer_MVC.Models.Modelo_adecuaciones
+
+@{
+    ViewBag.Title = "Peritajes";
+    ViewBag.Icono = "fa fa-pencil-square-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Visualización de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class=""><a href="@Url.Action("Browser","InspeccionPeritaje", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+                <li class=""><a href="@Url.Action("Aprobar","InspeccionPeritaje", new { menu = @ViewBag.id_menu })?id=@Model.id_adecuacion"><i class="fa fa-bars"></i>&nbsp;&nbsp;Detalle</a></li>
+                <li class="active"><a data-toggle="tab" href="#adecuaciones"><i class="fa fa-arrow-up"></i>&nbsp;&nbsp;Cargar Adecuaciones</a></li>
+            </ul>
+
+            @using (Html.BeginForm())
+            {
+                @Html.Hidden("menu")
+                @Html.HiddenFor(model => model.id_adecuacion)
+//   @Html.HiddenFor(model => model.valor_total_adecuacion)
+
+                <div id="adecuaciones" class="tab-pane active">
+                    <div class="panel-body">
+                        <div class="form-horizontal">
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    &nbsp;Lista Repuestos
+                                </div>
+                                <br />
+                                <br />
+
+                                @* Campo Repuestos *@
+
+
+
+                                <div class="row">
+                                    <div class="col-md-10">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Repuestos:</label>
+                                            <div class="col-md-8">
+                                                @Html.DropDownList("ref_codigo", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @style = "width: 600px"  /*, @onclick = "return pedidonit(this.id)"*/ })
+                                                @*@Html.ValidationMessageFor(model => model.pedido, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-1" padding-left="3rem">
+                                        <input type="hidden" name="txtid_referencia" id="txtid_referencia">
+                                        <label class="control-label text text-primary">Referencia:</label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <input id="cod_referencia" name="cod_referencia" class="form-control" value="" required="required" />
+                                    </div>
+                                </div>
+                                <div class="row">
+
+                                    <div class="col-md-1">
+                                        <label class="control-label text text-primary">Cantidad:</label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <input id="cantidad_ref" name="cantidad_ref" class="form-control" value="" placeholder="Digite Cantidad" onkeypress="return soloNumeros(event)" onkeyup="return miles(this.id); return calculaCantidadRep();" required="required" style="text-align:right; width :150px" />
+                                        <input type="hidden" name="hcantidad_ref" id="hcantidad_ref">
+                                    </div>
+
+                                    <div class="col-md-1">
+                                        <label class="control-label text text-primary">Precio:</label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <input id="precio_referencia" name="precio_referencia" class="form-control" value="" placeholder="Digite Precio" required="required" onkeypress="return soloNumeros(event)" onkeyup="return miles(this.id)" style="text-align:right; width :300px; " />
+                                        <input type="hidden" name="hprecio_referencia" id="hprecio_referencia">
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+
+                                    <div class="col-md-1">
+
+                                    </div>
+                                    <div class="col-sm-4">
+
+                                    </div>
+
+                                    <div class="col-sm-1" style="width:9%;">
+                                        <label class="control-label text text-primary">Valor sin Iva</label>
+                                    </div>
+                                    <div class="col-sm-4" style="padding-left:6px; ">
+                                        <input id="txtval_sin_iva" name="txtval_sin_iva" class="form-control" value="" placeholder="Val sin Iva" onkeyup="return miles(this.id)" required="required" style="width:300px;text-align:right;" />
+                                        <input type="hidden" name="htxtval_sin_iva" id="htxtval_sin_iva">
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+
+                                    <div class="col-md-1">
+
+                                    </div>
+                                    <div class="col-sm-4">
+
+                                    </div>
+
+                                    <div class="col-sm-1">
+                                        <label class="control-label text text-primary">Descuento(%)</label>
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <input id="dcto_referencia" name="dcto_referencia" class="form-control" value="" placeholder="(%)" onkeypress="return soloNumeros(event)" onkeyup="return miles(this.id)" maxlength="3" style="text-align:right;" />
+                                        <input type="hidden" name="hdcto_referencia" id="hdcto_referencia">
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input id="mto_dcto_referencia" name="mto_dcto_referencia" class="form-control" value="" placeholder="Monto Descuento" onkeyUp="return miles(this.id)" style="text-align:right; width :190px;" />
+                                        <input type="hidden" name="hmto_dcto_referencia" id="hmto_dcto_referencia">
+                                    </div>
+
+                                </div>
+
+
+                                <div class="row">
+
+                                    <div class="col-sm-5">
+
+                                    </div>
+                                    <div class="col-md-1" padding-left="3rem">
+                                        <label class="control-label text text-primary">Iva(%)</label>
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <input id="iva_ref" name="iva_ref" class="form-control" value="" placeholder="Iva(%)" onkeyup="return miles(this.id)" style="text-align:right" />
+                                        <input type="hidden" name="hiva_ref" id="hiva_ref">
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input id="mto_iva" name="mto_iva" class="form-control" value="" placeholder="Monto Iva" onkeyup="return miles(this.id)" style="text-align:right; width :190px;" />
+                                        <input type="hidden" name="hmto_iva" id="hmto_iva">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-1 col-md-offset-5" padding-left="3rem">
+                                        <label class="control-label text text-primary">Total:</label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <input id="txtTotal" name="txtTotal" class="form-control" value="" placeholder="Total" onkeyup="return miles(this.id)" required="required" style="text-align:right; width :300px;" />
+                                        <input type="hidden" name="htxtTotal" id="htxtTotal">
+                                    </div>
+                                </div>
+
+
+                                <div class="row">
+
+                                    <div class="form-group">
+                                        <div class="panel-body-btns text-center">
+                                            <button type="button" id="agregaRepuesto" name="agregaRepuesto" class="btn btn-success">Agregar Repuestos</button>&nbsp;&nbsp;&nbsp;
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="panel-body-busqueda">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Referencia</th>
+                                                    <th style="text-align:center">Precio</th>
+                                                    <th style="text-align:center">Cant</th>
+                                                    <th style="text-align:center">Desc %</th>
+                                                    <th style="text-align:center">Monto Desc</th>
+                                                    <th style="text-align:center">Iva %</th>
+                                                    <th style="text-align:center">Monto Iva</th>
+                                                    <th style="text-align:center">Total</th>
+                                                    <th style="text-align:center">Fecha</th>
+                                                    <th style="text-align:center">Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>//*************************************** MANO DE OBRA **************************************************************************************************************
+
+                <div id="adecuaciones2" class="tab-pane active">
+                    <div class="panel-body">
+                        <div class="form-horizontal">
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    &nbsp;Lista Mano de Obra
+                                </div>
+                                <br />
+                                <br />
+
+                                @* Campo Mano de Obra *@
+
+                                <div class="row">
+                                    <div class="col-md-10">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Mano de Obra:</label>
+                                            <div class="col-md-8">
+                                                @Html.DropDownList("mo_codigo", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @style = "width: 600px"   /*, @onclick = "return pedidonit(this.id)"*/ })
+                                                @*@Html.ValidationMessageFor(model => model.pedido, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-1" padding-left="3rem">
+                                        <input type="hidden" name="txtid_manobra" id="txtid_manobra">
+                                        <label class="control-label col-md-4 text text-primary">Descripción:</label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <input id="operacion" name="operacion" class="form-control" value="" required="required" />
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-1">
+                                        @*<label class="control-label text text-primary">Cantidad:</label>*@
+                                    </div>
+                                    <div class="col-sm-4">
+                                        @*<input id="cantidad_mo" name="cantidad_mo" class="form-control" value="" placeholder="Digite Cantidad" onkeyUp="return miles(this.id)" required="required" />
+                                            <input type="hidden" name="hcantidad_mo" id="hcantidad_mo">*@
+                                    </div>
+
+                                    <div class="col-md-1">
+                                        <label class="control-label text text-primary">Precio:</label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <input id="precio_operacion" name="precio_operacion" class="form-control" value="" placeholder="Digite Precio" required="required" onkeypress="return soloNumeros(event)" onkeyup="return miles(this.id)" style="text-align:right; width :300px; " />
+                                        <input type="hidden" name="hprecio_operacion" id="hprecio_operacion">
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-1 col-sm-offset-5" style="width:9%;">
+                                        <label class="control-label text text-primary">Valor sin Iva</label>
+                                    </div>
+                                    <div class="col-sm-4" style="padding-left:6px; ">
+                                        <input id="txtmo_val_sin_iva" name="txtmo_val_sin_iva" class="form-control" value="" placeholder="Valor sin Iva" onkeyUp="return miles(this.id)" style="width:300px;text-align:right;" />
+                                        <input type="hidden" name="htxtmo_val_sin_iva" id="htxtmo_val_sin_iva">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+
+                                    <div class="col-md-5">
+
+                                    </div>
+                                    <div class="col-md-1" padding-left="3rem">
+                                        <label class="control-label text text-primary">Descuento(%)</label>
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <input id="dcto_mano" name="dcto_mano" class="form-control" value="" placeholder="(%)" onkeypress="return soloNumeros(event)" onkeyup="return miles(this.id)" maxlength="3" style="text-align:right;" />
+                                        <input type="hidden" name="hdcto_mano" id="hdcto_mano">
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input id="mto_dcto_mano" name="mto_dcto_mano" class="form-control" value="" placeholder="Monto Descuento" onkeyUp="return miles(this.id)" style="text-align:right; width :192px;" />
+                                        <input type="hidden" name="hmto_dcto_mano" id="hmto_dcto_mano">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-5">
+
+                                    </div>
+                                    <div class="col-md-1" padding-left="3rem">
+                                        <label class="control-label text text-primary">Iva(%)</label>
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <input id="iva_mov" name="iva_mov" class="form-control" value="" placeholder="Iva(%)" onkeyup="return miles(this.id)" style="text-align:right" />
+                                        <input type="hidden" name="hiva_mov" id="hiva_mov">
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input id="mtoiva_mov" name="mtoiva_mov" class="form-control" value="" placeholder="Monto Iva" onkeyUp="return miles(this.id)" style="text-align:right; width :192px;" />
+                                        <input type="hidden" name="hmtoiva_mov" id="hmtoiva_mov">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-1 col-md-offset-5" padding-left="3rem">
+                                        <label class="control-label text text-primary">Total:</label>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <input id="txtManoTotal" name="txtManoTotal" class="form-control" value="" placeholder="Total" onkeyUp="return miles(this.id)" required="required" style="text-align:right; width :300px;" />
+                                        <input type="hidden" name="htxtManoTotal" id="htxtManoTotal">
+                                    </div>
+                                </div>
+
+
+                                <div class="row">
+
+                                    <div class="form-group">
+                                        <div class="panel-body-btns text-center">
+                                            <button type="button" id="agregaMano" name="agregaMano" class="btn btn-success">Agregar Mano de Obra</button>&nbsp;&nbsp;&nbsp;
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="panel-body-busqueda">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-hover" id="tablaPaginada2">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Servicio</th>
+                                                    <th style="text-align:center">Precio</th>
+                                                    <th style="text-align:center">Cant</th>
+                                                    <th style="text-align:center">Desc %</th>
+                                                    <th style="text-align:center">Monto Desc</th>
+                                                    <th style="text-align:center">Iva %</th>
+                                                    <th style="text-align:center">Monto Iva</th>
+                                                    <th style="text-align:center">Total</th>
+                                                    <th style="text-align:center">Fecha</th>
+                                                    <th style="text-align:center">Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Total Adecuación:</label>
+                                            <div class="col-md-7">
+                                                <input id="txtGranTotal" name="txtGranTotal" class="form-control" value="" placeholder="Gran Total" onkeyUp="return miles(this.id)" readonly="readonly" />
+                                                <input type="hidden" name="htxtGranTotal" id="htxtGranTotal">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+
+                            </div>
+
+                            <div class="form-group">
+                                <div class="panel-body-btns text-right">
+                                    @*<button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>}
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+        var total = 0;
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000);
+
+            if ($('#id_adecuacion').val() != null) {
+                TablaRepuestosRefresca($('#id_adecuacion').val());
+                TablaManoRefresca($('#id_adecuacion').val());
+                MontoAdecuacion();
+            }
+
+
+            $('.js-source-states').select2();
+
+            if ($('#precio_operacion').val() == null || $('#precio_operacion').val() == 0) {
+                $('#dcto_referencia').prop('readonly', true)
+                $('#iva_ref').prop('readonly', true)
+            }
+
+
+            $('#txtval_sin_iva').prop('readonly', true);
+
+            $('#mto_dcto_referencia').prop('readonly', true);
+            $('#mto_iva').prop('readonly', true);
+            $('#txtTotal').prop('readonly', true);
+            $('#cod_referencia').prop('readonly', true);
+
+
+
+            $('#operacion').prop('readonly', true);
+            $('#txtmo_val_sin_iva').prop('readonly', true);
+            $('#mano_mto_iva').prop('readonly', true);
+            $('#txtManoTotal').prop('readonly', true);
+
+            $('#iva_mov').prop('readonly', true);
+            $('#mtoiva_mov').prop('readonly', true);
+
+            $('#mto_dcto_mano').prop('readonly', true);
+            // $('#dcto_mano').prop('readonly', true);
+            // buscarDatos();
+        });
+
+        $('#ref_codigo').change(function () {
+            var refe = $('#ref_codigo').val();
+            console.log("pase por change de ref cod");
+            buscarDatosRepuesto(refe);
+        });
+
+        $('#cantidad_ref').change(function () {
+            debugger;
+            var cf = parseInt($('#cantidad_ref').val());
+            var pf = $('#precio_referencia').val();
+            var hpf = parseInt($('#hprecio_referencia').val());
+
+            if ($('#cantidad_ref').val() != null || $('#cantidad_ref').val() > 0 || $('#cantidad_ref').val() != " ") {
+                if (hpf != null || hpf > 0) {
+                    $('#dcto_referencia').prop('readonly', false);
+                    $('#iva_ref').prop('readonly', true);
+                    console.log("pase por change de cantidad Repuesto");
+                    CalcularItem();
+                }
+            }
+
+        });
+
+        $('#mo_codigo').change(function () {
+            var codigo = $('#mo_codigo').val();
+            console.log("pase por change de ref cod");
+            buscarDatosMano(codigo);
+        });
+
+        $('#cantidad_mo').change(function () {
+            console.log("pase por change de cantidad Mano de Obra");
+            CalcularMano();
+        });
+
+        $('#dcto_referencia').change(function () {
+            console.log("pase por change de DEscuento referencia");
+            CalcularDescuento();
+        });
+
+        $('#precio_referencia').change(function () {
+
+            if ($('#cantidad_ref').val() != null || $('#cantidad_ref').val() > 0) {
+                if ($('#precio_referencia').val() != null || $('#precio_referencia').val() > 0) {
+
+                    var precio;
+
+                    precio = $('#precio_referencia').val();
+                    $('#hprecio_referencia').val(quitCommas(precio));
+
+                    console.log("pase por change de precio_referencia");
+                    CalcularItem();
+
+                }
+            }
+
+        });
+
+        $('#precio_operacion').change(function () {
+            if ($('#precio_operacion').val() != null || $('#precio_operacion').val() > 0) {
+                var precio;
+
+                precio = $('#precio_operacion').val();
+                $('#hprecio_operacion').val(quitCommas(precio));
+                CalcularMano();
+            }
+        });
+
+        $('#dcto_mano').change(function () {
+            console.log("pase por change de descuento Mano de Obra");
+            var desc = $('#dcto_mano').val();
+            desc2 = parseInt(desc);
+            $('#hdcto_mano').val(desc2);
+            CalcularMano();
+        });
+
+        function calculaCantidadRep() {
+            debugger;
+            console.log("calculo de la funcion onkey");
+            CalcularItem();
+        }
+
+        //agregaRepuesto
+
+        function CalcularDescuento() {
+            var preciouni = 0;
+            var cantidad = 0;
+            var descuento = 0;
+            var valsiniva = 0;
+            var caldescuento = 0;
+            var MontoIva = 0;
+            var sub_total = 0;
+
+
+
+            preciouni = $('#precio_referencia').val();
+            preciouni = quitCommas(preciouni);
+            $('#hprecio_referencia').val(preciouni);
+            cantidad = $('#cantidad_ref').val();
+
+            console.log("Primero  precio " + preciouni + " cantidad " + cantidad);
+            MontoIva = parseInt($('#hmto_iva').val());
+
+
+            if (preciouni > 0 && cantidad > 0)
+            {
+                descuento = $('#dcto_referencia').val();
+                $('#hdcto_referencia').val(parseInt(descuento));
+
+                valorsiniva = parseInt($('#htxtval_sin_iva').val());
+
+
+                console.log("dentro valor sn iva " + valorsiniva);
+                console.log("dentro valor descuento " + descuento);
+
+                Wdesc = descuento / 100;
+                caldescuento = valorsiniva * Wdesc; // + parseInt(MontoIva)
+                console.log("dentro valor calculo descuento  " + caldescuento);
+
+                tcaldescuento = caldescuento;
+                tcaldescuento = addCommas(tcaldescuento);
+                $('#mto_dcto_referencia').val(tcaldescuento);
+                $('#hmto_dcto_referencia').val(parseInt(caldescuento));
+
+                Iva = $('#hiva_ref').val();
+                WIva = Iva / 100;
+                WcalIva = (valorsiniva - caldescuento) * WIva;
+                console.log("dentro valor calculo Iva  " + Iva + " " + WIva + " " + WcalIva);
+                TWiva = WcalIva;
+                TWiva = addCommas(TWiva);
+                $('#mto_iva').val(TWiva);
+                $('#hmto_iva').val(WcalIva);
+
+                console.log("Segundo  precio " + preciouni + " cantidad " + cantidad + " descuento " + descuento + " Monto Descuento " + caldescuento + " Monto Iva " + MontoIva);
+
+                // sub_total = valorsiniva + MontoIva - caldescuento;
+
+                sub_total = (valorsiniva - caldescuento) + WcalIva; //  sub_total = (parseInt(valorsiniva) + parseInt(MontoIva) - parseInt(caldescuento));
+
+                tsub_total = sub_total;
+
+                tsub_total = addCommas(tsub_total);
+                $('#txtTotal').val(tsub_total);
+                $('#htxtTotal').val(parseInt(sub_total));
+
+            }
+
+        }
+
+        function CalcularItem() {
+
+            debugger;
+
+            console.log("calculo CalcularItem");
+            var preciouni = 0;
+            var descuento = 0;
+            var Iva = 0;
+            var valsiniva = 0;
+            var tvalsiniva;
+            var Total = 0;
+            var caliva = 0;
+            var tcaliva;
+            var cantidad = 0;
+            var sub_total = 0;
+            var tsub_total;
+            var caldescuento = 0;
+            var tcaldescuento;
+
+
+            preciouni = $('#hprecio_referencia').val();
+            descuento = $('#hdcto_referencia').val();
+            Iva = $('#hiva_ref').val();
+            cantidad = $('#cantidad_ref').val();
+
+            if ($('#hprecio_referencia').val() != null && $('#cantidad_ref').val() != null) {
+                valsiniva = cantidad * preciouni;
+                tvalsiniva = valsiniva;
+                tvalsiniva = addCommas(tvalsiniva);
+                $('#txtval_sin_iva').val(tvalsiniva);
+                $('#htxtval_sin_iva').val(valsiniva);
+                $('#txtval_sin_iva').prop('readonly', true);
+                //MtoIva = (Iva / 100);
+                //caliva = valsiniva * MtoIva;
+                //tcaliva = caliva;
+                //tcaliva = addCommas(tcaliva);
+                //$('#mto_iva').val(tcaliva);
+                //$('#hmto_iva').val(caliva);
+                //$('#mto_iva').prop('readonly', true);
+
+
+                if (descuento > 0) {
+                    WDesc = (descuento / 100);
+                    caldescuento = (valsiniva + caliva) * WDesc; //+ parseInt(caliva))
+                    tcaldescuento = caldescuento;
+                    tcaldescuento = addCommas(tcaldescuento);
+                    $('#mto_dcto_referencia').val(tcaldescuento);
+                    $('#hmto_dcto_referencia').val(caldescuento);
+                } else
+                {
+                    caldescuento = 0;
+                    tcaldescuento = caldescuento;
+                    tcaldescuento = addCommas(tcaldescuento);
+                    $('#mto_dcto_referencia').val(tcaldescuento);
+                    $('#hmto_dcto_referencia').val(caldescuento);
+                }
+
+                MtoIva = (Iva / 100);
+                caliva = (valsiniva - caldescuento) * MtoIva;
+                tcaliva = caliva;
+                tcaliva = addCommas(tcaliva);
+                $('#mto_iva').val(tcaliva);
+                $('#hmto_iva').val(caliva);
+                $('#mto_iva').prop('readonly', true);
+
+                sub_total = (parseInt(valsiniva) + parseInt(caliva))- parseInt(caldescuento);
+                tsub_total = sub_total;
+
+                //tcaldescuento = addCommas(tcaldescuento);
+                //$('#mto_dcto_referencia').val(tcaldescuento);
+                //$('#hmto_dcto_referencia').val(caldescuento);
+                //$('#mto_dcto_referencia').prop('readonly', true);
+
+                tsub_total = addCommas(tsub_total);
+                $('#txtTotal').val(tsub_total);
+                $('#htxtTotal').val(sub_total);
+                $('#txtTotal').prop('readonly', true);
+            }
+
+        }
+
+        function CalcularMano() {
+            // var preciouni2 = 0;
+            var descuento2 = 0;
+            var Iva2 = 0;
+            var valsiniva2 = 0;
+            var tvalsiniva2;
+            var Total2 = 0;
+            var caliva2 = 0;
+            var tcaliva2;
+            var cantidad2 = 0;
+            var sub_total2 = 0;
+            var tsub_total2;
+            var caldescuento2 = 0;
+
+            console.log("Calcular Mano  de Obra  ");
+            preciouni2 = $('#hprecio_operacion').val();
+            //descuento = $('#dcto_referencia').val();
+            Iva2 = $('#hiva_mov').val();
+            //cantidad2 = $('#cantidad_mo').val();
+
+            console.log("Precio Mano  de Obra  " + preciouni2 + "Iva " + Iva2);
+
+
+            if (parseInt(preciouni2) > 0) {
+                debugger;
+                console.log("precio " + preciouni2 + " iva  " + Iva2);
+                valsiniva2 = preciouni2;
+                tvalsiniva2 = valsiniva2;
+                tvalsiniva2 = addCommas(tvalsiniva2);
+                $('#txtmo_val_sin_iva').val(tvalsiniva2);
+                $('#htxtmo_val_sin_iva').val(parseInt(valsiniva2));
+                $('#txtmo_val_sin_iva').prop('readonly', true);
+                descuento = parseInt($('#hdcto_mano').val());
+                if (descuento > 0) {
+                    wdescu = descuento / 100;
+                    caldesc = valsiniva2 * wdescu;
+                    tcaldesc = caldesc;
+                    tcaldesc = addCommas(tcaldesc);
+                    $('#mto_dcto_mano').val(tcaldesc);
+                    $('#hmto_dcto_mano').val(caldesc);
+                    console.log(" dento mano si" + caldesc);
+
+                } else {
+                    caldesc = 0;
+                    $('#mto_dcto_mano').val(caldesc);
+                    $('#hmto_dcto_mano').val(caldesc);
+                    console.log(" dento mano no " + caldesc);
+                }
+
+                wiva = Iva2 / 100;
+                caliva2 = (valsiniva2 - caldesc) * wiva;
+                console.log(" dento mano IVA " + caliva2);
+                tcaliva2 = caliva2;
+                tcaliva2 = addCommas(tcaliva2);
+                $('#mtoiva_mov').val(tcaliva2);
+                $('#hmtoiva_mov').val(caliva2);
+                $('#mtoiva_mov').prop('readonly', true);
+                sub_total2 = (parseInt(valsiniva2) + parseInt(caliva2)) - parseInt(caldesc);  //- caldescuento
+                tsub_total2 = sub_total2;
+                tsub_total2 = addCommas(tsub_total2);
+                $('#txtManoTotal').val(tsub_total2);
+                $('#htxtManoTotal').val(sub_total2);
+                $('#txtManoTotal').prop('readonly', true);
+            }
+        }
+
+        function buscarDatosRepuesto(refe) {
+            debugger;
+            $.ajax({
+                url: '/InspeccionPeritaje/BuscarRepuestoDatos',
+                data: {
+                    refe: refe,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                    $('#txtid_referencia').val(data.codigo);
+
+                    $('#cod_referencia').val(data.nombre);
+                    $('#cod_referencia').prop('readonly', true);
+
+                    $('#precio_referencia').val(data.precio);
+                    $('#hprecio_referencia').val(data.precio2);
+                    //$('#precio_referencia').prop('readonly', true);
+
+                    $('#dcto_referencia').val(data.dct);
+                    $('#hdcto_referencia').val(data.dct2);
+                    //  $('#dcto_referencia').prop('readonly', true);
+
+                    //$('#mto_dcto_referencia').prop('readonly', true);
+
+                    $('#iva_ref').val(data.iva);
+                    $('#hiva_ref').val(data.iva2);
+                    //  $('#iva_ref').prop('readonly', true);
+                }
+                //},
+                //complete: function (data) {
+
+                //}
+            });
+        }
+
+        function buscarDatosMano(codigo) {
+            console.log("Entra a buscar Mano de Obra");
+            $.ajax({
+                url: '/InspeccionPeritaje/BuscarManoDatos', // url: '/InspeccionPeritaje/BuscarRepuestoDatos',
+                data: {
+                    codigo: codigo,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                    $('#txtid_manobra').val(data.codigo);
+
+                    $('#operacion').val(data.nombre);
+                    $('#operacion').prop('readonly', true);
+
+                    $('#precio_operacion').val(data.precio);
+                    $('#hprecio_operacion').val(data.precio2);
+
+                    $('#dcto_mano').val(0);
+                    $('#mto_dcto_mano').val(0);
+
+                    $('#iva_mov').val(data.iva);
+                    $('#hiva_mov').val(data.iva2);
+                    console.log("IVA " + data.iva2 + " campo " + $('#hiva_mov').val());
+                },
+                complete: function (data) {
+                    CalcularMano();
+                }
+            });
+        }
+
+        $('#agregaRepuesto').click(function () {
+            console.log("agregaRepuesto");
+            var wid = $('#id_adecuacion').val();
+            var Wcod = $('#txtid_referencia').val();
+            var Wca = $('#cantidad_ref').val();
+            var Wto = $('#htxtTotal').val();
+            console.log("agregaRepuesto  " + wid + " Cod " + Wcod);
+
+            console.log("agregaRepuesto1  " + $('#hprecio_referencia').val() + "-- ");
+            console.log("agregaRepuesto2  " + $('#cantidad_ref').val() + "-- ");
+            console.log("agregaRepuesto3  " + $('#htxtTotal').val() + "-- ");
+            console.log("agregaRepuesto4  " + $('#hiva_ref').val() + "-- ");
+            console.log("agregaRepuesto5  " + $('#hmto_iva').val() + "-- ");
+            console.log("agregaRepuesto6  " + $('#hdcto_referencia').val() + "-- ");
+            console.log("agregaRepuesto7  " + $('#hmto_dcto_referencia').val() + "-- ");
+
+            if (wid != null && Wcod != null && Wca != null && Wto > 0) {
+
+                $.ajax({
+                    url: '/inspeccionPeritaje/AgregaAdecuacionRepuesto', // url: '/registroReferencias/CargarReferencias',
+                    data: {
+                        peritajeid: wid,
+                        referencia_codigo: Wcod,
+                        precio_repuesto: parseInt($('#hprecio_referencia').val()),
+                        cantidad: parseInt($('#cantidad_ref').val()),
+                        val_total: parseInt($('#htxtTotal').val()),
+                        poriva: parseFloat($('#hiva_ref').val()),
+                        mtoiva: parseInt($('#hmto_iva').val()),
+                        pordes: parseFloat($('#hdcto_referencia').val()),
+                        mtodes: parseInt($('#hmto_dcto_referencia').val())
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        console.log(data)
+                        $('#tablaPaginada').dataTable().fnDestroy();
+                        $('#tablaPaginada').find('tbody').empty();
+                        for (var i = 0; i < data.length; i++) {
+
+                            $('#tablaPaginada').find('tbody').append('<tr><td align="left" style="width:30%">'
+                                + data[i].nombre_repuesto + '</td><td align="right">'
+                                + data[i].precio_repuesto + '</td><td align="right">'
+                                + data[i].cantidad + '</td><td align="right">'
+                                + data[i].pordescuento + '</td><td align="right">'
+                                + data[i].valordescuento + '</td><td align="right">'
+                                + data[i].poriva + '</td><td align="right">'
+                                + data[i].valoriva + '</td><td align="right">'
+                                + data[i].valor_total_adecuacion + '</td><td align="right">'
+                                + data[i].fecha + '</td><td style="width:5%" align="center">'
+                                + '<button type="button" id="btnBorrar" onclick="BorrarElemento(' + data[i].id + ')" class="btn btn-danger btn-xs"><i class="fa fa-times"></i></button></td></tr>');
+                        }
+                    },
+                    complete: function (data) {
+                        $('#tablaPaginada').dataTable({
+                            //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                            dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                            buttons: [
+                                { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                                //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                                //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                            ]
+                        });
+                    }
+                });
+                Limpiar();
+                TablaRepuestosRefresca($('#id_adecuacion').val());
+                TablaManoRefresca($('#id_adecuacion').val());
+                MontoAdecuacion();
+            }
+        });
+
+        $('#agregaMano').click(function () {
+            console.log("agregaMano");
+            var wid = $('#id_adecuacion').val();
+            var Wcod = $('#txtid_manobra').val();
+            console.log("agregaMano  " + wid + " Cod " + Wcod + " precio " + $('#hprecio_operacion').val() + " val total " + $('#htxtManoTotal').val() + " Cantidad " + $('#cantidad_mo').val());
+            var Wpre = $('#hprecio_operacion').val();
+            var Wto = $('#htxtManoTotal').val();
+
+            if (wid != null && Wcod != null && Wpre != null && Wto > 0) {
+
+                $.ajax({
+                    url: '/inspeccionPeritaje/AgregaAdecuacionMano', //url: '/inspeccionPeritaje/AgregaAdecuacionRepuesto',
+                    data: {
+                        peritajeid: wid,
+                        codigo: Wcod,
+                        precio: $('#hprecio_operacion').val(),
+                        cantidad: 1,
+                        val_total: $('#htxtManoTotal').val(),
+                        poriva: parseInt($('#hiva_mov').val()),
+                        mtoiva: parseInt($('#hmtoiva_mov').val()),
+                        pordes: $('#hdcto_mano').val(),
+                        mtodes: parseInt($('#hmto_dcto_mano').val())
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data2) {
+                        console.log(data2)
+                        $('#tablaPaginada2').dataTable().fnDestroy();
+                        $('#tablaPaginada2').find('tbody').empty();
+                        for (var i = 0; i < data2.length; i++) {
+
+                            $('#tablaPaginada2').find('tbody').append('<tr><td align="left" style="width:30%">'
+                                + data2[i].nombre_mano + '</td><td align="right">'
+                                + data2[i].mano_obra_precio + '</td><td align="right">'
+                                + data2[i].cantidad + '</td><td align="right">'
+                                + data2[i].pordescuento + '</td><td align="right">'
+                                + data2[i].valordescuento + '</td><td align="right">'
+                                + data2[i].pordescuento + '</td><td align="right">'
+                                + data2[i].valoriva + '</td><td align="right">'
+                                + data2[i].valor_total_adecuacion + '</td><td align="right">'
+                                + data2[i].fecha + '</td><td style="width:5%" align="center">'
+                                + '<button type="button" id="btnBorrar" onclick="BorrarElemento(' + data2[i].id + ')" class="btn btn-danger btn-xs"><i class="fa fa-times"></i></button></td></tr>');
+                        }
+                    },
+                    complete: function (data2) {
+                        $('#tablaPaginada2').dataTable({
+                            //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                            dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                            buttons: [
+                                { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                                //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                                //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                            ]
+                        });
+                    }
+                });
+                Limpiar();
+                TablaRepuestosRefresca($('#id_adecuacion').val());
+                TablaManoRefresca($('#id_adecuacion').val());
+                MontoAdecuacion();
+            }
+        });
+
+        function Limpiar() {
+
+            $('#cod_referencia').val('');
+            $('#cantidad_ref').val('');
+            $('#precio_referencia').val('');
+            $('#txtval_sin_iva').val('');
+            $('#dcto_referencia').val('');
+            $('#mto_dcto_referencia').val('');
+            $('#iva_ref').val('');
+            $('#mto_iva').val('');
+            $('#txtTotal').val('');
+            $('#hcantidad_ref').val('');
+            $('#hprecio_referencia').val('');
+            $('#htxtval_sin_iva').val('');
+            $('#hdcto_referencia').val('');
+            $('#hmto_dcto_referencia').val('');
+            $('#hiva_ref').val('');
+            $('#hmto_iva').val('');
+            $('#htxtTotal').val('');
+            $('#operacion').val('');
+            $('#precio_operacion').val('');
+            $('#txtmo_val_sin_iva').val('');
+            $('#dcto_mano').val('');
+            $('#mto_dcto_mano').val('');
+            $('#iva_mov').val('');
+            $('#mtoiva_mov').val('');
+            $('#txtManoTotal').val('');
+            $('#hprecio_operacion').val('');
+            $('#htxtmo_val_sin_iva').val('');
+            $('#hdcto_mano').val('');
+            $('#hmto_dcto_mano').val('');
+            $('#hiva_mov').val('');
+            $('#hmtoiva_mov').val('');
+            $('#htxtManoTotal').val('');
+        }
+
+        function TablaRepuestosRefresca() {
+            var wid = $('#id_adecuacion').val();
+            $.ajax({
+                url: '/inspeccionPeritaje/RefrescaAdecuacionRepuesto', // url: '/inspeccionPeritaje/AgregaAdecuacionRepuesto',
+                data: {
+                    peritajeid: wid,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#tablaPaginada').dataTable().fnDestroy();
+                    $('#tablaPaginada').find('tbody').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="left" style="width:30%">'
+                            + data[i].nombre_repuesto + '</td><td align="right">'
+                            + data[i].precio_repuesto + '</td><td align="right">'
+                            + data[i].cantidad + '</td><td align="right">'
+                            + data[i].pordescuento + '</td><td align="right">'
+                            + data[i].valordescuento + '</td><td align="right">'
+                            + data[i].poriva + '</td><td align="right">'
+                            + data[i].valoriva + '</td><td align="right">'
+                            + data[i].valor_total_adecuacion + '</td><td align="right">'
+                            + data[i].fecha + '</td><td style="width:5%" align="center">'
+                            + '<button type="button" id="btnBorrar" onclick="BorrarElemento(' + data[i].id + ')" class="btn btn-danger btn-xs"><i class="fa fa-times"></i></button></td></tr>');
+                    }
+
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function TablaManoRefresca() {
+            var wid = $('#id_adecuacion').val();
+            $.ajax({
+                url: '/inspeccionPeritaje/RefrescaAdecuacionMano',  // url: '/inspeccionPeritaje/RefrescaAdecuacionRepuesto',
+                data: {
+                    peritajeid: wid,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#tablaPaginada2').dataTable().fnDestroy();
+                    $('#tablaPaginada2').find('tbody').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+
+                        $('#tablaPaginada2').find('tbody').append('<tr><td align="left" style="width:30%">'
+                            + data[i].nombre_mano + '</td><td align="right">'
+                            + data[i].mano_obra_precio + '</td><td align="right">'
+                            + data[i].cantidad + '</td><td align="right">'
+                            + data[i].pordescuento + '</td><td align="right">'
+                            + data[i].valordescuento + '</td><td align="right">'
+                            + data[i].poriva + '</td><td align="right">'
+                            + data[i].valoriva + '</td><td align="right">'
+                            + data[i].valor_total_adecuacion + '</td><td align="right">'
+                            + data[i].fecha + '</td><td style="width:5%" align="center">'
+                            + '<button type="button" id="btnBorrar" onclick="BorrarElemento(' + data[i].id + ')" class="btn btn-danger btn-xs"><i class="fa fa-times"></i></button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada2').dataTable({
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function buscarDatos() {
+
+            $.ajax({
+                url: '/InspeccionPeritaje/BuscarRepuestos',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="center">'
+                            + '<input type="checkbox" class="i-checks" id="seleccionRpt" name="seleccionRpt" value="' + data[i].codigo + '" /></td><td align="left">'
+                            + data[i].nombre + '</td><td align="right">'
+                            + '<input type="text" class="form-control" value="' + data[i].precio + '" name="precio+' + data[i].codigo + '" id="precio+' + data[i].codigo + '" /></td><td align="roght">'
+                            + '<input type="text" class="form-control" value="" onchange="calcularValor(this.value,' + data[i].precio + ')" name="cantidad+' + data[i].codigo + '" id="cantidad+' + data[0].codigo + '" /></td><td align="left">'
+                            + '<input type="text" class="form-control" value="" name="detalle+' + data[i].codigo + '" id="detalle+' + data[i].codigo + '" /></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function calcularValor(cantidad, precio, i) {
+
+            total += cantidad * precio;
+            $('#valor_total_adecuacion').val(total);
+            $('#total').text('Total Adecuaciones = $ ' + addCommas(total));
+
+
+        }
+
+        function MontoAdecuacion() {
+
+            var wid = $('#id_adecuacion').val();
+            $.ajax({
+                url: '/inspeccionPeritaje/SumaAdecuacion',  // url: '/inspeccionPeritaje/RefrescaAdecuacionRepuesto',
+                data: {
+                    peritajeid: wid,
+                },
+                type: "post",
+                cache: false,
+                success: function (sumaTodo) {
+                    if (sumaTodo != null) {
+                        var tot;
+                        tot = addCommas(sumaTodo);
+                        $('#txtGranTotal').val(tot);
+                    }
+
+                },
+                complete: function (sumaTodo) {
+                }
+            });
+        }
+
+        function BorrarElemento(id) {
+            event.preventDefault();
+            $.ajax({
+                url: '/inspeccionPeritaje/eliminarElemento',
+                data: {
+                    idDetalle: id,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data == true) {
+                        // calcularValorCotizacionAjax();
+                        TablaRepuestosRefresca($('#id_adecuacion').val());
+                        TablaManoRefresca($('#id_adecuacion').val());
+                        MontoAdecuacion();
+                    }
+                }
+            });
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        //----Funcion que valida que el campo solo tenga permitido el ingreso de numeros
+        function soloNumeros(e) {
+            key = e.keyCode || e.which;
+            tecla = String.fromCharCode(key).toLowerCase();
+            letras = "1234567890";
+            especiales = "8-37-39-46";
+
+            tecla_especial = false
+            for (var i in especiales) {
+                if (key == especiales[i]) {
+                    tecla_especial = true;
+                    break;
+                }
+            }
+            if (letras.indexOf(tecla) == -1 && !tecla_especial) {
+                return false;
+            }
+        }
+
+        var numero_miles = "";
+        function formatNumber(n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : Number(n).toLocaleString();
+        }
+
+        function miles(id) {
+            numero_miles = formatNumber($('#' + id + '').val());
+            $('#' + id + '').val(numero_miles);
+        }
+
+        @*function AgregarQuitarFavorito(){
+        $.ajax({
+            url: '/Inicio/AgregarQuitarFavorito',
+            data: {
+                id_menu: @ViewBag.id_menu,
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+                if(data.esFavorito == true){
+                    $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                }else{
+                    $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                }
+            }
+        })
+    }*@
+
+    </script>
+
+}
+
+@*<div class="row">
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">Codigo: <span class="text-danger">*</span></label>
+                <div class="col-md-7">
+                    @Html.EditorFor(model => model.cod_referencia, new { htmlAttributes = new { @class = "form-control fecha", @required = "required", @onchage = "fncio" } })
+                    @Html.ValidationMessageFor(model => model.cod_referencia, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">Precio: <span class="text-danger">*</span></label>
+                <div class="col-md-7">
+                    @Html.EditorFor(model => model.valor_unitario_repuesto, new { htmlAttributes = new { @class = "form-control fecha", @required = "required", @onchage = "fncio" } })
+                    @Html.ValidationMessageFor(model => model.valor_unitario_repuesto, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+    </div>*@
+@*
+
+    <div class="panel-body">
+        <p>Seleccione los repuestos que desea cargar y al finalizar de clic en guardar para cargar las adecuaciones</p><br />
+        <label class="label label-info" id="total" style="font-size: 14px"></label><br /><br />
+
+        <div class="panel-body-busqueda">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center">Seleccione</th>
+                            <th style="text-align:center">Referencia</th>
+                            <th style="text-align:center">Precio</th>
+                            <th style="text-align:center">Cantidad</th>
+                            <th style="text-align:center">Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+*@
+
+@*<div class="col-sm-6">
+        <div class="form-group" align="right">
+            <button type="button" id="agregaRepuesto" name="agregaRepuesto" class="btn btn-success">Agregar</button>&nbsp;&nbsp;&nbsp;
+        </div>
+    </div>*@
+
+@*<div class="row">
+        <input type="hidden" name="txtid_manobra" id="txtid_manobra">
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4 text text-primary">Descripcion:</label>
+                <div class="col-md-7">
+                    <input id="operacion" name="operacion" class="form-control" value="" required="required" />
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4 text text-primary">Precio:</label>
+                <div class="col-md-7">
+                    <input id="precio_operacion" name="precio_operacion" class="form-control" value="" required="required" />
+                    <input type="hidden" name="hprecio_operacion" id="hprecio_operacion">
+                </div>
+            </div>
+        </div>
+
+    </div>*@
+@*<div class="row">
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4 text text-primary">Cantidad:</label>
+                <div class="col-md-7">
+                    <input id="cantidad_mo" name="cantidad_mo" class="form-control" value="" placeholder="Digite Cantidad" onkeyUp="return miles(this.id)" required="required" />
+                    <input type="hidden" name="hcantidad_mo" id="hcantidad_mo">
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+@*<div class="row">
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4 text text-primary">Descuento (%):</label>
+                <div class="col-md-7">
+                    <input id="dcto_referencia" name="dcto_referencia" class="form-control" value="" placeholder="Descuento(%)" onkeyUp="return miles(this.id)" />
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4 text text-primary">Descuento:</label>
+                <div class="col-md-7">
+                    <input id="mto_dcto_referencia" name="mto_dcto_referencia" class="form-control" value="" onkeyUp="return miles(this.id)" />
+                </div>
+            </div>
+        </div>
+
+    </div>*@
+
+@*<div class="row">
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4 text text-primary">Valor sin Iva:</label>
+                <div class="col-md-7">
+                    <input id="txtmo_val_sin_iva" name="txtmo_val_sin_iva" class="form-control" value="" placeholder="Valor sin Iva" onkeyUp="return miles(this.id)" />
+                    <input type="hidden" name="htxtmo_val_sin_iva" id="htxtmo_val_sin_iva">
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+@*<div class="row">
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4 text text-primary">Iva (%):</label>
+                <div class="col-md-7">
+                    <input id="iva_mno" name="iva_mno" class="form-control" value="" placeholder="Iva(%)" onkeyUp="return miles(this.id)" />
+                    <input type="hidden" name="hiva_mno" id="hiva_mno">
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4 text text-primary">Monto Iva:</label>
+                <div class="col-md-7">
+                    <input id="mano_mto_iva" name="mano_mto_iva" class="form-control" value="" onkeyUp="return miles(this.id)" />
+                    <input type="hidden" name="hmano_mto_iva" id="hmano_mto_iva">
+                </div>
+            </div>
+        </div>
+
+    </div>*@
+
+
+@*<div class="row">
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4 text text-primary">Total:</label>
+                <div class="col-md-7">
+                    <input id="txtManoTotal" name="txtManoTotal" class="form-control" value="" placeholder="Total" onkeyUp="return miles(this.id)" required="required" />
+                    <input type="hidden" name="htxtManoTotal" id="htxtManoTotal">
+                </div>
+            </div>
+        </div>
+
+    </div>*@
+
+@*<div class="row">
+
+        <div class="col-sm-6">
+            <div class="form-group" align="right">
+                <button type="button" id="agregaMano" name="agregaMano" class="btn btn-success">Agregar</button>&nbsp;&nbsp;&nbsp;
+            </div>
+        </div>
+
+    </div>*@

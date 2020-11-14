@@ -1,0 +1,271 @@
+﻿@model Homer_MVC.Models.SistemasVh
+
+@{
+    ViewBag.Title = "Sistemas del Vehiculo";
+    ViewBag.Icono = "fa fa-address-card";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    ViewBag.actCr = (ViewBag.tab == 1) ? "active" : "";
+    ViewBag.actBs = (ViewBag.tab == 2 || ViewBag.tab == null) ? "active" : "";
+    var sty = (Model.id == 0 || Model.tsis_estado == true) ? " style = display:none  " : "";
+
+}
+
+@section Styles {
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+    <style>
+        .requiredlb:after {
+            content: " *";
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                    <br />
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="@ViewBag.actCr"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="@ViewBag.actBs"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane @ViewBag.actCr">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        @Html.HiddenFor(m => m.id)
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit" id="guardarBtn">
+                                <i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;@if (1 > 0)
+                                {<span>Guardar</span> }
+                                else
+                                { <span>Actualizacion</span>}
+                            </button>
+                            <a class="btn btn-info" href="./SistemasC?id=0"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Nuevo </a>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        <div class="form-horizontal">
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                @Html.LabelFor(m => m.tsis_sistema, new { @class = "form-label col-md-4 requiredlb" })
+                                                <div class="col-md-6">
+                                                    @Html.TextBoxFor(m => m.tsis_sistema, new { @class = "form-control", @placeholder = "Sistemas", @autocomplete = "off" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div class="form-group">
+                                                @Html.LabelFor(m => m.ttemmpario_list, new { @class = "form-label col-md-2 requiredlb" })
+                                                <div class="col-md-9">
+                                                    <select class="js-example-basic-multiple form-control" multiple="multiple" id='tempario_id' name='tempario_id'>
+                                                        @foreach (var item in Model.ttemmpario_list)
+                                                        {
+                                                            bool resp = false;
+                                                            string slc = "";
+                                                            if (ViewBag.lista != null)
+                                                            {
+                                                                resp = ViewBag.lista.Contains(item.codigo);
+                                                                slc = (resp == true) ? "selected" : "";
+                                                            }
+                                                            <option value="@item.codigo" @slc>@item.descripcion</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                @Html.LabelFor(m => m.tsis_estado, new { @class = "form-label col-md-4 requiredlb" })
+                                                <div class="col-md-6">
+                                                    @Html.CheckBoxFor(m => m.tsis_estado, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="inactividad" @sty>
+                                            <div class="form-group">
+                                                @Html.LabelFor(m => m.tsis_razoninactivo, new { @class = "form-label col-md-4 requiredlb" })
+                                                <div class="col-md-6">
+                                                    @Html.TextBoxFor(m => m.tsis_razoninactivo, new { @class = "form-control", @placeholder = "Razon", @autocomplete = "off" })
+                                                    @Html.ValidationMessageFor(m => m.tsis_razoninactivo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane @ViewBag.actBs">
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Sistema</th>
+                                    <th style="text-align:center">Estado</th>
+                                    <th style="text-align:center">Accion</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $(".js-example-basic-multiple").select2();
+            $("#responsable").val('')
+            tablaPaginada();
+            miles('cjm_valor')
+        });
+
+        $('form').submit(function () {
+            $("#cjm_valor").val($("#cjm_valor").val().replace(/\./g, ""))
+        });
+
+        function tablaPaginada() {
+            var estado = "Estado";
+            $.ajax({
+                url: '/SistemasVh/tablaPaginada',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        btnEdit = '<a class="btn btn-info btn-xs" href="./SistemasC?id='
+                            + data[i].tsis_id + '">&nbsp;&nbsp;Editar &nbsp;&nbsp;</a>';
+                        $('#tablaPaginada').find('tbody').append('<tr>'
+                            + '<td align="left">' + data[i].tsis_sistema + '</td>'
+                            + '<td align="right">' + estado + '</td>'
+                            + '<td width="5%" align="center">' + btnEdit + '</td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        //buttons:  [ 'copy', 'csv', 'excel', 'pdf']
+                        buttons: [//{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        $('#cjm_valor').keyup(function () {
+            return miles('cjm_valor')
+        })
+
+        $('#tsis_estado').change(function () {
+            if ($(this).prop('checked')) {
+                $('#inactividad').hide()
+                $('#tsis_razoninactivo').val('')
+                $('#tsis_razoninactivo').attr('required', false)
+            } else {
+                $('#inactividad').show()
+                $('#tsis_razoninactivo').attr('required', true)
+            }
+        });
+    </script>
+}
+
+

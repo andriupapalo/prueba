@@ -1,0 +1,163 @@
+﻿@model Homer_MVC.Models.PdfRseparacion
+@using System.Globalization;
+
+
+@{
+    Layout = null;
+    CultureInfo elGR = CultureInfo.CreateSpecificCulture("es-CO");
+    decimal ivatotal = 0;
+    decimal totalope = 0;
+    decimal totalgen = 0;
+
+}
+
+<html>
+<head>
+    <style>
+        table {
+            border-collapse: collapse;
+            border: 1px solid #000000;
+            padding-left: 6px;
+        }
+
+        .bordes {
+            border-collapse: collapse;
+            border-left: 1px solid #000000;
+            border-right: 1px solid #000000;
+            padding-left: 6px;
+        }
+    </style>
+</head>
+<body>
+    <table style="width:100%">
+        <tbody>
+            <tr>
+                <td><strong>CEDULA/NIT:</strong></td>
+                <td> @Model.Documentocliente</td>
+                <td><strong>Cliente</strong></td>
+                <td> @Model.Cliente</td>
+            </tr>
+            <tr>
+                <td><strong>DIRECCION:</strong></td>
+                <td> @Model.Direccion</td>
+                <td><strong>TELEFONO:</strong></td>
+                <td> @Model.Telefono</td>
+            </tr>
+            <tr>
+                <td><strong>PLACA:</strong></td>
+                <td> @Model.Placa</td>
+                <td><strong>VEHICULO:</strong></td>
+                <td> @Model.Vehiculo</td>
+            </tr>
+
+
+    </table>
+    <br />
+    <br />
+    <table style="width:100%">
+        <thead>
+            <tr style="border-bottom: 1px solid #000000;">
+                <th class="bordes">Referencia</th>
+                <th class="bordes">Descripcion </th>
+                <th class="bordes">Cant.</th>
+                <th class="bordes">Dcto.</th>
+                <th class="bordes">Iva</th>            
+                <th class="bordes">Vr. Unitario</th>
+                <th class="bordes">Vr. Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Repuestos)
+                {
+                <tr style="width: 100%">
+                    <td class="bordes" style="text-align: center;">@item.codigo</td>
+                    <td class="bordes">@item.icb_referencia.ref_descripcion </td>
+                    <td class="bordes">@item.cantidad </td>
+                    <td class="bordes">0 </td>
+                    @{decimal ivap = item.icb_referencia.por_iva != null ? Convert.ToDecimal(item.icb_referencia.por_iva) : 0;
+                        decimal vlunitario = item.icb_referencia.precio_venta != null ? Convert.ToDecimal(item.icb_referencia.precio_venta) : 0;
+                    }
+                    @if (@item.icb_referencia.por_iva != null)
+                        {
+                        <td class="bordes" style="text-align: right;">@ivap</td>
+                        }
+                    else
+                        {
+                        <td class="bordes">0</td>
+                        }
+
+
+                    <td class="bordes">@Math.Round(vlunitario).ToString("N2", new CultureInfo("is-IS"))</td>
+                    @if (ivap > 0 || ivap != null)
+                        {
+                        decimal valor = Convert.ToDecimal(item.icb_referencia.precio_venta * item.cantidad, elGR);
+                        decimal subiva = Convert.ToDecimal((valor * ivap) / 100, elGR);
+                        decimal total = valor + subiva;
+                        ivatotal = ivatotal + subiva;
+                        totalope = totalope + valor;
+                        <td class="bordes" style="text-align: right;">@Math.Round(total).ToString("N2", new CultureInfo("is-IS"))</td>
+                        }
+                    else
+                        {
+                        decimal valor = Convert.ToDecimal(item.icb_referencia.precio_venta * item.cantidad, elGR);
+                        totalope = totalope + valor;
+                        <td class="bordes" style="text-align: right;">@Math.Round(valor).ToString("N2", new CultureInfo("is-IS"))</td>
+                        }
+
+
+                </tr>
+                }
+        <tr>
+            <td>&ensp;&ensp;&ensp;</td>
+            <td>&ensp;&ensp;&ensp;</td>
+            <td>&ensp;&ensp;&ensp;</td>
+            <td>&ensp;&ensp;&ensp;</td>
+            <td>&ensp;&ensp;&ensp;</td>
+            <td>&ensp;&ensp;&ensp;</td>
+            <td>&ensp;&ensp;&ensp;</td>
+        </tr>
+        </tbody>
+    </table>
+    <br />
+    <br />
+    <table style="width:100%">
+        <tr>
+            <td class="bordes" style="text-align: left; width:50%">
+
+                Vr Anticipo  @Math.Round(totalope).ToString("N2", new CultureInfo("is-IS"))
+                Rec. Caja No. @Model.RecCcaja
+
+
+
+
+            </td>
+            <td class="bordes">
+                <table style="width:100%">
+                    <tr><td>Vr Repuestos</td><td style="text-align: right;">@Math.Round(totalope).ToString("N2", new CultureInfo("is-IS"))</td></tr>
+                    <tr><td>Vr. Descuento</td><td style="text-align: right;">@Math.Round(0.0).ToString("N2", new CultureInfo("is-IS"))</td></tr>
+                    <tr><td>Base IVA</td><td style="text-align: right;">@Math.Round(totalope).ToString("N2", new CultureInfo("is-IS"))</td></tr>
+                    <tr><td>Vr. Iva</td><td style="text-align: right;">@Math.Round(ivatotal).ToString("N2", new CultureInfo("is-IS"))</td></tr>
+                    @{
+                        totalgen = totalope + ivatotal;
+                    }
+                    <tr><td><strong>Vr. Total</strong></td><td style="text-align: right;">@Math.Round(totalgen).ToString("N2", new CultureInfo("is-IS"))</td></tr>
+                </table>
+
+            </td>
+        </tr>
+    </table>
+    <table style="width:100%">
+        <tr>
+            <td class="bordes" style="text-align: center;  width:50% ">
+                Con el presente documento autorizo la compra del repuesto en
+                referencia en le fecha entrego un anticipo del 50% del valor de los
+                repuestos, y me comprometo a cancelar el saldo al recibo de la
+                mercancia. En caso de no llevar el repuestos autorizo descontar del
+                anticipo el 30%.
+            </td>
+            <td class="bordes" style="text-align: center;"><br /><br /><br /><br />CLIENTE/CC </td>
+        </tr>
+    </table>
+</body>
+</html>
+

@@ -1,0 +1,177 @@
+﻿@model Homer_MVC.IcebergModel.tp_subfuente
+
+@{
+    ViewBag.Icono = "fa fa-pencil-square-o";
+    ViewBag.Title = "Seguimiento Prospectos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#listar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="listar" class="tab-pane active">
+                <div class="panel-body">
+
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Documento</th>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Correo</th>
+                                        <th style="text-align:center">Telefono / Celular</th>
+                                        <th style="text-align:center">Fuente</th>
+                                        <th style="text-align:center">Subfuente</th>
+                                        <th style="text-align:center">Medio Comunicación</th>
+                                        <th style="text-align:center">Ultimo Asesor</th>
+                                        <th style="text-align:center">Trámite</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Ultimo Seguimiento</th>
+                                        <th style="text-align:center">Notas</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            buscarAjaxProspectos();
+        });
+
+        function verSeguimiento(id) {
+            window.location.href = '@Url.Action("VerSeguimiento","prospectos")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        function buscarAjaxProspectos() {
+            $.ajax({
+                url: '/prospectos/BuscarProspectosPaginados',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr>'
+                            + '<td align="right">' + data[i].documento + '</td>'
+                            + '<td align="left">' + data[i].nombreCompleto + '</td>'
+                            + '<td align="left">' + data[i].correo + '</td>'
+                            + '<td align="left">' + data[i].telefono + ' / ' + data[i].celular + '</td>'
+                            + '<td align="left">' + data[i].fuente + '</td>'
+                            + '<td align="left">' + data[i].subfuente + '</td>'
+                            + '<td align="left">' + data[i].medcomun_descripcion + '</td>'
+                            + '<td align="left">' + data[i].asesorSeguimiento + '</td>'
+                            + '<td align="left">' + data[i].tptrapros_descripcion + '</td>'
+                            + '<td align="right">' + data[i].fecha + '</td>'
+                            + '<td align="left">' + data[i].desTipoUltimoSeg + '</td>'
+                            + '<td align="left">' + data[i].notaultimoSeg + '</td>'
+                            + '<td width="10%" align="center">'
+                            + '<button class="btn btn-info btn-xs" onclick="verSeguimiento(' + '\'' + data[i].tercero + '\')">&nbsp;&nbsp;Seguimiento&nbsp;&nbsp;</button>'
+                            + '</td>'
+                            + '</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        destroy: true,
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            });
+        }
+
+
+        @*function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }*@
+
+    </script>
+
+}

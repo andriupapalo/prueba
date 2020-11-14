@@ -1,0 +1,340 @@
+﻿@model Homer_MVC.IcebergModel.icb_encabezado_insp_peritaje
+
+@{
+    ViewBag.Title = "Resultado Peritaje";
+    ViewBag.Icono = "fa fa-pencil-square-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/blueimp-gallery/css/blueimp-gallery.min.css" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Visualización de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#detalle"><i class="fa fa-bars"></i>&nbsp;&nbsp;Detalle</a></li>
+                <li class=""><a href="@Url.Action("peritajeUsados","InspeccionPeritaje", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+
+            <div id="detalle" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="form-horizontal">
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <i class="fa fa-file-powerpoint-o"></i>&nbsp;&nbsp;&nbsp;Datos Peritaje
+                            </div>
+                            <div class="panel-body">
+                                @using (Html.BeginForm())
+                                {
+                                    @Html.Hidden("menu")
+                                    @Html.HiddenFor(model => model.encab_insper_id)
+                                    @Html.HiddenFor(model => model.encab_insper_clasificacion)
+                                    @Html.HiddenFor(model => model.encab_insper_fecha)
+                                    @Html.HiddenFor(model => model.encab_insper_idclasper)
+                                    @Html.HiddenFor(model => model.encab_insper_idsolicitud)
+                                    @Html.HiddenFor(model => model.encab_insper_idusuario)
+                                    <br />
+
+                                    <div class="col-sm-12">
+                                        <div id="formularioPeritaje" class="tab-pane">
+                                            <div class="panel-body-busqueda">
+                                                <div class="table-responsive">
+                                                    <div id="div-mensaje-buscar"></div>
+                                                    <table class="table table-bordered table-hover" id="tablaformularioPeritaje">
+                                                        <thead>
+                                                            <tr>
+                                                                <th style="text-align:center">Zona</th>
+                                                                <th style="text-align:center">Pieza</th>
+                                                                <th style="text-align:center">Convenciones</th>
+                                                                <th style="text-align:center">Comentarios</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody></tbody>
+                                                    </table>
+                                                </div>
+                                                <div class="row col-md-4 col-md-offset-4">
+                                                    <div id="page-selection"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal fade " tabindex="-1" id="visor_fotos" role="basic" data-backdrop="static" aria-hidden="true">
+                                        <div class="modal-dialog" style="width:95%">
+                                            <div class="modal-content">
+                                                <div class="modal-body">
+                                                    <img src="../theme/assets/global/img/loading-spinner-grey.gif" alt="" class="loading">
+                                                    <span>
+                                                        &nbsp;&nbsp;Loading...
+
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <i class="fa fa-file-image-o"></i>&nbsp;&nbsp;&nbsp;Fotos Peritaje
+                            </div>
+                            <div class="panel-body">
+                                <div class="lightBoxGallery">
+                                    @foreach (var item in ViewBag.fotos)
+                                    {
+                                        <a href="~/Content/img/peritajes/@item.imagen" data-gallery=""><img src="~/Content/img/peritajes/@item.imagen" width="50%"></a>
+                                    }
+                                </div>
+                            </div>
+                            <div class="panel-footer">
+                                <i class="fa fa-picture-o"> </i> @ViewBag.total_fotos
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- The Gallery as lightbox dialog, should be a child element of the document body -->
+<div id="blueimp-gallery" class="blueimp-gallery">
+    <div class="slides"></div>
+    <h3 class="title"></h3>
+    <a class="prev">‹</a>
+    <a class="next">›</a>
+    <a class="close">×</a>
+    <a class="play-pause"></a>
+    <ol class="indicator"></ol>
+</div>
+
+
+
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/blueimp-gallery/js/jquery.blueimp-gallery.min.js"></script>
+
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000);
+
+            datosPeritaje();
+        });
+
+        $('#estado').change(function () {
+            if ($('#estado').val() == 'Aprobado') {
+                $('#divValor').show();
+                $('#divMotivo').hide();
+            } else {
+                $('#divValor').hide();
+                $('#divMotivo').show();
+            }
+        });
+
+
+        function datosPeritaje() {
+            $.ajax({
+                url: '/InspeccionPeritaje/BuscarVehiculoPlaca',
+                data: {
+                    id: $("#encab_insper_id").val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+
+                    $('#tablaformularioPeritaje').find('tbody').empty();
+
+                    var aux = 0;
+                    var aux2 = 0;
+
+                    for (var i = 0; i < data.total; i++) {
+
+                        var cuantasPiezas = 0;
+                        var comentario = "";
+
+                        if (data.listaZonas[i].cuantas_conveciones != 0) {
+                            cuantasPiezas = data.listaZonas[i].cuantas_piezas;
+
+                            if (data.listaZonas.pieza_id == data.peritaje.pieza) {
+
+                                nombre_conven = data.peritaje[i].convencion;
+                                comentario = data.peritaje[i].comentario;
+                            }
+
+                        } else {
+                            cuantasPiezas = data.listaZonas[i].cuantas_piezas;
+                            nombre_conven = "";
+                        }
+
+                        if (data.listaZonas[i].zonaper_id != aux) {
+
+                            $('#tablaformularioPeritaje').find('tbody').append('<tr align="middle"><td  rowspan = "' + cuantasPiezas + '"><h5>'
+                                     + data.listaZonas[i].zonaper_nombre + '</h5></td><td align="center">'
+                                     + data.listaZonas[i].pieza_nombre + '</td><td align="center">' + nombre_conven
+                                     + '</td><td align="center">' + comentario + '</td></tr>'
+                                );
+
+                            aux = data.listaZonas[i].zonaper_id;
+                        } else {
+
+                            if (data.listaZonas[i].pieza_id != aux2) {
+
+                                $('#tablaformularioPeritaje').find('tbody').append('<tr><td align="center">'
+                                    + data.listaZonas[i].pieza_nombre + '</td><td align="center">'
+                                    + nombre_conven + '</td><td align="center">' + comentario + '</td></tr>'
+                                );
+                                aux2 = data.listaZonas[i].pieza_id;
+
+                            } else {
+
+                                $('#tablaformularioPeritaje').find('tbody').append('<tr><td align="center">'
+                                    + nombre_conven + '</td><td align="center">' + comentario + '</td></tr>'
+                               );
+
+                            }
+                        }
+                    }
+
+                    $('#datosVehiculoBuscado').hide('1000');
+                    $('#datosVehiculoBuscado').show('1000');
+                },
+                complete: function (data) {
+                    $('#tablaformularioPeritaje').dataTable({
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                           { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                           //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                           //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function cargarAdecuaciones(id) {
+            $('#divAdecuaciones').show()
+            //window.location.href = '@Url.Action("cargarAdecuaciones", "InspeccionPeritaje")?id=' + id;
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+    <style>
+        .lightBoxGallery {
+            text-align: center;
+        }
+
+            .lightBoxGallery a {
+                margin: 5px;
+                display: inline-block;
+            }
+    </style>
+}
+

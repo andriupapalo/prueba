@@ -1,0 +1,1953 @@
+﻿@model Homer_MVC.IcebergModel.NotasContablesModel
+
+@{
+    ViewBag.Title = "Recibo de Caja";
+    ViewBag.Icono = "fa fa-address-book-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/sweetalert/lib/sweet-alert.css" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+<style type="text/css">
+    .tooltip-demo {
+    }
+
+    .precio {
+    }
+
+    .js-source-states {
+    }
+</style>
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color: white; border: solid 1px; border-color: #e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top: 0;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            @*<div class="alert alert-success  alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                    <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+                </div>*@
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]
+                </p>
+            </div>
+        }
+
+        <div class="alert alert-danger alert-dismissible" id="mensaje" style="display: none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <p><i class="fa fa-times fa-2x"></i> Por favor digite los campos obligatorios</p>
+        </div>
+
+        <div class="alert alert-warning alert-dismissible" id="aviso" style="display: none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <p id="texto_aviso"></p>
+        </div>
+
+        <div class="alert alert-danger  alert-dismissible" id="bloqueado" style="display: none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <p id="texto_bloqueo"></p>
+        </div>
+
+
+        @if (ViewBag.documentoDescuadrado != null)
+        {
+            <div class="col-sm-12">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar"></div>
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th style="text-align: center">Cuenta</th>
+                                <th style="text-align: center">Parametro</th>
+                                <th style="text-align: center">Debito</th>
+                                <th style="text-align: center">Credito</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ViewBag.documentoDescuadrado)
+                            {
+                                <tr>
+                                    <th style="text-align: center">@item.NumeroCuenta</th>
+                                    <th style="text-align: center">@item.DescripcionParametro</th>
+                                    <th style="text-align: center">@Convert.ToInt32(item.ValorDebito)</th>
+                                    <th style="text-align: center">@Convert.ToInt32(item.ValorCredito)</th>
+                                </tr>
+                            }
+                            <tr>
+                                <th style="text-align: center">&nbsp;</th>
+                                <th style="text-align: center">&nbsp;</th>
+                                <th style="text-align: center">@Convert.ToInt32(ViewBag.calculoDebito)</th>
+                                <th style="text-align: center">@Convert.ToInt32(ViewBag.calculoCredito)</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje">
+                        @if (TempData["total_debitos"] != null)
+                        {
+                            <label class="label label-danger" style="font-size: 13px">Total Debitos: $<span class="precio">@Convert.ToDecimal(TempData["total_debitos"])</span></label>
+                        }
+                        @if (TempData["total_creditos"] != null)
+                        {
+                            <label class="label label-danger" style="font-size: 13px">Total Creditos: $<span class="precio">@Convert.ToDecimal(TempData["total_creditos"])</span></label>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active">
+                    <a data-toggle="tab" href="#manual"><i class="fa fa-list-alt"></i>&nbsp;&nbsp;Cajas</a>
+                </li>
+                <li class="">
+                    <a href="@Url.Action("Browser", "ReciboCaja", new {menu = ViewBag.id_menu})"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a>
+                </li>
+            </ul>
+
+            <div id="manual" class="tab-pane active">
+                <div class="panel-body">
+                    @using (Html.BeginForm("Create", "ReciboCaja", FormMethod.Post))
+                    {
+                        @Html.Hidden("menu")
+
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" id="btnGuardar" type="submit" style="display: none"><i class="fa fa-save"></i> Guardar</button>
+                        </div>
+
+                        <input type="hidden" class="form-control" id="valorMaximo" name="valorMaximo" value="" />
+                        <input type="hidden" class="form-control" id="valorAcumulado" name="valorAcumulado" value="" />
+                        <input type="hidden" class="form-control" id="valorCredito" name="valorCredito" value="" />
+                        <input type="hidden" class="form-control" id="cupoCredito" name="cupoCredito" value="" />
+                        <input type="hidden" id="creditoId" name="creditoId" value="" />
+                        <input type="hidden" id="desembolsosn" name="desembolsosn" value="" />
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color: #e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                                Datos generales
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-horizontal">
+                                    <input type="hidden" class="form-control" id="planmayorDesembolso" name="pmDesembolso" value="@ViewBag.planmayor" />
+                                    <input type="hidden" class="form-control" id="nitDesembolso" name="nitDesembolso" value="@ViewBag.nit" />
+                                    <input type="hidden" class="form-control" id="vendedorDesembolso" name="vendedorDesembolso" value="@ViewBag.idVendedor" />
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("tipo", null, new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+
+
+                                                @*<select class="form-control js-source-states" id="selectTipoDocumento" name="tipo" required="required">
+                        <option></option>
+                        @foreach (var item in ViewBag.doc_registros)
+                        {
+                            <option value="@item.tpdoc_id">@item.tpdoc_nombre</option>
+                        }
+                    </select>*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <input type="hidden" id="bodega_id" name="bodega_id" value="@ViewBag.bodega_id" />
+                                                <input class="form-control" type="hidden" id="bodega_nombre" name="bodega_nombre" value="@ViewBag.bodega" readonly />
+                                                <select class="form-control js-source-states" id="selectBodegas" name="bodega" required="required">
+                                                    <option></option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Perfil Contable:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <select class="form-control js-source-states" id="perfil" name="perfilcontable" required="required">
+                                                    <option></option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cliente:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-5">
+                                                @Html.DropDownListFor(model => model.nit, null, "Seleccione", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="button" class="btn btn-info" id="btnCrearTercero" name="btnCrearTercero">
+                                                    <i class="fa fa-user-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Vendedor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("vendedor", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione", required = "required" })
+                                                @Html.ValidationMessageFor(model => model.vendedor, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="pedidoDiv">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Pedido:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("id_pedido_vehiculo", null, "", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+
+
+                                                @*<select class="form-control js-source-states" id="id_pedido_vehiculo" name="id_pedido_vehiculo">
+                        <option></option>
+                        @foreach (var item in ViewBag.id_pedido_vehiculo)
+                        {
+                            <option value="@item.id">@item.numero</option>
+                        }
+                    </select>*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-offset-3" style="align-content: flex-start;">
+                                            <button type="button" class="btn btn-info" id="btnDocumentos">Cargar Documentos</button>
+                                        </div>
+                                    </div>
+
+                                    @* ******************************************************************************** Pago sin pedido ni factura  ******************************************************************************** *@
+                                    @*<div class="form-horizontal">*@
+                                    @*<div class="row">*@
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <div class="form-check" id="idDesembolso">
+                                                <label class="form-check-label control-label col-md-4" for="desembolso">Desembolso de Créditos:&nbsp; </label>
+                                                <div class="col-md-6">
+                                                    @Html.CheckBox("desembolso", false, new { data_toggle = "toggle", data_size = "mini", @id = "desembolso", @Value = false })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Monto Libre:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.montolibre, new { data_toggle = "toggle", data_size = "mini", @Value = false })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6" id="abono" style="visibility: hidden">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Valor Total :&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.valor_total, new { htmlAttributes = new { @class = "form-control number", type = "text", onkeyUp = "return miles(this.id)", onchange = "pagoAnticipo(this.id)" } })
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Anticipo de Clientes:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.anticipo, new { data_toggle = "toggle", data_size = "mini" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @*</div>*@
+                                    @*</div>*@
+                                    @* ***************************************************************************** Fin Pago sin pedido ni factura  ******************************************************************************* *@
+
+                                    <br />
+                                    <div class="col-md-12">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Observaciones:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.nota1, new { htmlAttributes = new { @class = "form-control" } })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12">
+                                    <hr />
+                                </div>
+
+                                @* ****************************************************************************************** Filtros  ****************************************************************************************** *@
+                                <div class="col-sm-12" id="filtro" style="display: none; text-align: center;">
+                                    <div class="col-md-2"></div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Documento:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("tipo_documentoFiltro", null, "Seleccione", new { @class = "form-control js-source-states", placeholder = "Seleccione" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número Documento:&nbsp;</label>
+                                            <div class="col-md-8">
+                                                @Html.Editor("txtFactura", new { htmlAttributes = new { @class = "form-control", placeholder = "Digite numero factura" } })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div class="col-sm-12" style="text-align: center;">
+                                        <div class="col-sm-10">
+                                            <label class="control-label col-md-2">Fechas:&nbsp;</label>
+                                            <div class="input-daterange input-group">
+                                                <input class="input-sm form-control" type="text" placeholder="Desde" name="desde" id="desde">
+                                                <span class="input-group-addon">a</span>
+                                                <input class="input-sm form-control" type="text" placeholder="Hasta" name="hasta" id="hasta">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-2">
+                                            <button class="btn btn-primary" type="button" onclick="filtarDocumento()">
+                                                <i class="fa fa-filter"></i>
+                                            </button>
+                                        </div>
+
+                                        <div class="col-md-10" id="errorFechas" style="display: none">
+                                            <div class="alert alert-danger" role="alert">
+                                                La fecha inicial debe ser menor a la fecha final
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @* **************************************************************************************** Fin Filtros  ***************************************************************************************** *@
+                                <div class="col-sm-12" id="facturas" style="display: none">
+                                    <div class="table-responsive">
+                                        <input type="hidden" name="listaFacturas" id="listaFacturas" value="" />
+                                        <div id="div-mensaje-buscar"></div>
+                                        <input type="hidden" id="totalregistros" name="totalregistros" value="" />
+                                        <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: center"></th>
+                                                    <th style="text-align: center">Tipo</th>
+                                                    <th style="text-align: center">Número</th>
+                                                    <th style="text-align: center">Fecha</th>
+                                                    <th style="text-align: center">Vencimiento</th>
+                                                    <th style="text-align: center">Valor Total</th>
+                                                    <th style="text-align: center">Valor Aplicado</th>
+                                                    <th style="text-align: center">Saldo</th>
+                                                    <th style="text-align: center">Valor a pagar</th>
+                                                    <th style="text-align: center">Detalle</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12" id="pedido" style="display: none">
+                                    <div class="table-responsive">
+                                        <input type="hidden" name="lista" id="lista" value="" />
+                                        <div id="div-mensaje-buscar"></div>
+                                        <input type="hidden" id="totalregistros" name="totalregistros" value="" />
+                                        <table class="table table-striped table-bordered table-hover" id="tablaPaginadaPedido">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: center">Número</th>
+                                                    <th style="text-align: center">Vehículo</th>
+                                                    <th style="text-align: center">Color</th>
+                                                    <th style="text-align: center">Fecha</th>
+                                                    <th style="text-align: center">Valor Total</th>
+                                                    <th style="text-align: center">Valor Aplicado</th>
+                                                    <th style="text-align: center">Saldo</th>
+                                                    <th style="text-align: center">Valor a pagar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color: #e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                                <i class="fa fa-check-square" aria-hidden="true"></i> Formas de Pago
+                            </div>
+
+                            <div class="panel-body">
+                                <input type="hidden" name="lista_pagos" id="lista_pagos" value="" />
+                                <div class="col-lg-12" id="pagosAgregados"></div>
+                                <div class="col-lg-12" id="pagosAgregados1"></div>
+                                <div class="col-lg-12">
+                                    <input type="hidden" id="idcreditoseleccionado2" name="idcreditoseleccionado2" value="" />
+                                    <div class="table-responsive">
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tablaPagos">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: center">Forma de Pago</th>
+                                                    <th style="text-align: center">Valor</th>
+                                                    <th style="text-align: center">Banco</th>
+                                                    <th style="text-align: center">No. Cuenta</th>
+                                                    <th style="text-align: center">No. Cheque</th>
+                                                    <th style="text-align: center">Observaciones</th>
+                                                    <th style="text-align: center">Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal valor a pagar erroneo*@
+<div class="modal fade" id="modal_pagosErroneo" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Error en valor a pagar</h5>
+            </div>
+            <div class="modal-body">
+                El valor a pagar no puede ser mayor al saldo de la factura
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarmodal_pagosErroneo">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal Recibo registrado*@
+<div id="modalRecibo" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Recibo de caja registrado con éxito</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align: center;">
+                    <h4>Se registro el recibo de caja con el número</h4>
+                    <h3>
+                        <span class="label label-default">@ViewBag.numReciboCreado</span>
+                    </h3>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalPedido">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bd-example-modal-lg" id="modalDetalleFacura" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Detalle factura</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="table-responsive">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaDetalleFactura">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center">Referencia</th>
+                                    <th style="text-align: center">Valor Unitario</th>
+                                    <th style="text-align: center">Cantidad</th>
+                                    <th style="text-align: center">Descuento (%)</th>
+                                    <th style="text-align: center">Descuento ($)</th>
+                                    <th style="text-align: center">IVA (%)</th>
+                                    <th style="text-align: center">IVA ($)</th>
+                                    <th style="text-align: center">Valor total</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                            <tfoot>
+                                <tr id="filaTotal">
+                                    <td align="center" colspan="7" style="border-bottom: hidden; border-left: hidden; text-align: right;">
+                                        <b>TOTAL</b>
+                                    </td>
+                                    <td align="center" id="valorFinalTD">
+                                        <input class="form-control input-sm" id="valorFinal" name="valorFinal" readonly="readonly" type="text" value="" style="text-align: right" />
+                                        <input id="valorFinal1" name="valorFinal1" type="hidden" value="" />
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <table class="table table-striped table-bordered table-hover" id="tablaRetenciones">
+                            <thead>
+                                <tr>
+                                    <th colspan="6" style="text-align: center">Retenciones</th>
+                                </tr>
+                                <tr>
+                                    <th style="text-align: center">Retefuente</th>
+                                    <th style="text-align: center">Reteiva</th>
+                                    <th style="text-align: center">Reteica</th>
+                                    <th style="text-align: center">Autoretención</th>
+                                    <th style="text-align: center">Total Retenciones</th>
+                                    <th style="text-align: center">Total Proveedor</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalPedido">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal creditos*@
+<div class="modal fade bd-example-modal-lg" id="modalCreditosSolicitados" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Creditos Solicitados</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="table-responsive">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaCreditos">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center">Seleccionar</th>
+                                    <th style="text-align: center">Financiera</th>
+                                    <th style="text-align: center">Fecha Solicitud</th>
+                                    <th style="text-align: center">Estado Credito</th>
+                                    <th style="text-align: center">Valor Solicitado</th>
+                                    <th style="text-align: center">Valor Aprobado</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalCreditos">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/sweetalert/lib/sweet-alert.min.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script type="text/javascript">
+        var costo = 0;
+        var i = 0;
+        var p = 0;
+        var r = 0;
+        var re = 0;
+        var cot = 0;
+        var cos = 0;
+        var cifra = 0;
+        var valor_total = 0;
+        var valor_total2 = 0;
+        var valorFaltante = 0;
+        var valorFaltante2 = 0;
+        var arreglo = new Array();
+        var acumulado = 0; //variable para llevar el conteo de cuanto se ha pagado en forma de EFECTIVO
+        var correcto = true;
+        var credito = 0; //variable para llevar el conteo de cuanto se ha pagado en forma de CREDITO
+        /*
+        function llenarCamposDesembolso(){
+            var planmayor = document.getElementById('planmayorDesembolso').value;
+
+            if(planmayor == ""){
+                alert('nada '+ planmayor );
+
+            }else{
+                $('#nit').val()=$('#nitDesembolso').val();
+                $('#vendedor').val()=$('#vendedorDesembolso');
+                $('#nit').prop('checked') = true;
+                alert(planmayor);
+
+            }
+        }
+
+        llenarCamposDesembolso()*/
+        $(document).ready(function() {
+            $('#desde').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: new Date()
+            });
+
+            $('#hasta').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: new Date()
+            });
+
+            $('.js-source-states').select2();
+            $('#menu').val(@ViewBag.id_menu);
+            $("#btnDocumentos").hide();
+
+            agregarPago();
+
+            setTimeout(function() {
+                    $("#mensaje").fadeOut(1500);
+                },
+                3000);
+            setTimeout(function() {
+                    $("#mensaje_error").fadeOut(1500);
+                },
+                3000);
+
+            $('#valorMaximo').val(@ViewBag.parametroEfectivo);
+            $('#valorCredito').val(@ViewBag.parametroCredito);
+            console.log($('#tipo').val());
+            //if($('#tipo').val()!=""){
+            //    buscarBodegas();
+            //}
+
+            if ($('#tipo').val() != "" && $('#bodega_id').val() != null && $('#bodega_id').val() !== "") {
+                $('#s2id_selectBodegas').hide();
+                buscarBodegas();
+                buscarPerfil();
+            } else {
+                buscarBodegasSinId();
+            }
+            if ($('#id_pedido_vehiculo') != null && $('#nit').val() !== "") {
+                console.log($('#nit').val());
+                tablaPaginadaPedido();
+                carguepedido();
+                //tablaPaginada();
+
+            }
+        });
+
+        $('#montolibre').change(function () {
+            if ($('#montolibre').prop('checked')) {
+
+                $('#desembolso').prop('checked', false);
+                $("#tablaPaginada").dataTable().fnDestroy();
+                $("#tablaPaginada").hide();
+                $("#tablaPaginada").find('tbody').empty();
+
+                $("#tablaPaginadaPedido").dataTable().fnDestroy();
+                $("#tablaPaginadaPedido").hide();
+                $("#tablaPaginadaPedido").find("tbody").empty();
+
+                $('#btnDocumentos').prop('disabled', true);
+                $('#btnDocumentos').hide();
+                $('#facturas').hide();
+                $('#filtro').hide();
+                $('#pedido').show();
+
+                $('#abono').css('visibility', 'visible');
+                $('#id_pedido_vehiculo').val("").select2();
+                $('#id_pedido_vehiculo').prop('disabled', true);
+                $('#pedidoDiv').hide();
+                $('#nota1').prop('required', true);
+            }
+            else {
+                $('#abono').css('visibility', 'hidden');
+                $('#id_pedido_vehiculo').prop('disabled', false);
+                $('#btnDocumentos').prop('disabled', false);
+                $("#btnDocumentos").show();
+                $('#pedidoDiv').show();
+                $('#nota1').prop('required', false);
+            }
+        });
+
+        $('#desembolso').change(function () {
+
+
+            console.log($('#desembolso').val());
+
+            //if ($('#desembolso').val() == 'true') {
+            if ($('#desembolso').prop('checked')) {
+                $('#montolibre').prop('checked', false);
+                $.ajax({
+                    url: '/ReciboCaja/BuscarSolicitudes',
+                    data: {
+                        idcliente: $('#nit').val()
+                    },
+                    type: "POST",
+                    success: function (data) {
+                        if (data.length > 0) {
+                            $('#tablaCreditos').dataTable().fnDestroy();
+                            $('#tablaCreditos').find('tbody').empty();
+                            for (var i = 0; i < data.length; i++) {
+                                $('#tablaCreditos').find('tbody').append(
+                                    `<tr id = "lineaCredito${i}">
+                                     <td align = "center"> <input type = "radio" name = "credito" id = "credito" onclick ="selectCredito('${data[i].id}', '${data[i].vaprobado}','${data[i].financiera_id}')"/>
+                                     </td> <td align ="center">${data[i].financiera}</td> <td align = "center"> ${data[i].solicitud} </td>
+                                     <td align = "center"> <input type = "hidden" name = "estadoC${i}" id = "estadoC${i}" value ="${data[i].estado}"/> ${data[i].estado}</td>
+                                     <td align = "center"> <input type = "hidden" name = "valorS${i}" id = "valorS${i}" value = "${data[i].vsolicitado}"/> $ ${data[i].vsolicitado}</td>
+                                     <td align = "center"> <input type = "hidden" name = "valorA${i}" id = "valorA${i}" value = "${data[i].vaprobado}"/> $ ${data[i].vaprobado}</td>
+                                     </tr>`
+                                );
+                                $('#modalCreditosSolicitados').modal('show');
+                            }
+                        } else {
+                            swal("El cliente no ha solicitado creditos.", "", "error");
+                            $('#desembolso').prop("checked", false).val(false).trigger('click');
+                        }
+                    },
+                    complete: function () {
+                        $('#tablaPaginadaPedido').dataTable({
+                            dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                            buttons: []
+                        });
+                    }
+                });
+            }
+            else {
+                $('#tablaCreditos').find('tbody').empty();
+            }
+        });
+
+        function selectCredito(id, valor, banco) {
+  
+            $("#txtValor1").val(valor).select2();
+            $("#banco1").val(banco).select2();
+            $("#creditoId").val(id);
+            $('#check_header0').prop('checked', true);
+            $("#valor_aPagar0").val(valor).trigger('change');
+        }
+
+        function seleccionarCredito(id) {
+            $('#creditoId').val(id);
+            $('#modalCreditosSolicitados').modal('hide');
+        }
+
+        $('#id_pedido_vehiculo').change(function () {
+
+
+            if ($('#nit').val() != "" && $('#id_pedido_vehiculo').val() != "") {
+                $('#desembolso').prop("checked", true).val(true).trigger('click');
+                $('#desembolsosn').val(true);
+            } else {
+                if ($('#desembolso').is(':checked')) {
+                    $('#desembolso').prop("checked", false).val(false).trigger('click');
+                    $('#desembolsosn').val(false);
+                }
+            }
+        });
+
+        $('#cerrarModalPedido').click(function() {
+            $('#modalRecibo').hide();
+        });
+        $('#anticipo').change(function() {
+            if ($('#anticipo').prop('checked')) {
+                $("#tablaPaginada").dataTable().fnDestroy();
+                $("#tablaPaginada").hide();
+                $("#tablaPaginada").find('tbody').empty();
+
+                $("#tablaPaginadaPedido").dataTable().fnDestroy();
+                $("#tablaPaginadaPedido").hide();
+                $("#tablaPaginadaPedido").find("tbody").empty();
+
+                $('#btnDocumentos').prop('disabled', true);
+                $('#btnDocumentos').hide();
+                $('#facturas').hide();
+                $('#filtro').hide();
+                $('#pedido').show();
+
+                $('#abono').css('visibility', 'visible');
+                $('#id_pedido_vehiculo').val("").select2();
+                $('#id_pedido_vehiculo').prop('disabled', true);
+                $('#pedidoDiv').hide();
+                $('#nota1').prop('required', true);
+
+                totalAux = 0;
+                $('#pagosAgregados1').html(
+                    `<div class="row"><div class="form-group col-lg-6"><div class="row"><label class="label label-primary" id="labelTotal" style="font-size: 14px">Valor a pagar: $ ${
+                    addCommas(totalAux)
+                    }</label><input name="totalPagar" id="totalPagar" class="form-control" type="hidden" value="${
+                    totalAux}"><br /></div>`);
+                agregarPago();
+
+            } else {
+                $('#abono').css('visibility', 'hidden');
+                $('#id_pedido_vehiculo').prop('disabled', false);
+                $('#btnDocumentos').prop('disabled', false);
+                $("#btnDocumentos").show();
+                $('#pedidoDiv').show();
+                $('#nota1').prop('required', false);
+            }
+        });
+
+        $('#btnCrearTercero').click(function() {
+            window.open(`@Url.Action("tercero", "icb_terceros")?menu=${@ViewBag.id_menu}`, '_blank');
+        });
+
+        /*************************************************************************************** Validacion de perfil **************************************************************************************** */
+        $('#tipo').change(function() {
+            buscarBodegas();
+        });
+
+        function buscarBodegas() {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                data: {
+                    id: $('#tipo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    //console.log(data);
+                    //$('#selectBodegas').empty();
+                    //$('#selectBodegas').append($('<option>', {
+                    //    value: '',
+                    //    text: ''
+                    //}));
+                    for (let i = 0; i < data.buscarBodega.length; i++) {
+                        if (data.buscarBodega[i].id === $('#bodega_id').val()) {
+                            $('#bodega_nombre').attr('type', 'text');
+
+                            //$('#selectBodegas').append($('<option selected>', {
+                            //    value: data.buscarBodega[i].id,
+                            //    text: data.buscarBodega[i].bodccs_nombre
+                            //}))
+                        };
+                    }
+                }
+            });
+        }
+
+        function buscarBodegasSinId() {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                data: {
+                    id: $('#tipo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    //console.log(data);
+                    $('#selectBodegas').empty();
+                    $('#selectBodegas').attr('display', 'block');
+                    $('#selectBodegas').append($('<option>',
+                        {
+                            value: '',
+                            text: ''
+                        }));
+                    for (let i = 0; i < data.buscarBodega.length; i++) {
+                        $('#selectBodegas').append($('<option>',
+                            {
+                                value: data.buscarBodega[i].id,
+                                text: data.buscarBodega[i].bodccs_nombre
+                            }));
+                    }
+                }
+            });
+        };
+
+        function buscarPerfil() {
+            $.ajax({
+                url: '/compraRepuestos/BuscarPerfilPorBodega',
+                data: {
+                    bodega: $('#bodega_id').val(),
+                    tipoD: $('#tipo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#perfil').empty();
+                    $('#perfil').append($('<option>',
+                        {
+                            value: '',
+                            text: ''
+                        }));
+                    for (let i = 0; i < data.length; i++) {
+                        $('#perfil').append($('<option>',
+                            {
+                                value: data[i].id,
+                                text: data[i].perfil
+                            }));
+                    }
+                }
+            });
+        };
+
+        $('#selectBodegas').change(function buscarPerfilSinId() {
+            $.ajax({
+                url: '/compraRepuestos/BuscarPerfilPorBodega',
+                data: {
+                    bodega: $('#selectBodegas').val(),
+                    tipoD: $('#tipo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#perfil').empty();
+                    $('#perfil').append($('<option>',
+                        {
+                            value: '',
+                            text: ''
+                        }));
+                    for (let i = 0; i < data.length; i++) {
+                        $('#perfil').append($('<option>',
+                            {
+                                value: data[i].id,
+                                text: data[i].perfil
+                            }));
+                    }
+                }
+            });
+        });
+
+        $('#nit').change(function() {
+            $('#id_pedido_vehiculo').val("").select2();
+            $('#btnDocumentos').prop('disabled', false);
+            $("#btnDocumentos").show();
+            $("#tablaPaginada").dataTable().fnDestroy();
+            $("#tablaPaginada").find('tbody').empty();
+            $("#tablaPaginadaPedido").dataTable().fnDestroy();
+            $("#tablaPaginadaPedido").find("tbody").empty();
+
+            $.ajax({
+                url: '/ReciboCaja/BuscarBloqueoTercero',
+                data: {
+                    tercero_id: parseFloat($('#nit').val())
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+
+                    $('#id_pedido_vehiculo').empty();
+                    $('#id_pedido_vehiculo').append($('<option>',
+                        {
+                            value: '',
+                            text: 'Seleccione'
+                        }));
+                    for (let i = 0; i < data.pedido.length; i++) {
+                        $('#id_pedido_vehiculo').append($('<option>',
+                            {
+                                value: data.pedido[i].id,
+                                text: `(${data.pedido[i].numero}) - ${data.pedido[i].carro}`
+                            }));
+                    }
+
+
+                    if ($('#nit').val() != "" && $('#id_pedido_vehiculo').val() != "") {
+                        $('#desembolso').prop("checked", true).val(true).trigger('click');
+                        $('#desembolsosn').val(true);
+                    } else {
+                        if ($('#desembolso').is(':checked')) {
+                            $('#desembolso').prop("checked", false).val(false).trigger('click');
+                            $('#desembolsosn').val(false);
+                        }
+                    }
+                    //console.log(data.cliente[0].bloqueado)
+                    if (data.cliente[0].bloqueado === true) {
+                        $("#texto_bloqueo").text(`Cliente Bloqueado: ${data.cliente[0].motivo_bloqueado}`);
+                        $("#bloqueado").show();
+                        $("#nit").val(" ");
+                        $("#nit").select2();
+                    } else {
+                        $("#texto_bloqueo").text("");
+                        $("#bloqueado").hide();
+                    }
+                }
+            });
+        });
+
+        function carguepedido() {
+            $("#tablaPaginadaPedido").dataTable().fnDestroy();
+            $("#tablaPaginadaPedido").find("tbody").empty();
+            totalAux = 0;
+            $('#pagosAgregados1').html(
+                `<div class="row"><div class="form-group col-lg-6"><div class="row"><label class="label label-primary" id="labelTotal" style="font-size: 14px">Valor a pagar: $ ${
+                addCommas(totalAux)
+                }</label><input name="totalPagar" id="totalPagar" class="form-control" type="hidden" value="${totalAux
+                }"><br /></div>`);
+            agregarPago();
+            $("#tablaPaginada").dataTable().fnDestroy();
+            $("#tablaPaginada").find('tbody').empty();
+
+            if ($('#id_pedido_vehiculo').val() != "") {
+                tablaPaginadaPedido();
+            } else {
+                $('#btnDocumentos').prop('disabled', false);
+                $('#btnDocumentos').show();
+            }
+        }
+
+        $('#id_pedido_vehiculo').change(function () {
+            tablaPaginadaPedido();
+            carguepedido();
+        });
+
+        /************************************************************************************ Final Validacion de perfil ************************************************************************************* */
+
+        /********************************************************************************** Validacion de facturas cliente *********************************************************************************** */
+        //function tablaPaginadaPedido() {
+        //    $('#btnDocumentos').prop('disabled', true);
+        //    $('#btnDocumentos').hide();
+        //    $('#facturas').hide();
+        //    $('#filtro').hide();
+        //    $('#pedido').show();
+        //    $("#tablaPaginadaPedido").show();
+        //    $.ajax({
+        //        url: '/ReciboCaja/BuscarPedidoSelecionado',
+        //        data: {
+        //            nit: $('#nit').val(),
+        //            pedido: $('#id_pedido_vehiculo').val()
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function(data) {
+        //            i++;
+        //            $("#lista").val(i);
+        //            $("#tablaPaginadaPedido").dataTable().fnDestroy();
+        //            $("#tablaPaginadaPedido").find('tbody').empty();
+        //            //console.log('pedido ' + data)
+        //            for (let h = 0; h < data.length; h++) {
+        //                arreglo.push(0);
+        //                $("#tablaPaginadaPedido").find("tbody").append(
+        //                    `<tr align="center"><td style="text-align: center"><input name="checkbox${h}"  id="numero${h
+        //                    }"   class="form-control" type="checkbox" ></br>${data[h].numero
+        //                    }</td><td style="text-align: right"><input name="numero${h
+        //                    }"  id="numero${h}"   class="form-control" type="hidden" value="${data[h].numero}" >${
+        //                    data[h].carro
+        //                    }</td><td style="text-align: left"><input name="modelo${h}" id="modelo${h
+        //                    }" class="form-control" type="hidden" value="${data[h].idCarro}" >${data[h].color
+        //                    }</td><td style="text-align: left"><input name="color${h
+        //                    }" id="color${h}"  class="form-control" type="hidden" value="${data[h].color}" >${data[h]
+        //                    .fecha
+        //                    }</td><td style="text-align: right"><input name="valor_total${h}" id="valor_total${h
+        //                    }" class="form-control" type="hidden" value="${data[h].valorTotal}">${window.addCommas(
+        //                        data[h].valorTotal)
+        //                    }</td><td style="text-align: right"><input name="valor_aplicado${h}" id="valor_aplicado${h
+        //                    }" class="form-control" type="hidden" value="${data[h].valorAplicado}">${
+        //                    window.addCommas(data[h].valorAplicado)}</td><td style="text-align: right"><input name="saldo${h
+        //                    }" id="saldo${h}" class="form-control" type="hidden" value="${data[h].saldo}">${window.addCommas(
+        //                        data[h].saldo)
+        //                    }</td><td style="text-align: center"><input name="valor_aPagar${h}" id="valor_aPagar${h
+        //                    }" class="form-control number pagos" type="text" value="0"  onkeyUp = "return miles(this.id)" onchange="pagos(${
+        //                    h
+        //                    })"></td></tr>`);
+        //            }
+        //        },
+        //        complete: function(data) {
+        //            $('#tablaPaginadaPedido').dataTable({
+        //                //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+        //                dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+        //                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        //                buttons: [
+        //                    { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' }
+        //                    //{ extend: 'pdf', className: 'btn-sm', text: 'PDF' },
+        //                    //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' },
+        //                ]
+        //            });
+        //        }
+        //    });
+        //}
+
+        function tablaPaginadaPedido() {
+            $('#btnDocumentos').prop('disabled', true);
+            $('#btnDocumentos').hide();
+            $('#facturas').show();
+            $('#filtro').show();
+            $('#pedido').hide();
+            $("#tablaPaginada").show();
+            $.ajax({
+                url: '/ReciboCaja/BuscarFacturasFiltro',
+                data: {
+                    nit: $('#nit').val(),
+                    pedido: $('#id_pedido_vehiculo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    i++;
+                    $("#listaFacturas").val(data.length);
+                    $("#tablaPaginada").dataTable().fnDestroy();
+                    $("#tablaPaginada").find('tbody').empty();
+                    //console.log('pedido ' + data)
+                    for (let h = 0; h < data.length; h++) {
+                        arreglo.push(0);
+                         $("#tablaPaginada").find("tbody").append(
+                            `<tr align="center"><th style="text-align:center"><input type="checkbox" name="check_header${
+                            h}" id="check_header${h
+                            }" onclick="asignar(${h})"  value="" /></th><td style="text-align: left"><input name="tipo${
+                            h}" id="tipo${h
+                            }" class="form-control" type="hidden" value="${data[h].idTipo}" /><input name="id${h
+                            }" id="id${h
+                            }" class="form-control" type="hidden" value="${data[h].id}" />${data[h].tipo
+                            }</td><td style="text-align: right"><input name="numero${h
+                            }" id="numero" class="form-control" type="hidden" value="${data[h].numero}" />${
+                            data[h].numero}</td><td style="text-align: left">${data[h].fecha
+                            }</td><td style="text-align: left">${data[h].vencimiento
+                            }</td><td style="text-align: right"><input name="valor_total${h
+                            }" id="valor_total${h}" class="form-control" type="hidden" value="${data[h].valor_total
+                            }"/>${window.addCommas(data[h].valor_total)
+                            }</td><td style="text-align: right"><input name="valor_aplicado${h}" id="valor_aplicado${h
+                            }" class="form-control" type="hidden" value="${data[h].valor_aplicado}"/>${
+                            window.addCommas(data[h].valor_aplicado)}</td><td style="text-align: right"><input name="saldo${h
+                            }" id="saldo${h}" class="form-control" type="hidden" value="${data[h].saldo}"/>${window.addCommas(
+                                data[h].saldo)
+                            }</td><td style="text-align: center"><input name="valor_aPagar${h}" id="valor_aPagar${h
+                            }" class="form-control number pagos" type="text" value="0" onkeyUp = "return miles(this.id)" onchange="pagos(${
+                            h
+                            })"/></td><td style="text-align: center"><button type="button" name="btnDetalle${data[h].id
+                            }" id="btnDetalle${data[h].id
+                            }" class="btn btn-info" onclick="verDetalle(${data[h].id
+                            })"><i class="fa fa-file"></i></button></td></tr>`);
+                    }
+                },
+                complete: function(data) {
+                    $('#tablaPaginada').dataTable({
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' }
+                            //{ extend: 'pdf', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' },
+                        ]
+                    });
+                }
+            });
+        }
+
+        function tablaPaginada() {
+            $.ajax({
+                url: '/ReciboCaja/BuscarFacturasFiltro',
+                data: {
+                    nit: $('#nit').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    i++;
+                    $("#listaFacturas").val(data.length);
+                    $("#tablaPaginada").dataTable().fnDestroy();
+                    $("#tablaPaginada").find('tbody').empty();
+                    for (let h = 0; h < data.length; h++) {
+                        arreglo.push(0);
+                        $("#tablaPaginada").find("tbody").append(
+                            `<tr align="center"><th style="text-align:center"><input type="checkbox" name="check_header${
+                            h}" id="check_header${h
+                            }" onclick="asignar(${h})"  value="" /></th><td style="text-align: left"><input name="tipo${
+                            h}" id="tipo${h
+                            }" class="form-control" type="hidden" value="${data[h].idTipo}" /><input name="id${h
+                            }" id="id${h
+                            }" class="form-control" type="hidden" value="${data[h].id}" />${data[h].tipo
+                            }</td><td style="text-align: right"><input name="numero${h
+                            }" id="numero" class="form-control" type="hidden" value="${data[h].numero}" />${
+                            data[h].numero}</td><td style="text-align: left">${data[h].fecha
+                            }</td><td style="text-align: left">${data[h].vencimiento
+                            }</td><td style="text-align: right"><input name="valor_total${h
+                            }" id="valor_total${h}" class="form-control" type="hidden" value="${data[h].valor_total
+                            }"/>${window.addCommas(data[h].valor_total)
+                            }</td><td style="text-align: right"><input name="valor_aplicado${h}" id="valor_aplicado${h
+                            }" class="form-control" type="hidden" value="${data[h].valor_aplicado}"/>${
+                            window.addCommas(data[h].valor_aplicado)}</td><td style="text-align: right"><input name="saldo${h
+                            }" id="saldo${h}" class="form-control" type="hidden" value="${data[h].saldo}"/>${window.addCommas(
+                                data[h].saldo)
+                            }</td><td style="text-align: center"><input name="valor_aPagar${h}" id="valor_aPagar${h
+                            }" class="form-control number pagos" type="text" value="0" onkeyUp = "return miles(this.id)" onchange="pagos(${
+                            h
+                            })"/></td><td style="text-align: center"><button type="button" name="btnDetalle${data[h].id
+                            }" id="btnDetalle${data[h].id
+                            }" class="btn btn-info" onclick="verDetalle(${data[h].id
+                            })"><i class="fa fa-file"></i></button></td></tr>`);
+                    }
+                },
+                complete: function(data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        $("#btnDocumentos").click(function() {
+            $('#anticipo').bootstrapToggle('off');
+            $('#abono').hide();
+            $('#valor_total').empty();
+            $('#valor_total').val('');
+            $('#filtro').show();
+            $('#facturas').show();
+            $('#pedido').hide();
+            $("#tablaPaginada").show();
+            tablaPaginada();
+            totalAux = 0;
+            $('#pagosAgregados1').html(
+                `<div class="row"><div class="form-group col-lg-6"><div class="row"><label class="label label-primary" id="labelTotal" style="font-size: 14px">Valor a pagar: $ ${
+                addCommas(totalAux)
+                }</label><input name="totalPagar" id="totalPagar" class="form-control" type="hidden" value="${totalAux
+                }"><br /></div>`);
+            agregarPago();
+        });
+
+        function verDetalle(id) {
+            $.ajax({
+                url: '/ReciboCaja/verDetalle',
+                data: {
+                    id: id
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $("#tablaDetalleFactura").dataTable().fnDestroy();
+                    $("#tablaDetalleFactura").find('tbody').empty();
+                    var valorFinal = 0;
+                    for (let z = 0; z < data.length; z++) {
+                        let valorUnitario = 0;
+                        valorUnitario = data[z].valor_unitario / (100 - data[z].porcentaje_descuento) * 100;
+                        let antesIva = 0;
+                        antesIva = valorUnitario * data[z].cantidad;
+                        let totalDescuento = 0;
+                        totalDescuento = (antesIva * data[z].porcentaje_descuento) / 100;
+                        let totalIva = 0;
+                        totalIva = ((antesIva - totalDescuento) * data[z].porcentaje_iva) / 100;
+                        let valorTotal = 0;
+                        valorTotal = antesIva - totalDescuento + totalIva;
+
+                        valorFinal += valorTotal;
+
+                        $("#tablaDetalleFactura").find("tbody").append(
+                            `<tr><td style="text-align: left">${data[z].referencia}</td><td style="text-align: right">${
+                            addCommas(valorUnitario)}</td><td style="text-align: right">${addCommas(data[z].cantidad)
+                            }</td><td style="text-align: right">${data[z].porcentaje_descuento
+                            }</td><td style="text-align: right">${addCommas(totalDescuento)
+                            }</td><td style="text-align: right">${
+                            data[z].porcentaje_iva}</td><td style="text-align: right">${addCommas(totalIva)
+                            }</td><td style="text-align: right">${addCommas(valorTotal)}</td></tr>`);
+                    }
+                    $('#valorFinal').val(addCommas(valorFinal));
+                    $('#valorFinal1').val(valorFinal);
+                },
+                complete: function() {
+                    $('#tablaDetalleFactura').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            });
+
+            $.ajax({
+                url: '/FacturacionRepuestos/CompletarRetenciones',
+                data: {
+                    id: id
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    const valorTotal = parseInt(quitCommas($('#valorFinal1').val()));
+                    $("#tablaRetenciones").find("tbody").empty();
+                    for (let i = 0; i < data.buscarRetenciones.length; i++) {
+
+                        const totalRetenciones = data.buscarRetenciones[i].retencion +
+                            data.buscarRetenciones[i].retencion_iva +
+                            data.buscarRetenciones[i].retencion_ica;
+
+                        $("#tablaRetenciones").find("tbody").append(
+                            `<tr><td style="text-align:right">$${addCommas(data.buscarRetenciones[i].retencion)
+                            }</td><td style="text-align:right">$${addCommas(data.buscarRetenciones[i].retencion_iva)
+                            }</td><td style="text-align:right">$${addCommas(data.buscarRetenciones[i].retencion_ica)
+                            }</td><td style="text-align:right">$${addCommas(data.buscarRetenciones[i].retencion_causada)
+                            }</td><td style="text-align:right">$${addCommas(totalRetenciones)
+                            }</td><td style="text-align:right">$${
+                            addCommas(valorTotal - totalRetenciones)}</td></tr>`);
+                    }
+                }
+            });
+            $('#modalDetalleFacura').modal('show');
+        }
+
+        function filtarDocumento() {
+            $("#tablaPaginada").dataTable().fnDestroy();
+            $("#tablaPaginada").find("tbody").empty();
+            $.ajax({
+                url: '/ReciboCaja/BuscarFacturasFiltro',
+                data: {
+                    nit: $('#nit').val(),
+                    desde: $('#desde').val(),
+                    hasta: $('#hasta').val(),
+                    id_documento: $('#tipo_documentoFiltro').val(),
+                    factura: $('#txtFactura').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    i++;
+                    $("#listaFacturas").val(data.length);
+                    if (data !== 0) {
+                        $('#errorFechas').hide();
+                        for (let h = 0; h < data.length; h++) {
+                            arreglo.push(0);
+                             $("#tablaPaginada").find("tbody").append(
+                            `<tr align="center"><th style="text-align:center"><input type="checkbox" name="check_header${
+                            h}" id="check_header${h
+                            }" onclick="asignar(${h})"  value="" /></th><td style="text-align: left"><input name="tipo${
+                            h}" id="tipo${h
+                            }" class="form-control" type="hidden" value="${data[h].idTipo}" /><input name="id${h
+                            }" id="id${h
+                            }" class="form-control" type="hidden" value="${data[h].id}" />${data[h].tipo
+                            }</td><td style="text-align: right"><input name="numero${h
+                            }" id="numero" class="form-control" type="hidden" value="${data[h].numero}" />${
+                            data[h].numero}</td><td style="text-align: left">${data[h].fecha
+                            }</td><td style="text-align: left">${data[h].vencimiento
+                            }</td><td style="text-align: right"><input name="valor_total${h
+                            }" id="valor_total${h}" class="form-control" type="hidden" value="${data[h].valor_total
+                            }"/>${window.addCommas(data[h].valor_total)
+                            }</td><td style="text-align: right"><input name="valor_aplicado${h}" id="valor_aplicado${h
+                            }" class="form-control" type="hidden" value="${data[h].valor_aplicado}"/>${
+                            window.addCommas(data[h].valor_aplicado)}</td><td style="text-align: right"><input name="saldo${h
+                            }" id="saldo${h}" class="form-control" type="hidden" value="${data[h].saldo}"/>${window.addCommas(
+                                data[h].saldo)
+                            }</td><td style="text-align: center"><input name="valor_aPagar${h}" id="valor_aPagar${h
+                            }" class="form-control number pagos" type="text" value="0" onkeyUp = "return miles(this.id)" onchange="pagos(${
+                            h
+                            })"/></td><td style="text-align: center"><button type="button" name="btnDetalle${data[h].id
+                            }" id="btnDetalle${data[h].id
+                            }" class="btn btn-info" onclick="verDetalle(${data[h].id
+                            })"><i class="fa fa-file"></i></button></td></tr>`);
+                        }
+                    } else {
+                        $('#errorFechas').hide();
+                        $('#tablaPaginada').find('tbody').empty();
+                    }
+                    if ($('#desde').val() > $('#hasta').val()) {
+                        $('#errorFechas').show();
+                    }
+                },
+                complete: function() {
+                    $('#tablaPaginada').dataTable({
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' }
+                            //{ extend: 'pdf', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' },
+                        ]
+                    });
+                }
+            });
+        }
+        /******************************************************************************* Fin Validacion de facturas cliente ********************************************************************************** */
+
+        /*******************************************************************************  Validacion pago de facturas cliente ********************************************************************************** */
+        var totalAux = 0;
+
+        function asignar(id) {
+            setTimeout(function() {
+                    if ($(`#check_header${id}`).is(':checked')) {
+
+                        $(`#valor_aPagar${id}`).val(addCommas($(`#saldo${id}`).val()));
+                        pagos(id);
+                    } else {
+                        $(`#valor_aPagar${id}`).val(0);
+                        pagos(id);
+                    }
+                },
+                100);
+        }
+
+        function pagos(id) {
+            if (parseInt(quitCommas($(`#valor_aPagar${id}`).val())) > parseInt(quitCommas($(`#saldo${id}`).val()))) {
+                $('#modal_pagosErroneo').modal('show');
+                $(`#valor_aPagar${id}`).val(0);
+            } else {
+                var diferencia;
+                var recibe;
+                if (parseInt(arreglo[id]) > parseInt(quitCommas($(`#valor_aPagar${id}`).val()))) {
+                    diferencia = parseInt(arreglo[id]) - parseInt(quitCommas($(`#valor_aPagar${id}`).val()));
+                    totalAux = totalAux - diferencia;
+                    recibe = $(`#valor_aPagar${id}`).val();
+                    arreglo[id] = parseInt(quitCommas($(`#valor_aPagar${id}`).val()));
+                    $(`#valor_aPagar${id}`).val(recibe);
+                } else {
+                    diferencia = parseInt(quitCommas($(`#valor_aPagar${id}`).val())) - parseInt(arreglo[id]);
+                    totalAux = totalAux + diferencia;
+                    recibe = $(`#valor_aPagar${id}`).val();
+                    arreglo[id] = parseInt(quitCommas($(`#valor_aPagar${id}`).val()));
+                    $(`#valor_aPagar${id}`).val(recibe);
+                }
+
+                //console.log(totalAux);
+
+                $('#pagosAgregados1').html(
+                    `<div class="row"><div class="form-group col-lg-6"><div class="row"><label class="label label-primary" id="labelTotal" style="font-size: 14px">Valor a pagar: $ ${
+                    addCommas(totalAux)
+                    }</label><input name="totalPagar" id="totalPagar" class="form-control" type="hidden" value="${
+                    totalAux}"><br /></div>`);
+            }
+            agregarPago();
+        }
+
+        var totalAnticipo = 0;
+
+        function pagoAnticipo(id) {
+            totalAnticipo = quitCommas($(`#${id}`).val());
+            
+            $('#pagosAgregados1').html(
+                `<div class="row"><div class="form-group col-lg-6"><div class="row"><label class="label label-primary" style="font-size: 14px">Valor a pagar: $ ${
+                addCommas(totalAnticipo)
+                }</label><input name="totalPagar" id="totalPagar" class="form-control" type="hidden" value="${
+                totalAnticipo}"><br /></div>`);
+            agregarPago();
+        }
+
+        var numero_miles = "";
+
+        function formatNumber(n) {
+            const array_number = n.split(',');
+            var complemento = "";
+            n = String(array_number[0]).replace(/\D/g, "");
+            if (array_number.length > 1) {
+                complemento = `,${array_number[1]}`;
+            }
+
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".") + complemento;
+        }
+
+        function miles(id) {
+            numero_miles = formatNumber($(`#${id}`).val());
+            $(`#${id}`).val(numero_miles);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? `,${x[1]}` : '';
+            const rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            var s = nStr.replace(/\./g, "");
+            s = s.replace(/\,/g, ".");
+            return s;
+        }
+
+        $('#cerrarmodal_pagosErroneo').click(function() {
+            $('#modal_pagosErroneo').hide();
+        });
+
+        function eliminarPago(id) {
+            const elimin = parseInt(quitCommas($(`#valor${id}`).val()));
+            const fpago = parseInt(quitCommas($(`#fpago${id}`).val()));
+            if (fpago === 2) {
+                acumulado = acumulado - elimin;
+                $('#valorAcumulado').val(acumulado);
+            }
+
+            valor_total = valor_total - parseInt(quitCommas($(`#valor${id}`).val()));
+            valor_total2 = valor_total;
+
+            valorFaltante2 += elimin;
+
+            $(`#linea${id}`).remove();
+            $('#valorfaltantetext').html(`Valor Faltante $${addCommas(valorFaltante2)}`);
+            $('#btnGuardar').hide();
+            $('#btnGuardarSimulacion').hide();
+            $(":submit").prop("disabled", true);
+
+            agregarPago();
+        }
+
+        function eliminar(id) {
+            $(`#item${id}`).remove();
+        }
+
+        function agregarPago() {
+                correcto = true;            
+            var valorFaltante;
+        
+            if ($('#totalPagar').val() != undefined) {
+                valorFaltante = (parseInt(quitCommas($('#totalPagar').val())));
+            } else {
+                valorFaltante = 0;
+            }
+            var btnEliminar = `<button class="btn btn-danger btn-circle" id="${i
+                }" type="button" onclick="eliminarPago(this.id)"><i class="fa fa-remove"></i></button>`;
+            //console.log("El valor faltante al cargar la cotizacion es de: "+valorFaltante);
+            i++;
+  
+            var option = '';
+            var optionBanco = '';
+            //console.log("El contador es igual a:"+i);
+            var btnAgregar =
+                '<div class="panel-body-btns text-right"><button id="btnAgregar" class="btn btn-success" type="button" onclick="agregarPago()"><i class="fa fa-plus"></i> Agregar </button></div>';
+
+            var valorFaltante2 = valorFaltante;
+            if (i > 1) {
+     
+                var x = i - 1;
+                var cifra;
+                if ($(`#txtValor${x}`).val() == undefined) {
+             cifra = 0;
+                } else {
+                  cifra = parseInt(quitCommas($(`#txtValor${x}`).val())) || 0;
+                }
+                //console.log("Cuando entra en el primer if el valor total es igal a: "+valor_total);
+             var formadepago = parseInt($(`#fpago${x}`).val()) || 0;
+
+                //console.log("la forma de pago es igal a: "+formadepago);
+                valorFaltante = parseInt(quitCommas($('#totalPagar').val())) - valor_total;
+                //console.log("El valor faltante es igal a: "+valorFaltante);
+             
+                if (cifra === 0 || formadepago === 0 || valorFaltante2 === 0) {
+                  
+                    i--;
+                    correcto = false;
+                    //console.log("estan vacios");
+                }
+                var maximo;
+        
+                if (formadepago === 2) {
+
+                    acumulado += cifra;
+                    if (acumulado > parseInt($('#valorMaximo').val())) {
+                        acumulado = acumulado - cifra;
+                        $('#valorAcumulado').val(acumulado);
+                        i--;
+                        maximo = parseInt($('#valorMaximo').val());
+                        $(":submit").prop("disabled", false);
+                        swal("Error!",
+                            `No es posible agregar este pago debido a que supera el monto maximo permitido para pagos en efectivo, el cual es de: $${
+                            addCommas(maximo)}`,
+                            "error");
+                        correcto = false;
+                    } else {
+                        $('#valorAcumulado').val(acumulado);
+                        correcto = true;
+                    }
+                }
+             
+                if (formadepago === 3) {
+                correcto = true;
+                }
+                if (formadepago === 4) {
+
+                    credito += cifra;
+                    if (credito > parseInt($('#valorCredito').val())) {
+                        credito = credito - cifra;
+                        $('#cupoCredito').val(credito);
+                        i--;
+                        maximo = parseInt($('#valorCredito').val());
+                        $(":submit").prop("disabled", false);
+                        swal("Advertencia!",
+                            `Esta excediento el monto de los pagos por tarjeta de credito, el cual es de: $${addCommas(
+                                maximo)
+                            } por tal motivo se le cobrará una comisión`,
+                            "warning");
+                        correcto = true;
+                    } else {
+                        $('#cupoCredito').val(credito);
+                        correcto = true;
+                    }
+                }
+                if (correcto === true) {
+                   
+              //console.log(addCommas("El valor que ud esta cancelando es de: "+cifra));
+                    valor_total2 += parseInt(quitCommas(($(`#txtValor${x}`).val())));
+                    var valortotalform = (parseInt(quitCommas($('#totalPagar').val())));
+                    valorFaltante2 = valortotalform - valor_total2;
+                    //console.log(valorFaltante2);
+                    //console.log("Lo que pago es: "+valor_total2+" Lo que quedo debiendo es: "+valorFaltante2);
+                    if (valorFaltante2 < 0) {
+                         
+                i--;
+                        valorFaltante2 = valorFaltante2 + cifra;
+                        valorFaltante = valorFaltante2;
+                        valor_total2 = valor_total;
+                        //valorFaltante=valor_total2;
+                        //console.log("Pago mas de la deuda, el pago no se acepta");
+                    } else {
+             
+                        valor_total += parseInt(quitCommas($(`#txtValor${x}`).val()));
+                        var valortotalform2 = parseInt(quitCommas($('#totalPagar').val()));
+                        valorFaltante = valortotalform2 - valor_total;
+                        if (valorFaltante2 === 0 && $('#totalPagar').val !== "") {
+                            
+                            //validarObligatorios();
+                            $('#btnGuardar').show();
+                            $('#btnGuardar').removeAttr("disabled");
+                            //$(":submit").removeAttr("disabled");
+                        } else { 
+                            $('#btnGuardar').hide();
+                            $('#btnGuardarSimulacion').hide();
+                            $("#btnGuardar").prop("disabled", true);
+                        }  
+                        $('#lista_pagos').val(x);
+                        var idbanco = $(`#slcBanco${x}`).val();
+                        var nombrebanco = "";
+                        if (idbanco !== "") { 
+                            nombrebanco = $(`#slcBanco${x} option:selected`).text();
+                        }
+                        $('#tablaPagos').append(
+                            `<tr id="linea${x}"><td align="center"><input type="hidden" name="fpago${x
+                            }"       id="fpago${x}" value="${$(`#fpago${x}`).val()}"/>${$(`#fpago${x} option:selected`)
+                            .text()
+                            }</td><td align="center"><input type="hidden" name="valor${x}"id="valor${x
+                            }" value="${$(`#txtValor${x}`).val()}"/>$${$(`#txtValor${x}`).val()
+                            }</td><td align="center"><input type="hidden" name="banco${x}"id="banco${x
+                            }" value="${$(`#slcBanco${x}`).val()}"/>${nombrebanco
+                            }</td><td align="center"><input type="hidden" name="cuenta${x}"id="cuenta${x
+                            }" value="${$(`#cuenta${x}`).val()}"/>${$(`#cuenta${x}`).val()
+                            }</td><td align="center"><input type="hidden" name="cheque${x}"id="cheque${x
+                            }" value="${$(`#cheque${x}`).val()}"/>${$(`#cheque${x}`).val()
+                            }</td><td align="center"><input type="hidden" name="observaciones${x}" id="observaciones${x
+                            }" value="${$(`#txtObservacion${x}`).val()}"/>${$(`#txtObservacion${x}`).val()
+                            }</td><td align="center">${btnEliminar}</td></tr>`
+                        );  
+                        //$('#pagosAgregados').html('<div class="row"><label class="label label-primary" style="font-size: 14px">Valor Faltante: $ '+addCommas(valorFaltante)+'</label>');
+                    }
+                }
+            }
+          
+            $.ajax({
+                url: '/ReciboCaja/BuscarPagos',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+
+                    option += '<option value=""></option>';
+                    for (let j = 0; j < data.pagos.length; j++) {
+                        option += `<option value="${data.pagos[j].id}">${data.pagos[j].pago}</option>`;
+                    }
+
+                    optionBanco += '<option value="">Seleccione</option>';
+                    for (let k = 0; k < data.bancos.length; k++) {
+                        optionBanco += `<option value="${data.bancos[k].id}">${data.bancos[k].financiera_nombre
+                            }</option>`;
+                    }
+
+                    $('#pagosAgregados').html(
+                        `<div class="row"><div class="form-group col-lg-6"><label>Forma de pago </label><select class="multiselect-ui form-control input-sm" id="fpago${
+                        i}" onchange="validarFormaPago(${i})">${option
+                        }</select></div><div class="form-group col-lg-6"><label>Valor $</label><input class="form-control input-sm number" id="txtValor${
+                        i}" onkeyUp = "return miles(this.id)"/></div><div class="form-group col-lg-6"><label>No. Cuenta </label><input class="form-control input-sm " id="cuenta${
+                        i}" value=""/></div><div class="form-group col-lg-6"><label>No. Cheque </label><input class="form-control input-sm " id="cheque${
+                        i}"  value=""/></div><div class="form-group col-lg-6"><label>Banco </label><select  class="multiselect-ui form-control input-sm" id="slcBanco${
+                        i}" onchange="validaCuenta(${i})">${optionBanco
+                        }</select></div><div class="form-group col-lg-6"><label>Observaciones </label><textarea class="form-control input-sm" style="widht: 280px; heigth: 100px" id="txtObservacion${
+                        i}"/></div><div class="form-group col-lg-1 btn">${btnAgregar
+                        }</div></div><div class="row"><label class="label label-danger" style="font-size: 14px">Valor Faltante: $ ${
+                        addCommas(valorFaltante2)
+                        }</label><br /><br /><small><b>Nota:</b> No puede guardar el recibo de caja hasta que el valor faltante sea 0</small></div>`);
+                },
+                complete: function() {
+                    $(`#fpago${i}`).select2();
+                    $(`#slcBanco${i}`).select2();
+                }
+            });
+        }
+
+        function validaCuenta(id) {
+            if (id != "") {
+                var idbanco = $('#slcBanco' + id).val();
+                if (idbanco != "") {
+                    $.ajax({
+                        url: '/ReciboCaja/BuscarCuentaBanco',
+                        data: {
+                            id:idbanco
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            if (data != 0) {
+                                $('#cuenta' + id).val(data);
+                                $('#cuenta' + id).prop("readonly",true);
+
+                            }
+                        }
+                    });
+                }
+                else {
+                    $('#cuenta$' + id).val('');
+                    $('#cuenta$' + id).prop("readonly",false);
+
+                }
+            }
+
+        }
+
+        function validarFormaPago(id) {
+            if ($(`#fpago${id} option:selected`).text() === "Efectivo") {
+                $(`#cuenta${id}`).val('');
+                $(`#cheque${id}`).val('');
+                $(`#slcBanco${id}`).val('').select2();
+
+                $(`#cuenta${id}`).prop('disabled', true);
+                $(`#cheque${id}`).prop('disabled', true);
+                $(`#slcBanco${id}`).prop('disabled', true);
+            } else if ($(`#fpago${id} option:selected`).text() === "consignacion") {
+                $(`#cheque${id}`).val('');
+
+                $(`#cheque${id}`).prop('disabled', true);
+                $(`#slcBanco${id}`).prop('disabled', false);
+                $(`#cuenta${id}`).prop('disabled', false);
+            } else if ($(`#fpago${id} option:selected`).text() === "Tarjeta de Credito") {
+                $(`#cheque${id}`).val('');
+
+                $(`#cheque${id}`).prop('disabled', true);
+                $(`#slcBanco${id}`).prop('disabled', false);
+                $(`#cuenta${id}`).prop('disabled', false);
+            } else if ($(`#fpago${id} option:selected`).text() === "Tarjeta Debito") {
+                $(`#cheque${id}`).val('');
+
+                $(`#cheque${id}`).prop('disabled', true);
+                $(`#slcBanco${id}`).prop('disabled', false);
+                $(`#cuenta${id}`).prop('disabled', false);
+            }
+        }
+
+        /***************************************************************************** Fin Validacion pago de facturas cliente ********************************************************************************* */
+        $("#moneda").change(function() {
+            if ($("#moneda").val() !== 1) {
+                $("#div_tasa").show();
+            } else {
+                $("#div_tasa").hide();
+
+            }
+        });
+
+        $("#valor_uni").change(function() {
+            if (parseFloat($("#valor_uni").val()) < parseFloat($("#costo").text())) {
+                $.ajax({
+                    url: '/FacturacionRepuestos/BuscarAutorizacion',
+                    data: {
+                        ref_codigo: $("#codigo").val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function(data) {
+                        if (data.length === 0) {
+                            swal({
+                                    title: "El costo es menor al valor de venta",
+                                    text: "Debe solicitar autorización, desea continuar?",
+                                    type: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#DD6B55",
+                                    confirmButtonText: "Si, enviar!",
+                                    cancelButtonText: "No, cancelar!",
+                                    closeOnConfirm: false,
+                                    closeOnCancel: false
+                                },
+                                function(isConfirm) {
+                                    if (isConfirm) {
+                                        $.ajax({
+                                            url: '/FacturacionRepuestos/SolicitarAutorizacion',
+                                            data: {
+                                                ref_codigo: $("#codigo").val()
+                                            },
+                                            type: "post",
+                                            cache: false,
+                                            success: function(data) {
+                                                if (data === -1) {
+                                                    swal("", "Error al enviar la notificación", "error");
+                                                }
+                                                if (data === 0) {
+                                                    swal("",
+                                                        "No existen usuarios parametrizados para enviar una notificación",
+                                                        "warning");
+
+                                                }
+                                                if (data === 1) {
+                                                    swal("", "Notificación enviada correctamente", "success");
+                                                }
+                                                if (data === 2) {
+                                                    swal("",
+                                                        "Ya se envi una notificación anteriormente de la referencia seleccionada",
+                                                        "warning");
+                                                }
+                                                $("#codigo").val(' ');
+                                                $("#valor_uni").val('');
+                                                $("#codigo").select2();
+                                            }
+                                        });
+                                    } else {
+                                        swal("Cancelado", "", "error");
+                                        $("#codigo").val(' ');
+                                        $("#valor_uni").val('');
+                                        $("#codigo").select2();
+                                    }
+                                }
+                            );
+                        }
+                    }
+                });
+            }
+        });
+
+        function validarResolucion() {
+
+            $.ajax({
+                url: '/FacturacionComisiones/ValidarResolucion',
+                data: {
+                    //grup: $('#tipo').val(),
+                    tip: $('#tipo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    //console.log(data)
+                    if (data === 1) {
+                        $('#texto_aviso')
+                            .text(
+                                'La fecha fin de vigencia de la resolución esta próxima a vencer, por favor valide');
+                        $('#aviso').show();
+                        //$('#modalFacturacion').modal('hide');
+                    } else if (data === 2) {
+                        $('#texto_aviso')
+                            .text('El consecutivo de factura esta próximo a terminar, por favor valide');
+                        $('#aviso').show();
+                        //$('#modalFacturacion').modal('hide');
+                    } else if (data === 3) {
+                        $('#texto_bloqueo')
+                            .text('La fecha de vigencia de resolución esta vencida, no puede facturar ');
+                        $('#bloqueado').show();
+                        $('#btnGuardar').hide();
+                        //$('#bntFacturar').hide();
+                        //$('#modalFacturacion').modal('hide');
+                    }
+                },
+                complete: function() {
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito() {
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data.esFavorito === true) {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+    </script>
+}
+
+@if (TempData["mensaje"] != null)
+{
+    <script type="text/javascript">
+        $('#modalRecibo').show();
+    </script>
+}

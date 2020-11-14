@@ -1,0 +1,1003 @@
+﻿@{
+    ViewBag.Icono = "fa fa-file-text-o";
+    ViewBag.Title = "BackOffice";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/sweetalert/lib/sweet-alert.css" />
+
+    @Styles.Render("~/bundles/select2/css")
+}
+
+<style type="text/css">
+    .popover-content {
+        height: 100px;
+        width: 200px;
+    }
+</style>
+
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color: white; border: solid 1px; border-color: #e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top: 0px;">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-check fa-2x"></i> @TempData["mensaje"]
+                </p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]
+                </p>
+            </div>
+        }
+        @Html.Hidden("menu")
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active">
+                    <a data-toggle="tab" href="#buscar"><i class="fa fa-refresh"></i>&nbsp;&nbsp;@ViewBag.Title</a>
+                </li>
+            </ul>
+
+            <div id="buscar" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive" style="width: 100%;">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaBusquedas">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: center">Acción</th>
+                                        <th style="text-align: center"># Pedido</th>
+                                        <th style="text-align: center">Fecha pedido</th>
+                                        <th style="text-align: center">Fecha matricula</th>
+                                        <th style="text-align: center">Año</th>
+                                        <th style="text-align: center">Modelo</th>
+                                        <th style="text-align: center">Color</th>
+                                        <th style="text-align: center">Asesor</th>
+                                        <th style="text-align:center">Fecha recepción vehículo</th>
+                                        <th style="text-align: center">Vehículo</th>
+                                        <th style="text-align: center">Vin</th>
+                                        <th style="text-align: center">Placa</th>
+                                        <th style="text-align: center">Bodega</th>
+                                        <th style="text-align: center">Ubicación</th>
+                                        <th style="text-align: center">Fecha asignacion</th>
+                                        <th style="text-align: center">Cliente</th>
+                                        <th style="text-align: center">Valor Total</th>
+                                        <th style="text-align: center">Valor aplicado</th>
+                                        <th style="text-align: center">Saldo</th>
+                                        <th style="text-align: center">Proceso</th>
+                                        <th style="text-align: center">Autorizacion</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@*modal tracking*@
+<div id="modalTracking" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Eventos vehiculos</h4>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" name="planValue" id="planValue" value="" />
+                <div class="panel-body-busqueda">
+                    <div class="table-responsive" style="width: 100%;">
+
+                        <div id="div-mensaje-buscar"></div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <span class="badge badge-success">Eventos Registrados</span>
+                            </div>
+                            <div class="col-md-6"></div>
+                            <div class="col-md-2">
+                                <button class="btn btn-info form-control" title="Refrescar tablas" onclick="refresh()" id="refresh_btn">
+                                    <i class="fa fa-refresh"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaTracking">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center">Codigo</th>
+                                    <th style="text-align: center">Evento</th>
+                                    <th style="text-align: center">Bodega</th>
+                                    <th style="text-align: center">Fecha evento</th>
+                                    <th style="text-align: center">Usuario</th>
+                                    <th style="text-align: center">Documento</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="table-responsive" style="width: 100%;">
+                        <div id="div-mensaje-buscar"></div>
+                        <span class="badge badge-danger">Eventos Faltantes</span>
+                        <table class="table table-striped table-bordered table-hover" id="tablaTrackingFaltantes">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center">Codigo</th>
+                                    <th style="text-align: center">Evento</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="registroEvento">Registro evento</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalFacturacionVehiculo" class="modal " tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Facturación Vehículos</h4>
+            </div>
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-8">
+                                <select id="tipo" name="tipo" class="form-control js-source-states" style="font-size: 14px; width: 100%;" placeholder="Seleccione" required="required">
+                                    <option value=""></option>
+                                    @foreach (var item in ViewBag.tp_doc_registros)
+                                    {
+                                        <option value="@item.tpdoc_id">(@item.prefijo)&nbsp;&nbsp;@item.tpdoc_nombre</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-8">
+                                <input type="hidden" id="bodegaOculto" name="bodegaOculto" value="" />
+                                <input type="hidden" id="pedidoOculto" name="pedidoOculto" value="" />
+                                <select class="form-control js-source-states" id="selectBodegas" name="selectBodegas" required="required">
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="col-sm-12">
+                        <div class="alert alert-danger" style="display: none" role="alert" id="msjErrorBodegas" name="msjErrorBodegas">
+                            La bodega seleccionada no corresponde a la del pedido
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="irFacturacion">Facturar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalFacturacionRepuestos" class="modal " tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Facturación Repuestos y accesorios</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-8">
+                                <select id="tipoFR" name="tipoFR" class="form-control js-source-states" style="font-size: 14px; width: 100%;" placeholder="Seleccione" required="required">
+                                    <option value=""></option>
+                                    @foreach (var item in ViewBag.tp_doc_registrosFR)
+                                    {
+                                        <option value="@item.tpdoc_id">(@item.prefijo)&nbsp;&nbsp;@item.tpdoc_nombre</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-8">
+                                <input type="hidden" id="bodegaOcultoFR" name="bodegaOcultoFR" value="" />
+                                <input type="hidden" id="pedidoOcultoFR" name="pedidoOcultoFR" value="" />
+                                <input type="hidden" id="idClienteOculto" name="idClienteOculto" value="" />
+                                <select class="form-control js-source-states" id="selectBodegasFR" name="selectBodegasFR" required="required">
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="alert alert-danger" style="display: none" role="alert" id="msjErrorBodegasFR" name="msjErrorBodegasFR">
+                            La bodega seleccionada no corresponde a la del pedido
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="irFacturacionFR">Facturar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/sweetalert/lib/sweet-alert.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+            buscarDatos();
+            $('[data-toggle="popover"]').popover();
+            $('.js-source-states').select2();
+        });
+        idUrl = 0;
+        $('#btnBuscarFiltroGeneral').click(function() {
+            BuscarDevoluciones();
+        });
+
+        $('#tipo').change(function() {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                data: {
+                    id: $('#tipo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#selectBodegas').empty();
+                    $('#selectBodegas').append($('<option>',
+                        {
+                            value: '',
+                            text: ''
+                        }));
+                    for (let i = 0; i < data.buscarBodega.length; i++) {
+                        $('#selectBodegas').append($('<option>',
+                            {
+                                value: data.buscarBodega[i].id,
+                                text: data.buscarBodega[i].bodccs_nombre
+                            }));
+                    }
+                }
+            });
+        });
+
+        $('#tipoFR').change(function() {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                data: {
+                    id: $('#tipoFR').val()
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#selectBodegasFR').empty();
+                    $('#selectBodegasFR').append($('<option>',
+                        {
+                            value: '',
+                            text: ''
+                        }));
+                    for (let i = 0; i < data.buscarBodega.length; i++) {
+                        $('#selectBodegasFR').append($('<option>',
+                            {
+                                value: data.buscarBodega[i].id,
+                                text: data.buscarBodega[i].bodccs_nombre
+                            }));
+                    }
+                }
+            });
+        });
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? `.${x[1]}` : '';
+            const rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function asignaIdUrls(id) {
+            idUrl = id;
+        }
+
+        function buscarDatos() {
+            $.ajax({
+                url: '/vpedidos/BuscarPedidosPaginadosBackOffice',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    console.log(data);
+                    $('#tablaBusquedas').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        if ((data[i].facturado == false && data[i].facturaAcc == "") ||
+                            (data[i].facturado == true && data[i].facturaAcc == "") ||
+                            (data[i].facturado == false && data[i].facturaAcc == "No tiene accesorios") ||
+                            (data[i].facturado == false && data[i].facturaAcc != "")) {
+                            if (data[i].codigo != null) {
+                                if (data[i].documentos.Data.solicitar == false || data[i].autorizado == true) {
+                                    $('#tablaBusquedas').find('tbody').append(
+                                        `<tr><td  align="center"><button id="btn_popover_${i
+                                        }" class="btn btn-info btn-xs" data-toggle="popover" data-placement="top" title="Opciones" onclick="asignaIdUrls('${
+                                        data[i].id
+                                        }')">&nbsp;&nbsp;Opciones&nbsp;&nbsp;</button>&nbsp;&nbsp;</td><td align="right">${
+                                        data[i].numero}</td><td align="right">${data[i].fecha
+                                        }</td><td align="right">${data[i].fechaMatricula}</td><td align="right">${
+                                        data[i].anio}</td><td align="left">${data[i].modelo}</td><td align="left">${
+                                        data[i].color
+                                        }</td><td align="left">${data[i].asesor}</td><td align = "right">${data[i].fRecepcion}</td><td align="right">${
+                                        data[i].planmayor}</td><td align="right">${data[i].vin}</td><td align="left">${
+                                        data[i].placa
+                                        }</td>
+                                        <td align="left">${
+                                        data[i].bodccs_nombre
+                                        }</td><td align="left">${data[i].ubicacion}</td><td align="right">${data[i]
+                                        .fechaA
+                                        }</td><td align="left"><input id="idCliente" name="idCliente" class="form-control" type="hidden" value="${
+                                        data[i].idCliente}"/>${data[i].cliente
+                                        }</td><td align="right">${addCommas(data[i].vrtotal)}</td><td align="right">${
+                                        addCommas(data[i].valor)}</td><td align="right">${addCommas(data[i].vrtotal -
+                                            data[i].valor)}</td><td align="left">${data[i].proceso
+                                        }</td><td align="left">${data[i].autorizados}</td></tr>`);
+                                }
+                            } else {
+                                $('#tablaBusquedas').find('tbody').append(
+                                    `<tr><td  align="center"><button id="btn_popover_${i
+                                    }" class="btn btn-info btn-xs" data-toggle="popover" data-placement="top" title="Opciones" onclick="asignaIdUrls('${
+                                    data[i].id
+                                    }')">&nbsp;&nbsp;Opciones&nbsp;&nbsp;</button>&nbsp;&nbsp;</td><td align="right">${
+                                    data[i].numero}</td><td align="right">${data[i].fecha
+                                    }</td><td align="right">${data[i].fechaMatricula}</td><td align="right">${
+                                    data[i].anio}</td><td align="left">${data[i].modelo}</td><td align="left">${data[i].color
+                                    }</td><td align="left">${data[i].asesor}</td><td>${data[i].fRecepcion}</td><td align="right">${data[i].planmayor
+                                    }</td><td align="right">${data[i].vin}</td><td align="left">${
+                                        data[i].placa
+                                        }</td>
+                                    <td align="left">${data[i].bodccs_nombre
+                                    }</td><td align="left">${data[i].ubicacion}</td><td align="right">${data[i].fechaA
+                                    }</td><td align="left"><input id="idCliente" name="idCliente" class="form-control" type="hidden" value="${
+                                    data[i].idCliente}"/>${data[i].cliente
+                                    }</td><td align="right">${addCommas(data[i].vrtotal)}</td><td align="right">${
+                                    addCommas(data[i].valor)}</td><td align="right">${addCommas(data[i].vrtotal -
+                                        data[i].valor)}</td><td align="left">${data[i].proceso
+                                    }</td><td align="left">${data[i].autorizados}</td></tr>`);
+                            }
+                        }
+                    }
+                },
+                complete: function(data) {
+                    $('.m_datatable').on('m-datatable–on-init',
+                        function() {
+                            mApp.initPopovers();
+                        });
+
+                    for (let j = 0; j < data.responseJSON.length; j++) {
+                        $(`#btn_popover_${j}`).popover({
+                            trigger: 'click',
+                            placement: 'right',
+                            html: 'true',
+                            content:
+                                `<div><button class="btn btn-info btn-xs" data-toggle="tooltip" data-placement="top" title="Ver" onclick="valida('${
+                                    data.responseJSON[j].id
+                                    }')">&nbsp;&nbsp;<i class="fa fa-eye"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;<button class="btn btn-primary btn-xs" data-toggle="tooltip" data-placement="top" title="Verificacion documentos" onclick="verifica('${
+                                    data.responseJSON[j].id
+                                    }')">&nbsp;&nbsp;<i class="fa fa-file-text-o"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp<button class="btn btn-success btn-xs" data-toggle="tooltip" data-placement="top" title="Seguimiento" onclick="seguimiento('${
+                                    data.responseJSON[j].id
+                                    }')">&nbsp;&nbsp;<i class="fa fa-binoculars">&nbsp;&nbsp;</i></button>&nbsp;&nbsp</br><button class="btn btn-light btn-xs" data-toggle="tooltip" data-placement="top" title="Facturar" onclick="facturar('${
+                                    data.responseJSON[j].id}','${data.responseJSON[j].bodega}','${
+                                    data.responseJSON[j].numero}','${data.responseJSON[j].planmayor}','${
+                                    data.responseJSON[j].modelo}','${data.responseJSON[j].autorizado
+                                    }')">&nbsp;&nbsp;<i class="fa fa-calculator"></i></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;<button class="btn btn-warning2 btn-xs" data-toggle="tooltip" data-placement="top" title="Facturar Repuesto" onclick="facturarRepuesto('${
+                                    data.responseJSON[j].bodega}','${data.responseJSON[j].numero}','${
+                                    data.responseJSON[j].idCliente
+                                    }')">&nbsp;&nbsp;<i class="fa fa-wrench"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;<button class="btn btn-warning btn-xs" data-toggle="tooltip" data-placement="top" title="Tracking" onclick="tracking('${
+                                    data.responseJSON[j].planmayor}','${1
+                                    }')">&nbsp;&nbsp;<i class="fa fa-car"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;</div>`,
+                            template: '<div class="popover">' +
+                                '<div class="arrow"></div>' +
+                                '<h3 class="popover-title"></h3>' +
+                                '<div class="popover-content"></div>' +
+                                '<div class="popover-footer"></div>' +
+                                '</div>'
+                        });
+                    }
+                    $('#tablaBusquedas').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            });
+        }
+
+        $('body').on('click',
+            function(e) {
+                $('[data-toggle="popover"]').each(function() {
+                    if (!$(this).is(e.target) &&
+                        $(this).has(e.target).length === 0 &&
+                        $('.popover').has(e.target).length === 0) {
+                        $(this).popover('hide');
+                    }
+                });
+            });
+
+        function valida(id) {
+            window.location.href = `@Url.Action("Edit", "vpedidos")?menu=${@ViewBag.id_menu}&id=${id}`;
+        }
+
+        function facturarRepuesto(bodega, pedido, cliente) {
+            $('#bodegaOcultoFR').val('');
+            $('#pedidoOcultoFR').val('');
+            $('#idClienteOculto').val('');
+
+            $('#bodegaOcultoFR').val(bodega);
+            $('#pedidoOcultoFR').val(pedido);
+            $('#idClienteOculto').val(cliente);
+            $('#modalFacturacionRepuestos').modal('show');
+        }
+
+        $('#irFacturacionFR').click(function() {
+            if ($('#bodegaOcultoFR').val() == $('#selectBodegasFR').val()) {
+                window.location.href =
+                    `../../FacturacionRepuestos/FacturacionRepuestosBackOffice?id=${idUrl}&menu=${
+                    @ViewBag.id_menu}&backoffice=${$('#tipoFR').val()},${$('#selectBodegasFR').val()},${
+                    $('#pedidoOcultoFR').val()},${$('#idClienteOculto').val()}`;
+                $('#msjErrorBodegasFR').hide();
+            } else {
+                $('#msjErrorBodegasFR').show();
+                setTimeout(function() {
+                        $("#msjErrorBodegasFR").fadeOut(2000);
+                    },
+                    8000);
+            }
+        });
+
+        function seguimiento(id) {
+            window.location.href = `@Url.Action("Seguimiento", "vpedidos")?menu=${@ViewBag.id_menu}&id=${id}`;
+        }
+
+        function verifica(id) {
+            window.location.href = `@Url.Action("Verificar", "vpedidos")?menu=${@ViewBag.id_menu}&id=${id}`;
+        }
+
+        $('#modalTracking').on('shown.bs.modal',
+            function() {
+                if ($('#planValue').val() == null || $('#planValue').val() == "") {
+                    $('#registroEvento').hide();
+                } else {
+                    //setInterval();
+                    $('#registroEvento').show();
+                }
+            });
+
+        function refresh() { tracking($('#planValue').val()); }
+
+        function autorizar(planmayor, modelo) {
+            if (planmayor == null || planmayor == "") {
+                swal("Este pedido no tiene plan mayor!", "", "warning");
+            } else {
+                swal({
+                        title: 'Autorizacion',
+                        text: `¿Desea enviar la solicitud para facturar el vehiculo ${planmayor} - ${modelo}?`,
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Si, enviar!",
+                        cancelButtonText: "No, cancelar!",
+                        closeOnConfirm: false,
+                        closeOnCancel: false
+                },
+                    function(isConfirm) {
+                        if (isConfirm) {
+                            $.ajax({
+                                url: '/vpedidos/EnviarSolicitudFacturacion',
+                                data: {
+                                    plan_mayor: planmayor,
+                                    modelo: modelo,
+                                },
+                                type: "post",
+                                cache: false,
+                                success: function(data) {
+
+                                    if (data == -1) {
+                                        swal("", "Error al enviar la notificación", "error");
+                                    }
+                                    if (data == 0) {
+                                        swal("",
+                                            "No existen usuarios parametrizados para enviar una notificación",
+                                            "warning");
+                                    }
+                                    if (data == 1) {
+                                        swal("", "Notificación enviada correctamente", "success");
+                                    }
+                                    if (data == 2) {
+                                        swal("",
+                                            "Ya se envio una notificación anteriormente del vehículo seleccionado",
+                                            "warning");
+                                    }
+                                }
+                            });
+
+                        } else {
+                            swal("Cancelado", "", "error");
+                        }
+                    });
+            }
+        }
+
+        function facturar(idPedido, bodega, pedido, planmayor, modelo, autorizado) {
+            if (autorizado == "true") {
+                $('#bodegaOculto').val('');
+                $('#pedidoOculto').val('');
+                $('#bodegaOculto').val(bodega);
+                $('#pedidoOculto').val(pedido);
+
+                $('#modalFacturacionVehiculo').modal('show');
+            } else {
+                $.ajax({
+                    url: '/vpedidos/verificarPendientes',
+                    data: {
+                        idPedido: idPedido,
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function(data) {
+                        if (data.solicitar == false) {
+                            $('#bodegaOculto').val('');
+                            $('#pedidoOculto').val('');
+                            $('#bodegaOculto').val(bodega);
+                            $('#pedidoOculto').val(pedido);
+                            $('#modalFacturacionVehiculo').modal('show');
+                        } else {
+                            swal({
+                                    title: 'Advertencia',
+                                    text:
+                                        `Este pedido no cumple con los requisitos para ser facturado ¿Desea enviar la solicitud para facturar el vehiculo ${
+                                            planmayor
+                                            } - ${modelo}?`,
+                                    type: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#DD6B55",
+                                    confirmButtonText: "Si, solicitar!",
+                                    cancelButtonText: "No, cancelar!",
+                                    closeOnConfirm: false,
+                                    closeOnCancel: false
+                                },
+                                function(isConfirm) {
+                                    if (isConfirm) {
+                                        if (planmayor == null || planmayor == "") {
+                                            swal("Este pedido no tiene plan mayor!", "", "warning");
+                                        } else {
+                                            $.ajax({
+                                                url: '/vpedidos/EnviarSolicitudFacturacion',
+                                                data: {
+                                                    plan_mayor: planmayor,
+                                                    modelo: modelo,
+                                                },
+                                                type: "post",
+                                                cache: false,
+                                                success: function(data) {
+
+                                                    if (data == -1) {
+                                                        swal("", "Error al enviar la notificación", "error");
+                                                    }
+                                                    if (data == 0) {
+                                                        swal("",
+                                                            "No existen usuarios parametrizados para enviar una notificación",
+                                                            "warning");
+                                                    }
+                                                    if (data == 1) {
+                                                        swal("", "Notificación enviada correctamente", "success");
+                                                    }
+                                                    if (data == 2) {
+                                                        swal("",
+                                                            "Ya se envio una notificación anteriormente del vehículo seleccionado",
+                                                            "warning");
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                        swal("Cancelado", "", "error");
+                                    }
+                                });
+                        }
+                    }
+                });
+            }
+        }
+
+        $('#irFacturacion').click(function() {
+            if ($('#bodegaOculto').val() == $('#selectBodegas').val()) {
+                window.location.href =
+                    `../../facturacionNuevos/FacturacionNuevosBackoffice?id=${idUrl}&menu=${
+                    @ViewBag.id_menu}&backoffice=${$('#tipo').val()},${$('#selectBodegas').val()},${$('#pedidoOculto')
+                    .val()}`;
+                $('#msjErrorBodegas').hide();
+            } else {
+                $('#msjErrorBodegas').show();
+                setTimeout(function() {
+                        $("#msjErrorBodegas").fadeOut(2000);
+                    },
+                    8000);
+            }
+        });
+
+        $('#cerrarModal').click(function() {
+            $('#modalTracking').hide();
+        });
+
+        $('#registroEvento').click(function() {
+            registrarEvento($('#planValue').val());
+        });
+
+        function registrarEvento(planmayor) {
+            window.location.href =
+                `../../EventoVehiculo/Registrar?id=${idUrl}&menu=${@ViewBag.id_menu}&planmayor=${planmayor}`;
+        }
+
+        var cantidadBuscadaFiltros = 0;
+        var filtros = new Array();
+        var valorfiltros = new Array();
+        var cantidadFiltros = 0;
+
+        function BuscarDevoluciones() {
+            valorfiltros.length = 0;
+            for (let n = 0; n < cantidadFiltros; n++) {
+                valorfiltros.push($(`#filtro${n}`).val());
+            }
+
+            const cadenaFiltro = filtros.join();
+            const cadenaValoresFiltro = valorfiltros.join();
+
+            $('#PestanaVerDetalle').hide();
+            if ($.fn.DataTable.isDataTable('#tablaBusquedas')) {
+                $('#tablaBusquedas').dataTable().fnDestroy();
+            }
+
+            const table = $('#tablaBusquedas').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "filter": true,
+                "orderMulti": false,
+                "searching": false,
+                dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                buttons: [
+                    // { extend: 'csv', title: 'ExampleFile', className: 'btn-sm', text: 'Exportar a Excel' }
+                ],
+                "ajax": {
+                    "url": "/vpedidos/BuscarPedidosPaginados",
+                    "type": "POST",
+                    "datatype": "json",
+                    "data": {
+                        filtros: cadenaFiltro,
+                        valorFiltros: cadenaValoresFiltro,
+                        filtroGeneral: $('#txtFiltroGeneral').val()
+                    }
+                },
+                "columns": [
+                    { "data": "Columna0", "name": "Columna0", "autoWidth": true },
+                    { "data": "Columna1", "name": "Columna1", "autoWidth": true, className: "align-right" },
+                    { "data": "Columna2", "name": "Columna2", "autoWidth": true, className: "align-right" },
+                    { "data": "Columna3", "name": "Columna3", "autoWidth": true },
+                    { "data": "Columna4", "name": "Columna4", "autoWidth": true, className: "align-right" },
+                    { "data": "Columna5", "name": "Columna5", "autoWidth": true },
+                    { "data": "Columna6", "name": "Columna6", "autoWidth": true },
+                    { "data": "Columna7", "name": "Columna7", "autoWidth": true, className: "align-right" },
+                    { "data": "Columna8", "name": "Columna8", "autoWidth": true, className: "align-right" },
+                    {
+                        "mData": null,
+                        "bSortable": false,
+                        "mRender": function(o) {
+                            return `<button class="btn btn-info btn-xs" onclick="verDevolucion('${o.Columna9
+                                }')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>`;
+                        }
+                    }
+                ]
+            });
+
+            const data = table.buttons.exportData();
+            // Buscar filtros
+            if (cantidadBuscadaFiltros == 0) {
+                BuscarFiltrosPestana2();
+                cantidadBuscadaFiltros++;
+            }
+        }
+
+        function BuscarFiltrosPestana2() {
+            var contenido = '';
+            $.ajax({
+                url: '/vpedidos/BuscarFiltrosPestanaDos',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    for (var i = 0; i < data.buscarFiltros.length; i++) {
+                        if (data.buscarFiltros[i].menu_busqueda_tipo_campo == 'text') {
+                            contenido +=
+                                `<li><div class="col-md-12"><div class="form-group"><div class="col-md-12"><label class="filter-col" style="margin-right:0;" for="pref-search">${
+                                data.buscarFiltros[i].menu_busqueda_nombre
+                                }</label></div><div class="col-md-12"><input autocomplete="off" placeholder="Digite ${
+                                data.buscarFiltros[i].menu_busqueda_nombre
+                                }" type="text" class="form-control" id="filtro${cantidadFiltros
+                                }"></div></div></div></li>`;
+                            filtros.push(data.buscarFiltros[i].menu_busqueda_campo);
+                            cantidadFiltros++;
+                        }
+                        if (data.buscarFiltros[i].menu_busqueda_tipo_campo == 'date') {
+                            contenido +=
+                                `<li><div class="col-md-12"><div class="form-group"><div class="col-md-12"><label class="filter-col" style="margin-right:0;" for="pref-search">${
+                                data.buscarFiltros[i].menu_busqueda_nombre
+                                }</label></div><div class="col-md-12"><input autocomplete="off" placeholder="Digite ${
+                                data.buscarFiltros[i].menu_busqueda_nombre
+                                }" type="text" class="form-control date-filter" id="filtro${cantidadFiltros
+                                }"></div></div></div></li>`;
+                            filtros.push(data.buscarFiltros[i].menu_busqueda_campo);
+                            cantidadFiltros++;
+                        }
+                    }
+
+                    for (var i = 0; i < data.listas.length; i++) {
+                        let opcionesDeSelect = '';
+                        opcionesDeSelect += '<option value""></option>';
+                        for (let j = 0; j < data.listas[i].items.length; j++) {
+                            opcionesDeSelect += `<option value="${data.listas[i].items[j].Value}">"${data.listas[i]
+                                .items[j].Text}"</option>`;
+                        }
+                        contenido +=
+                            `<li><div class="col-md-12"><div class="form-group"><div class="col-md-12"><label class="filter-col" style="margin-right:0;" for="pref-search">${
+                            data.listas[i].NombreAMostrar
+                            }</label></div><div class="col-md-12"><select placeholder="Seleccione..." class="form-control autoSelect" id="filtro${
+                            cantidadFiltros}">"${opcionesDeSelect}"</select></div></div></div></li>`;
+                        filtros.push(data.listas[i].NombreCampo);
+                        cantidadFiltros++;
+                    }
+
+                    contenido += '<li><div class="col-md-12">' +
+                        '<div class="form-group">' +
+                        '<div class="col-md-8 col-md-offset-4"><button type="button" class="btn btn-primary" onclick="BuscarDevoluciones();" id="" name="">Buscar&nbsp;<i class="fa fa-search"></i></button></div>' +
+                        '</div>' +
+                        '</div></li>';
+                    $('#contenido-filtro').html(contenido);
+                },
+                complete: function(data) {
+                    $('.date-filter').datetimepicker({
+                        format: 'YYYY/MM/DD'
+                    });
+                    $('.autoSelect').val('').prop('style', 'visible:visible').select2();
+                }
+            });
+        }
+
+        var apertura = 0;
+
+        function tracking(planmayor, apertura) {
+
+            $('#tablaTracking').find('tbody').empty();
+
+            $('#planValue').val(planmayor);
+
+            $.ajax({
+                url: '/vpedidos/buscarTracking',
+                data: {
+                    planmayor: planmayor,
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    console.log(data);
+                    $('#tablaTracking').find('tbody').empty();
+                    $('#tablaTrackingFaltantes').find('tbody').empty();
+                    if (data.info == true) {
+                        if (apertura == 1) {
+                            $('#modalTracking').modal('show');
+                        }
+                        for (var i = 0; i < data.data2.length; i++) {
+                            $('#tablaTracking').find('tbody').append(
+                                `<tr><td align="right">${data.data2[i].codigo}</td><td align="left">${
+                                data.data2[i].nombre}</td><td align="left">${data.data2[i].bodega
+                                }</td><td align="left">${data.data2[i].fecha
+                                }</td><td align="left">${data.data2[i].usuario
+                                }</td><td align="center"><button type="button" class="btn btn-info btn-sm" id="ver_${
+                                data.data2[i].codigo
+                                }" name="ver_${data.data2[i].codigo}" onclick="verArchivo('${data.data2[i].cargado
+                                }')"><i class="fa fa-eye"></i>&nbsp;&nbsp;&nbsp;ver</button></td></tr>`);
+                        }
+                        for (var i = 0; i < data.buscarFaltantes.length; i++) {
+                            $('#tablaTrackingFaltantes').find('tbody').append(
+                                `<tr><td align="right">${data.buscarFaltantes[i].tpevento_id}</td><td align="left">${
+                                data.buscarFaltantes[i].tpevento_nombre}</td></tr>`);
+                        }
+                    }
+                },
+                complete: function(data) {
+                    for (let i = 0; i < data.responseJSON.data2.length; i++) {
+                        if (data.responseJSON.data2[i].cargado == 0) {
+                            $(`#ver_${data.responseJSON.data2[i].codigo}`).hide();
+                        } else {
+                            $(`#ver_${data.responseJSON.data2[i].codigo}`).show();
+                        }
+                    }
+                }
+            });
+            //$('#refresh_btn').trigger('click')
+        }
+
+        function verArchivo(id) {
+            $.ajax({
+                url: '/vpedidos/verArchivo',
+                data: {
+                    id: id,
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    window.open(data, '_blank');
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito() {
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos')
+                            .html(
+                                "<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+        var encabezado = @ViewBag.encabezado;
+        console.log(`encabezado ${encabezado}`);
+       
+        if (encabezado >0) {
+            sweetAlertInitialize();
+            swal({
+                    title: 'Formato de Impresión',
+                    text: 'Seleccione el formato con el que desea imprimir la factura',
+                    confirmButtonText: "Original",
+                    confirmButtonColor: "#62cb31",
+                    showCancelButton: true,
+                    cancelButtonText: "Cancelar",
+                    closeOnCancel: true,
+                    closeOnConfirm: true,
+                    allowOutsideClick: true
+                },
+                function(isConfirm) {
+                    if (isConfirm) {
+                        definirFactura(encabezado); // 1 cuando es original
+                    }
+                });
+
+            function definirFactura(encabezado) {
+              
+                // if ( encabezado != "" && encabezado != undefined) {
+                window.open('@Url.Action("GenerarFactura", "facturacionNuevos")?cabeza='+encabezado,
+                    '_blank');
+                //}
+            }
+        }
+    </script>
+}

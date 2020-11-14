@@ -1,0 +1,278 @@
+﻿@model Homer_MVC.IcebergModel.IngresoVhModel
+@{
+    ViewBag.Title = "Toma Improntas";
+    ViewBag.Icono = "fa fa-pencil-square-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <br />
+
+        <div id="tabs" class="tab-content">
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                @*<li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>*@
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm("toma_improntas", "toma_improntas", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+                        @*<div class="panel-body-btns text-right">
+                                <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                            </div>*@
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.HiddenFor(model => model.icbvh_id)
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;&nbsp;Buscar Vehiculo
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Numero VIN:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("vinBuscar", new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.vin, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <div class="col-md-8">
+
+                                                <input type="button" class="btn btn-info" value="Buscar" id="btnBuscarVin" />
+                                                &nbsp;&nbsp;<label class="control-label" style="text-align:left; display:none" id="labelNoEncontrado"><span class="text-danger" id="VinNoEncontrado">Vin no existe</span></label>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+
+
+                            <div id="datosVehiculoBuscado" style="display:none">
+
+                                <div class="hpanel">
+                                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                        <div class="panel-tools">
+                                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                        </div>
+                                        <i class="fa fa-car"></i>&nbsp;&nbsp;&nbsp;Datos Vehiculo
+                                    </div>
+                                    <div class="panel-body">
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Numero VIN:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.vin, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.vin, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Modelo:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.modvh_descripcion, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.modvh_descripcion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.bodega_nombre, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.bodega_nombre, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Color:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.colvh_nombre, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.colvh_nombre, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Evento:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.evento_nombre, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.evento_nombre, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    <input type="submit" value="Toma Improntas" class="btn btn-info" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+
+                            </div>@*Cierra el div de los datos del vehiculo buscado*@
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+        });
+
+        $('#btnBuscarVin').click(function () {
+            if ($.trim($('#vinBuscar').val()) != '') {
+
+                $.ajax({
+                    url: '/toma_improntas/BuscarVehiculoVin',
+                    data: {
+                        vin: $("#vinBuscar").val(),
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        console.log(data);
+                        if (data.vehiculo.length > 0) {
+                            $('#labelNoEncontrado').hide('1000');
+                            $('#icbvh_id').val(data.vehiculo[0].icbvh_id);
+                            $('#vin').val(data.vehiculo[0].vin);
+                            $('#modvh_descripcion').val(data.vehiculo[0].modvh_nombre);
+                            $('#bodega_nombre').val(data.vehiculo[0].bodccs_nombre);
+                            $('#colvh_nombre').val(data.vehiculo[0].colvh_nombre);
+                            $('#evento_nombre').val(data.vehiculo[0].tpevento_nombre);
+                            $('#datosVehiculoBuscado').hide('1000');
+                            $('#datosVehiculoBuscado').show('1000');
+                        } else if (data.estadoVin == -1) {
+                            $('#VinNoEncontrado').text('El usuario no tiene permiso de ver ese Vin');
+                            $('#labelNoEncontrado').show('1000');
+                            $('#datosVehiculoBuscado').hide('1000');
+                        } else if (data.estadoVin == -2) {
+                            $('#VinNoEncontrado').text('El estatus del vehiculo no se encuentra en recepcionado');
+                            $('#labelNoEncontrado').show('1000');
+                            $('#datosVehiculoBuscado').hide('1000');
+                        } else if (data.estadoVin == -3) {
+                            $('#VinNoEncontrado').text('Ya se realizo una toma de impronta a ese vin');
+                            $('#labelNoEncontrado').show('1000');
+                            $('#datosVehiculoBuscado').hide('1000');
+                        } else if (data.estadoVin == -4) {
+                            $('#VinNoEncontrado').text('El vin ingresadado no existe');
+                            $('#labelNoEncontrado').show('1000');
+                            $('#datosVehiculoBuscado').hide('1000');
+                        }
+                    },
+                    complete: function (data) {
+                        //BuscarInspeccionesActuales();
+                    }
+                })
+
+            }
+        });
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+    </script>
+
+}

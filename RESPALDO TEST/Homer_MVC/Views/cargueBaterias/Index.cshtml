@@ -1,0 +1,675 @@
+﻿
+@{
+    ViewBag.Title = "Cargue Baterias";
+    ViewBag.Icono = "fa fa-battery-half";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+
+<div class="panel-body">
+    <div class="hpanel">
+        <div id="tabs" class="tab-content">
+            <ul id="tabs-cargueBaterias" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#ArchivosCargados" id="tabArchivosCargados"><i class=""></i>&nbsp;&nbsp;Archivos Cargados</a></li>
+                <li class=""><a data-toggle="tab" href="#CargueBaterias"><i class=""></i>&nbsp;&nbsp;Pendiente Ingreso</a></li>
+                <li class=""><a data-toggle="tab" href="#DetallesCargue" id="tabDetallesCargue"><i class=""></i>&nbsp;&nbsp;Detalles Archivo</a></li>
+            </ul>
+
+
+            @*Primer tab par listar los pedidos de vehiculos nuevos*@
+            <div id="CargueBaterias" class="tab-pane">
+                <div class="panel-body">
+
+
+                    @*<div class="col-md-2 col-md-offset-8" style="text-align:right">
+                            @*<input type="radio"/>
+                            <input type="radio" />
+                            <input type="radio" />
+                            <select class="col-md-12" id="selectBusquedas">
+                                <option value="" disabled selected>Select Option</option>
+                                @foreach (var item in ViewBag.paramBusqueda) {
+                                    <option value="@item.menu_busqueda_campo">@item.menu_busqueda_nombre</option>
+                                }
+                            </select>
+                        </div>*@
+
+
+
+                    @*<div class="row">
+
+                            <div class="col-sm-2 pull-right">
+
+                                <div class="input-group">
+                                    <input id="txBusquedaPedido" type="text" runnat="server" class="form-control col-md-5" placeholder="Buscar.."> <span class="input-group-btn">
+                                        <button class="btn btn-sm btn-info" id="btnBuscarPedidos" onclick="" type="button">
+                                            <i class="fa fa-search"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>*@
+
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginadaSinTomaBateria">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Vin</th>
+                                        <th style="text-align:center">Modelo</th>
+                                        <th style="text-align:center">Fecha Ingreso</th>
+                                        <th style="text-align:center">Bodega</th>
+                                        <th style="text-align:center">Accion</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                            @*<div class="row col-md-4 col-md-offset-4">
+                                    <div id="page-selection"></div>
+                                </div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            @*Primer tab par listar los detalles de los pedidos de vehiculos nuevos*@
+            <div id="ArchivosCargados" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm("Index", "cargueBaterias", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+
+                        @Html.Hidden("menu")
+
+                        <div class="panel-body-btns text-right">
+
+                            <label class="btn btn-default btn-file" style="display:none">
+                                Archivo<input type="file" id="importExcelCargueBaterias" name="excelfile" style="display: none;">
+                            </label>
+                            <a href="" download="PedidoFirmeDemo"><u style="color:#1B2DD3">Descargar Demo</u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modalCargueArchivo"><i class="fa fa-upload" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;Cargar Archivo</button>
+
+                            <input type="submit" class="btn" value="Importar" />
+                        </div>
+
+                        @Html.Hidden("tomaBateriaExcel", new { @id = "cod_factura" })
+                        @Html.Hidden("bodegaExcel", new { @id = "cod_factura" })
+                        <hr />
+
+                    }
+
+                    @*<div class="row">
+                            <div class="col-sm-2 pull-right">
+                                <div class="input-group">
+                                    <input id="txBusquedaDetallePedido" type="text" runnat="server" class="form-control col-md-4" placeholder="Buscar.."> <span class="input-group-btn">
+                                        <button class="btn btn-sm btn-info" id="btnBuscarPedidos" onclick="validarIdPedidoActual()" type="button">
+                                            <i class="fa fa-search"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>*@
+
+
+
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginadaArchivosCargue">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Nombre Archivo</th>
+                                        <th style="text-align:center">Toma</th>
+                                        <th style="text-align:center">Procesados</th>
+                                        <th style="text-align:center">No Procesados</th>
+                                        <th style="text-align:center">Total</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Accion</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                            <div class="row col-md-4 col-md-offset-4">
+                                <div id="page-selection-VerArchivos"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+            @*Tercer tab par listar los detalles de los pedidos de vehiculos nuevos*@
+            <div id="DetallesCargue" class="tab-pane">
+                <div class="panel-body">
+
+                    <div class="row">
+                        <div class="col-sm-2 pull-right">
+                            <div class="input-group">
+                                <input id="txBusquedaDetallePedido" type="text" runnat="server" class="form-control col-md-4" placeholder="Buscar.."> <span class="input-group-btn">
+                                    <button class="btn btn-sm btn-info" id="btnBuscarPedidos" onclick="validarIdPedidoActual()" type="button">
+                                        <i class="fa fa-search"></i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-body-busqueda">
+
+                        <h4><span class="label label-default">Registros Cargados</span></h4>
+
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginadaDetallesCargue">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">VIN</th>
+                                        <th style="text-align:center">Modelo</th>
+                                        <th style="text-align:center">Decision</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                            <div class="row col-md-4 col-md-offset-4">
+                                <div id="page-selection-VerDetalles"></div>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <h4><span class="label label-default">Registros No Cargados</span></h4>
+
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginadaDetallesCargueError">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Vin</th>
+                                        <th style="text-align:center">Excepcion</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                            @*<div class="row col-md-4 col-md-offset-4">
+                                    <div id="page-selection-VerDetalles"></div>
+                                </div>*@
+                        </div>
+
+
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+<div id="modalCargueIndividual" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h3 class="modal-title">Datos Cargue Bateria</h3>
+            </div>
+            @Html.Hidden("idVehiculo")
+            <div class="modal-body">
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-6">CCA Bateria:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <input type="number" class="form-control" id="ccaBateria" />
+                        </div>
+                    </div>
+                </div>
+                <br /><br />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-6">Voltaje Tomado :&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <input type="number" class="form-control" id="voltajeBateria" />
+                        </div>
+                    </div>
+                </div>
+                <br /><br />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-6">CCA Tomado :&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <input type="number" class="form-control" id="ccaTomado" />
+                        </div>
+                    </div>
+                </div><br /><br />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-6">Toma Bateria:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <select class="form-control" id="selectTomaBaterias">
+                                @foreach (var item in ViewBag.tomaBateria)
+                                {
+                                    <option value="@item.tombat_id">@item.tombat_nombre</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <br /><br />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-6">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <select class="form-control" id="selectBodega">
+                                @foreach (var item in ViewBag.bodegas)
+                                {
+                                    <option value="@item.bodccs_cod">@item.bodccs_nombre</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <br /><br /><br />
+
+            </div>
+            <div class="modal-footer">
+
+                <div class="col-sm-8" id="alertaModalIndividual">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <strong>Los campos marcados con (*) son obligatorios.</strong>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-default" data-dismiss="" id="AceptarCargueIndividual">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="modalCargueArchivo" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h3 class="modal-title">Datos Cargue Bateria</h3>
+            </div>
+            @Html.Hidden("idVehiculo")
+            <div class="modal-body">
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-6">Toma Bateria:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <select class="form-control" id="selectTomaBateriasExcel" name="selectTomaBateriasExcel">
+                                @foreach (var item in ViewBag.tomaBateria)
+                                {
+                                    <option value="@item.tombat_id">@item.tombat_nombre</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <br /><br />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-6">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <select class="form-control" id="selectBodegaExcel" name="">
+                                @foreach (var item in ViewBag.bodegas)
+                                {
+                                    <option value="@item.bodccs_cod">@item.bodccs_nombre</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <br /><br /><br />
+
+            </div>
+            <div class="modal-footer">
+
+                <div class="col-sm-8" id="alertaModalIndividual">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <strong>Los campos marcados con (*) son obligatorios.</strong>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-default" data-dismiss="" id="AceptarCargueExcel">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="modalExcelMensajeCargue" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="mensajeTitulo"><strong></strong></h3><p id="mensajeCuerpo"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id="ExcelOk">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $('#selectBusquedas').select2();// vin , fecha ingreso, bodega
+            $('#selectTomaBaterias').select2();
+            $('#selectBodega').select2();
+            $('#selectTomaBateriasExcel').select2();
+            $('#selectBodegaExcel').select2();
+            buscarAjaxCargueBaterias();
+            buscarAjaxArchivosCargue();
+        });
+
+
+        function verDetallesCargueBaterias(idArchivo) {
+
+            $.ajax({
+                url: '/cargueBaterias/GetDetallesCargueBaterias',
+                data: {
+                    id: idArchivo
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginadaDetallesCargue').find('tbody').empty();
+                    for (var i = 0; i < data.detallesJson.length; i++) {
+                        $('#tablaPaginadaDetallesCargue').find('tbody').append('<tr><td align="left">' + data.detallesJson[i].vin + '</td><td align="left">'
+                            + data.detallesJson[i].modvh_nombre + '</td><td align="left">' + data.detallesJson[i].veh_bat_decision + '</td></tr>');
+                    }
+
+                    $('#tablaPaginadaDetallesCargueError').find('tbody').empty();
+                    for (var i = 0; i < data.listaLogsExcel.length; i++) {
+                        $('#tablaPaginadaDetallesCargueError').find('tbody').append('<tr><td align="left">' + data.listaLogsExcel[i].Vin + '</td><td align="left">'
+                            + data.listaLogsExcel[i].Excepcion + '</td></tr>');
+                    }
+
+                },
+                complete: function (data) {
+                    $('.nav-tabs li:eq(2) a').tab('show');
+                    $('#tablaPaginadaDetallesCargue').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "destroy": true,
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                    $('#tablaPaginadaDetallesCargueError').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "destroy": true,
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+
+                }
+            });
+        }
+
+        function buscarAjaxArchivosCargue() {
+
+            $.ajax({
+                url: '/cargueBaterias/GetArchivosCarguePaginados',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginadaArchivosCargue').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginadaArchivosCargue').find('tbody').append('<tr><td align="left">' + data[i].tombat_log_nombrearchivo + '</td><td align="left">'
+                            + data[i].tombat_nombre + '</td><td align="right">'
+                            + data[i].tombat_log_itemscorrecto + '</td><td align="right">'
+                            + data[i].tombat_log_itemserror + '</td><td align="right">'
+                            + data[i].tombat_log_items + '</td><td align="right">'
+                            + data[i].tombat_log_fecha + '</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="verDetallesCargueBaterias('
+                            + '\'' + data[i].id_arch_tombat
+                            + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginadaArchivosCargue').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                    //$('#page-selection-VerArchivos').bootpag({
+                    //    page: 1,
+                    //    total: parseInt((data.responseJSON.total + 29) / 30),
+                    //    maxVisible: 10
+                    //});
+                }
+            });
+
+
+            //$('#page-selection').on("page", function (event, /* page number here */ num) {
+            //    $.ajax({
+            //        url: '/cargueBaterias/GetArchivosCarguePaginados',
+            //        data: {
+            //            texto: $("#txBusqueda").val(),
+            //            pagina: num,
+            //            parameters: parametros
+            //        },
+            //        type: "post",
+            //        cache: false,
+            //        success: function (data) {
+            //            $('#tablaPaginadaArchivosCargue').find('tbody').empty();
+            //            for (var i = 0; i < data.carguesJson.length; i++) {
+            //                $('#tablaPaginadaArchivosCargue').find('tbody').append('<tr><td align="center">' + data.carguesJson[i].tombat_log_nombrearchivo + '</td><td align="center">'
+            //                            + data.carguesJson[i].tombat_nombre + '</td><td align="center">'
+            //                            + data.carguesJson[i].tombat_log_itemscorrecto + '</td><td align="center">'
+            //                            + data.carguesJson[i].tombat_log_itemserror + '</td><td align="center">'
+            //                            + data.carguesJson[i].tombat_log_items + '</td><td align="center">'
+            //                            + data.carguesJson[i].tombat_log_fecha + '</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="verDetallesCargueBaterias('
+            //                            + '\'' + data.carguesJson[i].id_arch_tombat
+            //                            + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+            //            }
+            //        },
+            //        complete: function (data) {
+            //        }
+            //    })
+            //});
+        }
+
+
+
+
+
+        $('#AceptarCargueExcel').click(function () {
+            if ($.trim($('#selectTomaBateriasExcel').val()) != '' && $.trim($('#selectBodegaExcel').val()) != '') {
+                $('#tomaBateriaExcel').val($('#selectTomaBateriasExcel').val());
+                $('#bodegaExcel').val($('#selectBodegaExcel').val());
+                $('#modalCargueArchivo').modal('toggle');
+                $('#importExcelCargueBaterias').trigger('click');
+            }
+
+        });
+
+
+
+        function buscarAjaxCargue(idVehiculo) {
+            $('#idVehiculo').val(idVehiculo);
+            $('#modalCargueIndividual').modal().show();
+        }
+
+        function buscarAjaxCargueBaterias() {
+
+            $.ajax({
+                url: '/cargueBaterias/VehiculosSinCarguePaginados',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginadaSinTomaBateria').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginadaSinTomaBateria').find('tbody').append('<tr><td align="left">' + data[i].vin + '</td><td align="left">'
+                            + data[i].modvh_nombre + '</td><td align="right">'
+                            + data[i].icbvh_fecinsp_ingreso + '</td><td align="left">' + data[i].bodccs_nombre
+                            + '</td><td width="5%"><button class="btn btn-info btn-xs" onclick="buscarAjaxCargue(' + '\'' + data[i].icbvh_id
+                            + '\')">&nbsp;&nbsp;Registrar&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginadaSinTomaBateria').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+
+        $('#AceptarCargueIndividual').click(function () {
+            if ($.trim($('#ccaBateria').val()) != '' && $.trim($('#voltajeBateria').val()) != '' && $.trim($('#ccaTomado').val()) != ''
+                && $.trim($('#selectTomaBaterias').val()) != '' && $.trim($('#selectBodega').val()) != '') {
+                $.ajax({
+                    url: '/cargueBaterias/AgregarInspeccionIndividual',
+                    data: {
+                        idVehiculo: $('#idVehiculo').val(),
+                        ccaBateria: $('#ccaBateria').val(),
+                        voltajeBateria: $('#voltajeBateria').val(),
+                        ccaTomado: $('#ccaTomado').val(),
+                        idTomaBateria: $('#selectTomaBaterias').val(),
+                        idBodega: $('#selectBodega').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data) {
+                            buscarAjaxCargueBaterias();
+                            $('#modalCargueIndividual').modal('toggle');
+                            $('#ccaBateria').val('');
+                            $('#voltajeBateria').val('');
+                            $('#ccaTomado').val('');
+
+                        }
+                    }
+                });
+            }
+        });
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+
+    @if (TempData["mensajeCargue"] != null)
+    {
+        <script type="text/javascript">
+            $('.nav-tabs li:eq(1) a').tab('show')
+            $('#mensajeTitulo').text('Cargue Archivo');
+            $('#mensajeCuerpo').text('@TempData["mensajeCargue"]');
+            $('#modalExcelMensajeCargue').modal('show');
+        </script>
+    }
+
+}

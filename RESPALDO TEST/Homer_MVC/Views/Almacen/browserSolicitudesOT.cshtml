@@ -1,0 +1,640 @@
+﻿@{
+    ViewBag.Icono = "fa fa-car";
+    ViewBag.Title = "Solicitudes de Repuestos desde Ordenes de Taller";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <style>
+        .modal {
+            overflow-y: auto;
+        }
+
+        @@media (min-width: 992px) {
+            .modal-lg {
+                width: 1024px;
+            }
+        }
+
+        /*input[type=radio] {
+            border: 0px;
+            width: 100%;
+            height: 2em;
+        }*/
+
+        input[type=radio] {
+            appearance: none;
+            -moz-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            outline: none;
+            box-shadow: inset 0 0 0 2px #FFF;
+            border: 1px solid #FFF;
+        }
+
+            input[type=radio]:checked {
+                background-color: #CCC;
+            }
+    </style>
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Listado @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px">
+    <div class="hpanel">
+        <!--aqui se cargan los mensajes de exito y error-->
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+        <div id="tabs" class="tab-content">
+            <!--este no tengo idea de que hace-->
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+            <!--Aqui declaro las tabs que necesite-->
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <!--esta primera tab es la activa (la que se muestra de primero) y el href es a que tab hace referencia-->
+                @*Esta la tengo comentada mientras tanto*@
+                @*<li class=""><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>*@
+                <li class="active"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Busquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane">
+
+            </div>
+            <div id="buscar" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="row">
+                        @*<div class="col-sm-3">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Fecha Desde:&nbsp;<span class="text-danger"></span></label>
+                                    <div class="col-md-8">
+                                        @Html.Editor("fecha_desde", new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese fecha", @required = "required", @value = ViewBag.fechadesde } })
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Fecha Hasta:&nbsp;<span class="text-danger"></span></label>
+                                    <div class="col-md-8">
+                                        @Html.Editor("fecha_hasta", new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese fecha", @required = "required" } })
+                                    </div>
+                                </div>
+                            </div>*@
+
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger"></span></label>
+                                <div class="col-md-8">
+                                    @Html.DropDownList("bodega", null, htmlAttributes: new { @class = "multiselect-ui form-control", @placeholder = "Seleccione", @multiple = "multiple" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-5">
+                            <div class="row">
+                                <div class="col-md-5" style="padding-right: 0">
+                                    <input type="text" class="input-sm form-control col-md-4 fechas" name="buscardesde" id="buscardesde" value="" placeholder="Fecha Inicio" autocomplete="off" />
+                                    <!--<input type="hidden" id="fechaDH" name="fechaDH" value="" />-->
+                                </div>
+                                <div class="col-md-2" style="padding-left: 0; padding-right: 0;">
+                                    <span class="input-group-addon">Hasta</span>
+                                </div>
+                                <div class="col-md-5" style="padding-left: 0">
+                                    <input type="text" class="input-sm form-control col-md-4 fechas" name="buscarhasta" id="buscarhasta" value="" placeholder="Fecha Fin" autocomplete="off" />
+                                    <!--<input type="hidden" id="fechaHH" name="fechaHH" value="" />-->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4" style="/*padding-top:10px;*/">
+                            <div class="input-group">
+                                <input type="text" id="txtFiltroGeneral" placeholder="Buscar..." class="form-control"> <span class="input-group-btn">
+                                    <button type="button" class="btn btn-primary" id="botonbuscar">
+                                        <i class="fa fa-search">&nbsp;Buscar</i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <div id="x1">
+                                @*<input type="hidden" name="idrol" id="idrol" value="@ViewBag.rol" />
+                                    <input type="hidden" name="idasesor" id="idasesor" value="@ViewBag.user" />*@
+
+                            </div>
+                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                <p><strong> Leyenda Stock Referencias</strong></p>
+                                <div class="col-sm-2 col-md-2 col-lg-2" style="text-align:center">
+                                    <button type="button" class="btn btn-sm btn-success">&nbsp;</button><strong>Stock en bodega</strong>
+                                </div>
+                                <div class="col-sm-2 col-md-2 col-lg-2" style="text-align:center">
+                                    <button type="button" class="btn btn-sm btn-warning">&nbsp;</button><strong> Stock en Otra Bodega</strong>
+                                </div>
+                                <div class="col-sm-2 col-md-2 col-lg-2" style="text-align:center">
+                                    <button type="button" class="btn btn-sm btn-warning2">&nbsp;</button><strong> Stock en referencia reemplazo</strong>
+                                </div>
+                                <div class="col-sm-2 col-md-2 col-lg-2" style="text-align:center">
+                                    <button type="button" class="btn btn-sm btn-danger">&nbsp;</button><strong> NO hay stock</strong>
+                                </div>
+                            </div>
+                            <table id="tablaDisponibles" class="table table-striped table-bordered table-hover" width="100%">
+                                <thead>
+                                    <tr style="height:30px">
+                                        <th style="text-align:left">OT<br /></th>
+                                        <th style="text-align:left">Plan Mayor / Placa</th>
+                                        <th style="text-align:left">Vehículo</th>
+                                        <th style="text-align:left">Cliente</th>
+                                        <th style="text-align:left">Bodega</th>
+                                        <th style="text-align:left">Referencias</th>
+                                        <th style="text-align:left">Fecha Solicitud</th>
+                                        <th style="text-align:left">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalSolicitudRepuestos" class="modal hmodal-success" tabindex="-1" aria-hidden="true" role="dialog">
+    @using (Html.BeginForm("PedidoRepuestos", "Almacen", FormMethod.Post))
+    {
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="color-line"></div>
+                <div class="modal-header text-center">
+                    @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                    <h4 class="modal-title">Solicitudes de Orden de Taller <span id="codigoentradamod"></span></h4>
+                </div>
+                <div class="modal-body">
+
+                    <div class="hpanel" id="detallevehiculo">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                            </div>
+                            <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Detalle de Orden
+                        </div>
+                        <div class="panel-body">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Codigo:&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-6">
+                                        @Html.Editor("codigomodal", new { htmlAttributes = new { @class = "form-control", @type = "text", @readonly = "readonly" } })
+                                        @Html.Hidden("idordenmodal")
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Cliente:&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-6">
+                                        @Html.Editor("clientemodal", new { htmlAttributes = new { @class = "form-control", @type = "text", @readonly = "readonly" } })
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="control-label col-md-2">Vehículo:&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-10">
+                                        @Html.Editor("vehiculomodal", new { htmlAttributes = new { @class = "form-control", @type = "text", @readonly = "readonly" } })
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-6">
+                                        @Html.Editor("bodegamodal", new { htmlAttributes = new { @class = "form-control", @type = "text", @readonly = "readonly", @style = "text-align:right" } })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Fecha de Creación OT:&nbsp;<span class="text-danger">*</span></label>
+                                    <div class="col-md-6">
+                                        @Html.Editor("fechamodal", new { htmlAttributes = new { @class = "form-control", @type = "text", @readonly = "readonly", @style = "text-align:right" } })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                        </div>
+                    </div>
+                    <div class="hpanel" id="detallevehiculo">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                            </div>
+                            <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Repuestos a Solicitar
+                        </div>
+                        <div class="panel-body">
+                            @Html.Hidden("numero_solicitudes")
+                            <table id="tablaRepuestosmodal" class="table table-striped table-bordered table-hover" width="100%">
+                                <thead>
+                                    <tr style="height:30px">
+                                        <th style="text-align:left">Codigo Referencia<br /></th>
+                                        <th style="text-align:left">Descripcion</th>
+                                        <th style="text-align:left;width:10%">Cantidad</th>
+                                        <th style="text-align:left">Stock Bodega</th>
+                                        <th style="text-align:left">Stock Otras Bodegas</th>
+                                        <th style="text-align:left">Stock Reemplazo</th>
+                                        <th style="text-align:left">Cantidad Comprometida</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <label></label>
+
+                </div>
+                <div class="modal-footer">
+                    <input type="button" class="btn btn-primary" name="confirmarPedido" id="confirmarPedido" value="Guardar" />
+                    <input type="submit" style="display:none" class="btn btn-primary" name="gestionarPedido" id="gestionarPedido" value="Guardar" />
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/sweetalert/lib/sweet-alert.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#bodega').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400,
+                dropDown: true
+            });
+            $('.fechas').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: `-${new Date()}`
+            });
+            buscarDisponibles();
+            //buscarEstadoActual();
+        });
+
+        $('#botonbuscar').click(function () {
+            $('#botonbuscar').prop('disabled', true);
+            var asesor = $('#idasesor').val();
+            var tipotrans = 1;
+            buscarDisponibles();
+        });
+
+        function buscarDisponibles() {
+            //debugger;
+            $("#tablaDisponibles").dataTable().fnDestroy();
+
+            var tipoproceso = $('#tipos_proceso').val();
+            var general = $('#txtFiltroGeneral').val();
+
+            var table = $('#tablaDisponibles').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "filter": true,
+                "orderMulti": false,
+                "searching": false,
+                dom: "<''<'col-sm-4'><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'li>p",
+                "lengthMenu": [[50, 100, 200, -1], [50, 100, 200, "All"]],
+                buttons: [
+                    //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm', text: 'Exportar a Excel' }
+                ],
+                "ajax": {
+                    "url": "/Almacen/filtroSolicitudes",
+                    "type": "POST",
+                    "datatype": "json",
+                    "data": {
+                        /* filtros: cadenaFiltro,
+                         valorFiltros: cadenaValoresFiltro,*/
+                        filtroGeneral: $('#txtFiltroGeneral').val(),
+                        bodega: $('#bodega').val(),
+                        desde: $('#buscardesde').val(),
+                        hasta: $('#buscarhasta').val()
+                    }
+                },
+                "columns": [
+                    { "data": "codigoentrada", "name": "codigoentrada", "autoWidth": true, className: "align-right" },
+                    { "data": "plan_mayor", "name": "plan_mayor", "autoWidth": true },
+                    { "data": "descripcion", "name": "descripcion", "autoWidth": true },
+                    { "data": "nombretercero", "name": "nombretercero", "autoWidth": true },
+                    { "data": "nombre_bodega", "name": "nombre_bodega", "autoWidth": true },
+                    {
+                        "mData": null,
+                        "bSortable": false,
+                        "mRender": function (o) {
+
+                            console.log(o);
+
+                            var boton = "";
+                            var texto = "";
+
+                            if (o.referencias.length > 0) {
+                                boton += "<table width='100%' class='table table-striped table-bordered table-hover'>";
+                                boton += "<thead><tr><th>REFERENCIA</th><th>STOCK</th></tr></thead>";
+
+                                for (var i = 0; i < o.referencias.length; i++) {
+                                    var texto2="";
+                                    if (o.referencias[i].stockbodega > 0) {
+                                        texto2 = "<button type='button' class='btn btn-xs btn-success'>&nbsp;" + o.referencias[i].stockbodega + "&nbsp;</button>";
+                                    }
+                                    else if (o.referencias[i].stockbodega == 0 && o.referencias[i].stockreemplazo>0) {
+                                        texto2 = "<button type='button' class='btn btn-xs btn-warning'>&nbsp;" + o.referencias[i].stockreemplazo + "&nbsp;</button>";
+                                    }
+                                    else if (o.referencias[i].stockbodega == 0 && o.referencias[i].stockotras > 0) {
+                                        texto2 = "<button type='button' class='btn btn-xs btn-warning'>&nbsp;" + o.referencias[i].stockotras + "&nbsp;</button>";
+                                    }
+                                    else {
+                                        texto2 = "<button type='button' class='btn btn-xs btn-danger'>&nbsp;0&nbsp;</button>";
+                                    }
+                                    texto += "<tr><td>"+o.referencias[i].ref_descripcion+"</td><td>"+texto2+"</td></tr>";
+                                }
+                                boton += "<tbody>"+texto+"</tbody></table>";
+                            }
+                            console.log(boton);
+                            //boton = '<button class="btn btn-info btn-xs" onclick="verDetalle('
+                            //                         + '\'' + o.idorden
+                            //                          + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>';
+
+                            /*if (o.id_tipo_proceso == 1) {
+
+                            }
+                            else {
+                                boton= '<button class="btn btn-info btn-xs" onclick="verDetalle2('
+                                                    + '\'' + o.id_vehiculo_tercero
+                                                     + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>';
+                            }
+                            if (o.reversar == 1) {
+                                boton+='<button class="btn btn-danger btn-xs" onclick="reversar(event,'
+                                                    + '\'' + o.id_vehiculo_tercero
+                                                     + '\')">&nbsp;&nbsp;Reincorporar&nbsp;&nbsp;</button>';
+                            }*/
+                            return boton;
+                        }
+                    },
+                    { "data": "fecha2", "name": "fecha2", "autoWidth": true },
+                {
+                    "mData": null,
+                    "bSortable": false,
+                    "mRender": function (o) {
+                        var boton = "";
+                        boton = '<button class="btn btn-info btn-xs" onclick="verDetalle('
+                                                 + '\'' + o.idorden
+                                                  + '\')">&nbsp;&nbsp;Gestionar&nbsp;&nbsp;</button>';
+
+                        /*if (o.id_tipo_proceso == 1) {
+
+                        }
+                        else {
+                            boton= '<button class="btn btn-info btn-xs" onclick="verDetalle2('
+                                                + '\'' + o.id_vehiculo_tercero
+                                                 + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>';
+                        }
+                        if (o.reversar == 1) {
+                            boton+='<button class="btn btn-danger btn-xs" onclick="reversar(event,'
+                                                + '\'' + o.id_vehiculo_tercero
+                                                 + '\')">&nbsp;&nbsp;Reincorporar&nbsp;&nbsp;</button>';
+                        }*/
+                        return boton;
+                    }
+                },
+                ],
+                "order": [ [6, "asc"] ]
+            });
+
+            var data = table.buttons.exportData();
+            // Buscar filtros
+            $('#botonbuscar').prop('disabled', false);
+
+        }
+
+        function verDetalle(idorden) {
+            $('#codigoentradamod').html('');
+            $('#codigomodal').val('');
+            $('#clientemodal').val('');
+            $('#vehiculomodal').val('');
+            $('#bodegamodal').val('');
+            $('#idordenmodal').val('');
+            $('#numero_solicitudes').val('');
+
+            $('#tablaRepuestosmodal').find('tbody').empty();
+            $.ajax({
+                url: '/Almacen/buscardatosorden',
+                data: {
+                    idorden: idorden,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data != 0) {
+                        $('#codigoentradamod').html(data.codigoorden);
+                        $('#codigomodal').val(data.codigoorden);
+                        $('#idordenmodal').val(data.idorden);
+                        $('#clientemodal').val(data.tercero);
+                        $('#vehiculomodal').val(data.vehiculo);
+                        $('#bodegamodal').val(data.bodega);
+                        $('#fechamodal').val(data.fecha);
+
+
+                        if (data.solicitudes.length > 0) {
+                            $('#numero_solicitudes').val(data.solicitudes.length);
+
+                            for (var i = 0; i < data.solicitudes.length; i++) {
+                                var boton = "";
+                                if (parseInt(data.solicitudes[i].stock_bodega) == 0 && data.solicitudes[i].stock_otras_bodegas.length == 0) {
+                                    boton = "<button type='button' class='btn btn-sm btn-danger' style='margin-top:5px;' name='solicitud_" + i + "' id='solicitud_" + i + "' onclick='solicitar(\"" + data.solicitudes[i].referencia + "\")'>Solicitar</button>"
+                                }
+
+                                var noexistencias = 0;
+                                var boton_kdx = "<button type='button' class='btn btn-sm btn-info' style='margin-top:5px;' name='btnkdx_" + i + "' id='btnkdx_" + i + "' onclick='ver_kardex(\"" + data.solicitudes[i].referencia + "\")'>Ver Kardex</button>";
+                                $('#tablaRepuestosmodal').find('tbody').append('<tr><td align="left"><input type="hidden" class="form-control" id="idsolireferencia_' + i + '" name="idsolireferencia_' + i + '" readonly="true" value="'
+                                    + data.solicitudes[i].idsolicitud + '"/><input type="text" class="form-control" id="referencia_' + i + '" name="referencia_' + i + '" readonly="true" value="'
+                                    + data.solicitudes[i].referencia + '"/>' + boton + boton_kdx + '</td><td align="left"><input type="text" class="form-control" id="desc_referencia_' + i + '" name="desc_referencia_' + i + '" readonly="true" value="'
+                                    + data.solicitudes[i].desc_referencia + '"/></td><td align="right" style="width:10%"><input type="text" class="form-control" id="cantidad_' + i + '" name="cantidad_' + i + '" readonly="true" value="'
+                                    + data.solicitudes[i].cantidad + '"/></td><td align="left">'
+                                    + '<div class="col-md-12">'
+                                    + '<div class="col-md-8 col-sm-8"><input type="text" class="form-control" id="stock_bodega_' + i + '" name="stock_bodega_' + i + '" readonly="true" value="' + data.solicitudes[i].stock_bodega + '"/></div>'
+                                    + '<div class="col-md-3 col-sm-3"><input type="radio" class="form-control" id="tipoaus_' + i + '" name="tipoau_' + i + '" value="1" /></div>'
+                                    + '</div>'
+
+                                    +'<td align="left">'
+                                    +'<div class="col-md-12">'
+                                    + '<div class="col-md-8 col-sm-8"><select class="form-control" id="stock_otras_bodegas_' + i + '" name="stock_otras_bodegas_' + i + '"/></select>'
+                                    +'</div>'
+                                    + '<div class="col-md-3 col-sm-3"><input type="radio" class="form-control" id="tipoauo_' + i + '" name="tipoau_' + i + '" value="2"/></div>'
+                                    +'</div>'
+                                    +'</td><td align="left">'
+                                    + '<div class="col-md-12">'
+                                    + '<div class="col-md-8 col-sm-8"><select type="select" class="form-control" id="stock_reemplazo_' + i + '" name="stock_reemplazo_' + i + '"/></select>'
+                                    + '</div>'
+                                    + '<div class="col-md-3 col-sm-3"><input type="radio" class="form-control" id="tipoaur_' + i + '" name="tipoau_' + i + '" value="3"/></div>'
+                                    + '</div>'
+                                    + '</td>'
+                                    + '<td align="middle">' + data.solicitudes[i].cantidadComprometida + '</td>'
+                                    +'</tr > ');
+                                var ope = "";
+                                var ope2 = "";
+
+                                $('#stock_otras_bodegas_' + i).empty();
+
+                                if (data.solicitudes[i].stock_otras_bodegas.length > 0) {
+                                    debugger;
+                                    if (parseInt(data.solicitudes[i].stock_bodega) == 0) {
+                                        $('#tipoaus_' + i).prop('checked', false);
+                                        $('#tipoaus_' + i).prop('disabled', true);
+                                        $('#tipoauo_' + i).prop('checked', true);
+                                        $('#tipoauo_' + i).prop('disabled', false);
+                                    } else {
+                                        $('#tipoaus_' + i).prop('checked', true);
+                                        $('#tipoaus_' + i).prop('disabled', false);
+                                        $('#tipoauo_' + i).prop('checked', false);
+                                        $('#tipoauo_' + i).prop('disabled', true);
+                                    }
+
+                                    for (var j = 0; j < data.solicitudes[i].stock_otras_bodegas.length; j++) {
+                                        ope += ' <option value="' + data.solicitudes[i].stock_otras_bodegas[j].stockotrabodega + '">' + data.solicitudes[i].stock_otras_bodegas[j].nombrebodega + '</option>'
+                                    }
+                                    
+                                }
+                                else {
+                                    ope += ' <option value="0,0">NO DISPONIBLE</option>'
+                                    $('#tipoauo_' + i).prop('disabled', true);
+                                    $('#tipoauo_' + i).prop('checked', false);
+                                }
+                                $('#stock_otras_bodegas_' + i).append(ope);
+
+                                $('#stock_reemplazo_' + i).empty();
+
+                                if (data.solicitudes[i].tablastockreemplazo.length > 0) {
+
+                                    for (var k = 0; j < data.solicitudes[i].tablastockreemplazo.length; j++) {
+                                        ope2 += ' <option value="' + data.solicitudes[i].tablastockreemplazo[k].stockreemplazo + '">' + data.solicitudes[i].tablastockreemplazo[k].nombrereferencia + '</option>'
+                                    }
+                                    $('#tipoaur_' + i).prop('disabled', true);//t
+
+                                }
+                                else {
+                                    ope2 += ' <option value="0,0">NO DISPONIBLE</option>'
+                                    $('#tipoaur_' + i).prop('disabled', true);//t
+                                    $('#tipoaur_' + i).prop('checked', false);
+
+
+                                }
+                                $('#stock_reemplazo_' + i).append(ope2);
+                                debugger;
+                            }
+
+                        }
+                        $('#modalSolicitudRepuestos').modal('show');
+                        $('#confirmarPedido').prop('disabled', false);
+                    }
+                }
+            });
+        }
+
+        $('#confirmarPedido').click(function (e) {
+            var data = $('form').serialize()
+            console.log(data);
+            $.ajax({
+                url: '/Almacen/generarPedido',
+                type: 'POST',
+                data: data,
+                success: function (resp) {
+                    location.reload(true)
+                    console.log(resp);
+                }
+            })
+        });
+
+        function solicitar(id) {
+            window.open('@Url.Action("Create", "solicitudRepuestos")?menu=5355&&id='+id+'&ot='+$('#idordenmodal').val(), '_blank');
+        }
+
+        function ver_kardex(ref) {
+            window.open('@Url.Action("KardexRepuestos", "kardex")?menu=9422&&id='+ref, '_blank');
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+    </script>
+
+}
+
+
+
+

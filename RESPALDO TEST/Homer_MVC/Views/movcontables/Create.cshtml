@@ -1,0 +1,924 @@
+﻿@model Homer_MVC.IcebergModel.encab_documento
+
+@{
+    ViewBag.Title = "Movimiento Contable";
+    ViewBag.Icono = "fa fa-book";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje">
+                        @if (TempData["total_debitos"] != null)
+                        {
+                            <label class="label label-danger" style="font-size: 13px">Total Debitos: $<span class="precio">@Convert.ToDecimal(TempData["total_debitos"])</span></label>
+                        }
+                        @if (TempData["total_creditos"] != null)
+                        {
+                            <label class="label label-danger" style="font-size: 13px">Total Creditos: $<span class="precio">@Convert.ToDecimal(TempData["total_creditos"])</span></label>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#manual"><i class="fa fa-book"></i>&nbsp;&nbsp;Movimiento Contable</a></li>
+                <li class=""><a href="@Url.Action("Browser","movcontables", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+
+            <div id="manual" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-btns text-right">
+
+                    </div>
+                    <form action="/movcontables" enctype="multipart/form-data" method="post">
+
+                        @Html.Hidden("menu")
+
+                        <div class="panel-body-btns text-right">
+                            <a href="../../movcontables" class="btn btn-info" id="btnCancelar" type="button"><i class="fa fa-reply"></i>&nbsp;&nbsp;&nbsp;Cancelar</a>
+                            <button class="btn btn-info" id="div_btnGuardar" style="display:none"><i class="fa fa-save"></i> Guardar</button>
+                        </div>
+
+                        <div class="hpanel">
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    Datos generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="form-horizontal">
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" id="selectTipoDocumento" name="tipo" required="required" placeholder="Seleccione">
+                                                        @*<select class="form-control js-source-states" id="selectTipoDocumento" name="selectTipoDocumento" required="required" placeholder="Seleccione">*@
+                                                        <option></option>
+                                                        @foreach (var item in ViewBag.doc_registros)
+                                                        {
+                                                            <option value="@item.tpdoc_id">@item.tpdoc_nombre</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" id="selectBodegas" name="bodega" required="required">
+                                                        <option></option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cliente / Proveedor:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" id="selectProveedor" name="nit" required="required">
+                                                        <option></option>
+                                                        @foreach (var item in ViewBag.nit)
+                                                        {
+                                                            <option value="@item.tercero_id">@item.doc_tercero - @item.prinom_tercero @item.segnom_tercero @item.apellido_tercero @item.segapellido_tercero @item.razon_social</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Fecha:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <input type="text" name="fecha" id="fecha" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Concepto 1:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control limpiar js-source-states" name="concepto" id="concepto">
+                                                        <option></option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Concepto 2:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control limpiar js-source-states" name="concepto2" id="concepto2">
+                                                        <option></option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <hr />
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <div class="alert alert-danger alert-dismissible" id="mensaje" style="display: none">
+                                                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                                                <p id="txt_mensaje">Por favor digite los campos obligatorios</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-2">Cuenta:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states limpiar obligatorio" id="cuenta" placeholder="Seleccione" disabled="disabled">
+                                                        <option value=""></option>
+                                                        @foreach (var item in ViewBag.cuenta)
+                                                        {
+                                                            <option value="@item.cntpuc_id">@item.cntpuc_numero - @item.cntpuc_descp</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" id="div_ccosto" style="display: none">
+                                            <div class="form-group">
+                                                <div class="alert alert-danger" role="alert" id="error" style="display: none">
+                                                    La fecha seleccionada es inferior a la fecha de creacion del centro de costo
+                                                </div>
+                                                <label class="control-label col-md-4">Centro de Costo:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states limpiar" id="ccosto" name="ccosto" placeholder="Seleccione">
+                                                        <option value=""></option>
+                                                        @foreach (var item in ViewBag.ccosto)
+                                                        {
+                                                            <option value="@item.centcst_id">@item.pre_centcst - @item.centcst_nombre</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" id="div_nit" style="display: none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Nit:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control limpiar js-source-states" id="nit">
+                                                        <option></option>
+                                                        @foreach (var item in ViewBag.nit)
+                                                        {
+                                                            <option value="@item.tercero_id">@item.doc_tercero - @item.prinom_tercero @item.segnom_tercero @item.apellido_tercero @item.segapellido_tercero @item.razon_social</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" id="div_nitAdmin" style="display: none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Nit administrativo:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("nitAdmin", null, "", htmlAttributes: new { @class = "form-control limpiar js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.nit, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Debito:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <input type="text" id="debito" class="form-control limpiar obligatorio" value="" readonly="readonly" onkeyUp="return miles(this.id)" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Credito:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <input type="text" id="credito" class="form-control limpiar obligatorio" value="" readonly="readonly" onkeyUp="return miles(this.id)" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" id="div_base" style="display: none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Base:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <input type="text" id="base" class="form-control limpiar obligatorio" value="" onkeyUp="return miles(this.id)" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" id="div_documento" style="display:none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Documento:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <input type="text" id="documento" class="form-control limpiar obligatorio" value="" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Detalle:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    <input type="text" id="detalle" class="form-control limpiar " value="" readonly="readonly" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="div_conceptoniff">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Debito Niif:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        <input type="text" id="debitoNiff" class="form-control limpiar" value="" readonly="readonly" onkeyUp="return miles(this.id)" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Credito Niif:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        <input type="number" id="creditoNiff" class="form-control limpiar" value="" readonly="readonly" onkeyUp="return miles(this.id)" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <button type="button" onclick="agregar()"  id="btnAgregar" class="btn btn-success">Agregar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12">
+                                        <div class="table-responsive">
+                                            <input type="hidden" name="lista" id="lista" value="" />
+                                            <input type="hidden" name="valor_total" id="valor_total" />
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Cuenta</th>
+                                                        <th style="text-align:center">Centro</th>
+                                                        <th style="text-align:center">Nit</th>
+                                                        <th style="text-align:center">Nit Adminitstrativo</th>
+                                                        <th style="text-align:center">Debito</th>
+                                                        <th style="text-align:center">Credito</th>
+                                                        <th style="text-align:center">Base</th>
+                                                        <th style="text-align:center">Detalle</th>
+                                                        <th style="text-align:center">Debito Niif</th>
+                                                        <th style="text-align:center">Credito Niif</th>
+                                                        <th style="text-align:center">Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <td style="text-align:center" colspan="4">Totales:</td>
+                                                        <td id="total_debitos">0</td>
+                                                        <td id="total_creditos">0</td>
+                                                        <td style="text-align:center" colspan="6"></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+
+        @section Scripts {
+            @Scripts.Render("~/bundles/select2/js")
+            <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+            <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+            <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+            <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+            <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+            <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+            <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+            <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+            <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+            <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+            <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+            <script src="~/Vendor/moment/min/moment.min.js"></script>
+            <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+            <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+            <script type="text/javascript">
+
+                var i = 0;
+                var debitos = 0;
+                var creditos = 0;
+
+                $(document).ready(function(){
+                    $('#menu').val(@ViewBag.id_menu);
+                });
+
+                $('#fecha').datetimepicker({
+                    maxDate: '-' + new Date() + '',
+                    format: 'DD/MM/YYYY'
+                });
+
+                var numero_miles = "";
+                function formatNumber (n) {
+                    n = String(n).replace(/\D/g, "");
+                    return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                }
+
+                function miles (id) {
+                    numero_miles = formatNumber($('#'+id+'').val());
+                    $('#'+id+'').val(numero_miles);
+                }
+                function addCommas(nStr) {
+                    nStr += '';
+                    x = nStr.split('.');
+                    x1 = x[0];
+                    x2 = x.length > 1 ? '.' + x[1] : '';
+                    var rgx = /(\d+)(\d{3})/;
+                    while (rgx.test(x1)) {
+                        x1 = x1.replace(rgx, '$1' + '.' + '$2');
+                    }
+                    return x1 + x2;
+                }
+                function quitCommas(nStr) {
+                    nStr.toString();
+                    //console.log(nStr);
+                    var s = nStr.replace(/\./g, "");
+                    return s;
+                }
+
+                $('#fecha').blur(function(){
+                    $.ajax({
+                        url: '/movcontables/ValidarMesCerrado',
+                        data: {
+                            fecha : $('#fecha').val()
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            if(data == true){
+                                swal({
+                                    title: "Mes Invalido",
+                                    text: "El mes seleccionado ya se encuentra cerrado contablemente!",
+                                    type: "error"
+                                });
+                                $('#cuenta').val(0).select2();
+                                $('#cuenta').prop("disabled", true);
+                                $('#debito').val('').attr("readonly", true);
+                                $('#credito').val('').attr("readonly", true);
+                                $('#base').val('').attr("readonly", true);
+                                $('#detalle').val('').attr("readonly", true);
+                                $('#debitoNiff').val('').attr("readonly", true);
+                                $('#creditoNiff').val('').attr("readonly", true);
+                            }else{
+                                $('#cuenta').prop("disabled", false);
+                                $('#debito').attr("readonly", false);
+                                $('#credito').attr("readonly", false);
+                                $('#base').attr("readonly", false);
+                                $('#detalle').attr("readonly", false);
+                                $('#debitoNiff').attr("readonly", false);
+                                $('#creditoNiff').attr("readonly", false);
+                                if ($("#ccosto").val() != "") {
+                                    validarCentroFecha();    
+                                }
+                            }
+                        }
+                    })
+                });
+
+
+                $(".js-source-states").select2();
+
+                $("#debito").change(function (){
+                    $("#debitoNiff").val($("#debito").val())
+
+                    if( $("#debito").val() != ''){
+                        $("#credito").attr("disabled", "true")
+                        $("#credito").removeClass("obligatorio")
+                    }else{
+                        $("#credito").removeAttr("disabled")
+                        $("#credito").addClass("obligatorio")
+                    }
+                })
+
+                $("#credito").change(function (){
+                    $("#creditoNiff").val($("#credito").val())
+
+                    if( $("#credito").val() != ''){
+                        $("#debito").attr("disabled", "true")
+                        $("#debito").removeClass("obligatorio")
+                    }else{
+                        $("#debito").removeAttr("disabled")
+                        $("#debito").addClass("obligatorio")
+                    }
+                })
+
+                $("#cuenta").change(function () {
+
+                    $.ajax({
+                        url: '/movcontables/BuscarCuentao',
+                        data: {
+                            cuenta_id: $("#cuenta").val()
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            console.log(data)
+                            $("#ccosto").val('');
+                            $("#nit").val('');
+                            $("#nitAdmin").val('').select2();
+                            $("#base").val('');
+                            $("#debito").val('');
+                            $("#credito").val('');
+                            $("#debitoNiff").val('');
+                            $("#creditoNiff").val('');
+                            $("#btnAgregar").show();
+
+
+                            $("#s2id_cuenta").removeClass("obligatorio")
+                            //$("#s2id_cuenta").prop('required', false)
+
+                            if (data[0].ccostos == 1) {
+                                $("#div_ccosto").show();
+                                $("#ccosto").addClass("obligatorio")
+                                //$("#ccosto").prop('required', true)
+                            }
+                            else {
+                                $("#div_ccosto").hide()
+                                $("#ccosto").removeClass("obligatorio")
+                                //$("#ccosto").prop('required', false)
+                            }
+
+                            if (data[0].tercero == 1) {
+                                $("#div_nit").show();
+                                $("#nit").addClass("obligatorio")
+                                //$("#nit").prop('required', true)
+                            }
+                            else {
+                                $("#div_nit").hide();
+                                $("#nit").removeClass("obligatorio")
+                                //$("#nit").prop('required', false)
+                            }
+
+                            if (data[0].manejabase == 1) {
+                                $("#div_base").show();
+                                $("#base").addClass("obligatorio")
+                                //$("#base").prop('required', true)
+                            }
+                            else {
+                                $("#div_base").hide();
+                                $("#base").removeClass("obligatorio")
+                                //$("#base").prop('required', false)
+                            }
+
+                            if (data[0].documento == 1) {
+                                $("#div_documento").show();
+                                $("#documento").addClass("obligatorio")
+                                //$("#documento").prop('required', true)
+                            }
+                            else {
+                                $("#div_documento").hide();
+                                $("#documento").removeClass("obligatorio")
+                                //$("#documento").prop('required', false)
+                            }
+
+                            if (data[0].terceroadministrativo == 1) {
+                                $("#div_nitAdmin").show();
+                                $("#nitAdmin").addClass("obligatorio")
+                                //$("#documento").prop('required', true)
+                            }
+                            else {
+                                $("#div_nitAdmin").hide();
+                                $("#nitAdmin").removeClass("obligatorio")
+                                //$("#documento").prop('required', false)
+                            }
+
+                            if (data[0].concepniff == 1) {
+                                $("#div_conceptoniff").hide();
+                            }
+                            if (data[0].concepniff == 4) {
+                                $("#div_conceptoniff").show();
+                            }
+                            if (data[0].concepniff == 5) {
+                                $("#div_conceptoniff").hide();
+                            }
+
+                        },
+
+                        complete: function (data) {
+                        }
+                    });
+                });
+
+                $("#ccosto").change(function (){
+                    validarCentroFecha();
+                })
+
+                function validarCentroFecha(){
+                    $.ajax({
+                        url: '/movcontables/validarCentroFecha',
+                        data: {
+                            centro: $("#ccosto").val(),
+                            fecha:$("#fecha").val(),
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            if (data > 0) {
+                                $('#error').hide();
+                                $("#btnAgregar").show();
+                            }else {
+                                $('#error').show();
+                                setTimeout(function () {
+                                    $("#error").fadeOut(1500);
+                                }, 3000);
+                                $("#btnAgregar").hide();
+                            }
+                        }
+                    })
+                }
+
+                function agregar() {
+                    $("#s2id_nitAdmin").val($("#nitAdmin").val())
+                    $("#s2id_nit").val($("#nit").val())
+                    $("#s2id_ccosto").val($("#ccosto").val())
+
+
+                    $("#s2id_cuenta").removeClass("obligario")
+                    var falta = 0;
+                    var faltan = "Por favor los campos obligatorios o valores en 0: ";
+
+                    $(".obligatorio").each(function(){
+                        if($(this).val() == "" || $(this).val() == "0"){
+                            falta ++;
+                            faltan = faltan + ", "+this.id
+                        }
+                    })
+
+                    if (falta > 0  )
+                    {
+                        $("#mensaje").show();
+                        $("#txt_mensaje").text(faltan)
+                    }
+                    else
+                    {
+                        $("#mensaje").hide();
+                        i++;
+                        $("#lista").val(i);
+
+                        if ($("#debito").val() == '') {
+                            $("#debito").val(0)
+                        }
+
+                        if ($("#credito").val() == '') {
+                            $("#credito").val(0)
+                        }
+
+                        if ($("#debitoNiff").val() == '') {
+                            $("#debitoNiff").val(0)
+                        }
+
+                        if ($("#creditoNiff").val() == '') {
+                            $("#creditoNiff").val(0)
+                        }
+
+                        debitos += parseInt(quitCommas($("#debito").val()));
+                        creditos += parseInt(quitCommas($("#credito").val()));
+
+                        $("#valor_total").val(debitos);
+
+                        $("#total_debitos").text(addCommas(debitos));
+                        $("#total_creditos").text(addCommas(creditos));
+
+                        $("#tablaPaginada").find("tbody").append('<tr id="item_' + i + '" align="center">'
+                                      +'<td>'
+                                        +'<input name="cuenta_' + i + '" id="cuenta'+ i +'" class="form-control" type="hidden" value="' + $("#cuenta").val() + '" readonly="">'
+                                        + $("#cuenta :selected").text()
+                                      +'</td>'
+                                      +'<td>'
+                                        +'<input name="centro_' + i + '" id="centro' + i + '" class="form-control" type="hidden" value="' + $("#ccosto").val() + '" readonly="">'
+                                        + $("#ccosto :selected").text()
+                                      +'</td>'
+                                      +'<td>'
+                                        +'<input name="nit_' + i + '" id="nit' + i + '" class="form-control" type="hidden" value="' + $("#nit").val() + '" readonly="">'
+                                        + $("#nit :selected").text()
+                                      +'</td>'
+                                      +'<td>'
+                                        +'<input name="nitAdmin_' + i + '" id="nitAdmin' + i + '" class="form-control" type="hidden" value="' + $("#nitAdmin").val() + '" readonly="">'
+                                        + $("#nitAdmin :selected").text()
+                                      +'</td>'
+                                      +'<td style="text-align:right">'
+                                        +'<input name="debito_' + i + '" id="debito' + i + '" class="form-control" type="hidden" value="' + parseInt(quitCommas($("#debito").val())) + '" readonly="">'
+                                        + $("#debito").val()
+                                      +'</td>'
+                                      +'<td style="text-align:right">'
+                                        +'<input name="credito_' + i + '" id="credito' + i + '" class="form-control" type="hidden" value="' + parseInt(quitCommas($("#credito").val())) + '" readonly="">'
+                                        + $("#credito").val()
+                                      +'</td>'
+                                      +'<td style="text-align:right">'
+                                        +'<input name="base_' + i + '" id="base' + i + '" class="form-control" type="text" hidden="' + parseInt(quitCommas($("#base").val())) + '" readonly="">'
+                                        + $("#base").val()
+                                      +'</td>'
+                                      +'<td>'
+                                        +'<input name="detalle_' + i + '" id="detalle' + i + '" class="form-control" type="hidden" value="' + parseInt(quitCommas($("#detalle").val())) + '" readonly="">'
+                                        + $("#detalle").val()
+                                      +'</td>'
+                                      +'<td style="text-align:right">'
+                                        +'<input name="debitoNiff_' + i + '" id="debitoNiff' + i + '" class="form-control" type="hidden" value="' + parseInt(quitCommas($("#debitoNiff").val())) + '" readonly="">'
+                                        + $("#debitoNiff").val()
+                                      +'</td>'
+                                      +'<td style="text-align:right">'
+                                        +'<input name="creditoNiff_' + i + '" id="creditoNiff' + i + '" class="form-control" type="hidden" value="' + parseInt(quitCommas($("#creditoNiff").val())) + '" readonly="">'
+                                        + $("#creditoNiff").val()
+                                      +'</td>'
+                                      +'<td>'
+                                        +'<button class="btn btn-success btn-xs" onclick="editar(' + i + ')">Editar</button> <button class="btn btn-danger btn-xs" onclick="eliminar(' + i + ')">Eliminar</button>'
+                                      +'</td>'
+                                      +'</tr>');
+
+                        $(".limpiar").each(function () {
+                            $(this).val('');
+                        })
+                        $("#cuenta").select2();
+                        $("#nit").select2();
+                        $("#nitAdmin").select2();
+                        $("#ccosto").select2();
+
+                        $("#debito").removeAttr("disabled")
+                        $("#credito").removeAttr("disabled")
+
+                        validarTotales();
+                    }
+
+                }
+
+                function eliminar(id) {
+
+                    debitos = parseFloat(debitos - $("#debito" + id).val());
+                    creditos = creditos - parseFloat($("#credito" + id).val());
+
+                    $("#total_debitos").text(debitos);
+                    $("#total_creditos").text(creditos);
+
+                    $("#item_" + id).remove();
+                    validarTotales()
+                }
+
+                function editar(id){
+                    $("#cuenta").val( $("#cuenta"+id+"").val())
+                    $("#cuenta").select2();
+                    $("#s2id_cuenta").removeClass("obligario")
+
+                    $("#ccosto").val( $("#centro"+id+"").val())
+                    $("#nit").val( $("#nit"+id+"").val())
+                    $("#nit").select2();
+
+                    $("#debito").val( $("#debito"+id+"").val())
+                    $("#credito").val( $("#credito"+id+"").val())
+                    $("#base").val( $("#base"+id+"").val())
+                    $("#debitoNiff").val( $("#debitoNiff"+id+"").val())
+                    $("#creditoNiff").val( $("#creditoNiff"+id+"").val())
+                    $("#detalle").val($("#detalle"+id+"").val())
+                    eliminar(id)
+                }
+
+                $('#selectTipoDocumento').change(function () {
+                    var dssd = $('#selectTipoDocumento').val();
+                    console.log(dssd);
+
+                    $.ajax({
+                        url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                        data: {
+                            id: $('#selectTipoDocumento').val()
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+
+                            $('#selectBodegas').empty();
+                            $('#selectBodegas').append($('<option>', {
+                                value: '',
+                                text: ''
+                            }));
+                            for (var i = 0; i < data.buscarBodega.length; i++) {
+                                $('#selectBodegas').append($('<option>', {
+                                    value: data.buscarBodega[i].id,
+                                    text: data.buscarBodega[i].bodccs_nombre
+                                    //value: data[i].id,
+                                    //text: data[i].bodccs_nombre
+                                }));
+                            }
+                        }
+                    })
+                    //$('#selectTipoDocumento').change(function () {
+                    //    $.ajax({
+                    //        url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                    //        data: {
+                    //            id: $('#selectTipoDocumento').val()
+                    //        },
+                    //        type: "post",
+                    //        cache: false,
+                    //        success: function (data) {
+                    //            $('#selectBodegas').empty();
+                    //            $('#selectBodegas').append($('<option>', {
+                    //                value: '',
+                    //                text: ''
+                    //            }));
+                    //            for (var i = 0; i < data.length; i++) {
+                    //                $('#selectBodegas').append($('<option>', {
+                    //                    value: data[i].id,
+                    //                    text: data[i].bodccs_nombre
+                    //                }));
+                    //            }
+                    //        }
+                    //    })
+
+                    $.ajax({
+                        url: '/compraRepuestos/BuscarPerfilPorDocumento',
+                        data: {
+                            tipo: $('#selectTipoDocumento').val()
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            $('#perfil').empty();
+                            $('#perfil').append($('<option>', {
+                                value: '',
+                                text: ''
+                            }));
+                            for (var i = 0; i < data.length; i++) {
+                                $('#perfil').append($('<option>', {
+                                    value: data[i].id,
+                                    text: data[i].perfil
+                                }));
+                            }
+                        }
+                    })
+
+                    $.ajax({
+                        url: '/movcontables/BuscarConceptosPorDocumento',
+                        data: {
+                            tipo: $('#selectTipoDocumento').val()
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            console.log(data)
+
+                            $('#concepto').empty();
+                            $('#concepto2').empty();
+                            $("#concepto").append('<option></option>')
+                            $("#concepto2").append('<option></option>')
+
+                            if (data.concepto.length > 0) {
+                                for(var i = 0; i < data.concepto.length ; i++){
+                                    $("#concepto").append('<option value="'+data.concepto[i].id+'">'+data.concepto[i].Descripcion+'</option>')
+                                }
+                            }
+
+                            if (data.concepto2.length > 0) {
+                                for(var i = 0; i < data.concepto2.length ; i++){
+                                    $("#concepto2").append('<option value="'+data.concepto2[i].id+'">'+data.concepto2[i].Descripcion+'</option>')
+                                }
+                            }
+
+                        }
+                    })
+                });
+
+                $("#selectProveedor").change(function () {
+
+                    $.ajax({
+                        url: '/compraRepuestos/BuscarCondicionPorTercero',
+                        data: {
+                            id: $('#selectProveedor').val()
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            $('#selectCondicionPago').empty();
+                            $('#selectCondicionPago').append($('<option>', {
+                                value: '',
+                                text: ''
+                            }));
+                            for (var i = 0; i < data.length; i++) {
+                                $('#selectCondicionPago').append($('<option>', {
+                                    value: data[i].id,
+                                    text: data[i].nombre
+                                }));
+                            }
+                        }
+                    })
+                })
+
+                function validarTotales() {
+
+                    if ($("#total_debitos").text() == $("#total_creditos").text()) {
+                        $("#div_btnGuardar").show();
+                    }
+                    else {
+                        $("#div_btnGuardar").hide();
+                    }
+                }
+
+                function AgregarQuitarFavorito(){
+                    $.ajax({
+                        url: '/Inicio/AgregarQuitarFavorito',
+                        data: {
+                            id_menu: @ViewBag.id_menu,
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            if(data.esFavorito == true){
+                                $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                            }else{
+                                $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                            }
+                        }
+                    })
+                }
+
+            </script>
+
+        }

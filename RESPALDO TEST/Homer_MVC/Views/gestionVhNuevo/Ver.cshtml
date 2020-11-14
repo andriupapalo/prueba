@@ -1,0 +1,942 @@
+﻿@model Homer_MVC.Models.verVehiculoComprado
+
+@{
+    ViewBag.Title = "Cargue Pedido Y Facturacion";
+    ViewBag.Icono = "fa fa-book";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    @Styles.Render("~/bundles/datatables/css")
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Actualizar @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="hpanel">
+        <div id="tabs" class="tab-content">
+            <ul id="tabs-invVhNuevo" class="nav nav-tabs">
+                <li class=""><a data-toggle="tab" href="#PedidoEnFirme" id="tabPedidoFirme"><i class="fa fa-book"></i>&nbsp;&nbsp;Pedido en Firme</a></li>
+                <li class=""><a data-toggle="tab" href="#FacturacionGM" id="tabFacturacion"><i class="fa fa-money"></i>&nbsp;&nbsp;Compras GM</a></li>
+                <li class=""><a data-toggle="tab" href="#ComprasIndividualesGM" id="tabComprasIndividualesGM"><i class="fa fa-contao"></i>&nbsp;&nbsp;Consecutivo de Compras</a></li>
+                @* <li class="" onclick="BuscarComprasIndivuduales();"><a data-toggle="tab" href="#ComprasIndividualesGM"><i class="fa fa-contao"></i>&nbsp;&nbsp;Consecutivo de Compras</a></li> *@
+                @*<li class=""><a data-toggle="tab" href="#Inventario" id="tabInventario"><i class=""></i>&nbsp;&nbsp;Inventario</a></li>*@
+                <li class="" style="display:none"><a data-toggle="tab" href="#DetalleFacturacion"><i class=""></i>&nbsp;&nbsp;Detalle Compra</a></li>
+                <li class="active" style="display:none" id="PestanaVerVehiculo"><a data-toggle="tab" href="#Ver"><i class="fa fa-car"></i>&nbsp;&nbsp;Vehículo</a></li>
+            </ul>
+
+            @*Primer tab par listar el inventario de vehiculos nuevos*@
+            <div id="DetalleFacturacion" class="tab-pane">
+                <div class="panel-body">
+
+                </div>
+            </div>
+
+            @*Tab relacionado con la actualizacion de un vehiculo nuevo*@
+            <div id="Ver" class="tab-pane active">
+                <div class="panel-body">
+                    @*@using (Html.BeginForm("Update", "inventario_repuesto", FormMethod.Post))
+                        {*@
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                @*<a class="showhide"><i class="fa fa-chevron-up"></i></a>*@
+                            </div>
+                            <i class="fa fa-book"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-horizontal">
+
+                                @*<h3 class="panel-body-title">
+                                        <i class="fa fa-book"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                    </h3>*@
+                                @Html.HiddenFor(model => model.icbvh_id)
+                                @Html.HiddenFor(model => model.proveedor_id)
+
+                                @*<div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Codigo Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.cod_bod, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.cod_bod, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>*@
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Marca:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("marcas", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.marcvh_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Modelo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("modelos", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.modvh_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Color:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("color", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.colvh_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Serie(VIN):&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.vin, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.vin, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Motor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.nummot_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.nummot_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">A&ntilde;o Modelo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.anio_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.anio_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Placa:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.plac_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.plac_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <button class="btn btn-info col-md-offset-4" type="button" id="btnUpdate"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                                            @*<button class="btn btn-warning" type="button" id="btnCancel"><i class="fa fa-arrow-left"></i>&nbsp;&nbsp;Volver...</button>*@
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="alert alert-success" style="display:none" id="success">
+                                    <strong>Correcto!</strong> Registro guardado con exito.
+                                </div>
+
+                                <div class="alert alert-danger" style="display:none" id="failedEmpty">
+                                    <strong>Error!</strong> Hay campos obligatorios que no ha completado!.
+                                </div>
+
+                                <div class="alert alert-danger" style="display:none" id="failedData">
+                                    <strong id="ErrorMessage">Error!</strong>
+                                </div>
+
+                            </div>
+                            @*}*@
+                        </div>
+                    </div>   @*del hpanel*@
+                </div>
+
+                <div class="panel-body">
+                    @*@using (Html.BeginForm("Update", "inventario_vhNuevo", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                        {*@
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                            </div>
+                            <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Información de Compra de Vehículo
+                        </div>
+
+                        @*<div class="form-horizontal">*@
+
+                        <div class="panel-body">
+                            <div class="form-horizontal">
+                                @*<h3 class="panel-body-title">
+                                        <i class="fa fa-credit-card"></i>&nbsp;&nbsp;&nbsp;Información de Compra de Vehiculo
+                                    </h3>*@
+
+                                @Html.HiddenFor(model => model.icbvh_id)
+                                <div class="row">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Proveedor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("proveedor", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.estvh_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Compra:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fecfact_fabrica, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.fecfact_fabrica, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Factura:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" type="text" name="facturaProveedor" id="facturaProveedor" value="@ViewBag.facturaProveedor" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Vehículo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.plan_mayor, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.plan_mayor, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Costo sin IVA:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.costosiniva_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.costosiniva_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">% IVA:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.iva_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.iva_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Valor IVA:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("valorIva", new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.iva_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Costo Total:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("costoTotal", new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.iva_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Manifiesto:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fecman_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.fecman_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Ciudad Manifiesto:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("ciudad", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.ciumanf_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Manifiesto:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.nummanf_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.nummanf_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Dias Libres:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.diaslibres_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.diaslibres_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <button class="btn btn-info col-md-offset-4" type="button" id="btnUpdateInfCompra"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                                            @*<button class="btn btn-warning" type="button" id="btnCancel"><i class="fa fa-arrow-left"></i>&nbsp;&nbsp;Volver...</button>*@
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>   @*fdgdfgdfg*@
+
+
+                            <div class="alert alert-success" style="display:none" id="successInfCompra">
+                                <strong>Correcto!</strong> Registro guardado con exito.
+                            </div>
+
+                            <div class="alert alert-danger" style="display:none" id="failedEmptyInfCompra">
+                                <strong>Error!</strong> Hay campos obligatorios que no ha completado!.
+                            </div>
+
+                            <div class="alert alert-danger" style="display:none" id="failedDataInfCompra">
+                                <strong id="ErrorMessageInfCompra">Error!</strong>
+                            </div>
+                        </div>
+                        @*}*@
+                    </div>
+
+                </div>
+
+                <div class="panel-body">
+                    @*@using (Html.BeginForm("Update", "inventario_repuesto", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                        {*@
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-handshake-o"></i></a>
+                            </div>
+                            <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Información de Entrega de Vehículo
+                        </div>
+
+                        @*<div class="form-horizontal">*@
+
+                        <div class="panel-body">
+                            <div class="form-horizontal">
+                                @* <h3 class="panel-body-title">
+                                        <i class="fa fa-handshake-o"></i>&nbsp;&nbsp;&nbsp;Informacion de Entrega de Vehiculo
+                                    </h3>*@
+
+                                @Html.HiddenFor(model => model.icbvh_id)
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2">Fecha Entrega Transportadora:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-3">
+                                                @Html.EditorFor(model => model.fecentregatransp_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.fecentregatransp_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Llegada:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fecllegadaccs_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.fecllegadaccs_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Hora Llegada:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("horaLlegada", new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.marcvh_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2">Fecha Entrega Manifiesto:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-3">
+                                                @Html.EditorFor(model => model.fecentman_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.fecentman_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo de Tramitador:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("tipoTramitador", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @*@Html.ValidationMessageFor(model => model.estvh_id, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Nombre de Tramitador:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("tramitador_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.tramitador_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Matrícula RUNT:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fecharunt_vh, new { htmlAttributes = new { @class = "form-control" } })
+                                                @Html.ValidationMessageFor(model => model.fecharunt_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <button class="btn btn-info col-md-offset-4" type="button" id="btnUpdateInfEntrega"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-success" style="display:none" id="successInfEntrega">
+                                <strong>Correcto!</strong> Registro guardado con exito.
+                            </div>
+
+                            <div class="alert alert-danger" style="display:none" id="failedEmptyInfEntrega">
+                                <strong>Error!</strong> No hay informacion para actualizar, los campos estan vacios.
+                            </div>
+
+                            <div class="alert alert-danger" style="display:none" id="failedDataInfEntrega">
+                                <strong id="ErrorMessage">Error!</strong> Debe asignar una hora y una fecha en el campo llegada o no ha seleccionado tramitador
+                            </div>
+
+                        </div>   @*horizontal*@
+                        @*}*@
+                    </div>
+                </div>
+
+                @*</div>*@    @*anterior*@
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    @Scripts.Render("~/bundles/datatables/js")
+    @Scripts.Render("~/bundles/datatablesBootstrap/js")
+    @Scripts.Render("~/bundles/datatablesPlugins/js")
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    @*<script src="~/Vendor/sweetalert/lib/sweet-alert.min.js"></script>*@
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+
+    <script type="text/javascript">
+        var iva = 0;
+        var total = 0;
+        var costo = 0;
+
+        costo = Math.round(parseInt($('#costosiniva_vh').val()));
+        iva = Math.round((parseInt($('#costosiniva_vh').val()) * parseInt($('#iva_vh').val())) / 100);
+        total = iva + parseInt($('#costosiniva_vh').val());
+
+        $(document).ready(function () {
+            @*validaAutomovil('@ViewBag.idFactura');*@
+            // Bloqueo de campos que no pueden ser modificados, mediante JQuery
+            $('#costosiniva_vh').val(addCommas($('#costosiniva_vh').val()))
+            $('#numfactura_vh').prop('disabled', true);
+            $('#cod_bod').prop('disabled', true);
+            $('#marcas').prop('disabled', true);
+            $('#modelos').prop('disabled', true);
+            $('#estilos').prop('disabled', true);
+            $('#color').prop('disabled', true);
+            $('#num_serie').prop('disabled', true);
+            $('#nummot_vh').prop('disabled', true);
+            $('#anio_vh').prop('disabled', true);
+            $('#plan_mayor').prop('disabled', true);
+            $('#fecfact_fabrica').prop('disabled', true);
+            $('#costosiniva_vh').prop('disabled', true);
+            $('#costosiniva_vh').val(addCommas(costo));
+            $('#iva_vh').prop('disabled', true);
+            $('#valorIva').prop('disabled', true);
+            $('#valorIva').val(addComas(iva));
+            $('#costoTotal').val(addComas(total));
+            $('#costoTotal').prop('disabled', true);
+            $('#proveedor').prop('disabled', true);
+            // Validacion de campos para asignar formato de fecha con JQuery
+            $('#fecman_vh').datepicker({
+                format: 'dd/mm/yyyy',
+            });
+            $('#fecentman_vh').datepicker({
+                format: 'dd/mm/yyyy',
+            });
+            $('#fecentregatransp_vh').datepicker({
+                format: 'dd/mm/yyyy',
+            });
+            $('#fecllegadaccs_vh').datepicker({
+                format: 'dd/mm/yyyy',
+            });
+            $('#fecentman_vh').datepicker({
+                useCurrent:false,
+                format: 'dd/mm/yyyy',
+            });
+            $('#fecharunt_vh').datepicker({
+                format: 'dd/mm/yyyy',
+            });
+            $('#horaLlegada').datetimepicker({
+                format: 'HH:mm'
+            });
+            cargarDatosManifiesto();
+        });
+
+        $('#tabComprasIndividualesGM').click(function () {
+            window.location.href = '@Url.Action("ComprasIndividuales", "gestionVhNuevo")?menu='+@ViewBag.id_menu;
+        });
+
+        function cargarDatosManifiesto() {
+            $.ajax({
+                url: '/gestionVhNuevo/cargarDatosManifiesto',
+                data: {
+                    idActual: @ViewBag.idFactura,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#fecman_vh').val(data.fecentman_vh);
+                    $('#ciudad').val(data.ciumanf_vh);
+                    $('#nummanf_vh').val(data.nummanf_vh);
+                    $('#diaslibres_vh').val(data.diaslibres_vh);
+                }
+            });
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        var idActual = 0;
+        // Funcion que realiza la accion cuando se da en el boton ver en alguna fila de la tabla (recibe el id del registro)
+        function validaAutomovil(id) {
+            $('#failedDataInfCompra').hide();
+            $('#successInfCompra').hide();
+            $('#failedEmptyInfCompra').hide();
+            $('#failedData').hide();
+            $('#success').hide();
+            $('#failedEmpty').hide();
+            //Mediante ajax se agregan los valores del vehiculo a la pestaña 2 para poder verlos
+            $.ajax({
+                url: '/gestionVhNuevo/Update',
+                data: {
+                    id: id
+                },
+                type: "get",
+                cache: false,
+                success: function (data) {
+
+                    idActual = data.buscado.icbvh_id;
+                    $('#color').val(data.buscado.colvh_id);
+                    $('#color').select2();
+
+                    $('#marcas').val(data.buscado.marcvh_id);
+                    $('#marcas').select2();
+                    $('#modelos').append($('<option>', {
+                        value: '-1',
+                        text: 'Seleccione'
+                    }));
+                    for (var i = 0; i < data.mod.length; i++) {
+                        $('#modelos').append($('<option>', {
+                            value: data.mod[i].modvh_codigo,
+                            text: data.mod[i].modvh_nombre
+                        }));
+                    }
+                    $('#modelos').val(data.buscado.modvh_id);
+                    $('#modelos').select2();
+
+                    $('#vin').val(data.buscado.num_serie);
+                    $('#nummot_vh').val(data.buscado.nummot_vh.toString());
+                    $('#anio_vh').val(data.buscado.anio_vh);
+                    $('#plac_vh').val(data.buscado.plac_vh);
+
+                    $('#proveedor').val(data.buscado.proveedor_id);
+                    $('#proveedor').select2();
+
+                    $('#cod_bod').val(data.buscado.cod_bod);
+                    $('#fecfact_fabrica').val(data.buscado.fecfact_fabrica.toString());
+                    $('#plan_mayor').val(data.buscado.plan_mayor);
+                    $('#fecfact_fabrica').datepicker("setDate", new Date(data.anio, data.mes, data.dia));
+                    if (data.anioManifiesto != 0) {
+                        $('#fecman_vh').datepicker("setDate", new Date(data.anioManifiesto, data.mesManifiesto, data.diaManifiesto));
+                    } else {
+                        $('#fecman_vh').val('');
+                    }
+                    $('#numfactura_vh').val(data.buscado.numfactura_vh);
+                    $('#costosiniva_vh').val(addComas(data.costosiniva));
+                    $('#iva_vh').val(data.buscado.iva_vh);
+                    $('#valorIva').val(data.valorIva);
+                    $('#costoTotal').val(data.valorTotal);
+                    // Fecha entrega transportadora
+                    if (data.anioFechaEntregaTrans != 0) {
+                        $('#fecentregatransp_vh').datepicker("setDate", new Date(data.anioFechaEntregaTrans, data.mesFechaEntregaTrans, data.diaFechaEntregaTrans));
+                    } else {
+                        $('#fecentregatransp_vh').val('');
+                    }
+
+                    // Fecha llegada
+                    if (data.anioFechaLlegada != 0) {
+                        $('#horaLlegada').val(data.horaLlegada + ':' + data.minutoLlegada);
+                        $('#fecllegadaccs_vh').datepicker("setDate", new Date(data.anioFechaLlegada, data.mesFechaLlegada, data.diaFechaLlegada));
+                    } else {
+                        $('#fecllegadaccs_vh').val('');
+                    }
+
+                    // Fecha entrega de manifiesto
+                    if (data.anioEntregaManif != 0) {
+                        $('#fecentman_vh').datepicker("setDate", new Date(data.anioEntregaManif, data.mesEntregaManif, data.diaEntregaManif));
+                    } else {
+                        $('#fecentman_vh').val('');
+                    }
+
+                    // Fecha matricula runt
+                    if (data.anioMatrRunt != 0) {
+                        $('#fecharunt_vh').datepicker("setDate", new Date(data.anioMatrRunt, data.mesMatrRunt, data.diaMatrRunt));
+                    } else {
+                        $('#fecharunt_vh').val('');
+                    }
+
+                    $('#nummanf_vh').val(data.buscado.nummanf_vh);
+                    $('#diaslibres_vh').val(data.buscado.diaslibres_vh);
+                    $('#ciudad').val(data.buscado.ciumanf_vh);
+                    $('#ciudad').select2();
+
+                    // Asignacion del tipo de tramitador
+                    $('#tipoTramitador').val(data.tipoTramitador);
+                    $('#tipoTramitador').select2();
+
+                    // Agregar valores de los tramitadores de el tipo de tramitador que esta seleccionado actualmente
+                    $('#tramitador_id').empty();
+                    //$('#tramitador_id').append($('<option>', {
+                    //    value: '-1',
+                    //    text: 'Seleccione'
+                    //}));
+                    for (var i = 0; i < data.tram.length; i++) {
+                        $('#tramitador_id').append($('<option>', {
+                            value: data.tram[i].tramitador_id,
+                            text: data.tram[i].nombreCompleto
+                        }));
+                    }
+                    $('#tramitador_id').val(data.buscado.tramitador_id);
+                    $('#tramitador_id').select2();
+                },
+                complete: function (data) {
+                    $('#PestanaVerVehiculo').show();
+                    $('.nav-tabs li:eq(4) a').tab('show')
+                }
+            });
+        }
+
+        function actualizarRegistro() {
+            $.ajax({
+                url: '/gestionVhNuevo/ActualizarVehiculo',
+                data: {
+                    id: idActual,
+                    bodega: $('#cod_bod').val(),
+                    //fechaCompra: $('#fecfact_fabrica').val(),
+                    //factura: $('#plan_mayor').val(),
+                    marca: $('#marcas').val(),
+                    modelo: $('#modelos').val(),
+                    //estilo: $('#estilos').val(),
+                    color: $('#color').val(),
+                    serie: $('#vin').val(),
+                    motor: $('#nummot_vh').val(),
+                    anio: $('#anio_vh').val(),
+                    placa: $('#plac_vh').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data > 0) {
+                        $('#success').show();
+                        $('#failedData').hide();
+                        $('#failedEmpty').hide();
+                        //buscarAjaxVehiculos();
+                    } else if (data == -1) {
+                        $('#ErrorMessage').text('Error ! El numero de motor ingresado ya esta registrado en otro vehiculo');
+                        $('#failedEmpty').hide();
+                        $('#failedData').show();
+                        $('#success').hide();
+                    } else if (data == -2) {
+                        $('#ErrorMessage').text('Error ! La serie o numero VIN ingresado ya esta registrado en otro vehiculo');
+                        $('#failedEmpty').hide();
+                        $('#failedData').show();
+                        $('#success').hide();
+                    } else if (data == -3) {
+                        $('#failedEmpty').hide();
+                        $('#ErrorMessage').text('Error ! La placa ingresada ya esta registrada en otro vehiculo');
+                        $('#failedData').show();
+                        $('#success').hide();
+                    }
+                }
+            });
+        }
+
+        $('#btnUpdate').click(function () {
+            //alert($('#icbvh_id').val());
+            if ($('#marcas').val() == '' || $('#modelos').val() == '-1' || $('#modelos').val() == '' || $('#estilos').val() == '-1' || $('#estilos').val() == '' || $('#color').val() == '' || $('#anio_vh').val() == '' || $('#plac_vh').val() == '') {
+                $('#failedData').hide();
+                $('#success').hide();
+                $('#failedEmpty').show();
+            } else {
+                actualizarRegistro();
+            }
+        });
+
+        function actualizarInfCompra() {
+            $.ajax({
+                url: '/gestionVhNuevo/ActualizarInfCompra',
+                data: {
+                    id:@ViewBag.idFactura,
+                    fechaManifiesto: $('#fecman_vh').val(),
+                    ciudadManifiesto: $('#ciudad').val(),
+                    numeroManifiesto: $('#nummanf_vh').val(),
+                    diasLibres: $('#diaslibres_vh').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data > 0) {
+                        $('#successInfCompra').show();
+                        $('#failedDataInfCompra').hide();
+                        $('#failedEmptyInfCompra').hide();
+                    } else if (data == -1) {
+                        $('#ErrorMessageInfCompra').text('Error ! Hubo una falla buscando el vehiculo');
+                        $('#failedEmptyInfCompra').hide();
+                        $('#failedDataInfCompra').show();
+                        $('#successInfCompra').hide();
+                    }
+                }
+            });
+        }
+
+        $('#btnUpdateInfCompra').click(function () {
+            if ($('#fecman_vh').val() == '' || $('#ciudad').val() == '' || $('#nummanf_vh').val() == '' || $('#diaslibres_vh').val() == '') {
+                $('#failedDataInfCompra').hide();
+                $('#successInfCompra').hide();
+                $('#failedEmptyInfCompra').show();
+            } else {
+                actualizarInfCompra();
+            }
+        });
+
+        function actualizarInfEntrega() {
+            // Validacion para valores de fechas que pueden ser nulos, si no se proporciono fecha envia vacio
+            var fechaEntrega = '';
+            if ($('#fecentregatransp_vh').val() != '') {
+                fechaEntrega = $('#fecentregatransp_vh').val();
+            }
+            var fechaLlegada = '';
+            if ($('#fecllegadaccs_vh').val() != '') {
+                fechaLlegada = $('#fecllegadaccs_vh').val();
+            }
+            var fechaEntregaMan = '';
+            if ($('#fecentman_vh').val() != '') {
+                fechaEntregaMan = $('#fecentman_vh').val();
+            }
+            var fechaRunt = '';
+            if ($('#fecharunt_vh').val() != '') {
+                fechaRunt = $('#fecharunt_vh').val();
+            }
+            var tipoTram = 0;
+            if ($('#tipoTramitador').val() != '') {
+                tipoTram = $('#tipoTramitador').val();
+            }
+            var Tram = 0;
+            if ($('#tramitador_id').val() != null || $('#tramitador_id').val() != '-1') {
+                Tram = $('#tramitador_id').val();
+            }
+            var hora = '';
+            if ($('#horaLlegada').val() != '') {
+                hora = $('#horaLlegada').val();
+            }
+            $.ajax({
+                url: '/gestionVhNuevo/ActualizarInfEntrega',
+                data: {
+                    id: idActual,
+                    fecEntrTrans: fechaEntrega,
+                    fecLlegada: fechaLlegada,
+                    hora: hora,
+                    fechaEntMan: fechaEntregaMan,
+                    tipoTram: tipoTram,
+                    idTramitador: Tram,
+                    fechaRunt: fechaRunt
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data > 0) {
+                        $('#successInfEntrega').show();
+                        $('#failedDataInfEntrega').hide();
+                        $('#failedEmptyInfEntrega').hide();
+                    } else if (data == -1) {
+                        $('#ErrorMessageInfCompra').text('Error ! Hubo una falla al actualizar los datos, verifique que estan bien escritos');
+                        $('#failedEmptyInfEntrega').hide();
+                        $('#failedDataInfEntrega').show();
+                        $('#successInfEntrega').hide();
+                    }
+                }
+            });
+        }
+
+        $('#btnUpdateInfEntrega').click(function () {
+            if ($('#fecentregatransp_vh').val() == '' && $('#fecllegadaccs_vh').val() == '' && $('#horaLlegada').val() == '' && $('#fecentman_vh').val() == ''
+                && $('#tipoTramitador').val() == '' && $('#fecharunt_vh').val() == '') {
+                $('#failedDataInfEntrega').hide();
+                $('#successInfEntrega').hide();
+                $('#failedEmptyInfEntrega').show();
+            } else {
+                if ($('#fecllegadaccs_vh').val() != '' && $('#horaLlegada').val() == '' || $('#fecllegadaccs_vh').val() == '' && $('#horaLlegada').val() != '') {
+                    $('#failedDataInfEntrega').show();
+                    $('#successInfEntrega').hide();
+                    $('#failedEmptyInfEntrega').hide();
+                } else if ($('#tipoTramitador').val() != '' && $('#tramitador_id').val() == '-1') {
+                    $('#failedDataInfEntrega').show();
+                    $('#successInfEntrega').hide();
+                    $('#failedEmptyInfEntrega').hide();
+                } else {
+                    actualizarInfEntrega();
+                }
+            }
+        });
+
+        // Validar tipos de tramitadores para rellenar campo tramitadores
+        $('#tipoTramitador').change(function () {
+            var value = '';
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarTramitadores',
+                data: { idTipoTramitador: $('#tipoTramitador').val() },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tramitador_id').empty();
+                    $('#tramitador_id').append($('<option>', {
+                        value: '-1',
+                        text: 'Seleccione'
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tramitador_id').append($('<option>', {
+                            value: data[i].tramitador_id,
+                            text: data[i].nombreCompleto
+                        }));
+                    }
+                    $('#tramitador_id').val('-1');
+                    $('#tramitador_id').select2();
+                }
+            });
+        });
+
+        $('#tabPedidoFirme').click(function () {
+            window.location.href = '@Url.Action("PedidoEnFirme", "gestionVhNuevo")?menu='+@ViewBag.id_menu;
+        });
+
+        $('#tabFacturacion').click(function () {
+            window.location.href = '@Url.Action("FacturacionGM","gestionVhNuevo")?menu='+@ViewBag.id_menu;
+        });
+
+        $('#tabInventario').click(function () {
+            window.location.href = '@Url.Action("Inventario","gestionVhNuevo")?menu='+@ViewBag.id_menu;
+        });
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+}

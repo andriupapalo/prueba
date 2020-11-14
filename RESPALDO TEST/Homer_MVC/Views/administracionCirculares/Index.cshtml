@@ -1,0 +1,290 @@
+﻿@{
+    ViewBag.Icono = "fa fa-briefcase";
+    ViewBag.Title = "Circulares";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="button" id="btnSubirArchivo"><i class="fa fa-upload"></i>&nbsp;&nbsp;&nbsp;Cargar Archivo</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-12">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Tipo Archivo</th>
+                                                        <th style="text-align:center">Nombre</th>
+                                                        <th style="text-align:center">Fecha</th>
+                                                        <th style="text-align:center">Subido Por</th>
+                                                        <th style="text-align:center">Acción</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var item in ViewBag.circulares)
+                                                    {
+                                                        <tr>
+                                                            <th style="text-align:center">@item.tipocargaarchivo.tipodocumento</th>
+                                                            <th style="text-align:center">@item.nombre</th>
+                                                            <th style="text-align:center">@item.fec_creacion</th>
+                                                            <th style="text-align:center">@item.users.user_nombre @item.users.user_apellido </th>
+                                                            <th style="text-align:center">
+                                                                <button type="button" class="btn btn-default btn-sm" onclick="accionVer(@item.id);">Ver</button>&nbsp;
+                                                                <button type="button" class="btn btn-danger btn-sm" onclick="accionEliminar(@item.id);">Eliminar</button>
+                                                            </th>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div id="modalCargarArchivo" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Seleccione...</h4>
+            </div>
+
+
+            @using (Html.BeginForm("GuardarCircular", "administracionCirculares", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+
+                @Html.Hidden("menu")
+
+                <div class="modal-body">
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-6">Tipo Circular:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <select class="form-control js-source-states" id="selectTipoCircular" name="selectTipoCircular" required="required" placeholder="Seleccione">
+                                    <option></option>
+                                    @foreach (var item in ViewBag.TipoCircular)
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <br /><br />
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-6">Compartir Con:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <select class="form-control js-source-states" id="selectRoles" name="selectRoles" required="required" multiple placeholder="Seleccione">
+                                    @foreach (var item in ViewBag.roles)
+                                    {
+                                        <option value="@item.rol_id">@item.rol_nombre</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-6">Archivo: &nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <input type="file" id="file" name="file" required="required">
+                            </div>
+                        </div>
+                    </div>
+                    <br /><br />
+
+                    <hr />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-default" data-dismiss="" id="">Aceptar</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#menu').val(@ViewBag.id_menu);
+        $('#selectTipoCircular').select2();
+        $('#selectRoles').multiselect({
+            includeSelectAllOption: true,
+            maxHeight: 400
+        });
+
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000);
+
+            $('#tablaPaginada').dataTable({
+                //"ajax": 'api/datatables.json',
+                //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                buttons: [
+                    { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                    //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                    //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                ]
+            });
+        });
+
+        function accionVer(id){
+            window.location.href = '@Url.Action("VisualizarArchivoAdmin", "administracionCirculares")?id=' + id;
+        }
+
+
+        function accionEliminar(id){
+            window.location.href = '@Url.Action("EliminarArchivo", "administracionCirculares")?id=' + id;
+        }
+
+        $('#btnSubirArchivo').click(function(){
+            $('#modalCargarArchivo').modal('show');
+        });
+
+            @*function AgregarQuitarFavorito(){
+                $.ajax({
+                    url: '/Inicio/AgregarQuitarFavorito',
+                    data: {
+                        id_menu: @ViewBag.id_menu,
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if(data.esFavorito == true){
+                            $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                        }else{
+                            $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                        }
+                    }
+                })
+            }*@
+
+    </script>
+
+}

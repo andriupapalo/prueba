@@ -1,0 +1,771 @@
+﻿@{
+    ViewBag.Title = "Venta de repuestos por bodega";
+    ViewBag.Icono = "fa fa-money";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+}
+<!-- App styles -->
+<link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+<link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/vendor/chartist/custom/chartist.css" />
+<link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>@ViewBag.Title</small>
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="principal active" onclick="desaparecerBusqueda()"><a data-toggle="tab"><i class="fa fa-arrow-circle-o-right"></i>&nbsp;&nbsp;Ventas</a></li>
+                <li class="" onclick=""><a data-toggle="tab" href="" onclick="desaparecerVentas()"><i class="fa fa-arrow-circle-o-right"></i>&nbsp;&nbsp;Busqueda</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="panel-body" style="padding-top:0px;" id="">
+    <div class="hpanel">
+
+        <div id="tabs" class="tab-content">
+            <div id="principal" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="col-md-12">
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                @Html.DropDownList("Bodegas", null, "TODAS", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", id = "Bodegas" })
+                            </div>
+                            <div class="col-md-4">
+                                @Html.DropDownList("Año", null, "", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", id = "Año" })
+                            </div>
+
+                            <div class="col-md-4">
+                                <select id="Meses" class="form-control ">
+                                    <option value="">Selecione</option>
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <button type="button" onclick="tortaVentasBodega()" id="btncalcular" class="btn btn-success form-control"><span class="fa fa-refresh"></span>&nbsp;&nbsp;Calcular</button>
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <div id="tortaClasificacion" style="width: 100%;height: 400px"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tabs2" style="display:none">
+            <div class="col-sm-8">
+                <div class="form-group">
+                    <div class="col-md-8">
+
+                        <div class="row">
+
+                            <div class="col-4">
+                                <label>Bodega: </label>
+                                @Html.DropDownList("listar_bodegas", null, "TODAS", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", id = "listar_bodegas" })
+                            <div class="input-group m-b">
+                                @Html.Editor("txtFechaInicio", new { htmlAttributes = new { @class = "form-control", @placeholder = "Fecha Desde" } })
+                                <span class="input-group-addon">-</span>
+                                @Html.Editor("txtFechaFin", new { htmlAttributes = new { @class = "form-control", @placeholder = "Fecha Hasta" } })
+                            </div>
+                            </div>
+
+                            <div class="col-4">
+                                <div class="input-group m-b">
+                                    <button type="button" class="btn btn-primary" onclick="buscarDatosVentas()" id="btnBuscarVentas">Buscar&nbsp;&nbsp;<i class="fa fa-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="chartdiv" style="width: 100%;height: 400px"></div>
+                </div>
+            </div>
+            @*tabla1*@
+            <hr />
+            <div class="panel-body-busqueda">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar"></div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Valor Total</th>
+                                <th style="text-align:center">Valor IVA</th>
+                                <th style="text-align:center">Valor Costo</th>
+                                <th style="text-align:center">Valor Mercancía</th>
+                                <th style="text-align:center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="row col-md-4 col-md-offset-4">
+                    <div id="page-selection"></div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+<div id="modal_detalle_bodega" class="modal fade" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Bodegas</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tablaDetalleBodega">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Año</th>
+                                <th style="text-align:center">Mes</th>
+                                <th style="text-align:center">Numero Ventas</th>
+                                <th style="text-align:center">Total Ventas</th>
+                                <th style="text-align:center">Participacion</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalExito">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal_detalle_referencia" class="modal fade" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Referencias</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tablaDetalleRefenrencia">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Código</th>
+                                <th style="text-align:center">Descripción</th>
+                                <th style="text-align:center">Clasificación</th>
+                                <th style="text-align:center">Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalExito">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalCargandoInfo" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title" id="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <div style="text-align:center" id="cargando"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bd-example-modal-lg" id="modalDetalleBodega" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Detalle Ventas Bodega</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="table-responsive">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaDetalle">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Documento</th>
+                                    <th style="text-align:center">Numero</th>
+                                    <th style="text-align:center">Cliente</th>
+                                    <th style="text-align:center">Fecha</th>
+                                    <th style="text-align:center">Asesor</th>
+                                    <th style="text-align:center">Valor Total</th>
+                                    <th style="text-align:center">Valor IVA</th>
+                                    <th style="text-align:center">Valor Costo</th>
+                                    <th style="text-align:center">Valor Mercancía</th>
+                                    <th style="text-align:center">Retencion</th>
+                                    <th style="text-align:center">Rete Causada</th>
+                                    <th style="text-align:center">Rete IVA</th>
+                                    <th style="text-align:center">Rete ICA</th>
+                                    <th style="text-align:center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bd-example-modal-lg" id="modalDetalleDocumento" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Detalle Documento</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="table-responsive">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaDetalleDocumento">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Repuesto</th>
+                                    <th style="text-align:center">Cantidad</th>
+                                    <th style="text-align:center">Valor unitario</th>
+                                    <th style="text-align:center">Valor antes de IVA</th>
+                                    <th style="text-align:center">Descuento (%)</th>
+                                    <th style="text-align:center">Total Descuento ($)</th>
+                                    <th style="text-align:center">IVA(%)</th>
+                                    <th style="text-align:center">Total IVA ($)</th>
+                                    <th style="text-align:center">Valor Total</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                            <tfoot>
+                                <tr id="filaSubTotal">
+                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                        <b>SUB TOTAL</b>
+                                    </td>
+                                    <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                        <input class="form-control input-sm" id="valorSub" name="valorSub" readonly="readonly" type="text" value="" style="text-align:right" />
+                                    </td>
+                                </tr>
+                                <tr id="filaTotalDescuento">
+                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                        <b>DESCUENTO</b>
+                                    </td>
+                                    <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                        <input class="form-control input-sm" id="valorDes" name="valorDes" readonly="readonly" type="text" value="" style="text-align:right" />
+                                    </td>
+                                </tr>
+                                <tr id="filaTotalIVA">
+                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                        <b>IVA</b>
+                                    </td>
+                                    <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                        <input class="form-control input-sm" id="valorIVA" name="valorIVA" readonly="readonly" type="text" value="" style="text-align:right" />
+                                    </td>
+                                </tr>
+                                <tr id="filaTotal">
+                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                        <b>TOTAL</b>
+                                    </td>
+                                    <td align="center" id="valorFinalTD">
+                                        <input class="form-control input-sm" id="valorFinal" name="valorFinal" readonly="readonly" type="text" value="" style="text-align:right" />
+                                        <input id="valorFinal1" name="valorFinal1" type="hidden" value="" />
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <table class="table table-striped table-bordered table-hover" id="tablaRetenciones">
+                            <thead>
+                                <tr>
+                                    <th colspan="6" style="text-align:center">Retenciones</th>
+                                </tr>
+                                <tr>
+                                    <th style="text-align:center">Retefuente</th>
+                                    <th style="text-align:center">Reteiva</th>
+                                    <th style="text-align:center">Reteica</th>
+                                    <th style="text-align:center">Autoretención</th>
+                                    <th style="text-align:center">Total Retenciones</th>
+                                    <th style="text-align:center">Total Proveedor</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Vendor scripts -->
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/vendor/d3/d3.min.js"></script>
+    <script src="~/vendor/c3/c3.min.js"></script>
+    <!-- App scripts -->
+    <script src="~/Scripts/homer.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/amcharts.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/funnel.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/themes/light.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/amchart2.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/pie.js"></script>
+    <script src="~/Scripts/graficos.js?hora=@ViewBag.horas"></script>
+    <script src="~/Vendor/AmCharts/lib/3/themes/light.js"></script>
+    <script src="~/Vendor/chartjs/Chart.min.js"></script>
+    <script src="~/Vendor/chartjs/samples/utils.js"></script>
+    <link href="~/Vendor/AmCharts/lib/3/plugins/export/export.css" rel="stylesheet" />
+    <script src="~/Vendor/AmCharts/lib/3/plugins/export/export.min.js"></script>
+    <script>
+
+        $(document).ready(function () {
+            
+
+            $('#txtFechaInicio').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: '-' + new Date() + '',
+            });
+            $('#txtFechaFin').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: '-' + new Date() + '',
+            });
+
+            //tortaVentasBodega();
+
+        });
+
+        //**************MODAL********************//
+
+        function buscarClasificados(id) {
+            $('#tablaDetalleBodega').dataTable().fnDestroy();
+            $('#tablaDetalleBodega').find('tbody').empty();
+            var anio = $('#Año').val();
+            var mes = $('#Meses').val();
+            $.ajax({
+                url: '/IndicadoresGraficos/buscarVentasXBodega',
+                data: { id,anio,mes },
+                type: 'post',
+                cache: false,
+                success: function (buscar) {
+                    console.log(buscar)
+                    $('#tablaDetalleBodega').dataTable().fnDestroy();
+                    $('#tablaDetalleBodega').find('tbody').empty();
+                    for (var i = 0; i < buscar.length; i++) {
+                        $('#tablaDetalleBodega').find('tbody').append(
+                            '<tr>'
+                            + '<td style="text-transform: uppercase">' + buscar[i].bodccs_nombre + '</td>'
+                            + '<td style="text-transform: uppercase">' + buscar[i].ano + '</td>'
+                            + '<td style="text-transform: uppercase">' + buscar[i].mes + '</td>'
+                            + '<td style="text-transform: uppercase">' + buscar[i].numero_ventas + '</td>'
+                            + '<td style="text-transform: uppercase">' + buscar[i].total_ventas + '</td>'
+                            + '<td style="text-transform: uppercase">' + buscar[i].participacion + '</td>'
+
+                            + '</tr>'
+                        );
+                    }
+                    $('#modal_detalle_bodega').modal('show')
+                },
+                complete: function (buscar) {
+                    $('#tablaDetalleBodega').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        ]
+                    });
+                }
+            });
+        }
+
+        //**************MODAL********************//
+
+        //**************Grafica********************//
+        function tortaVentasBodega() {
+
+            bodega = $('#Bodegas').val();
+            anio = $('#Año').val();
+            mes = $('#Meses').val();
+            debugger;
+    $.ajax({
+        url: '/IndicadoresGraficos/tortaVentas',
+        data: {
+            bodega: bodega,
+            anio: anio,
+            mes:mes
+        },
+        type: 'post',
+        cache: false,
+        success: function (buscar) {
+            var datos = [];
+            for (var i = 0; i < buscar.length; i++) {
+                datos[i] = {
+                    "title": buscar[i].bodccs_nombre,
+                    "valor": parseInt(buscar[i].participacion),
+                    "descripcion": buscar[i].total_ventas
+                }
+            }
+
+            var chart = AmCharts.makeChart("tortaClasificacion", {
+                "type": "pie",
+                "theme": "light",
+                "dataProvider": datos,
+                "valueField": "valor",
+                "titleField": "title",
+                "descriptionField": "descripcion",
+                "outlineAlpha": 0.4,
+                "depth3D": 15,
+                "balloonText": "[[title]]<br><span style='font-size:14px'><b>[[description]]</b> ([[percents]]%)</span>",
+                "angle": 30,
+                "legend": {
+                    "useGraphSettings": false,
+                    "valueText": ""
+                },
+                "export": {
+                    "enabled": false
+                }
+            });
+            chart.addListener("clickSlice", function (event, index) {
+                var posicion = event.dataItem.index;
+                for (var x = 0; x < buscar.length; x++) {
+                    if (x == posicion) {
+                        buscarClasificados(buscar[x].id)
+                    }
+                }
+            });
+        }
+    })
+}
+        //**************Grafica********************//
+
+        var numero_miles = "";
+        function formatNumber(n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles(id) {
+            numero_miles = formatNumber($('#' + id + '').val());
+            $('#' + id + '').val(numero_miles);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        function detalleDocumento(id) {
+            $.ajax({
+                url: '/FacturacionRepuestos/CompletarTablaRepuestos',
+                data: {
+                    id: id
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    var subTotal = 0;
+                    var descuento = 0;
+                    var iva = 0;
+                    var totalFinal = 0;
+                    $("#tablaDetalleDocumento").find("tbody").empty()
+                    console.log(data)
+                    for (var i = 0; i < data.length; i++) {
+                        valorUnitario = data[i].valor_unitario / (100 - data[i].porcentaje_descuento) * 100
+                        antesIva = valorUnitario * data[i].cantidad
+                        totalDescuento = (antesIva * data[i].porcentaje_descuento) / 100
+                        totalIva = ((antesIva - totalDescuento) * data[i].porcentaje_iva) / 100
+                        $("#tablaDetalleDocumento").find("tbody").append(
+                            '<tr>'
+                            + '<td style="text-align:left">' + data[i].codigo + ' ' + data[i].ref_descripcion + '</td>'
+                            + '<td style="text-align:right">' + data[i].cantidad + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(parseInt(valorUnitario)) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(parseInt(antesIva)) + '</td>'
+                            + '<td style="text-align:right">' + data[i].porcentaje_descuento + ' %</td>'
+                            + '<td style="text-align:right">$' + addCommas(parseInt(totalDescuento)) + '</td>'
+                            + '<td style="text-align:right">' + data[i].porcentaje_iva + ' %</td>'
+                            + '<td style="text-align:right">$' + addCommas(parseInt(totalIva)) + ' </td>'
+                            + '<td style="text-align:right">$' + addCommas(parseInt(antesIva - totalDescuento + totalIva)) + '</td>'
+                            + '</tr>')
+                        subTotal += antesIva;
+                        descuento += totalDescuento;
+                        iva += totalIva;
+                    }
+                    $('#valorSub').val('$' + addCommas(parseInt(subTotal)))
+                    $('#valorDes').val('$' + addCommas(parseInt(descuento)))
+                    $('#valorIVA').val('$' + addCommas(parseInt(iva)))
+                    $('#valorFinal').val(addCommas(parseInt(subTotal - descuento + iva + addCommas(parseInt(@ViewBag.flete)) + $('#totalFletes').val())))
+                    $('#valorFinal1').val($('#valorFinal').val())
+                }
+            });
+
+            $.ajax({
+                url: '/FacturacionRepuestos/CompletarRetenciones',
+                data: {
+                    id: id
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    var total = 0
+                    var valorTotal = parseInt(quitCommas($('#valorFinal1').val()))
+                    $("#tablaRetenciones").find("tbody").empty()
+                    for (var i = 0; i < data.buscarRetenciones.length; i++) {
+                        var totalRetenciones = data.buscarRetenciones[i].retencion + data.buscarRetenciones[i].retencion_iva + data.buscarRetenciones[i].retencion_ica
+
+                        $("#tablaRetenciones").find("tbody").append(
+                            '<tr>'
+                            + '<td style="text-align:right">$' + addCommas(data.buscarRetenciones[i].retencion) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(data.buscarRetenciones[i].retencion_iva) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(data.buscarRetenciones[i].retencion_ica) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(data.buscarRetenciones[i].retencion_causada) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(totalRetenciones) + '</td>'
+                            + '<td style="text-align:right">$' + addCommas(valorTotal - totalRetenciones) + '</td>'
+                            + '</tr>')
+                    }
+                }
+            });
+            $('#modalDetalleDocumento').modal("show");
+        }
+
+        function detalleBodega(id) {
+            debugger
+            if ($.fn.dataTable.isDataTable('#tablaDetalle')) {
+                $('#tablaDetalle').dataTable().fnDestroy();
+            }
+            $.ajax({
+                url: '/registroReferencias/buscarDetalleVentas',
+                data: {
+                    id: id,
+                    inicio: $('#txtFechaInicio').val(),
+                    fin: $('#txtFechaFin').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#tablaDetalle').dataTable().fnDestroy();
+
+                    $('#tablaDetalle').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaDetalle').find('tbody').append('<tr>'
+                            + '<td align="left">' + data[i].nombre + '</td>'
+                            + '<td align="left">' + data[i].numero + '</td>'
+                            + '<td align="left">' + data[i].cliente + '</td>'
+                            + '<td align="left">' + data[i].fecha + '</td>'
+                            + '<td align="left">' + data[i].asesor + '</td>'
+                            + '<td align="right">$' + addComas(Math.round(data[i].valorImpuesto)) + '</td>'
+                            + '<td align="right">$' + addComas(Math.round(data[i].valorIVA)) + '</td>'
+                            + '<td align="right">$' + addComas(Math.round(data[i].valorCosto)) + '</td>'
+                            + '<td align="right">$' + addComas(Math.round(data[i].valorMercancia)) + '</td>'
+                            + '<td align="right">$' + addComas(Math.round(data[i].retencion)) + '</td>'
+                            + '<td align="right">$' + addComas(Math.round(data[i].retencion_causada)) + '</td>'
+                            + '<td align="right">$' + addComas(Math.round(data[i].retencion_iva)) + '</td>'
+                            + '<td align="right">$' + addComas(Math.round(data[i].retencion_ica)) + '</td>'
+                            + '<td align="center">'
+                            + '<button type="button" class="btn btn-info btn-xs" onclick="detalleDocumento(' + data[i].idencabezado + ')">Ver</button>'
+                            + '</td>'
+                            + '</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaDetalle').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                    $('#modalDetalleBodega').modal("show")
+                }
+            });
+        }
+
+        function buscarBodegas() {
+            $.ajax({
+                url: '/registroReferencias/BuscarBodegas',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#listar_bodegas').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#listar_bodegas').append($('<option>', {
+                            value: data[i].id_bodega,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+
+                    $('#listar_bodegas').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 800,
+                    });
+                    $('#listar_bodegas').multiselect('refresh');
+                }
+            });
+        }
+
+        function desaparecerVentas() {
+
+        $('#chartdiv').hide();
+        $('#tabs').hide();
+        $('#tabs2').show();
+
+        }
+
+        function desaparecerBusqueda() {
+
+        $('#chartdiv').show();
+        $('#tabs').show();
+        $('#tabs2').hide();
+
+        }
+
+        function buscarDatosVentas() {
+
+            debugger;
+
+            if ($('#txtFechaInicio').val() != "" && $('#txtFechaFin').val() != "" && $('#listar_bodegas').val() != null) {
+                if ($('#txtFechaInicio').val() <= $('#txtFechaFin').val()) {
+
+                    if ($.fn.dataTable.isDataTable('#tablaPaginada')) {
+                        $('#tablaPaginada').dataTable().fnDestroy();
+                    }
+                    var inicio = $('#txtFechaInicio').val()
+                    var fin = $('#txtFechaFin').val()
+                    var bodegas = $('#listar_bodegas').val()
+                    //torta(inicio, fin, bodegas)
+
+                    debugger;
+
+                    $.ajax({
+                        url: '/registroReferencias/buscarDatosVentas',
+                        data: {
+                            inicio: inicio,
+                            fin: fin,
+                            bodega: bodegas,
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            console.log(data)
+                            $('#tablaPaginada').find('tbody').empty();
+                            for (var i = 0; i < data.length; i++) {
+                                $('#tablaPaginada').find('tbody').append('<tr>'
+                                        + '<td align="left">' + data[i].nombre + '</td>'
+                                        + '<td align="right">$' + addComas(Math.round(data[i].valorImpuesto)) + '</td>'
+                                        + '<td align="right">$' + addComas(Math.round(data[i].valorIVA)) + '</td>'
+                                        + '<td align="right">$' + addComas(Math.round(data[i].valorCosto)) + '</td>'
+                                        + '<td align="right">$' + addComas(Math.round(data[i].valorMercancia)) + '</td>'
+                                        + '<td align="center">'
+                                            + '<button type="button" class="btn btn-info btn-xs" onclick="detalleBodega(' + data[i].idBodega + ')">Ver</button>'
+                                        + '</td>'
+                                    + '</tr>');
+                            }
+                        },
+                        complete: function (data) {
+                            $('#tablaPaginada').dataTable({
+                                dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                                buttons: []
+                            });
+                        }
+                    })
+                } else {
+                    swal("Error!", "Debe diligenciar fechas validas para realizar la consulta", "error");
+                }
+            } else {
+                swal("Error!", "Debe diligenciar todos los campos para realizar la consulta", "error");
+            }
+        }
+
+    </script>
+}

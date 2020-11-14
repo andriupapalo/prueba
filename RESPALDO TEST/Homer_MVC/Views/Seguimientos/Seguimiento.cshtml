@@ -1,0 +1,396 @@
+﻿@model Homer_MVC.IcebergModel.Seguimientos
+@{
+    ViewBag.Title = "Seguimiento";
+    ViewBag.Icono = "fa fa-eye";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.themes.min.css" rel="stylesheet" />
+    <link href="~/Vendor/toastr/toastr.css" rel="stylesheet" />
+    <link href="~/Vendor/toastr/toastr.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        <div id="tabs" class="tab-content">
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active">
+                    <a data-toggle="tab" href="#CreateSeguimiento"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a>
+                </li>
+                @*<li class="" onclick="">
+                    <a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a>
+                </li>*@
+            </ul>
+            <div id="CreateSeguimiento" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="">
+
+                        <div class="panel-body col-md-6">
+                            @using (Html.BeginForm())
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <div class="panel-body">
+                                    <h4>Seguimientos</h4>
+                                    <hr />
+                                    <div class="col-sm-4">
+                                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                        <div class="form-group">
+                                            <label class="control-label col-md-5">Codigo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.Codigo, new { htmlAttributes = new { @class = "form-control js-source-states", @placeholder = "Codigo", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.Codigo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-3">Modulo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.DropDownListFor(model => model.Modulo, null, htmlAttributes: new { @class = "form-control" })
+                                                @Html.ValidationMessageFor(model => model.Modulo, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div type="button" class="col-md-2"><i class="fa fa-plus-circle fa-2x" id="ModuloSeguimientos"></i></div>
+                                        </div>
+                                    </div><br /><br />
+                                    <div class="col-sm-8">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Es Manual:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-8">
+                                                <div class="checkbox">
+                                                    @Html.CheckBoxFor(model => model.EsManual)
+                                                    @Html.ValidationMessageFor(model => model.EsManual, "")
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-6">Estado:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                <div class="checkbox">
+                                                    @Html.CheckBoxFor(model => model.Estado, new { @id = "EstadoSeguimiento", @class = "text-danger" })
+                                                    @Html.ValidationMessageFor(model => model.Estado, "")
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><br /><br />
+                                    <div class="col-sm-8">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-3">Evento:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-9">
+                                                @Html.EditorFor(model => model.Evento, new { htmlAttributes = new { @class = "form-control js-source-states" } })
+                                                @Html.ValidationMessageFor(model => model.Evento, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <div class="col-md-offset-2 col-md-10">
+                                                <input type="button" value="Create" class="btn btn-default" onclick="GuardarSeguimiento()" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            }
+                            @Html.Action("MotivoSeguimiento", "Seguimientos")
+                        </div>
+                        <div class="panel-body-busqueda col-md-6">
+                            <div class="table-responsive" id="divData">
+                                <div id="div-mensaje-buscar"></div>
+                                <table class="table table-striped table-bordered table-hover" id="tablaSeguimiento">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:center">Codigo</th>
+                                            <th style="text-align:center">Modulo</th>
+                                            <th style="text-align:center">Evento</th>
+                                            <th style="text-align:center">Es Manual</th>
+                                            <th style="text-align:center">Estado</th>
+                                            <th style="text-align:center">Acci&oacute;n</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="table-responsive" id="divDataAnulacion">
+                                <div id="div-mensaje-buscar"></div>
+                                <table class="table table-striped table-bordered table-hover" id="tablaSeguimientoMotivoAnulacionModulo">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:center">Codigo Seguimiento</th>
+                                            <th style="text-align:center"> Motivo Anulacion</th>
+                                              <th style="text-align:center">Estado</th>
+                                            <th style="text-align:center">Acci&oacute;n</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                       
+                    </div>
+                    
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div>
+    @* Esto es una modal en un archivo deferente *@
+    @Html.Action("CreateModuloSeguimiento", "Seguimientos")
+  
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/EasyAutocomplete-1.3.5/jquery.easy-autocomplete.min.js"></script>
+    <script src="~/Vendor/toastr/toastr.min.js"></script>
+    <script>
+
+        $(document).ready(function () {
+            LisSeguimiento();
+        });
+
+        $("#ModuloSeguimientos").click(function () {
+            $('#modalModuloSeguimientos').modal('show');
+            LisModuloSeguimiento();
+        });
+
+        function GuardarSeguimiento() {
+
+            var Codigo = $("#Codigo").val();
+            var Modulo = $("#Modulo").val();
+            var Estado = $("#EstadoSeguimiento").val();
+            var EsManual = $("#EsManual").val();
+            var EsEstandar = $("#EsEstandar").val();
+            var Evento = $("#Evento").val();
+
+
+            if (Estado == "") {
+                Estado = false;
+            }
+            if (EsManual == "") {
+                EsManual = false;
+            } if (EsEstandar == "") {
+                EsEstandar = false;
+            }
+            var Seguimiento = { Codigo, Modulo, Estado, EsManual, EsEstandar, Evento };
+            debugger
+            //event.preventDefault();
+            if (Codigo!="" && Modulo!="" && Evento!="") {
+                $.ajax({
+                    url: '/Seguimientos/GuardarSeguimiento',
+                    data: { Seguimiento: Seguimiento },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        LisSeguimiento();
+                        if (data.OK == true) {
+                            toastr.success(data.mensaje);
+                        } else {
+                            toastr.error(data.mensaje);
+                        }
+                    },
+                    error: function (data) {
+                        debugger
+                        toastr.error("error", data.mensaje);
+                    }
+                });
+
+            } else {
+                toastr.error("error", "Faltan campos esenciales");
+            }
+        }
+
+        function LisSeguimiento() {
+         $.ajax({
+            url: '/Seguimientos/LisSeguimiento',
+            data: {
+            },
+            type: "GET",
+            cache: false,
+             success: function (data)
+             {  
+                debugger
+                //$('#divData').removeClass('hidden');
+                $('#tablaSeguimiento').dataTable().fnDestroy();
+                $('#tablaSeguimiento').find('tbody').empty();
+                 $.each(data, function (index, value) {
+                     
+                     var clase = "";
+                     var clase2 = "";
+                     var frase = "";
+                     var botonBorrar = "";
+                     var botonEstado = "";
+                     if (value.Estado == true) {
+                         clase = "fa fa-eye-slash";
+                         clase2 = "danger2 btn-xs";
+                         frase = "Inactivar";
+                     } else {
+                         clase2 = "success btn-xs";
+                         clase = "fa fa-eye";
+                         frase = "Activar";
+                     }
+                     if (value.EsManual == true) {
+                         botonBorrar ='<button type="button" class="btn btn-danger btn-xs" onclick="EliminarSeguimiento('+ value.Id+')"><i class="fa fa-trash"></i>&nbsp;Borrar&nbsp;</button>';
+                         botonEstado ='<button type="button" class="btn btn-sm btn-'+clase2+'" onclick="EstadoSeguimiento('+value.Id +')"><i id="btEstado' + value.Id + '"  class="' + clase + '"></i>' + frase + '&nbsp;</button>'
+                     } else {
+                         botonBorrar = '<button type="button" class="btn btn-warning btn-xs"><i class="fa fa-ban"></i>&nbsp;Borrar&nbsp;&nbsp;</button>';
+                         botonEstado = '<button type="button" class="btn btn-warning btn-xs"><i class="fa fa-ban"></i>&nbsp;Inactivar&nbsp;&nbsp;</button>';
+                     }
+                            var row =
+                                $('<tr><td>'
+                                    + value.Codigo + '</td><td>'
+                                    + value.Modulo + '</td><td>'
+                                    + value.Evento + '</td><td>'
+                                    + value.EsManual +'</td>'
+
+                                    + '<td>&nbsp;'
+                                    + botonEstado
+                                    +'</td >'
+                                    + '<td>&nbsp;'
+                                    + botonBorrar
+                                    + '&nbsp;</td> '
+                                    + '</tr>'
+                                );            
+
+                            $('#tablaSeguimiento').append(row);
+                        });
+                 debugger
+             },
+             complete: function () {
+                        $('#tablaSeguimiento').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[3,5,10, 25, 50, -1], [3,5,10, 25, 50, "All"]],
+                        buttons: []
+                    });
+             }
+        });  
+
+    }
+
+        function EstadoSeguimiento(Id) {
+                swal({
+                title: "¿Esta Seguro de Cambiar el Estado?",
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Si, Actualizar!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: true,
+                closeOnCancel: true
+            },
+            function (isConfirm) {
+                if (isConfirm)
+                {
+                    debugger
+                    $.ajax({
+                        url: '/Seguimientos/EstadoSeguimiento',
+                        data: {
+                            Id:Id
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            debugger
+                            if (data == true) {
+                                LisSeguimiento();
+                            }
+                        }, error: function () {
+                            toastr.error("error");
+                        } 
+                    });               
+                } else {
+                    swal("Cancelado", "Acción No Realizada", "error");
+                }
+            });     
+    }
+
+        function EliminarSeguimiento(id) {
+        swal({
+                title: "¿Esta Seguro de Borrar el registro?",
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Si, finalizar!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: true,
+                closeOnCancel: false
+            },
+            function (isConfirm) {
+                if (isConfirm)
+                {
+                    debugger
+                    $.ajax({
+                        url: '/Seguimientos/EliminarSeguimiento',
+                        data: {
+                            Id: id,
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            debugger
+                            if (data == true) {
+                                LisSeguimiento();
+                            }
+                        }, error: function () {
+                            toastr.error("error");
+                        } 
+                    });               
+                } else {
+                    swal("Cancelado", "El registro no será modificada", "error");
+                }
+            });         
+        }
+
+    </script>
+    }

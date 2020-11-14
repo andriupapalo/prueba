@@ -1,0 +1,934 @@
+﻿@model Homer_MVC.IcebergModel.agenda_demos
+
+@{
+    ViewBag.Icono = "fa fa-calendar";
+    ViewBag.Title = "Agendar Demos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Icons/pe-icon-7-stroke/css/helper.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/metisMenu/dist/metisMenu.css" rel="stylesheet" />
+    <link href="~/Vendor/fullcalendar/dist/fullcalendar.print.css" rel="stylesheet" media="print" />
+    <link href="~/Vendor/fullcalendar/dist/fullcalendar.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button class="btn btn-mini btn-default" style="border-radius:25px">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+            <br />
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+            <br />
+        }
+
+            <div id="tabs" class="tab-content">
+                <ul class="nav nav-tabs">
+                    @*<li class="active"><a data-toggle="tab" href="#Agenda">Citas</a></li>*@
+                    <li class="active"><a data-toggle="tab" href="#Agenda"><i class="fa fa-arrow-up"></i>&nbsp;&nbsp;Citas</a></li>
+                    <li class=""><a href="@Url.Action("Busquedas", "agenda_demos", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+                </ul>
+
+            <div id="Agenda" class="tab-pane active">
+                <div class="panel-body">
+
+                    <div class="form-horizontal">
+
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <button class="btn btn-primary" type="button" id="btnAgregar" data-toggle="modal" data-target="#modalCitas"><i class="fa fa-calendar-plus-o" aria-hidden="true"></i>&nbsp;Crear Cita</button>
+                            </div>
+
+                            <div class="col-lg-6" id="tabhorario" style="display: none">
+                                <div class="hpanel">
+                                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                        <div class="panel-tools">
+                                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                        </div>
+                                        <i class="fa fa-pencil-square-o"></i>&nbsp;&nbsp;&nbsp;Horario De Disponibilidad
+                                    </div>
+                                    <div class="panel-body">
+                                        <div id="external-events">
+                                            <strong></strong><br />
+                                            <div class="table-responsive project-list" style="text-align:center;">
+                                                <table class="table table-striped" id="tablaHorario">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="text-align:center" width="25%">Dias</th>
+                                                            <th style="text-align:center" width="60%">Horas</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-pencil-square-o"></i>&nbsp;&nbsp;&nbsp;Agenda Demos
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6" id="divDemos">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Demo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-8">
+                                                @Html.DropDownList("demo_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @*<input class="form-control input-sm " type="text" name="ubicacion" id="ubicacion" readonly="readonly" />*@
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6" id="nombreAsesor" style="display: none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Asesor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("asesor_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+                                    <br /><br /><br /><br />
+                                    <div class="col-lg-12">
+                                        <div class="hpanel">
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <div class="alert alert-danger" role="alert" style="display:none" id="msjError" name="msjError">
+                                                        El demo seleccionado no tiene horario parametrizado
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="calendar"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*--------modal crear citas------------------*@
+<div class="modal fade in hmodal-info" id="modalCitas" tabindex="-1" role="dialog" aria-hidden="true">
+    @using (Html.BeginForm("Create", "agenda_demos", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.tercero_id, new { @class = "tercero_id" });
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="color-line"></div>
+                <div class="modal-header text-center">
+                    <h4 class="modal-title">Citas</h4>
+                    <small class="font-bold">Crear citas</small>
+                </div>
+                <div class="modal-body">
+
+                    <div class="mensaje"></div>
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Fecha:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-12">
+                                <div class="input-daterange input-group">
+                                    @Html.EditorFor(model => model.desde, new { htmlAttributes = new { @class = "form-control datepicker fec_desde", @required = "" } })
+                                    <span class="input-group-addon">hasta</span>
+                                    @Html.EditorFor(model => model.hasta, new { htmlAttributes = new { @class = "form-control datepicker fec_hasta", @required = "" } })
+                                </div>
+                                <div>
+                                    <span class="text-danger" id="error_hora_demo" style="display:none"><strong>Solo puede asignar 1 Hora el demo</strong></span>
+                                    <span class="text-danger" id="error_hora_demo_anf" style="display:none"><strong>Solo puede asignar 4 Horas el demo</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br /><br /><br />
+
+                    <div class="col-sm-6" style="display: none">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Demo:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-12">
+                                @Html.DropDownList("demo_id", null, "", htmlAttributes: new { @class = "form-control js-source-states demo_id", @placeholder = "Seleccione", @required = "required" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Tipo:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-12">
+                                @Html.DropDownList("tipo", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Asesor:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-12">
+                                @Html.DropDownList("asesor_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Documento:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-12">
+                                @Html.EditorFor(model => model.ncliente, new { htmlAttributes = new { @class = "form-control", @type = "text", @required = "required" } })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Nombres:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-12">
+                                @Html.EditorFor(model => model.nombre, new { htmlAttributes = new { @class = "form-control", @type = "text", @required = "required" } })
+                                @Html.ValidationMessageFor(model => model.nombre, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Celular:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-12">
+                                @Html.EditorFor(model => model.celular, new { htmlAttributes = new { @class = "form-control", @type = "text", @required = "required" } })
+                                @Html.ValidationMessageFor(model => model.celular, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Telefono:</label>
+                            <div class="col-md-12">
+                                @Html.EditorFor(model => model.telefono, new { htmlAttributes = new { @class = "form-control", @type = "text" } })
+                                @Html.ValidationMessageFor(model => model.telefono, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Correo:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-12">
+                                @Html.EditorFor(model => model.correo, new { htmlAttributes = new { @class = "form-control", @type = "text" } })
+                                @Html.ValidationMessageFor(model => model.correo, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Ruta:&nbsp;</label>
+                            <div class="col-md-12">
+                                @Html.DropDownList("ruta", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Ubicacion:&nbsp;</label>
+                            <div class="col-md-12">
+                                <input class="form-control input-sm " type="text" name="ubicacion" id="ubicacion" readonly="readonly" />
+                                @*<input class="form-control input-sm " type="text" name="ubicacion" id="ubicacion" readonly="readonly" value="@ViewBag.Ubicacion" />*@
+                            </div>
+                        </div>
+                    </div>
+                    <br /><br />
+                    bebugger
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Descripción:&nbsp;</label>
+                            <div class="col-md-12">
+                                <div class="input-daterange input-group">
+                                    @Html.TextAreaFor(model => model.descripcion, new { @class = "form-control", @style = "width: 480px; height: 80px" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><br /><br />
+                    <button type="button" style="visibility: hidden" class="btn btn-primary">qqqq</button>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                        <input type="submit" class="btn btn-primary" value="Guardar" />
+                    </div>
+                </div>
+        </div>
+    }
+</div>
+
+@*--------modal editar citas------------------*@
+<div class="modal fade hmodal-info" id="modalEditar" tabindex="-1" role="dialog" aria-hidden="true">
+    @using (Html.BeginForm("Edit", "agenda_demos", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.asesor_id, new { @class = "asesor_id" });
+        @Html.HiddenFor(model => model.demo_id, new { @class = "demo_id" });
+        @Html.HiddenFor(model => model.id, new { @class = "id" });
+        @Html.HiddenFor(model => model.ncliente, new { @class = "ncliente" });
+        @Html.HiddenFor(model => model.nombre, new { @class = "nombre" });
+        @Html.HiddenFor(model => model.celular, new { @class = "celular" });
+        @Html.HiddenFor(model => model.correo, new { @class = "correo" });
+        @Html.HiddenFor(model => model.telefono, new { @class = "telefono" });
+        @Html.HiddenFor(model => model.tipo, new { @class = "tipo" });
+        @Html.HiddenFor(model => model.ruta, new { @class = "ruta" });
+        @Html.HiddenFor(model => model.titulo, new { @class = "titulo" });
+        @Html.HiddenFor(model => model.tercero_id, new { @class = "tercero_id" });
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="color-line"></div>
+                <div class="modal-header text-center">
+                    <h4 class="modal-title">Citas</h4>
+                    <small class="font-bold">Editar Citas</small>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" class="form-control" name="idbodega" id="idbodega" value="" />
+                    @*<div class="col-sm-12">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Demo:&nbsp;<span class="text-danger">*</span></label>
+                                <div class="col-md-12">
+                                    @Html.DropDownList("demo_id", null, "", htmlAttributes: new { @class = "form-control js-source-states demo_id", @placeholder = "Seleccione", @readonly=""})
+                                </div>
+                            </div>
+                        </div>*@
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Fecha:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-12">
+                                <div class="input-daterange input-group">
+                                    @Html.EditorFor(model => model.desde, new { htmlAttributes = new { @class = "form-control datepicker2 pos_fec_desde desde", @readOnly = "readOnly" } })
+                                    <span class="input-group-addon">hasta</span>
+                                    @Html.EditorFor(model => model.hasta, new { htmlAttributes = new { @class = "form-control datepicker2 pos_fec_hasta hasta", @readOnly = "readOnly" } })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br /><br /><br />
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Descripción:&nbsp;</label>
+                            <div class="col-md-12">
+                                @Html.TextAreaFor(model => model.descripcion, new { @class = "form-control descripcion", @style = "width: 480px; height: 80px" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Estado:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-6">
+                                <select name="estado" id="estado" class="form-control js-source-states">
+                                    <option value="Activa">Activa</option>
+                                    <option value="Reprogramada">Reprogramada</option>
+                                    <option value="Cancelada">Cancelada</option>
+                                    <option value="Realizado">Realizado</option>
+                                    <option value="No Realizado">No Realizado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12" id="divMotivo" style="display: none">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Motivo / Notas:&nbsp;</label>
+                            <div class="col-md-12">
+                                @Html.TextAreaFor(model => model.motivo, new { @class = "form-control motivo", @style = "width: 480px; height: 60px" })
+                            </div>
+                        </div>
+                    </div>
+
+                </div><br /><br />
+                <button type="button" style="visibility: hidden" class="btn btn-primary">qqqq</button>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary2" onclick="abrirModal()" id="encuestar">Encuestar</button>
+                    <input type="submit" class="btn btn-primary" value="Guardar" />
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@*--------modal Encuestas------------------*@
+<div class="modal fade hmodal-success in" id="modalEncuestas" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header">
+                <h4 class="modal-title">Realizar Encuestas</h4>
+                <small class="font-bold">Digite la siguiente información para realizar la encuesta</small>
+            </div>
+
+            @Html.AntiForgeryToken()
+
+            <div class="modal-body">
+
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Encuesta:&nbsp;</label>
+                        <div class="col-md-6">
+                            @Html.DropDownList("id_encuesta", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="visibility:hidden">Close</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id="cancelarEncuesta" onclick="devolver">Cerrar</button>
+                <button type="button" onclick="encuestar()" class="btn btn-primary">Realizar encuesta</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/jquery-ui/jquery-ui.min.js"></script>
+    <script src="~/Vendor/slimScroll/jquery.slimscroll.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/fullcalendar/dist/fullcalendar.min.js"></script>
+    <script src="~/Vendor/fullcalendar/dist/lang-all.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    @*<script src="~/Vendor/Bootstrap-Calendar/bootstrapCalendar.js"></script>*@
+
+
+
+    <script type="text/javascript">
+        var log = '@ViewBag.rol_log';
+        var iddeldemo = ""
+        var nomubicacion = "";
+
+        $(document).ready(function () {
+            $('.js-source-states').select2();
+
+            $('#btnAgregar').hide();
+            if ($('#asesor_id').val() != null) {
+                $('#nombreAsesor').hide();
+                //buscarCita();
+            } else {
+                $('#nombreAsesor').show();
+            }
+
+            $('#tabhorario').find('.showhide').trigger('click');
+
+        });
+
+        $('#demo_id').change(function () {
+            var iddeldemo =$('#demo_id').val();
+            $('#btnAgregar').show();
+            buscarUbicacion();
+            buscarCita();
+            buscarHorario();
+            $('.demo_id').val($('#demo_id').val())
+        });
+
+        $('#estado').change(function () {
+            validarEstado();
+        });
+
+        $('#cancelarEncuesta').click(function () {
+            $('#modalEditar').modal('show');
+        });
+
+        $('#ncliente').change(function () {
+            $.ajax({
+                url: '/agenda_demos/BuscarCliente',
+                data: {
+                    cliente: $('#ncliente').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#nombre').val(" ")
+                    $('#celular').val(" ")
+                    $('#correo').val(" ")
+                    $('#telefono').val(" ")
+                    $('#nombre').val(data[0].nombre)
+                    $('#celular').val(data[0].celular)
+                    $('#correo').val(data[0].correo)
+                    $('#telefono').val(data[0].telefono)
+                    $('#tercero_id').val(data[0].idtercero)
+                },
+            })
+        });
+
+        $('#hasta').blur(function () {
+            console.log(log)
+            if (log == 4) {
+                if ($('#desde').val() != "" && $('#hasta').val() != "") {
+                    var desde = $('#desde').val().split(' ')
+                    var hasta = $('#hasta').val().split(' ')
+                    var desde_hora = desde[1].split(':')
+                    var hasta_hora = hasta[1].split(':')
+                    if (desde[0] == hasta[0]) {
+                        var rh = desde_hora[0] - hasta_hora[0] //rh = resta hora
+                        if (rh < 0) {
+                            var rm = desde_hora[1] - hasta_hora[1] //rm = resta minutos
+                            if (rm < 0) {
+                                $('#error_hora_demo').show()
+                                $('#error_hora_demo').fadeOut(3500)
+                                $('#hasta').val('')
+                            }
+                        }
+                        if (rh == 0) {
+                            var rm = desde_hora[1] - hasta_hora[1] //rm = resta minutos
+                            if (rm < 0) {
+                                $('#error_hora_demo').show()
+                                $('#error_hora_demo').fadeOut(3500)
+                                $('#hasta').val('')
+                            }
+                        }
+                        if (rh >0) {
+                                $('#error_hora_demo').show()
+                                $('#error_hora_demo').fadeOut(3500)
+                                $('#hasta').val('')
+                        }
+
+                    } else {
+                        $('#error_hora_demo').show()
+                        $('#error_hora_demo').fadeOut(3500)
+                        $('#hasta').val('')
+                    }
+            }
+
+
+            }
+            if (log == 7) {
+                if ($('#desde').val() != "" && $('#hasta').val() != "") {
+                    var desde = $('#desde').val().split(' ')
+                    var hasta = $('#hasta').val().split(' ')
+                    var desde_hora = desde[1].split(':')
+                    var hasta_hora = hasta[1].split(':')
+                    if (desde[0] == hasta[0]) {
+                        var rh = desde_hora[0] - hasta_hora[0] //rh = resta hora
+                        if (rh < 0) {
+                            var rm = desde_hora[1] - hasta_hora[1] //rm = resta minutos
+                            if (rm < -4) {
+                                $('#error_hora_demo_anf').show()
+                                $('#error_hora_demo_anf').fadeOut(3500)
+                                $('#hasta').val('')
+                            }
+                        }
+                        if (rh == 4) {
+                            var rm = desde_hora[1] - hasta_hora[1] //rm = resta minutos
+                            if (rm < 0) {
+                                $('#error_hora_demo_anf').show()
+                                $('#error_hora_demo_anf').fadeOut(3500)
+                                $('#hasta').val('')
+                            }
+                        }
+                        if (rh > 0) {
+                            $('#error_hora_demo_anf').show()
+                            $('#error_hora_demo_anf').fadeOut(3500)
+                            $('#hasta').val('')
+                        }
+
+                    } else {
+                        $('#error_hora_demo_anf').show()
+                        $('#error_hora_demo_anf').fadeOut(3500)
+                        $('#hasta').val('')
+                    }
+                }
+            }
+
+        })
+
+        function buscarUbicacion() {
+            var valor = $('#demo_id').val();
+            $.ajax({
+                url: '/agenda_demos/BuscarUbicacion',
+                data: {
+                    param: $('#demo_id').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#ubicacion').val(data[0].ubivh_nombre);
+                    },
+            });
+            } 
+
+
+        function validarEstado() {
+                            if ($('#estado').val() == "Activa") {
+                $('.datepicker2').attr("readOnly", "readOnly")
+                                $('#divMotivo').show();
+                $('#encuestar').show();
+                $('#estado').prop("readOnly", false);
+                            }
+
+                            if ($('#estado').val() == "Reprogramada") {
+                //$('#estado').prop("readOnly", true);
+                $('#estado option:not(:selected)').prop('readonly', true);
+                $('#estado option[value="Activa"]').prop('disabled', true);
+                $('#estado option[value="No Realizado"]').prop('disabled', true);
+
+                $('#encuestar').hide();
+                $('#descripcion').show()
+                                $('#descripcion').removeAttr("readonly", "readonly")
+                                $('.datepicker2').removeAttr("readonly", "readonly")
+                            }
+
+                            if ($('#estado').val() == "Realizado") {
+                $('.datepicker2').attr("readOnly", "readOnly")
+                                $('.descripcion').attr("readOnly", "readOnly")
+                                $('#estado').prop("readOnly", true);
+                $('#divMotivo').show();
+                $('#encuestar').show();
+                $('#estado').prop("readOnly", true);
+                            }
+
+                            if ($('#estado').val() == "Cancelada") {
+                $('.datepicker2').attr("readOnly", "readOnly")
+                                $('.descripcion').attr("readOnly", "readOnly")
+                                $('#estado').prop("readOnly", true);
+                $('#divMotivo').show();
+                $('#encuestar').hide();
+                $('#estado').prop("readOnly", true);
+                            }
+
+                            if ($('#estado').val() == "No Realizado") {
+                $('#estado').prop("readOnly", true);
+                $('#encuestar').hide();
+                $('.datepicker2').removeAttr("readOnly", "readOnly")
+                            }
+                        }
+
+            function buscarCita() {
+            // Ajax para traer las citas de este asesor
+            $.ajax({
+                            url: '/agenda_demos/BuscarCitas',
+                data: {
+                                demo_id: $("#demo_id").val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#divHorario').show();
+                                    buscarHorario();
+                                },
+                complete: function (data) {
+                                    console.log(data)
+
+                    var citas = new Array();
+                                    for (var i = 0; i < data.responseJSON.length; i++) {
+                                        var object = {
+                            id: data.responseJSON[i].id,
+                            title: data.responseJSON[i].title,
+                            start: new Date(data.responseJSON[i].start),
+                            end: new Date(data.responseJSON[i].end),
+                            descripcion: data.responseJSON[i].descripcion,
+                            estado: data.responseJSON[i].estado,
+                            motivo: data.responseJSON[i].motivo,
+                            asesor_id: data.responseJSON[i].asesor_id,
+                            demo_id: data.responseJSON[i].demo_id,
+                            tercero_id: data.responseJSON[i].tercero_id,
+                            ncliente: data.responseJSON[i].cliente,
+                            ruta: data.responseJSON[i].ruta,
+                            nombre: data.responseJSON[i].nombre,
+                            celular: data.responseJSON[i].celular,
+                            correo: data.responseJSON[i].correo,
+                            telefono: data.responseJSON[i].telefono,
+                            tipo: data.responseJSON[i].tipo,
+                            bodega: data.responseJSON[i].bodega,
+                        };
+                    citas.push(object);
+                    }
+                console.log(citas);
+
+                    /* initialize the external events
+      -----------------------------------------------------------------*/
+                    $('#external-events div.external-event').each(function () {
+
+                        // store data so the calendar knows to render an event upon drop
+                        $(this).data('event', {
+                    title: $.trim($(this).text()), // use the element's text as the event title
+                            stick: true // maintain when user navigates (see docs on the renderEvent method)
+                        });
+
+                        // make the event draggable using jQuery UI
+                        $(this).draggable({
+                    zIndex: 1111999,
+                            revert: true,      // will cause the event to go back to its
+                            revertDuration: 0  //  original position after the drag
+                        });
+
+                });
+
+
+                    /* initialize the calendar
+                     -----------------------------------------------------------------*/
+                    var date = new Date();
+                var d = date.getDate();
+                var m = date.getMonth();
+                var y = date.getFullYear();
+
+                    $('#calendar').fullCalendar({
+                lang: 'es',
+                        header: {
+                    left: 'prev,next today',
+                            center: 'title',
+                            right: 'month,agendaWeek,agendaDay'
+                        },
+                        editable: true,
+                        droppable: true, // this allows things to be dropped onto the calendar
+                        drop: function () {
+                        // is the "remove after drop" checkbox checked?
+                        if ($('#drop-remove').is(':checked')) {
+                                // if so, remove the element from the "Draggable Events" list
+                                $(this).remove();
+                        }
+                    },
+                        events: citas,//data.responseJSON,
+                        eventDrop: function (event, delta, revertFunc, jsEvent, ui, view) {
+
+                    },
+                        eventClick: function (calEvent, jsEvent, view) {
+
+                            $('.titulo').val(calEvent.title);
+                            $('.desde').val(calEvent.start.format('DD/MM/YYYY HH:mm'));
+                            $('.hasta').val(calEvent.end.format('DD/MM/YYYY HH:mm'));
+                            $('.descripcion').val(calEvent.descripcion);
+                            $('#estado').val(calEvent.estado);
+                            $('#motivo').val(calEvent.motivo);
+                            $('.id').val(calEvent.id);
+                            $('.asesor_id').val(calEvent.asesor_id);
+                            $('.demo_id').val(calEvent.demo_id);
+                            $('.tercero_id').val(calEvent.tercero_id)
+                            $('.ncliente').val(calEvent.ncliente)
+                            $('.ruta').val(calEvent.ruta)
+                            $('.nombre').val(calEvent.nombre)
+                            $('.celular').val(calEvent.celular)
+                            $('.correo').val(calEvent.correo)
+                            $('.telefono').val(calEvent.telefono)
+                            $('.tipo').val(calEvent.tipo)
+                            $('#idbodega').val(calEvent.bodega);
+
+                        validarEstado();
+                            $('#modalEditar').modal('show');
+                            $('#estado').select2();
+                    }
+                });
+                }
+            })
+            $('#calendar').fullCalendar('destroy');
+        }
+
+        function buscarHorario() {
+            $.ajax({
+                url: '/agenda_demos/BuscarHorario',
+                data: {
+                    demo_id: $("#demo_id").val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                        if (data.length > 0) {
+                        $('#msjError').hide('1000')
+                            $('#tablaHorario').find('tbody').empty();
+                        $('#tablaHorario').find('tbody').append('<tr><td align="center">Lunes</td><td align="center">'
+                                         + data[0].lunes + '</td></tr><tr><td align="center">Martes</td><td align="center">'
+                                         + data[0].martes + '</td></tr><tr><td align="center">Miercoles</td><td align="center">'
+                                         + data[0].miercoles + '</td></tr><tr><td align="center">Jueves</td><td align="center">'
+                                         + data[0].jueves + '</td></tr><tr><td align="center">Viernes</td><td align="center">'
+                                         + data[0].viernes + '</td></tr><tr><td align="center">Sabado</td><td align="center">'
+                                         + data[0].sabado + '</td></tr><tr><td align="center">Domingo</td><td align="center">'
+                                         + data[0].domingo + '</td></tr><tr><td align="center"> No disponible </td><td>'
+                                        + data[0].no_disponible + '</td></tr><tr><td align="center">Motivo</td><td>'
+                                        + data[0].motivo + '</td></tr>');
+                        $('#tabhorario').show();
+
+                            //areglo con los dias de la semana
+                            var semana = [data[0].d_domingo, data[0].d_lunes, data[0].d_martes, data[0].d_miercoles, data[0].d_jueves, data[0].d_viernes, data[0].d_sabado];
+                            var dias = new Array();
+                            for (i = 0; i < 7; i++) {
+                                if (semana[i] == false) {
+                                    dias.push(i)
+                                }
+                            }
+
+                            //arereglo con las fechas en las que no esta disponible
+                            var fecha1 = moment(data[0].fecha_inicio);
+                            var fecha2 = moment(data[0].fecha_fin);
+                            var cantDias = fecha2.diff(fecha1, 'days')
+                            var fechas = new Array();
+                            for (i = 0; i < cantDias; i++) {
+                                var fecha = fecha1.add(1, 'days').format('MM/DD/YYYY HH:mm');
+                                fechas.push(fecha)
+                            }
+                            console.log(fechas);
+
+                            // deshabilitar fechas de no disponible
+                            if (data[0].nd == true || dias.length == 6) {
+
+                            $('.fec_desde').attr("disabled", "disabled");
+                            $('.fec_hasta').attr("disabled", "disabled");
+                            $('.pos_fec_desde').attr("disabled", "disabled");
+                            $('.pos_fec_hasta').attr("disabled", "disabled");
+
+                            } else {
+                            $('.fec_desde').datetimepicker({
+                                minDate: '-' + new Date() + '',
+                                format: 'DD/MM/YYYY HH:mm ',
+                                daysOfWeekDisabled: dias,
+                                disabledDates: fechas,
+                            }).on('dp.change', function (e) {
+                                    calcularDisponibilidad($('#demo_id').val(), $('.fec_desde').val())
+                            });
+
+                            $('.fec_hasta').datetimepicker({
+                                format: 'DD/MM/YYYY HH:mm ',
+                                minDate: '-' + new Date() + '',
+                                daysOfWeekDisabled: dias,
+                                disabledDates: fechas,
+                            }).on('dp.change', function (e) {
+                                    calcularDisponibilidad($('#demo_id').val(), $('.fec_hasta').val())
+                            });
+
+                            $('.pos_fec_desde').datetimepicker({
+                                minDate: '-' + new Date() + '',
+                                format: 'DD/MM/YYYY HH:mm ',
+                                daysOfWeekDisabled: dias,
+                                disabledDates: fechas,
+                            }).on('dp.change', function (e) {
+                                    calcularDisponibilidad($('#demo_id').val(), $('.pos_fec_desde').val())
+                            });
+
+                            $('.pos_fec_hasta').datetimepicker({
+                                format: 'DD/MM/YYYY HH:mm ',
+                                minDate: '-' + new Date() + '',
+                                daysOfWeekDisabled: dias,
+                                disabledDates: fechas,
+                            }).on('dp.change', function (e) {
+                                    calcularDisponibilidad($('#demo_id').val(), $('.pos_fec_hasta').val())
+                            });
+
+                            }
+                        }
+                        else {
+                        $('#msjError').show('1000')
+                        }
+                    },
+            });
+            }
+
+            function calcularDisponibilidad(asesor, fecha) {
+            $.ajax({
+                url: '/agenda_demos/BuscarDisponibilidadHorario',
+                data: {
+                    demo_id: asesor,
+                    fecha: fecha
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                        if (data == 0) {
+                        $('.mensaje').html('<div class="alert alert-danger alert-dismissible">'
+                                            + '<button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>'
+                                            + '<p><i class="fa fa-times"></i> La hora seleccionada esta por fuera del horario del asesor, por favor valide el horario y seleccione otra hora </p>'
+                                           + '</div>'
+                                         + '<br />');
+                        } else {
+                        $('.mensaje').html('');
+                        }
+                    },
+            });
+            }
+
+            function abrirModal() {
+            //$('#tercero').val(tercero);
+            $('#modalEditar').modal('hide');
+            $('#modalEncuestas').modal('show');
+            }
+
+            function encuestar() {
+                if ($('#id_encuesta').val() == '') {
+                $('#id_encuesta').prop("required", true);
+                } else {
+                $('#modalEncuestas').modal('hide');
+                    id_encuesta = parseInt($('#id_encuesta').val());
+                    id_tercero = parseInt($('#tercero_id').val());
+
+
+                    var url = '@Url.Action("Create", "responderEncuestas")?tercero=' + id_tercero + '&encuesta=' + id_encuesta;
+                    window.open(url, '_blank');
+
+                }
+
+            }
+
+    </script>
+
+
+}

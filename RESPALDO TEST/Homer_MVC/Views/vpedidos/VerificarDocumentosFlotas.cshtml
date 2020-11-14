@@ -1,0 +1,710 @@
+﻿@model Homer_MVC.IcebergModel.VehiculoPedidoModel
+
+@{
+    ViewBag.Icono = "fa fa-file-text-o";
+    ViewBag.Title = "Verificación documentos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+}
+
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+        @Html.Hidden("menu")
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="fa fa-refresh"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="" onclick="buscarDatosBackOffice()"><a data-toggle="tab"><i class="fa fa-refresh"></i>&nbsp;&nbsp;BrowserFlotas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+
+                <div class="panel-body">
+                    <div class="row">
+                        <button class="btn btn-info btn-xs" data-toggle="tooltip" data-placement="top" title="Ver" onclick="valida_Sb( '@ViewBag.datos.id','@Request.QueryString["menu"].ToString()')">
+                            &nbsp;&nbsp;<i class="fa fa-eye"></i> &nbsp;&nbsp;
+                        </button>
+                        <button class="btn btn-primary btn-xs" data-toggle="tooltip" data-placement="top" title="Verificacion documentos" onclick="verifica_Sb('@ViewBag.datos.id','@Request.QueryString["menu"].ToString()')">
+                            &nbsp;&nbsp;<i class="fa fa-file-text-o"></i>&nbsp;&nbsp;
+                        </button>
+                    </div>
+                    <br>
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info ocultable" id="btnGuardarSimulacion" onclick="validarObligatorios()"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                            <button class="btn btn-info" id="btnGuardar" style="display: none" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.HiddenFor(x => x.id)
+                        @Html.HiddenFor(x => x.numero)
+                        @Html.HiddenFor(x => x.usado)
+                        @Html.HiddenFor(x => x.bodega)
+                        @Html.HiddenFor(x => x.fecha)
+                        @Html.HiddenFor(x => x.idcotizacion)
+                        @Html.HiddenFor(x => x.nit)
+                        @*@Html.HiddenFor(x => x.marcvh_id)*@
+                        @Html.HiddenFor(x => x.nuevo)
+                        @Html.HiddenFor(x => x.usado)
+                        @Html.HiddenFor(x => x.userid_creacion)
+                        @Html.HiddenFor(x => x.fec_creacion)
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-user"></i> Datos Generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-10">
+                                        <div class="form-group">
+                                            <label class="control-label label label-info" style="font-size: 13px">Número Pedido: @ViewBag.numpedido&nbsp;</label>
+                                            <div class="col-md-6">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cédula / Nit:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.numeroIdentificacion, new { htmlAttributes = new { @class = "form-control", @readonly = "" } })
+                                                @Html.ValidationMessageFor(model => model.nit, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @*Se actualiza el edit para la verificación de documentos.*@
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Asesor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @if (ViewBag.Permiso2 == 1)
+                                                {
+                                                    @Html.DropDownList("vendedor", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.vendedor, "", new { @class = "text-danger" })
+                                                }
+                                                else
+                                                {
+                                                    @Html.HiddenFor(model => model.vendedor, htmlAttributes: new { @class = "form-control" })
+                                                    @Html.Editor("nombreAsesor", new { htmlAttributes = new { @class = "form-control", @readonly = "readonly", @placeholder = ViewBag.nombreAsesor } })
+                                                }
+                                                @*@Html.DropDownList("vendedor", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @readonly = "" })
+                                                    @Html.ValidationMessageFor(model => model.vendedor, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12">
+                                        <div class="table-responsive">
+                                            <input type="hidden" id="tipoDoc" name="tipoDoc" value="" />
+                                            <input type="hidden" id="tipoPer" name="tipoPer" value="" />
+                                            <table class="table table-striped table-bordered table-hover" id="tablaterceros">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Nombre</th>
+                                                        <th style="text-align:center">Telefono</th>
+                                                        <th style="text-align:center">Correo</th>
+                                                        <th style="text-align:center">Celular</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Código Flota:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("codflota", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @readonly = "" })
+                                            </div>
+                                            <span class="control-label col-md-6" id="nitFlota"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número Flota:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("flota", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @readonly = "" })
+                                                @Html.ValidationMessageFor(model => model.flota, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="div_datospedido">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-check-square" aria-hidden="true"></i> Datos Pedido
+                                </div>
+                                <div class="panel-body" id="vehiculo1">
+
+                                    <div id="vehiculo" style="text-align:center">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-2">Tipo Vehículo:&nbsp;</label>
+                                                    <div class="col-md-8">
+                                                        <input type="text" class="form-control" readonly value="@ViewBag.tipovh" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-2">Plan Mayor:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-8">
+                                                        @Html.EditorFor(model => model.planmayor, new { htmlAttributes = new { @class = "form-control", @readonly = "" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-sm-6" @*style="display: none"*@>
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-2">Marca:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-8">
+                                                        @Html.DropDownList("marcvh_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required", @readonly = "" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-2">Modelo: </label>
+                                                    <div class="col-md-8">
+                                                        @Html.DropDownList("modelo", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @readonly = "" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="modal_doc_flotas">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    Documentos requeridos para la flota
+                                </div>
+                                <div class="panel-body">
+                                    <small class="font-bold">Seleccione los documentos que se encuentren listos para entregar</small><br /><br />
+                                    <div class="row">
+                                        <div class="alert alert-success" role="alert" id="msjExito" style="display:none">
+                                            El documento fue cargado con exito
+                                        </div>
+                                        <div class="alert alert-success" role="alert" id="msjError" style="display:none">
+                                            No fue posible cargar el documento, por favor intente de nuevo
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-hover" id="tabla_doc_flotas">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Seleccione</th>
+                                                    <th style="text-align:center">Documento</th>
+                                                    <th style="text-align:center">Cargar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>}
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@Html.Action("modalesBackOffice")
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Scripts/submenuBackOffice.js?fec=@DateTime.Now"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            buscar_tercero();
+            $('#vendedor').select2('readonly', true);
+            setTimeout(function () {
+                buscarDocumentos();
+            }, 1000);
+
+        });
+
+        function buscar_tercero() {
+            $.ajax({
+                url: '/vpedidos/BuscarClienteCedula',
+                data: {
+                    cliente: $('#numeroIdentificacion').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#tipoDoc').val(data.info[0].tipo);
+                    $('#tipoPer').val(data.tipoPer[0].tipo);
+                    $('#tablaterceros').find('tbody').append('<tr><td align="center">'
+                        + data.info[0].nombre + '</td><td align="center">'
+                        + data.info[0].telefono + '</td><td align="center">'
+                        + data.info[0].correo + '</td><td align="center">'
+                        + data.info[0].celular + '</td></tr>');
+
+                },
+            });
+        }
+
+        function buscarDocumentos() {
+            var a = $('#flota').val();
+            var b = $('#tipoPer').val();
+
+            $('#tabla_doc_flotas').find('tbody').empty();
+
+            if ($('#flota').val() != "") {
+                $.ajax({
+                    url: '/vpedidos/BuscarDocumentosFlota',
+                    data: {
+                        flotaid: $('#flota').val(),
+                        pedidoid: $('#id').val(),
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        for (var i = 0; i < data.length; i++) {
+                            $('#tabla_doc_flotas').find('tbody').append('<tr>'
+                                +'<td align="center" width="5%">'
+                                    +'<input type="checkbox" class="docSlc" name="documento_' + data[i].id + '" id="documento_' + data[i].id + '" value="true" />'
+                                +'</td>'
+                                +'<td>'
+                                    +'<input type="hidden" class="form-control" name="idDoc" id="idDoc" value="'+data[i].iddocumento+'" />'
+                                    + data[i].documento + '</td>'
+                                +'<td>'
+                                    +'<input type="file" class="form-control-file" id="cargar_' + data[i].id + '" name="cargar_' + data[i].id + '">'
+                                    +'<br/>'
+                                    +'<button type="button" class="btn btn-info btn-sm" id="uploadFile_' + data[i].id + '" name="uploadFile_' + data[i].id + '" onclick="cargarArchivo(' + '\'' + data[i].id+ '\')"><i class="fa fa-upload"></i>&nbsp;&nbsp;&nbsp;Cargar</button>'
+                                    +'<button type="button" class="btn btn-info btn-sm" id="ver_' + data[i].id + '" name="ver_' + data[i].id + '" onclick="verArchivo(' + '\'' + data[i].cargado+ '\')"><i class="fa fa-eye"></i>&nbsp;&nbsp;&nbsp;ver</button>'
+                                +'</td>'
+                                +'</tr>'
+                            );
+                        }
+                        $.ajax({
+                            url: '/vpedidos/BuscarDocumentosSeleccionados',
+                            data: {
+                                flotaid: $('#flota').val(),
+                                pedidoid: $('#id').val(),
+                            },
+                            type: "post",
+                            cache: false,
+                            success: function (data) {
+                                for (var i = 0; i < data.length; i++) {
+                                    if (data[i].estado == true) {
+                                        $("#documento_" + data[i].id).attr("checked", "checked")
+                                    } else {
+                                        $("#documento_" + data[i].id).removeAttr("checked")
+                                    }
+                                }
+                            }
+                        });
+
+                        $(".docSlc").change(function () {
+                            $(".docSlc").each(function () {
+                                if ($(this).prop('checked')) {
+                                    $(this).val("true");
+                                } else {
+                                    $(this).val("false");
+                                }
+                            });
+                        });
+                    },
+                    complete: function(data) {
+                        for (var i = 0; i < data.responseJSON.length; i++) {
+                            if (data.responseJSON[i].cargado != 0) {
+                                $('#ver_'+data.responseJSON[i].id).show();
+                            }else {
+                                $('#ver_'+data.responseJSON[i].id).hide();
+                            }
+                        }
+                    }
+                });
+            }
+
+            else if ($('#tipoPer').val().trim() != "N" && $('#flota').val() == "") {
+                $.ajax({
+                    url: '/vpedidos/BuscarDocumentosPersonaNatural',
+                    data: {
+                        pedido:$('#id').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        console.log(data)
+                        for (var i = 0; i < data.length; i++) {
+                            $('#tabla_doc_flotas').find('tbody').append('<tr>'
+                                +'<td align="center" width="5%">'
+                                    +'<input type="checkbox" class="docSlc" name="documento_' + data[i].id + '" id="documento_' + data[i].id + '" value="true" />'
+                                +'</td>'
+                                +'<td>'
+                                    +'<input type="hidden" class="form-control" name="idDoc" id="idDoc" value="'+data[i].iddocumento+'" />'
+                                    + data[i].documento + '</td>'
+                                +'<td>'
+                                    +'<input type="file" class="form-control-file" id="cargar_' + data[i].id + '" name="cargar_' + data[i].id + '">'
+                                    +'<br/>'
+                                    +'<button type="button" class="btn btn-info btn-sm" id="uploadFile_' + data[i].id + '" name="uploadFile_' + data[i].id + '" onclick="cargarArchivo(' + '\'' + data[i].id+ '\')"><i class="fa fa-upload"></i>&nbsp;&nbsp;&nbsp;Cargar</button>&nbsp;&nbsp;&nbsp;'
+                                    +'<button type="button" class="btn btn-success btn-sm" id="ver_' + data[i].id + '" name="ver_' + data[i].id + '" onclick="verArchivo(' + '\'' + data[i].cargado+ '\')"><i class="fa fa-eye"></i>&nbsp;&nbsp;&nbsp;ver</button>'
+                                +'</td>'
+                                +'</tr>'
+                            );
+                        }
+                        $.ajax({
+                            url: '/vpedidos/BuscarDocumentosSeleccionados',
+                            data: {
+                                flotaid: $('#flota').val(),
+                                pedidoid: $('#id').val(),
+                            },
+                            type: "post",
+                            cache: false,
+                            success: function (data) {
+                                console.log('holas')
+                                console.log(data)
+                                for (var i = 0; i < data.length; i++) {
+                                    if (data[i].estado == true) {
+                                        $("#documento_" + data[i].id).attr("checked", "checked");
+                                    } else {
+                                        $("#documento_" + data[i].id).removeAttr("checked");
+                                    }
+                                }
+                            }
+                        });
+
+                        $(".docSlc").change(function () {
+                            $(".docSlc").each(function () {
+                                if ($(this).prop('checked')) {
+                                    $(this).val("true")
+                                } else {
+                                    $(this).val("false")
+                                }
+                            });
+                        });
+                    },
+                    complete: function(data) {
+                        for (var i = 0; i < data.responseJSON.length; i++) {
+                            if (data.responseJSON[i].cargado != 0) {
+                                $('#ver_'+data.responseJSON[i].id).show();
+                            }else {
+                                $('#ver_'+data.responseJSON[i].id).hide();
+                            }
+                        }
+                    }
+                });
+            }
+
+            else if ($('#tipoPer').val().trim() == "N" && $('#flota').val() == "") {
+                $.ajax({
+                    url: '/vpedidos/BuscarDocumentosPersonJuridica',
+                    data: {
+                        pedido:$('#id').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        console.log(data)
+                        for (var i = 0; i < data.length; i++) {
+                            $('#tabla_doc_flotas').find('tbody').append('<tr>'
+                                +'<td align="center" width="5%">'
+                                    +'<input type="checkbox" class="docSlc" name="documento_' + data[i].id + '" id="documento_' + data[i].id + '" value="true" />'
+                                +'</td>'
+                                +'<td>'
+                                    +'<input type="hidden" class="form-control" name="idDoc" id="idDoc" value="'+data[i].iddocumento+'" />'
+                                    + data[i].documento + '</td>'
+                                +'<td>'
+                                    +'<input type="file" class="form-control-file" id="cargar_' + data[i].id + '" name="cargar_' + data[i].id + '">'
+                                    +'<br/>'
+                                    +'<button type="button" class="btn btn-info btn-sm" id="uploadFile_' + data[i].id + '" name="uploadFile_' + data[i].id + '" onclick="cargarArchivo(' + '\'' + data[i].id+ '\')"><i class="fa fa-upload"></i>&nbsp;&nbsp;&nbsp;Cargar</button>'
+                                    +'<button type="button" class="btn btn-info btn-sm" id="ver_' + data[i].id + '" name="ver_' + data[i].id + '" onclick="verArchivo(' + '\'' + data[i].cargado+ '\')"><i class="fa fa-eye"></i>&nbsp;&nbsp;&nbsp;ver</button>'
+                                +'</td>'
+                                +'</tr>'
+                            );
+                        }
+                        $.ajax({
+                            url: '/vpedidos/BuscarDocumentosSeleccionados',
+                            data: {
+                                flotaid: $('#flota').val(),
+                                pedidoid: $('#id').val(),
+                            },
+                            type: "post",
+                            cache: false,
+                            success: function (data) {
+                                console.log(data)
+                                for (var i = 0; i < data.length; i++) {
+                                    if (data[i].estado == true) {
+                                        $("#documento_" + data[i].id).attr("checked", "checked");
+                                    } else {
+                                        $("#documento_" + data[i].id).removeAttr("checked");
+                                    }
+                                }
+                            }
+                        });
+
+                        $(".docSlc").change(function () {
+                            $(".docSlc").each(function () {
+                                if ($(this).prop('checked')) {
+                                    $(this).val("true");
+                                } else {
+                                    $(this).val("false");
+                                }
+                            });
+                        });
+                    },
+                    complete: function(data) {
+                        for (var i = 0; i < data.responseJSON.length; i++) {
+                            if (data.responseJSON[i].cargado != 0) {
+                                $('#ver_'+data.responseJSON[i].id).show();
+                            }else {
+                                $('#ver_'+data.responseJSON[i].id).hide();
+                            }
+                        }
+                    }
+                });
+            }
+
+            $("#modal_doc_flotas").show();
+        }
+
+        function cargarArchivo(id) {
+            if ($('#cargar_'+id).val() != "") {
+                var id = id;
+                var pedido = $('#id').val();
+
+                var file = $('#cargar_'+id)[0].files[0];
+                var formData = new FormData();
+                formData.append("documento", file);
+                formData.append("pedido", pedido);
+                formData.append("id", id);
+                actualizarDocumentos(formData,id);
+            }
+        }
+
+        function actualizarDocumentos(formData,id) {
+            debugger
+            $.ajax({
+                url: '/vpedidos/actualizarDocumentos',
+                type: "post",
+                cache: false,
+                data: formData,
+                dataType: 'json',
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    if (data == 1) {
+                        $("#msjExito").show(1500);
+                        $("#documento_" +id).prop("checked", true)
+                        setTimeout(function () {
+                            $("#msjExito").fadeOut(1500);
+                        }, 3000);
+                    }else {
+                        $("#msjError").show();
+
+                        setTimeout(function () {
+                            $("#msjError").fadeOut(1500);
+                        }, 3000);
+                    }
+                },
+                fail: function (data) {
+                    $("#msjError").show();
+
+                    setTimeout(function () {
+                        $("#msjError").fadeOut(1500);
+                    }, 3000);
+                },
+                complete: function(data) {
+                    buscarDocumentos()
+                }
+            });
+        }
+
+        function verArchivo(id) {
+            $.ajax({
+                url: '/vpedidos/verArchivo',
+                data: {
+                    id: id,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    window.open(data, '_blank')
+                }
+            });
+        }
+
+        function buscarDatos() {
+            $.ajax({
+                url: '/vpedidos/BuscarPedidosPaginados',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#tablaBusquedas').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaBusquedas').find('tbody').append('<tr>'
+                            + '<td align="right">' + data[i].numero + '</td>'
+                            + '<td align="left">' + data[i].fecha + '</td>'
+                            + '<td align="left">' + data[i].modelo + '</td>'
+                            + '<td align="left">' + data[i].bodccs_nombre + '</td>'
+                            + '<td align="left">' + data[i].asesor + '</td>'
+                            + '<td align="right">' + data[i].planmayor + '</td>'
+                            + '<td align="right">' + data[i].fechaA + '</td>'
+                            + '<td align="left">' + data[i].cliente + '</td>'
+                            + '<td align="right">' + addCommas(data[i].vrtotal) + '</td>'
+                            + '<td align="right">' + addCommas(data[i].valor) + '</td>'
+                            + '<td align="left">' + addCommas(data[i].vrtotal - data[i].valor) + '</td>'
+                            + '<td align="left">' + data[i].proceso + '</td>'
+                            + '<td  align="center">'
+                            + '<button class="btn btn-primary btn-xs" onclick="verifica(' + '\'' + data[i].id + '\')">&nbsp;&nbsp;Validar documentos&nbsp;&nbsp;</button>&nbsp;&nbsp'
+                            + '<button class="btn btn-info btn-xs" onclick="valida(' + '\'' + data[i].id + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>&nbsp;&nbsp'
+                            + '</td>'
+                            + '</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaBusquedas').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        ]
+                    });
+                }
+            });
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function buscarDatosBackOffice() {
+            window.location.href = '@Url.Action("BrowserFlotas", "vpedidos")?menu?'+@ViewBag.id_menu;
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+}
+
+

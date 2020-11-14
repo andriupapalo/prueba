@@ -1,0 +1,599 @@
+﻿@model Homer_MVC.IcebergModel.tercero_proveedor
+@{
+    ViewBag.Title = "Proveedor";
+    ViewBag.Icono = "fa fa-user";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    @*<link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />*@
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Actualizar @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li id="terceroT"><a data-toggle="tab" href=""><i class="fa fa-users"></i>&nbsp;&nbsp;Terceros</a></li>
+                <li id="clienteT" style="display:none"><a data-toggle="tab" href=""><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Cliente</a></li>
+                <li class="active" id="proveedorT"><a data-toggle="tab" href="#proveedor"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li id="empleadoT" style="display:none"><a data-toggle="tab" href=""><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Empleado</a></li>
+                <li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="terceros" class="tab-pane">
+                <div class="panel-body">
+                </div>
+            </div>
+
+
+            <div id="cliente" class="tab-pane">
+                <div class="panel-body">
+                </div>
+            </div>
+
+
+            <div id="proveedor" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <a class="btn btn-info" href="../../terceros?menu=@ViewBag.id_menu"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Crear nuevo</a>&nbsp;
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save" id="btnActualizarParteSuperior"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.HiddenFor(model => model.tercero_id)
+                        @Html.HiddenFor(model => model.tercproid_licencia)
+                        @Html.HiddenFor(model => model.tercprofec_creacion)
+                        @Html.HiddenFor(model => model.tercprouserid_creacion)
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Información General
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Proveedor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.tipo_proveedor, ViewBag.tipo_proveedor.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.tipo_proveedor, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Representante:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.repreleg_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Nombre Representante Legal", @required = "" } })
+                                                @Html.ValidationMessageFor(model => model.repreleg_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Teléfono:</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.telefono, new { htmlAttributes = new { @class = "form-control", @type = "number", @placeholder = "Ingrese Telefono" } })
+                                                @Html.ValidationMessageFor(model => model.telefono, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Página Web:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.pgweb_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Nombre Pagina Web" } })
+                                                @Html.ValidationMessageFor(model => model.pgweb_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tarifa:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.tarifaica_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Tarifa" } })
+                                                    @Html.ValidationMessageFor(model => model.tarifaica_tercero, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Actividad Económica:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.acteco_id, ViewBag.acteco_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.acteco_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Régimen:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.tpregimen_id, ViewBag.tpregimen_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @disabled = "true" })
+                                                @Html.ValidationMessageFor(model => model.tpregimen_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Ref. Fuente:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.retfuente, ViewBag.retfuente.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione"})
+                                                    @Html.ValidationMessageFor(model => model.retfuente, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Ref. Iva:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.retiva, ViewBag.retiva.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione"})
+                                                    @Html.ValidationMessageFor(model => model.retiva, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Ref. Ica:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.retica, ViewBag.retica.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione"})
+                                                    @Html.ValidationMessageFor(model => model.retica, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Autorretención:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.autorretencion, ViewBag.autorretencion.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione"})
+                                                    @Html.ValidationMessageFor(model => model.autorretencion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tipo Impuesto:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.tpimpu_id, ViewBag.tpimpu_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.tpimpu_id, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Forma Pago:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.fpago_id, ViewBag.fpago_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.fpago_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Suministro:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.tpsuministro_id, ViewBag.tpsuministro_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.tpsuministro_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Retencion:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.CheckBoxFor(model => model.rete_tercero, new { @class = "i-checks" })
+                                                    @Html.ValidationMessageFor(model => model.rete_tercero, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Contribución:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.CheckBoxFor(model => model.contrib_tercero, new { @class = "i-checks" })
+                                                    @Html.ValidationMessageFor(model => model.contrib_tercero, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    <div class="col-sm-6" style="display: none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Entidad:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.entidad_tercero, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                @Html.ValidationMessageFor(model => model.entidad_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" style="display: none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Aplica:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.aplica_tercero, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                @Html.ValidationMessageFor(model => model.aplica_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Exento de Iva:</label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.exentoiva, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Estado:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.tercpro_estado, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                @Html.ValidationMessageFor(model => model.tercpro_estado, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="mov_bloqueado" style="display: none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Motivo Bloqueado</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.razoninactivo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite razón bloqueo", @required = "" } })
+                                                @Html.ValidationMessageFor(model => model.razoninactivo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+
+
+
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-info-circle"></i>&nbsp;&nbsp;&nbsp;Información
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-3 small">
+                                    <p>Creado por: @ViewBag.user_nombre_cre</p>
+                                </div>
+
+                                <div class="col-sm-3 small">
+                                    <p>Fecha creación: @Html.DisplayFor(model => model.tercprofec_creacion)</p>
+                                </div>
+
+                                <div class="col-sm-3 small">
+                                    <p>
+                                        Actualizado por:  @{if (ViewBag.user_nombre_act == null)
+                                            {
+                                            <p class="text-danger">No se han realizado actualizaciones</p>
+                                        }
+                                        @ViewBag.user_nombre_act
+                                        }
+                                        </p>
+                                    </div>
+
+                                    <div class="col-sm-3 small">
+                                        <p>
+                                            Ultima actualización:  @{if (Model.tercprofec_actualizacion == null)
+                                                {
+                                                <p class="text-danger">No se han realizado actualizaciones</p>
+                                            }
+                                            @Html.DisplayFor(model => model.tercprofec_actualizacion)
+                                            }
+                                            </p>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            }
+
+                </div>
+            </div>
+
+
+
+
+            <div id="empleado" class="tab-pane">
+                <div class="panel-body">
+                </div>
+            </div>
+
+
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Documento</th>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Ciudad</th>
+                                        <th style="text-align:center">Fecha creación</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody id="contenido"></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script type="text/javascript">
+ //modificado AC
+
+        $('#terceroT').on('click', function(){
+            $('#btnActualizarParteSuperior').trigger('click');
+            setTimeout(function(){
+                $('#terceroT').removeClass('active');
+                $('li#terceroT.active').removeClass('active');
+                $('#proveedorT').addClass('active');
+            }, 100);
+            window.location.href = '@Url.Action("update", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+        });
+
+        $('#clienteT').on('click', function(){
+            $('#btnActualizarParteSuperior').trigger('click');
+            setTimeout(function(){
+                $('#clienteT').removeClass('active');
+                $('li#clienteT.active').removeClass('active');
+                $('#proveedorT').addClass('active');
+            }, 100);
+            window.location.href = '@Url.Action("updateCliente","icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+        });
+
+        $('#empleadoT').on('click', function(){
+            $('#btnActualizarParteSuperior').trigger('click');
+            setTimeout(function(){
+                $('#empleadoT').removeClass('active');
+                $('li#empleadoT.active').removeClass('active');
+                $('#proveedorT').addClass('active');
+            }, 100);
+            window.location.href = '@Url.Action("updateEmpleado", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+        });
+    </script>
+    @if (TempData["mensaje"] != null)
+    {
+        <script type="text/javascript">
+        if ($('#terceroT').on('click', function() {
+           window.location.href = '@Url.Action("update", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+        }));
+
+        if ($('#clienteT').on('click', function() {
+            window.location.href = '@Url.Action("updateCliente","icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+        }));
+
+        if ($('#empleadoT').on('click', function() {
+            window.location.href = '@Url.Action("updateEmpleado", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id='+$('#tercero_id').val();
+        }));
+
+        </script>
+    }
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $('.js-source-states').select2();
+
+
+            if (!$('#tercpro_estado').prop('checked')) {
+                $('#inactividad').show();
+            } else {
+                $('#razoninactivo').val('No aplica');
+                $('#inactividad').hide();
+            }
+
+            // Asigna los tabs dependiendo si el tercero ya es cliente, proveedor o empleado
+            var ids = '@ViewBag.tiposTercero'.split(',');
+            for (var i = 0; i < ids.length; i++) {
+                if (ids[i] == 1) {
+                    $('#clienteT').show();
+                }
+                if (ids[i] == 2) {
+                    $('#proveedorT').show();
+                }
+                if (ids[i] == 3) {
+                    $('#empleadoT').show();
+                }
+            }
+            buscarAjaxTerceros();
+        });
+
+    $('#tercpro_estado').change(function () {
+        if ($('#tercpro_estado').prop('checked')) {
+            $('#inactividad').hide();
+            $('#razoninactivo').prop('required', false);
+            $('#razoninactivo').val('');
+        } else {
+            $('#razoninactivo').prop('required', true);
+            $('#razoninactivo').val('');
+            $('#inactividad').show();
+        }
+    });
+
+        function valida(id) {
+            window.location.href = '@Url.Action("update","icb_terceros")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+
+
+        function buscarAjaxTerceros() {
+
+            $.ajax({
+                url: '/icb_terceros/BuscarTercerosPaginados',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="center">' + data[i].doc_tercero + '</td><td align="right">'
+                            + data[i].nombre_completo + '</td><td align="left">'
+                            + data[i].ciu_nombre + '</td><td align="left">'
+                            + data[i].fechaCreacion + '</td><td align="left">'
+                            + data[i].tercero_estado + '</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                            + '\'' + data[i].tercero_id
+                            + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+}

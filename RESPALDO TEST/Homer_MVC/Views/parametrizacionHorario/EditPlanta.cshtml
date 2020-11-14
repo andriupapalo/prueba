@@ -1,0 +1,1118 @@
+﻿@model Homer_MVC.IcebergModel.parametrizacion_horario_planta
+
+@{
+    ViewBag.Icono = "fa fa-clock-o";
+    ViewBag.Title = "Parametrizacion horario en plata";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Icons/pe-icon-7-stroke/css/helper.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/metisMenu/dist/metisMenu.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/clockpicker/dist/bootstrap-clockpicker.min.css" />
+    <link rel="stylesheet" href="~/Vendor/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro de @ViewBag.Title Disponible</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+            <br />
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+            <br />
+        }
+
+        <div id="tabs" class="tab-content">
+            @*<ul id="tabs-invVhNuevo" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#horario"><i class="fa fa-pencil-square-o" aria-hidden="true"></i> Configuración</a></li>
+            </ul>*@
+
+            @*Primer tab par listar el inventario de vehiculos nuevos*@
+            <div id="horario" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <a href="../../parametrizacionHorario/createPlanta?menu=@ViewBag.id_menu" class="btn btn-info" id="btnCrearNuevo"><i class="fa fa-folder-open-o"></i>&nbsp;&nbsp;&nbsp;Crear Nuevo</a>
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+                        <hr />
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.HiddenFor(x => x.horario_id)
+                        @Html.HiddenFor(x => x.usuario_id)
+                        @*@Html.HiddenFor(x => x.demo_id)*@
+                        @Html.HiddenFor(x => x.tipo_horario)
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            @*<div class="col-lg-3 text-center">
+                                    <br /><br />
+                                    <i class="fa fa fa-calendar-check-o big-icon text-success"></i>
+                                    <p class="small m-t-md">Registre el horario de disponibilidad para la asignación de citas en la agenda</p>
+                                    <br />
+                                    <div class="form-group">
+                                        <div>
+                                            <label class="control-label col-md-2">Novedades:&nbsp;</label><br /><br />
+                                            <small style="text-align: left">Si tiene alguna novedad registre la fecha de inicio y fecha fin </small><br /><br />
+                                            <div class="input-daterange input-group">
+                                                @Html.EditorFor(model => model.ndispo_fecha_inicio, new { htmlAttributes = new { @class = "form-control datepicker fec_desde fechax" } })
+                                                <span class="input-group-addon">hasta</span>
+                                                @Html.EditorFor(model => model.ndispo_fecha_fin, new { htmlAttributes = new { @class = "form-control datepicker fec_hasta fechax" } })
+                                            </div>
+                                            <br />
+                                            <label class="control-label col-md-2">Motivo:&nbsp;</label><br /><br />
+                                            @Html.TextAreaFor(model => model.observaciones, new { @class = "form-control", @style = "width: 309px; height: 80px" })
+                                        </div>
+                                        <div class="panel-body-btns text-right">
+                                            <button class="btn btn-primary" onclick="AgregarNovedad()" type="button"><i class="fa fa-plus-circle"></i>&nbsp;&nbsp;&nbsp;Agregar</button>
+                                        </div>
+                                    </div>
+                                </div>*@
+
+                            <div class="col-sm-9">
+                                <div class="hpanel" id="panelTurnos">
+                                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                        <div class="panel-tools">
+                                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                        </div>
+                                        <i class="fa fa-key"></i>&nbsp;&nbsp;&nbsp;Informacion Turno o check
+                                    </div>
+                                    <div class="panel-body">
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Turno:&nbsp;</label>
+                                                <div class="col-md-8">
+                                                    <label class="control-label col-md-6">
+                                                        @Html.CheckBoxFor(model => model.turno, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Check:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <label class="control-label col-md-8">
+                                                        @Html.CheckBoxFor(model => model.checks, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+                                    </div>
+                                </div>
+                                <div class="table-responsive project-list" style="text-align:center;">
+                                    <table class="table table-striped">
+
+
+
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center" width="25%">Dias</th>
+                                                <th style="text-align:center" width="60%">Horas</th>
+                                                <th style="text-align:center" width="25%">Disponible</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Lunes</td>
+                                                <td>
+                                                    <div class="col-sm-12">
+                                                        <div class="form-group">
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.lunes_desde, new { htmlAttributes = new { @class = "form-control clockpicker lunes todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.lunes_hasta, new { htmlAttributes = new { @class = "form-control clockpicker lunes todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                            <p class="control-label col-md-1">y</p>
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.lunes_desde2, new { htmlAttributes = new { @class = "form-control clockpicker lunes todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.lunes_hasta2, new { htmlAttributes = new { @class = "form-control clockpicker lunes todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @Html.CheckBoxFor(model => model.lunes_disponible, new { @cheked = "", @data_toggle = "toggle", @data_size = "mini" })
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Martes</td>
+                                                <td>
+                                                    <div class="col-sm-12">
+                                                        <div class="form-group">
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.martes_desde, new { htmlAttributes = new { @class = "form-control clockpicker martes todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.martes_hasta, new { htmlAttributes = new { @class = "form-control clockpicker martes todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                            <p class="control-label col-md-1">y</p>
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.martes_desde2, new { htmlAttributes = new { @class = "form-control clockpicker martes todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.martes_hasta2, new { htmlAttributes = new { @class = "form-control clockpicker martes todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @Html.CheckBoxFor(model => model.martes_disponible, new { @cheked = "", @data_toggle = "toggle", @data_size = "mini" })
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Miercoles</td>
+                                                <td>
+                                                    <div class="col-sm-12">
+                                                        <div class="form-group">
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.miercoles_desde, new { htmlAttributes = new { @class = "form-control clockpicker miercoles todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.miercoles_hasta, new { htmlAttributes = new { @class = "form-control clockpicker miercoles todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                            <p class="control-label col-md-1">y</p>
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.miercoles_desde2, new { htmlAttributes = new { @class = "form-control clockpicker miercoles todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.miercoles_hasta2, new { htmlAttributes = new { @class = "form-control clockpicker miercoles todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @Html.CheckBoxFor(model => model.miercoles_disponible, new { @cheked = "", @data_toggle = "toggle", @data_size = "mini" })
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Jueves</td>
+                                                <td>
+                                                    <div class="col-sm-12">
+                                                        <div class="form-group">
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.jueves_desde, new { htmlAttributes = new { @class = "form-control clockpicker jueves todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.jueves_hasta, new { htmlAttributes = new { @class = "form-control clockpicker jueves todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                            <p class="control-label col-md-1">y</p>
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.jueves_desde2, new { htmlAttributes = new { @class = "form-control clockpicker jueves todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.jueves_hasta2, new { htmlAttributes = new { @class = "form-control clockpicker jueves todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @*<div class="checkbox checkbox-success">
+                                <input id="checkJueves" type="checkbox" checked="">
+                                <label for="checkJueves">
+                                </label>
+                            </div>*@
+                                                    @Html.CheckBoxFor(model => model.jueves_disponible, new { @cheked = "", @data_toggle = "toggle", @data_size = "mini" })
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Viernes</td>
+                                                <td>
+                                                    <div class="col-sm-12">
+                                                        <div class="form-group">
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.viernes_desde, new { htmlAttributes = new { @class = "form-control clockpicker viernes todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.viernes_hasta, new { htmlAttributes = new { @class = "form-control clockpicker viernes todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                            <p class="control-label col-md-1">y</p>
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.viernes_desde2, new { htmlAttributes = new { @class = "form-control clockpicker viernes todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.viernes_hasta2, new { htmlAttributes = new { @class = "form-control clockpicker viernes todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @Html.CheckBoxFor(model => model.viernes_disponible, new { @cheked = "", @data_toggle = "toggle", @data_size = "mini" })
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Sabado</td>
+                                                <td>
+                                                    <div class="col-sm-12">
+                                                        <div class="form-group">
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.sabado_desde, new { htmlAttributes = new { @class = "form-control clockpicker sabado todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.sabado_hasta, new { htmlAttributes = new { @class = "form-control clockpicker sabado todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                            <p class="control-label col-md-1">y</p>
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+                                                                    @Html.EditorFor(model => model.sabado_desde2, new { htmlAttributes = new { @class = "form-control clockpicker sabado todos", @readonly = "readonly" } })
+                                                                    <span class="input-group-addon">a</span>
+                                                                    @Html.EditorFor(model => model.sabado_hasta2, new { htmlAttributes = new { @class = "form-control clockpicker sabado todos", @readonly = "readonly" } })
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @Html.CheckBoxFor(model => model.sabado_disponible, new { @cheked = "", @data_toggle = "toggle", @data_size = "mini" })
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Domingo</td>
+                                                <td>
+                                                    <div class="col-sm-12">
+                                                        <div class="form-group">
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+
+                                                                    @Html.EditorFor(model => model.domingo_desde, new { htmlAttributes = new { @class = "form-control clockpicker domingo todos", @readonly = "readonly" } })
+
+                                                                    <span class="input-group-addon">a</span>
+
+                                                                    @Html.EditorFor(model => model.domingo_hasta, new { htmlAttributes = new { @class = "form-control clockpicker domingo todos", @readonly = "readonly" } })
+
+                                                                </div>
+                                                            </div>
+                                                            <p class="control-label col-md-1">y</p>
+                                                            <div class="col-md-5">
+                                                                <div class="input-daterange input-group">
+
+                                                                    @Html.EditorFor(model => model.domingo_desde2, new { htmlAttributes = new { @class = "form-control clockpicker domingo todos", @readonly = "readonly" } })
+
+                                                                    <span class="input-group-addon">a</span>
+
+                                                                    @Html.EditorFor(model => model.domingo_hasta2, new { htmlAttributes = new { @class = "form-control clockpicker domingo todos", @readonly = "readonly" } })
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @Html.CheckBoxFor(model => model.domingo_disponible, new { @cheked = "", @data_toggle = "toggle", @data_size = "mini" })
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                                
+                            </div>
+                            @*<div class="col-sm-12">
+                                <hr />
+                                <h4 class="text-primary">Lista Novedades: </h4>
+                                <input type="hidden" name="lista_novedades" id="lista_novedades" value="" />
+                                <table class="table table-striped table-bordered table-condensed" id="tabla_novedades">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:center">Desde</th>
+                                            <th style="text-align:center">Hasta</th>
+                                            <th style="text-align:center">Motivo</th>
+                                            <th style="text-align:center">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>*@
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/jquery-ui/jquery-ui.min.js"></script>
+    <script src="~/Vendor/slimScroll/jquery.slimscroll.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/clockpicker/dist/bootstrap-clockpicker.min.js"></script>
+    <script src="~/Vendor/iCheck/icheck.min.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+
+    <script>
+        var i = 0;
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            //$( ".todos" ).removeClass( "clockpicker" )
+            $('.clockpicker').clockpicker({ autoclose: true });
+            debugger;
+            if ($('#no_disponible').is(':checked')) {
+                $('.todos').attr("readonly", "readonly");
+                $(".todos").clockpicker('remove');
+                $( ".todos" ).removeClass( "clockpicker" )
+                $('.check').removeAttr("checked")
+            } else {
+                $('.todos').removeAttr("readonly", "readonly");
+                $('.check').attr("checked", "checked")
+
+            }
+
+            if (!$('#lunes_disponible').is(':checked')) {
+                 $('.lunes').attr("readonly", "readonly");
+                $(".lunes").clockpicker('remove');
+                $( ".lunes" ).removeClass( "clockpicker" )
+            } else {
+                $('.lunes').removeAttr("readonly", "readonly");
+            }
+
+            if (!$('#martes_disponible').is(':checked')) {
+                $('.martes').attr("readonly", "readonly");
+                $(".martes").clockpicker('remove');
+                $( ".martes" ).removeClass( "clockpicker" )
+
+            } else {
+                $('.martes').removeAttr("readonly", "readonly");
+            }
+
+            if (!$('#miercoles_disponible').is(':checked')) {
+                $(".miercoles").clockpicker('remove');
+                $( ".miercoles" ).removeClass( "clockpicker" )
+            } else {
+                $('.miercoles').removeAttr("readonly", "readonly");
+            }
+
+            if (!$('#jueves_disponible').is(':checked')) {
+                $(".jueves").clockpicker('remove');
+                $( ".jueves" ).removeClass( "clockpicker" )
+
+                $('.jueves').attr("readonly", "readonly");
+            } else {
+                $('.jueves').removeAttr("readonly", "readonly");
+            }
+
+            if (!$('#viernes_disponible').is(':checked')) {
+                $(".viernes").clockpicker('remove');
+                $( ".viernes" ).removeClass( "clockpicker" )
+
+                $('.viernes').attr("readonly", "readonly");
+            } else {
+                $('.viernes').removeAttr("readonly", "readonly");
+            }
+
+            if (!$('#sabado_disponible').is(':checked')) {
+                $(".sabado").clockpicker('remove');
+                $( ".sabado" ).removeClass( "clockpicker" );
+
+                $('.sabado').attr("readonly", "readonly");
+            } else {
+                $('.sabado').removeAttr("readonly", "readonly");
+            }
+
+            if (!$('#domingo_disponible').is(':checked')) {
+                $(".domingo").clockpicker('remove');
+                $( ".domingo" ).removeClass( "clockpicker" );
+
+                $('.domingo').attr("readonly", "readonly");
+            } else {
+                $('.domingo').removeAttr("readonly", "readonly");
+            }
+
+            //Novedades
+            $.ajax({
+                url: '/parametrizacionHorario/BuscarNovedadesPlanta',
+                data: {
+                    horarioid: $('#horario_id').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+
+                    for (var i = 0; i < data.length; i++) {
+
+                        var btnEliminar = '<button class="btn btn-danger btn-circle" id="' + data[i].id + '" type="button" onclick="eliminarNovedadDB(this.id)"><i class="fa fa-remove"></i></button>'
+
+                        $('#tabla_novedades').find('tbody').append('<tr><td align="right">' + data[i].fechaini + '</td>'
+                            + '<td align="right">' + data[i].fechafin + '</td>'
+                            + '<td align="left">' + data[i].motivo + '</td>'
+                            + '<td align="center">' + btnEliminar + '</td>'
+                            + '</tr>');
+                    }
+                }
+            });
+        });
+
+        // ClockPicker
+        $('.js-source-states').select2();
+
+        $('.datepicker').datetimepicker({
+            minDate: '-' + new Date() + '',
+            format: 'YYYY/MM/DD HH:mm ',
+        });
+
+        $('.fechax').keypress(function (e) {
+            e.preventDefault();
+            return false;
+        });
+
+        $('.todos').keypress(function (e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        $('#lunes_disponible').change(function () {
+            if (!$('#lunes_disponible').is(':checked')) {
+                $(".lunes").clockpicker('remove');
+                $( ".lunes" ).removeClass( "clockpicker" )
+                $('.lunes').attr("readonly", "readonly");
+            } else {
+                $('.lunes').removeAttr("readonly", "readonly");
+                $( ".lunes" ).addClass( "clockpicker" );
+                $('.lunes').clockpicker({ autoclose: true });
+
+            }
+        });
+
+        $('#martes_disponible').change(function () {
+            if (!$('#martes_disponible').is(':checked')) {
+                $(".martes").clockpicker('remove');
+                $( ".martes" ).removeClass( "clockpicker" );
+                $('.martes').attr("readonly", "readonly");
+            } else {
+                $('.martes').removeAttr("readonly", "readonly");
+                $( ".martes" ).addClass( "clockpicker" );
+                $('.martes').clockpicker({ autoclose: true });
+            }
+        });
+
+        $('#miercoles_disponible').change(function () {
+            if (!$('#miercoles_disponible').is(':checked')) {
+
+                $(".miercoles").clockpicker('remove');
+                $( ".miercoles" ).removeClass( "clockpicker" );
+                $(".miercoles").attr("readonly", "readonly");
+            } else {
+                $(".miercoles").removeAttr("readonly", "readonly");
+                $( ".miercoles" ).addClass( "clockpicker" );
+                $(".miercoles").clockpicker({ autoclose: true });
+            }
+        });
+
+        $('#jueves_disponible').change(function () {
+            if (!$('#jueves_disponible').is(':checked')) {
+                $(".jueves").clockpicker('remove');
+                $( ".jueves" ).removeClass( "clockpicker" );
+                $('.jueves').attr("readonly", "readonly");
+            } else {
+                $('.jueves').removeAttr("readonly", "readonly");
+                $( ".jueves" ).addClass( "clockpicker" );
+                $(".jueves").clockpicker({ autoclose: true });
+            }
+        });
+
+        $('#viernes_disponible').change(function () {
+            if (!$('#viernes_disponible').is(':checked')) {
+                $(".viernes").clockpicker('remove');
+                $( ".viernes" ).removeClass( "clockpicker" );
+                $('.viernes').attr("readonly", "readonly");
+            } else {
+                $('.viernes').removeAttr("readonly", "readonly");
+                $( ".viernes" ).addClass( "clockpicker" );
+                $(".viernes").clockpicker({ autoclose: true });
+            }
+        });
+
+        $('#sabado_disponible').change(function () {
+            if (!$('#sabado_disponible').is(':checked')) {
+                $(".sabado").clockpicker('remove');
+                $( ".sabado" ).removeClass( "clockpicker" );
+                $('.sabado').attr("readonly", "readonly");
+            } else {
+                $('.sabado').removeAttr("readonly", "readonly");
+                $( ".sabado" ).addClass( "clockpicker" );
+                $(".sabado").clockpicker({ autoclose: true });
+            }
+        });
+
+        $('#domingo_disponible').change(function () {
+            if (!$('#domingo_disponible').is(':checked')) {
+                $(".domingo").clockpicker('remove');
+                $( ".domingo" ).removeClass( "clockpicker" );
+                $('.domingo').attr("readonly", "readonly");
+            } else {
+                $('.domingo').removeAttr("readonly", "readonly");
+                $( ".domingo" ).addClass( "clockpicker" );
+                $(".domingo").clockpicker({ autoclose: true });
+            }
+        });
+
+        $('#no_disponible').change(function () {
+            if ($('#no_disponible').is(':checked')) {
+                $('.todos').attr("readonly", "readonly");
+                $('.check').removeAttr("checked")
+                $(".todos").clockpicker('remove');
+                $( ".todos" ).removeClass( "clockpicker" );
+            } else {
+                $('.todos').removeAttr("readonly", "readonly");
+                $('.check').attr("checked", "checked");
+                $( ".todos" ).addClass( "clockpicker" );
+                $(".todos").clockpicker({ autoclose: true });
+            }
+        });
+        
+      $('#lunes_desde').change(function () {
+            var horaactual= $('#lunes_desde').val();
+            var horahasta=$('#lunes_hasta').val();
+            if(horahasta<horaactual){
+                $('#lunes_hasta').val(horaactual).trigger('change');
+            }
+             
+
+        });
+
+       $('#lunes_hasta').change(function () {
+            var horaactual= $('#lunes_desde').val();
+            var horahasta=$('#lunes_hasta').val();
+            var horahasta2=$('#lunes_desde2').val();
+            if(horahasta<horaactual){
+                $('#lunes_hasta').val(horaactual);
+            }
+            else{
+               if(horahasta>horahasta2){
+                    $('#lunes_desde2').val(horahasta).trigger('change');
+                }
+            }
+        });
+
+        $('#lunes_desde2').change(function () {
+            var horaactual= $('#lunes_desde2').val();
+            var horahasta=$('#lunes_hasta2').val();
+            var horahasta2=$('#lunes_hasta').val();
+           
+            if (horaactual < horahasta2) {
+                $('#lunes_desde2').val(null);
+                 $('#lunes_hasta2').val(null);
+
+            }
+            else{
+                if(horaactual>horahasta){
+                    $('#lunes_hasta2').val(horaactual).trigger('change');
+                }
+            }
+        });
+       
+
+        $('#lunes_hasta2').change(function () {
+            var horaactual= $('#lunes_hasta2').val();
+            var horahasta=$('#lunes_desde2').val();
+            if(horaactual<horahasta){
+                $('#lunes_hasta2').val(horahasta).trigger('change');
+            }
+        });
+
+        
+         $('#martes_desde').change(function () {
+            var horaactual= $('#martes_desde').val();
+            var horahasta=$('#martes_hasta').val();
+            if(horahasta<horaactual){
+                $('#martes_hasta').val(horaactual).trigger('change');
+            }
+             
+
+        });
+
+        $('#martes_hasta').change(function () {
+            var horaactual= $('#martes_desde').val();
+            var horahasta=$('#martes_hasta').val();
+            var horahasta2=$('#martes_desde2').val();
+            if (horahasta < horaactual) {
+                $('#martes_hasta').val(horaactual);
+            }
+            else {
+                if(horahasta>horahasta2){
+                    $('#martes_desde2').val(horahasta).trigger('change');
+                }
+            }
+            
+        });
+        
+
+        $('#martes_desde2').change(function () {
+            var horaactual= $('#martes_desde2').val();
+            var horahasta=$('#martes_hasta2').val();
+            var horahasta2=$('#martes_hasta').val();
+            
+            if (horaactual < horahasta2) {
+                $('#martes_desde2').val(null);
+                 $('#martes_hasta2').val(null);
+
+            }
+            else{
+                if(horaactual>horahasta){
+                    $('#martes_hasta2').val(horaactual).trigger('change');
+                }
+            }
+        });
+
+        $('#martes_hasta2').change(function () {
+            var horaactual= $('#martes_hasta2').val();
+            var horahasta=$('#martes_desde2').val();
+            if(horaactual<horahasta){
+                $('#martes_hasta2').val(horahasta).trigger('change');
+            }
+        });
+        
+         $('#miercoles_desde').change(function () {
+            var horaactual= $('#miercoles_desde').val();
+            var horahasta=$('#miercoles_hasta').val();
+            if(horahasta<horaactual){
+                $('#miercoles_hasta').val(horaactual).trigger('change');
+            }
+             
+
+        });
+
+        $('#miercoles_hasta').change(function () {
+            var horaactual= $('#miercoles_desde').val();
+            var horahasta=$('#miercoles_hasta').val();
+            var horahasta2=$('#miercoles_desde2').val();
+           if(horahasta<horaactual){
+                $('#miercoles_hasta').val(horaactual);
+            }
+             else{
+               if(horahasta>horahasta2){
+                    $('#miercoles_desde2').val(horahasta).trigger('change');
+                }
+            }
+            
+        });
+        
+
+        $('#miercoles_desde2').change(function () {
+            var horaactual= $('#miercoles_desde2').val();
+            var horahasta=$('#miercoles_hasta2').val();
+            var horahasta2=$('#miercoles_hasta').val();
+            
+            if (horaactual < horahasta2) {
+                $('#miercoles_desde2').val(null);
+                 $('#miercoles_hasta2').val(null);
+
+            }
+            else{
+                if(horaactual>horahasta){
+                    $('#miercoles_hasta2').val(horaactual).trigger('change');
+                }
+            }
+        });
+
+        $('#miercoles_hasta2').change(function () {
+            var horaactual= $('#miercoles_hasta2').val();
+            var horahasta=$('#miercoles_desde2').val();
+            if(horaactual<horahasta){
+                $('#miercoles_hasta2').val(horahasta).trigger('change');
+            }
+        });
+        
+           $('#jueves_desde').change(function () {
+            var horaactual= $('#jueves_desde').val();
+            var horahasta=$('#jueves_hasta').val();
+            if(horahasta<horaactual){
+                $('#jueves_hasta').val(horaactual).trigger('change');
+            }
+             
+
+        });
+
+        $('#jueves_hasta').change(function () {
+            var horaactual= $('#jueves_desde').val();
+            var horahasta=$('#jueves_hasta').val();
+            var horahasta2=$('#jueves_desde2').val();
+           if(horahasta<horaactual){
+                $('#jueves_hasta').val(horaactual);
+            }
+             else{
+               if(horahasta>horahasta2){
+                    $('#jueves_desde2').val(horahasta).trigger('change');
+                }
+            }
+            
+        });
+        
+
+        $('#jueves_desde2').change(function () {
+            var horaactual= $('#jueves_desde2').val();
+            var horahasta=$('#jueves_hasta2').val();
+            var horahasta2=$('#jueves_hasta').val();
+            
+            if (horaactual < horahasta2) {
+                $('#jueves_desde2').val(null);
+                 $('#jueves_hasta2').val(null);
+
+            }
+            else{
+                if(horaactual>horahasta){
+                    $('#jueves_hasta2').val(horaactual).trigger('change');
+                }
+            }
+        });
+
+        $('#jueves_hasta2').change(function () {
+            var horaactual= $('#jueves_hasta2').val();
+            var horahasta=$('#jueves_desde2').val();
+            if(horaactual<horahasta){
+                $('#jueves_hasta2').val(horahasta).trigger('change');
+            }
+        });
+        
+        $('#viernes_desde').change(function () {
+            var horaactual= $('#viernes_desde').val();
+            var horahasta=$('#viernes_hasta').val();
+            if(horahasta<horaactual){
+                $('#viernes_hasta').val(horaactual).trigger('change');
+            }
+             
+
+        });
+
+        $('#viernes_hasta').change(function () {
+            var horaactual= $('#viernes_desde').val();
+            var horahasta=$('#viernes_hasta').val();
+            var horahasta2=$('#viernes_desde2').val();
+            if (horahasta < horaactual) {
+                $('#viernes_hasta').val(horaactual);
+            }
+            else {
+                if (horahasta > horahasta2) {
+                    $('#viernes_desde2').val(horahasta).trigger('change');
+                }
+            }
+            
+        });
+        
+
+        $('#viernes_desde2').change(function () {
+            var horaactual= $('#viernes_desde2').val();
+            var horahasta=$('#viernes_hasta2').val();
+            var horahasta2=$('#viernes_hasta').val();
+            
+            if (horaactual < horahasta2) {
+                $('#viernes_desde2').val(null);
+                 $('#viernes_hasta2').val(null);
+
+            }
+            else{
+                if(horaactual>horahasta){
+                    $('#viernes_hasta2').val(horaactual).trigger('change');
+                }
+            }
+        });
+
+        $('#viernes_hasta2').change(function () {
+            var horaactual= $('#viernes_hasta2').val();
+            var horahasta=$('#viernes_desde2').val();
+            if(horaactual<horahasta){
+                $('#viernes_hasta2').val(horahasta).trigger('change');
+            }
+        });
+       
+
+         $('#sabado_desde').change(function () {
+            var horaactual= $('#sabado_desde').val();
+            var horahasta=$('#sabado_hasta').val();
+            if(horahasta<horaactual){
+                $('#sabado_hasta').val(horaactual).trigger('change');
+            }
+             
+
+        });
+
+        $('#sabado_hasta').change(function () {
+            var horaactual= $('#sabado_desde').val();
+            var horahasta=$('#sabado_hasta').val();
+            var horahasta2=$('#sabado_desde2').val();
+           if(horahasta<horaactual){
+                $('#sabado_hasta').val(horaactual);
+            }
+             else{
+               if(horahasta>horahasta2){
+                    $('#sabado_desde2').val(horahasta).trigger('change');
+                }
+            }
+            
+        });
+        
+
+        $('#sabado_desde2').change(function () {
+            var horaactual= $('#sabado_desde2').val();
+            var horahasta=$('#sabado_hasta2').val();
+            var horahasta2=$('#sabado_hasta').val();
+            
+            if (horaactual < horahasta2) {
+                $('#sabado_desde2').val(null);
+                 $('#sabado_hasta2').val(null);
+
+            }
+            else{
+                if(horaactual>horahasta){
+                    $('#sabado_hasta2').val(horaactual).trigger('change');
+                }
+            }
+        });
+
+        $('#sabado_hasta2').change(function () {
+            var horaactual= $('#sabado_hasta2').val();
+            var horahasta=$('#sabado_desde2').val();
+            if(horaactual<horahasta){
+                $('#sabado_hasta2').val(horahasta).trigger('change');
+            }
+        });
+        
+           $('#domingo_desde').change(function () {
+            var horaactual= $('#domingo_desde').val();
+            var horahasta=$('#domingo_hasta').val();
+            if(horahasta<horaactual){
+                $('#domingo_hasta').val(horaactual).trigger('change');
+            }
+             
+
+        });
+
+        $('#domingo_hasta').change(function () {
+            var horaactual= $('#domingo_desde').val();
+            var horahasta=$('#domingo_hasta').val();
+            var horahasta2=$('#domingo_desde2').val();
+           if(horahasta<horaactual){
+                $('#domingo_hasta').val(horaactual);
+            }
+              else{
+               if(horahasta>horahasta2){
+                    $('#domingo_desde2').val(horahasta).trigger('change');
+                }
+            }
+            
+        });
+        
+
+        $('#domingo_desde2').change(function () {
+            var horaactual= $('#domingo_desde2').val();
+            var horahasta=$('#domingo_hasta2').val();
+            var horahasta2=$('#domingo_hasta').val();
+            
+            if (horaactual < horahasta2) {
+                $('#domingo_desde2').val(null);
+                 $('#domingo_hasta2').val(null);
+
+            }
+            else{
+                if(horaactual>horahasta){
+                    $('#domingo_hasta2').val(horaactual).trigger('change');
+                }
+            }
+        });
+
+        $('#domingo_hasta2').change(function () {
+            var horaactual= $('#domingo_hasta2').val();
+            var horahasta=$('#domingo_desde2').val();
+            if(horaactual<horahasta){
+                $('#domingo_hasta2').val(horahasta).trigger('change');
+            }
+        });
+        
+        $('#tipo_horario').change(function () {
+            if ($('#tipo_horario').val() == 'carro') {
+                $('#divCarro').show();
+                $('#divAsesor').hide();
+            } else {
+                $('#divCarro').hide();
+
+                if ($('#usuario_id').val() == null) {
+                    $('#divAsesor').show();
+                }
+            }
+        });
+
+        function AgregarNovedad() {
+            $.ajax({
+                url: '/agendaTallerServicio/citaVSnovedad',
+                data: {
+                    desde: $('#ndispo_fecha_inicio').val(),
+                    hasta: $('#ndispo_fecha_fin').val(),
+                    usuario_id: $('#usuario_id').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data == false) {
+                        swal("Error", "No es posible registrar la novedad, el técnico tiene una cita asignada en el horario seleccionado, primero re-programe la cita para poder crear la novedad", "warning");
+                    }else {
+                        i++;
+
+                        var btnEliminar = '<button class="btn btn-danger btn-circle" id="' + i + '" type="button" onclick="eliminarNovedad(this.id)"><i class="fa fa-remove"></i></button>'
+                        $('#lista_novedades').val(i);
+
+                        $('#tabla_novedades').find('tbody').append('<tr align="center" id="item' + i + '">'
+                            +'<td>'
+                                +'<input type="hidden" name="desde' + i + '" id="desde' + i + '" value="' + $('#ndispo_fecha_inicio').val() + '">'
+                                +$('#ndispo_fecha_inicio').val()
+                            +'</td>'
+                            +'<td>'
+                                +'<input type="hidden" name="hasta' + i + '" id="hasta' + i + '" value="' + $('#ndispo_fecha_fin').val() + '">'
+                                +$('#ndispo_fecha_fin').val()
+                            +'</td>'
+                            +'<td>'
+                                +'<input type="hidden" name="motivo' + i + '" id="motivo' + i + '" value="' + $('#observaciones').val() + '">'
+                                +$('#observaciones').val()
+                            +'</td>'
+                            +'<td>' + btnEliminar + '</td>'
+                        +'</tr>');
+                    }
+                }
+            });
+        }
+
+        function eliminarNovedad(id) {
+            $('#item' + id).remove();
+        }
+
+        function eliminarNovedadDB(id) {
+            swal({
+                title: "Esta seguro que desea eliminar?",
+                text: "El registro se eliminara de la base de datos",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Si, Eliminar!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        $.ajax({
+                            url: '/parametrizacionHorario/EliminarNovedadPlanta',
+
+                            data: {
+                                id: id
+                            },
+                            type: "post",
+                            cache: false,
+                            success: function (data) {
+                                if (data == 1) {
+                                    swal("Eliminado!", "El registro se ha eliminado correctamente", "success");
+                                    location.reload(true);
+                                } else {
+                                    swal("Error!", "Error al eliminar el registro, por favor valide", "error");
+                                    location.reload(true);
+                                }
+
+
+                            }
+                        });
+
+                    } else {
+                        swal("Cancelado", "Se ha cancelado la operación", "error");
+                    }
+                });
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+}

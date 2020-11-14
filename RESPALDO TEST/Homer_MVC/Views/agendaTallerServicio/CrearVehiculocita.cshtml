@@ -1,0 +1,1045 @@
+﻿@model Homer_MVC.IcebergModel.CrearVehiculoModel
+
+@{
+    ViewBag.Icono = "fa fa-car";
+    ViewBag.Title = "Crear Vehículo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+            {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+            }
+
+        @if (TempData["mensaje_error"] != null)
+            {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+            }
+
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="" id="buscarA" onclick="buscarAjaxVehiculos();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+      
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                        {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-car"></i>&nbsp;&nbsp;&nbsp;Datos Vehículo
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Vehiculo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.plan_mayor, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite vehiculo", @required = "required", @onBlur = "consultaplan()" } })
+                                                @*@Html.ValidationMessageFor(model => model.plan_mayor, "", new { @class = "text-danger" })*@
+                                                <label id="planexiste" style="display: none" class="control-label col-md-12 text-warning"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Serie:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.vin, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite serie", @required = "required", @onBlur = "consultaserie()" } })
+                                                @*@Html.ValidationMessageFor(model => model.vin, "", new { @class = "text-danger" })*@
+                                                <label id="vinexiste" style="display: none" class="control-label col-md-12 text-warning"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Placa:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.plac_vh, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite placa", @onBlur = "consultaplaca()" } })
+                                                @*@Html.ValidationMessageFor(model => model.plac_vh, "", new { @class = "text-danger" })*@
+                                                <label id="placaexiste" style="display: none" class="control-label col-md-12 text-warning"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Motor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.nummot_vh, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite número motor", @required = "required", @onBlur = "consultamotor()" } })
+                                                @*@Html.ValidationMessageFor(model => model.nummot_vh, "", new { @class = "text-danger" })*@
+                                                <label id="motorexiste" style="display: none" class="control-label col-md-12 text-warning"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Marca:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.DropDownListFor(model => model.marcvh_id, ViewBag.marcvh_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Modelo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.modvh_id, ViewBag.modvh_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button class="btn btn-success" onclick="crearModelo()" type="button">
+                                                    <i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Crear modelo
+                                                </button>
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Color:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.DropDownListFor(model => model.colvh_id, ViewBag.colvh_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.colvh_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Kilometraje:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.kilometraje, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite kilometraje", @required = "required", @onkeyUp = "return miles(this.id)" } })
+                                                @Html.ValidationMessageFor(model => model.kilometraje, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">A&ntilde;o Modelo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.DropDownListFor(model => model.anio_vh, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.anio_vh, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.DropDownListFor(model => model.tpvh_id, ViewBag.tpvh_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.tpvh_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Concesionario:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.nombreconcesionario, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Nombre Concesionario", @required = "required"} })
+                                                @Html.ValidationMessageFor(model => model.nombreconcesionario, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Entrega:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.fechaentrega, new { htmlAttributes = new { @class = "form-control", @placeholder = "AAAA / MM / DD" } }) 
+                                                @Html.ValidationMessageFor(model => model.fechaentrega, "", new { @class = "text-danger" })
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                </div>
+
+                            </div>
+
+                     
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-car"></i>&nbsp;&nbsp;&nbsp;Informaci&oacute;n Adicional
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Usuario:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-7">
+                                                @Html.DropDownList("proveedor_id", new SelectList(ViewBag.proveedor_id, "Value", "Text"), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.propietario, "", new { @class = "text-danger" })
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                           
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número SOAT:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.numerosoat, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite número SOAT", @type = "number" } })
+                                                @Html.ValidationMessageFor(model => model.numerosoat, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha vencimiento SOAT:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.fecha_soat, new { htmlAttributes = new { @class = "form-control", @placeholder = "AAAA / MM / DD" } })
+                                                @Html.ValidationMessageFor(model => model.fecha_soat, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>                             
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Tecnomecánica:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.fecha_tecnomecanica, new { htmlAttributes = new { @class = "form-control", @placeholder = "AAAA / MM / DD" } })
+                                                @Html.ValidationMessageFor(model => model.fecha_tecnomecanica, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div> 
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Propietario:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="row">
+                                                    <div class="col-md-5">
+
+                                                        @Html.DropDownListFor(model => model.propietario, new SelectList(ViewBag.proveedor_id, "Value", "Text"), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+
+                                                        @Html.ValidationMessageFor(model => model.propietario, "", new { @class = "text-danger" })
+                                                    </div>                                             
+                                                    <div class="col-md-2"> 
+                                                        <button class="btn btn-success" onclick="crearCliente()" type="button">
+                                                                    <i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Crear propietario
+                                                                </button>                                                       
+                                                      
+                                                    </div>
+
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+              
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>}
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table id="tablaPaginada" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Plan Mayor</th>
+                                        <th style="text-align:center">Serie</th>
+                                        <th style="text-align:center">Modelo</th>
+                                        <th style="text-align:center">Descripción</th>
+                                        <th style="text-align:center">Año Modelo</th>
+                                        <th style="text-align:center">Fecha Creación</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#icbvh_estado').bootstrapToggle('on')
+            if (!$('#icbvh_estado').prop('checked')) {
+                $('#icbvhrazoninactivo').val('');
+                $('#inactividad').show();
+            }
+            $('#icbvh_estado').change(function () {
+                if ($('#icbvh_estado').prop('checked')) {
+                    $('#icbvhrazoninactivo').prop('required', false);
+                    $('#icbvhrazoninactivo').val('');
+                    $('#inactividad').hide();
+                } else {
+                    $('#icbvhrazoninactivo').prop('required', true);
+                    $('#icbvhrazoninactivo').val('');
+                    $('#inactividad').show();
+                }
+            });
+
+            $('#plac_vh').val('@ViewBag.placaParametro');
+
+            verificarRolUsuario();
+            $('#menu').val(@ViewBag.id_menu);
+            validarModeloActivo();
+            $('.js-source-states').select2();
+
+            $('#fecentman_vh').datetimepicker({
+                format: 'YYYY/MM/DD',
+
+            });$('#fecha_matricula').datetimepicker({
+                format: 'YYYY/MM/DD',
+            });
+            $('#fecfact_fabrica').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: new Date()
+            });
+            $('#fechaentrega').datetimepicker({
+                format: 'YYYY/MM/DD',
+            });
+            $('#fecha_soat').datetimepicker({
+                format: 'YYYY/MM/DD',
+            });
+            $('#fecha_venta').datetimepicker({
+                format: 'YYYY/MM/DD',
+            });
+            $('#fecha_garantia').datetimepicker({
+                format: 'YYYY/MM/DD',
+            });
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000);
+            $('#concepto').select2({
+                includeSelectAllOption: true,
+                maxHeight: 400,
+                dropUp: false
+            });
+
+            $('form select').each(function (i) {
+                this.addEventListener('invalid', function (e) {
+                    var _s2Id = 's2id_' + e.target.id; //s2 autosuggest html ul li element id
+                    var _posS2 = $('#' + _s2Id).position();
+                    //get the current position of respective select2
+                    $('#' + _s2Id + ' ul').addClass('_invalid'); //add this class with border:1px solid red;
+                    //this will reposition the hidden select2 just behind the actual select2 autosuggest field with z-index = -1
+                    $('#' + e.target.id).attr('style', 'display:block !important;position:absolute;z-index:-1;top:' + (0 - $('#' + _s2Id).outerHeight() + 30) + 'px;left:' + (15 - ($('#' + _s2Id).width() / 10)) + 'px;');
+                    /*
+                    //Adjust the left and top position accordingly
+                    */
+                    //remove invalid class after 3 seconds
+                    setTimeout(function () {
+                        $('#' + _s2Id + ' ul').removeClass('_invalid');
+                    }, 3000);
+                    return true;
+                }, false);
+            });
+            $('#nuevo').prop('checked')
+            $('#nuevo').trigger('change')
+        });
+        $('#plac_vh').change(function () {
+            $('#placaCiudad').show()
+            if ($('#plac_vh').val() != "" && $('#plac_vh').val() != null) {
+                $('#ciudadplaca').prop('required', true)
+
+            }
+        });
+
+        $('#ubicacion').change(function () {
+            $('#ubicacionVal').val($('#ubicacion').val())
+        });
+
+        function verificarRolUsuario() {
+            $.ajax({
+                url: '/vpedidos/verificarRolUsuario',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data == 2031) {
+                        $('#buscarA').show()
+                        $('#buscarB').show()
+                    } else {
+                        $('#buscarA').show()
+                        $('#buscarB').hide()
+                    }
+                }
+            });
+        }
+
+        $('#btnReload').click(function () {
+            var tipo = 0;
+            if ($('#nuevo').prop('checked')) {
+                tipo = 1;
+            } if ($('#usado').prop('checked')) {
+                tipo = 0;
+            }
+            cargarPropietario(tipo)
+        });
+
+        function cargarPropietario(tipo) {
+            $.ajax({
+                url: '/Vehiculo/BuscarClientePropietario',
+                data: {
+                    tipo : tipo
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#propietario').empty().select2();
+                    $('#propietario').append($('<option>', {
+                        value: '',
+                        text: 'Seleccione'
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#propietario').append($('<option>', {
+                            value: data[i].tercero_id,
+                            text: data[i].nombre
+                        }));
+                    }
+                    //if (data.guardado != false) {
+                    //    $('#propietario').val(data.guardado);
+                    //    $('#propietario').prop('readonly',true);
+                    //}
+
+                    $('#propietario').select2();
+                }
+            });
+        }
+
+        $('#nuevo').change(function(){
+            if($('#nuevo').prop('checked')){
+                if($('#usado').prop('checked')){
+                    $('#usado').prop('checked',false).change();
+                }
+
+                cargarPropietario(1)
+
+                completarCostosModelo();
+                $('#costosiniva_vh').prop('readonly',true)
+                $('#montoiva').prop('readonly',true)
+                $('#costototal_vh').prop('readonly',true)
+            }
+            else{
+                $('#usado').prop('checked',true).change();
+
+            }
+        });
+
+        $('#usado').change(function(){
+            if($('#usado').prop('checked')){
+                if($('#nuevo').prop('checked')){
+                    $('#nuevo').prop('checked',false).change();
+                }
+
+                cargarPropietario(0)
+
+                $('#costosiniva_vh').prop('readonly',false)
+                $('#montoiva').val('');
+                $('#iva_compra_vh').prop("disabled", false)
+                $('#iva_vh').prop("disabled", false)
+                $('#impconsumo').prop("disabled", false)
+                $('#costototal_vh').prop('readonly',true)
+                $('#montoiva').prop('readonly',true)
+                $('#iva_compra_vh option:not(:selected)').attr('disabled', false);
+                $('#iva_vh option:not(:selected)').attr('disabled', false);
+                $('#impconsumo option:not(:selected)').attr('disabled', false);
+
+            }
+            else{
+                $('#nuevo').prop('checked',true).change();
+            }
+
+        });
+
+        $('#propietario').keyup(function () {
+            if ($.trim($('#propietario').val()) != '') {
+                $.ajax({
+                    url: '/Vehiculo/BuscarTerceroPorNit',
+                    data: {
+                        nit: $('#propietario').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data.encontrado == true) {
+                            $('#nombrePropietario').val(data.nombreCompleto);
+                        } else {
+                            $('#nombrePropietario').val('');
+                        }
+                    },
+                });
+            }
+        });
+
+        $('#nitaseguradora').keyup(function () {
+            if ($.trim($('#nitaseguradora').val()) != '') {
+                $.ajax({
+                    url: '/Vehiculo/BuscarTerceroPorNit',
+                    data: {
+                        nit: $('#nitaseguradora').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data.encontrado == true) {
+                            $('#nombreAseguradora').val(data.razon_social);
+                        } else {
+                            $('#nombreAseguradora').val('');
+                        }
+                    },
+                });
+            }
+        });
+        //$('#costosiniva_vh').change(function(){
+        //    calcularMontoIva()
+        //});
+
+        $('#impconsumo').change(function () {
+            $('#text_impoconsumo').val($('#impconsumo option:selected').text());
+            $('#val_impoconsumo').val($('#impconsumo option:selected').val());
+        })
+
+        $('#marcvh_id').change(function () {
+            $.ajax({
+                url: '/Vehiculo/BuscarModelosPorMarca',
+                data: {
+                    idMarca: $('#marcvh_id').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#modvh_id').empty();
+                    $('#anio_vh').empty();
+                    $('#modvh_id').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    console.log(data)
+                    for (var i = 0; i < data.length; i++) {
+                        $('#modvh_id').append($('<option>', {
+                            value: data[i].modvh_codigo,
+                            text: data[i].modvh_nombre
+                        }));
+                    }
+                    $('#modvh_id').val('').trigger('change');
+
+                },
+                complete: function (data) {
+
+                }
+            });
+        });
+
+        $('#modvh_id').change(function () {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarAniosModeloPorId',
+                data: {
+                    modeloCodigo: $('#modvh_id').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#anio_vh').empty();
+                    $('#anio_vh').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#anio_vh').append($('<option>', {
+                            value: data[i].anio,
+                            text: data[i].anio
+                        }));
+                    }
+                    $('#anio_vh').val('').trigger('change');
+                },
+                complete: function (data) {
+                    completarCostosModelo();
+                },
+                field: function () {
+                    console.log('falló')
+                }
+            });
+        });
+
+        $('#anio_vh').change(function () {
+            completarCostosModelo();
+            ivaCompra()
+
+        });
+
+        $('#iva_compra_vh').change(function () {
+            $('#textIVACompra').val($('#iva_compra_vh option:selected').text());
+            if ($('#costosiniva_vh').val() != null && $('#costosiniva_vh').val() != "" ) {
+
+                var calculo = (quitCommas($('#costosiniva_vh').val()) * $('#textIVACompra').val()) / 100
+                $('#montoiva').val(addCommas(calculo))
+                var a = parseInt(quitCommas($('#costosiniva_vh').val()))
+                var b = parseInt(quitCommas($('#montoiva').val()))
+                var suma = a + b
+                $('#costototal_vh').val(addCommas(suma))
+            }
+        });
+
+        $('#costosiniva_vh').change(function () {
+            if ($('#iva_compra_vh').val() != null && $('#iva_compra_vh').val() != "" ) {
+
+                $('#textIVACompra').val($('#iva_compra_vh option:selected').text());
+                var calculo = (quitCommas($('#costosiniva_vh').val()) * $('#textIVACompra').val()) / 100
+                $('#montoiva').val(addCommas(calculo))
+                var a = parseInt(quitCommas($('#costosiniva_vh').val()))
+                var b = parseInt(quitCommas($('#montoiva').val()))
+                var suma = (a + b)
+                $('#costototal_vh').val(addCommas(suma))
+            }
+        });
+
+
+        function ivaCompra() {
+            if (($('#marcvh_id').val() != null && $('#marcvh_id').val() != "") && ($('#modvh_id').val() != null && $('#modvh_id').val() != "") && ($('#anio_vh').val() != null && $('#anio_vh').val() != "")) {
+
+                $('#textIVACompra').val($('#iva_compra_vh option:selected').text());
+                var idivaCompra = $('#iva_compra_vh option:selected').val();
+                $('#textIVAVenta').val($('#iva_vh option:selected').text());
+                $('#valIVAVenta').val($('#iva_vh option:selected').val());
+                $('#textConcepto').val($('#concepto option:selected').text());
+                $('#valConcepto').val($('#concepto option:selected').val());
+                $('#text_impoconsumo').val($('#impconsumo option:selected').text());
+                $('#val_impoconsumo').val($('#impconsumo option:selected').val());
+                $('#valIVACompra').val($('#iva_compra_vh option:selected').val());
+            }
+        }
+
+        var numero_miles = "";
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+        function quitCommas(nStr) {
+            nStr.toString();
+            //console.log(nStr);
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+        function formatNumber (n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+        function miles (id) {
+            numero_miles = formatNumber($('#'+id+'').val());
+            $('#'+id+'').val(numero_miles);
+        }
+
+        $('#costosiniva_vh').change(function () {
+            if ($('#iva_vh').val() != null && $('#iva_vh').val() != "")
+            {
+
+            }
+        });
+
+        //function calcularMontoIva(){
+        //    if ($('#costosiniva_vh').val() != "" && $('#textIVACompra').val() != "") {
+
+        //        var montoIva = Math.round((parseInt(quitCommas($('#costosiniva_vh').val())) * parseInt($('#textIVACompra').val())) / 100)
+        //        $('#montoiva').val(addCommas(montoIva))
+
+        //        var costoTotal = Math.round(parseInt(quitCommas($('#costosiniva_vh').val())) + parseInt(quitCommas($('#montoiva').val())))
+        //        $('#costototal_vh').val(addCommas(costoTotal))
+
+        //    }
+
+        //}
+        function consultaplan(){
+            //var plan=$('#plan_mayor').val();
+            if($('#plan_mayor').val() != ''){
+                $.ajax({
+                    url:'/Vehiculo/buscarplanmayor',
+                    data: {
+                        plan: $('#plan_mayor').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data == -1) {
+                            $('#planexiste').html('<i class="fa fa-warning"></i>&nbsp;Debe introducir un código de plan mayor');
+                            $('#planexiste').show();
+                        } else if(data==true){
+                            $('#planexiste').html('<i class="fa fa-warning"></i>&nbsp;El plan mayor ya esta asignado a otro vehículo');
+                            $('#planexiste').show();
+                        } else if(data==false){
+                            $('#planexiste').hide();
+                            $('#planexiste').html('');
+
+                        }
+                    },
+                });
+            }
+        }
+
+        function consultaserie(){
+            //var plan=$('#plan_mayor').val();
+            // url:'/Vehiculo/buscarplanmayor',
+            if($('#vin').val() != ''){
+                $.ajax({
+                    url:'/Vehiculo/buscarseriecrea',
+                    data: {
+                        serie: $('#vin').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data == -1) {
+                            $('#vinexiste').html('<i class="fa fa-warning"></i>&nbsp;Debe introducir una Serie');
+                            $('#vinexiste').show();
+                        } else if(data==true){
+                            $('#vinexiste').html('<i class="fa fa-warning"></i>&nbsp;La Serie ya esta asignado a otro vehículo');
+                            $('#vinexiste').show();
+                        } else if(data==false){
+                            $('#vinexiste').hide();
+                            $('#vinexiste').html('');
+
+                        }
+                    },
+                });
+            }
+        }
+        function consultamotor(){
+            //var plan=$('#plan_mayor').val();
+            // url:'/Vehiculo/buscarplanmayor',
+            if($('#nummot_vh').val() != ''){
+                $.ajax({
+                    url:'/Vehiculo/buscarmotorcrea',
+                    data: {
+                        motor: $('#nummot_vh').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data == -1) {
+                            $('#motorexiste').html('<i class="fa fa-warning"></i>&nbsp;Debe introducir una serial de Motor');
+                            $('#motorexiste').show();
+                        } else if(data==true){
+                            $('#motorexiste').html('<i class="fa fa-warning"></i>&nbsp;El Motor ya esta asignado a otro vehículo');
+                            $('#motorexiste').show();
+                        } else if(data==false){
+                            $('#motorexiste').hide();
+                            $('#motorexiste').html('');
+
+                        }
+                    },
+                });
+            }
+        }
+
+        function consultaplaca(){
+            //var plan=$('#plan_mayor').val();
+            // url:'/Vehiculo/buscarplanmayor',
+            if($('#plac_vh').val() != ''){
+                $.ajax({
+                    url:'/Vehiculo/buscarplacacrea',
+                    data: {
+                        placa: $('#plac_vh').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data == -1) {
+                            $('#placaexiste').html('<i class="fa fa-warning"></i>&nbsp;Debe introducir una placa de Vehiculo');
+                            $('#placaexiste').show();
+                        } else if(data==true){
+                            $('#placaexiste').html('<i class="fa fa-warning"></i>&nbsp;La placa ya esta asignado a otro vehículo');
+                            $('#placaexiste').show();
+                        } else if(data==false){
+                            $('#placaexiste').hide();
+                            $('#placaexiste').html('');
+
+                        }
+                    },
+                });
+            }
+        }
+
+        function completarCostosModelo() {
+            $.ajax({
+                url: '/Vehiculo/ValidarCostosVehiculo',
+                data: {
+                    codigoModelo: $('#modvh_id').val(),
+                    anio: $('#anio_vh').val(),
+                    actualizar: false
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data != 0) {
+
+                        $('#costosiniva_vh').val(data.calcularCostos.valor);
+                        $('#costototal_vh').val(data.calcularCostos.costoTotal);
+                        $('#montoiva').val(data.calcularCostos.montoiva);
+                        $('#montoimpcon').val(data.calcularCostos.montoimconsumo);
+                        $('#iva_compra_vh').val(data.calcularCostos.porcentaje).select2();
+                        $('#impconsumo').val(data.calcularCostos.impconsumo).select2();
+                        $('#iva_vh').val(data.calcularCostos.por_iva_venta).select2();
+                        $('#iva_compra_vh option:not(:selected)').attr('disabled', true);
+                        $('#iva_vh option:not(:selected)').attr('disabled', true);
+                        $('#impconsumo option:not(:selected)').attr('disabled', true);
+                        ivaCompra()
+
+                        $('#idequipamiento').val(data.equipamientoVH.codigo);
+                        $('#descripcionEquipamiento').val(data.equipamientoVH.Descripcion);
+                    }
+                    else {
+                        $('#idequipamiento').val('');
+                        $('#descripcionEquipamiento').val('');
+                        $('#costosiniva_vh').val('');
+                        $('#costototal_vh').val('');
+                        $('#montoiva').val('');
+                        $('#montoimpcon').val('');
+                        $('#iva_compra_vh').val('');
+                        $('#impconsumo').val('');
+                        $('#iva_vh').val('');
+                        $('#iva_compra_vh option:not(:selected)').attr('disabled', false);
+                        $('#iva_vh option:not(:selected)').attr('disabled', false);
+                        $('#impconsumo option:not(:selected)').attr('disabled', false);
+                    }
+
+
+                }
+            });
+        }
+
+        function valida(e, id)	//Solo numeros y SOLO 1 punto decimal
+        {
+            var key = (document.all) ? e.which : e.keyCode;
+            cadena = $('#' + id + '').val();
+            console.log(cadena)
+            if (cadena.indexOf('.') == -1) {
+                return (key <= 13 || (key >= 48 && key <= 57) || key == 46);
+            }
+            else {
+                return (key <= 13 || (key >= 48 && key <= 57));
+            }
+        }
+        function buscarAjaxVehiculos() {
+            $('#tablaPaginada').dataTable().fnDestroy();
+            $('#tablaPaginada').find('tbody').empty();
+
+            $.ajax({
+                url: '/Vehiculo/GetVehiculosJson',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append(
+                            '<tr>'
+                            + '<td align="left">'
+                            + '<input type="hidden" id="planMayorId' + i + '" name="planMayorId' + i + '" value="' + data[i].plan_mayor + '"/>'
+                            + data[i].plan_mayor
+                            + '</td>'
+                            + '<td align="left">' + data[i].modvh_codigo + '</td>'
+                            + '<td align="left">' + data[i].vin + '</td>'
+                            + '<td align="left">' + data[i].modvh_nombre + '</td>'
+                            + '<td align="right">' + data[i].anio_vh + '</td>'
+                            + '<td align="right">' + data[i].icbvhfec_creacion + '</td>'
+                            + '<td width="5%" align="center">'
+                            + '<button class="btn btn-info btn-xs" onclick="validaPlan(' + i + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>'
+                            + '</td>'
+                            + '</tr>');
+                    }
+                },
+                complete: function (data) {
+
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<'row'<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6 text-right'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'copy', className: 'btn-sm' },
+                            //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                            //{ extend: 'print', className: 'btn-sm' }
+                        ]
+                    });
+                }
+            });
+        }
+
+
+        @*function validaPlan(id) {
+            window.location.href = '@Url.Action("Actualizar","Vehiculo")?menu='+@ViewBag.id_menu+'&&id=' + $('#planMayorId' + id + '').val();
+        }*@
+
+        function crearCliente(){
+            window.open('@Url.Action("tercero", "icb_terceros")','_blank');
+        }
+
+          function crearModelo(){
+            window.open('@Url.Action("Create", "vmodelogs")','_blank');
+        }
+
+
+        function crearAseguradora(){
+            window.open('@Url.Action("create", "aseguradora")','_blank');
+
+        }
+
+        function validarModeloActivo() {
+            if ($('#modvh_id').val() != '') {
+                $.ajax({
+                    url: '/gestionVhNuevo/BuscarAniosModeloPorId',
+                    data: {
+                        modeloCodigo: $('#modvh_id').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        $('#anio_vh').empty();
+                        for (var i = 0; i < data.length; i++) {
+                            $('#anio_vh').append($('<option>', {
+                                value: data[i].anio,
+                                text: data[i].anio
+                            }));
+                        }
+                        $('#anio_vh').val('@ViewBag.anioSeleccionado');
+                        $('#anio_vh').select2();
+                    },
+                    complete: function (data) {
+
+                    }
+                });
+            }
+        }
+
+
+
+    </script>
+
+}

@@ -1,0 +1,2902 @@
+﻿@model Homer_MVC.IcebergModel.tencabezaorden
+
+@{
+    ViewBag.Icono = "fa fa-file";
+    ViewBag.Title = "Orden De Taller";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+    <style type="text/css">
+        body.modal-open {
+            overflow: visible !important;
+        }
+
+        textarea .form-control .requeridoGarantia {
+            width: 100%;
+            max-width: 100%;
+        }
+    </style>
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @*@if (TempData["mensaje"] != null)
+            {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+            }*@
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="" onclick="buscarAjaxOrdenesTaller();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.Hidden("numeroSolicitudes")
+                        @Html.Hidden("numeroOperaciones")
+                        @Html.Hidden("numeroRepuestos")
+                        @Html.Hidden("numeroOperacionesPlan")
+                        @Html.Hidden("numeroRepuestosPlan")
+                        @Html.Hidden("tiempoTotalPlan")
+                        @Html.Hidden("id_cliente")
+                        @Html.HiddenFor(model => model.tercero);
+                        <input type="hidden" name="tipodegarantia" id="tipodegarantia" value="@ViewBag.tipogarantia" />
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-calendar-check-o"></i>&nbsp;&nbsp;&nbsp;Datos entrada
+                                </div>
+                                <div class="panel-body">
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Codigo:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.codigoentrada, new { htmlAttributes = new { @class = "form-control", @required = "required", @placeholder = "Digite codigo entrada" } })
+                                                    @Html.ValidationMessageFor(model => model.codigoentrada, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.idtipodoc, null, htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.idtipodoc, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Asesor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.Editor("asesor", new { htmlAttributes = new { @class = "form-control requeridoAseguradora", @type = "text", @placeholder = "", @readonly = "readonly" } })
+                                                @*@Html.ValidationMessageFor(model => model.asesor, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Razon Ingreso Primaria:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.razoningreso, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.razoningreso, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Razon Ingreso:(Secundaria)&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.razon_secundaria, null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.razon_secundaria, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tipo Orden:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.tipooperacion, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.tipooperacion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    <div class="col-sm-6" id="areaRazonIngreso" style="display:none;">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Aseguradora:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.aseguradora, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.aseguradora, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="areaGarantia" style="display:none;">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Falla:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.TextAreaFor(m => m.garantia_falla, new RouteValueDictionary(new { @class = "form-control requeridoGarantia", style = "width: 100%; height:80px;" }))
+                                                    @Html.ValidationMessageFor(model => model.garantia_falla, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Causa:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.TextAreaFor(m => m.garantia_causa, new RouteValueDictionary(new { @class = "form-control requeridoGarantia", style = "width: 100%; height:80px;" }))
+                                                    @Html.ValidationMessageFor(model => model.garantia_causa, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Solución:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.TextAreaFor(m => m.garantia_solucion, new RouteValueDictionary(new { @class = "form-control requeridoGarantia", style = "width: 100%; height:80px;" }))
+                                                    @Html.ValidationMessageFor(model => model.garantia_solucion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="areaDatosAseguradora" style="display:none;">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Poliza:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.poliza, new { htmlAttributes = new { @class = "form-control requeridoAseguradora", @placeholder = "Digite poliza" } })
+                                                    @Html.ValidationMessageFor(model => model.poliza, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Siniestro:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.siniestro, new { htmlAttributes = new { @class = "form-control requeridoAseguradora", @placeholder = "Digite siniestro" } })
+                                                    @Html.ValidationMessageFor(model => model.siniestro, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Valor Minimo:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.Editor("minimoOrden", new { htmlAttributes = new { @class = "form-control requeridoAseguradora", @placeholder = "Digite valor ($)", @onkeyUp = "return miles(this.id)" } })
+                                                    @*@Html.ValidationMessageFor(model => model.minimo, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Deducible:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.Editor("deducibleOrden", new { htmlAttributes = new { @class = "form-control requeridoAseguradora", @placeholder = "Digite deducible", @onkeyUp = "return miles(this.id)" } })
+                                                    @*@Html.ValidationMessageFor(model => model.deducible, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Fecha Soat:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.fecha_soat, new { htmlAttributes = new { @class = "form-control requeridoAseguradora", @placeholder = "", } })
+                                                    @*@Html.ValidationMessageFor(model => model.deducible, "", new { @class = "text-danger" })*@
+                                                    <div class="col-sm-12" id="selectInfoSoat" style="display:none">
+                                                        <div class="form-group">
+                                                            <div class="col-md-12">
+                                                                <div class="alert alert-danger">
+                                                                    <strong></strong><p id="textosoat"></p><br />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Numero de Soat:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.numero_soat, new { htmlAttributes = new { @class = "form-control requeridoAseguradora", @placeholder = "Digite N° de SOAT", @onkeyUp = "return soloNumeros(this.id)" } })
+                                                    @*@Html.ValidationMessageFor(model => model.deducible, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tecnico:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("tecnico", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @*@Html.ValidationMessageFor(model => model.idtipodoc, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-car"></i>&nbsp;&nbsp;&nbsp;Datos Vehiculo
+                                </div>
+                                <div class="panel-body">
+
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Placa:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.placa, new { htmlAttributes = new { @class = "form-control", @required = "required", @placeholder = "Digite placa" } })
+                                                    @Html.ValidationMessageFor(model => model.placa, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button type="button" class="btn btn-primary" id="btnBuscarPlaca"><i class="fa fa-search"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" style="display:none;" id="placaNoEncontrada">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-10">Placa no encontrada &nbsp;<a class="btn btn-link" href="../../creacionVh?menu=@ViewBag.id_menu" target="_blank">&nbsp;Crear vehiculo aqui&nbsp;&nbsp;<i class="fa fa-car"></i></a>&nbsp;</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="areaVehiculoOculta" style="display:none;">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Serie:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <p id="serieBuscado"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Numero Motor:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <p id="numMotorBuscado"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Color:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <p id="colorBuscado"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Fecha Venta:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <p id="fechaVentaBuscado"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Fecha Fin Garantia:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <p id="fechaFinGarantiaBuscado"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            @*<div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-4">Citas Vehiculo:&nbsp;<span class="text-danger">*</span></label>
+                                                        <div class="col-md-6">
+                                                            <input type="hidden" name="citaSeleccionada" id="citaSeleccionada" value="" />
+                                                            <button type="button" class="btn btn-default" id="btnBuscarCitasPlaca">&nbsp;&nbsp;<i class="fa fa-calendar"></i>&nbsp;&nbsp;</button>
+                                                        </div>
+                                                    </div>
+                                                </div>*@
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Kilometraje Anterior:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <p id="kilometrajeBuscado"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">kilometraje Actual:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.EditorFor(model => model.kilometraje, new { htmlAttributes = new { @class = "form-control", @required = "required", @placeholder = "Digite kilometraje" } })
+                                                        @Html.ValidationMessageFor(model => model.kilometraje, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="areaPanelCliente" style="display:none;">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-user-circle-o"></i>&nbsp;&nbsp;&nbsp;Datos Propietario
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="row">
+                                            <div class="col-sm-6" id="areaTxtBuscarDocumento">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Documento:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.Editor("txtDocumentoCliente", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite numero documento" } })
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <button type="button" class="btn btn-primary" id="btnBuscarCliente"><i class="fa fa-search"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6" style="display:none;" id="documentoNoEncontrado">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-10">Propietario no encontrado, puede buscarlo o&nbsp;<a class="btn btn-link" href="../../terceros?menu=@ViewBag.id_menu" target="_blank">&nbsp;Crear cliente aqui&nbsp;&nbsp;<i class="fa fa-user-circle-o"></i></a>&nbsp;</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="areaClienteOculta" style="display:none;">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Documento:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <p id="documentoBuscado"></p>
+                                                        <input type="hidden" name="docTerceroBuscado" id="docTerceroBuscado" value="" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Nombre:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <p id="nombreBuscado"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Telefono:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <p id="telefonoBuscado"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Celular:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <p id="celularBuscado"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-4">Email:&nbsp;</label>
+                                                        <div class="col-md-6">
+                                                            <p id="emailBuscado"></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-4">Ciudad:&nbsp;</label>
+                                                        <div class="col-md-6">
+                                                            <p id="ciudadBuscado"></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-4">Recibido de:&nbsp;</label>
+                                                        <div class="col-md-6">
+                                                            @Html.DropDownListFor(model => model.recibidode, Enumerable.Empty<SelectListItem>
+                                                                (), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                            @Html.ValidationMessageFor(model => model.recibidode, "", new { @class = "text-danger" })
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-calendar"></i>&nbsp;&nbsp;&nbsp;Parametros De Entrega
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="row">
+                                            @*<div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-4">Horas:&nbsp;</label>
+                                                        <div class="col-md-6">
+                                                            <input type="radio" id="rbHoras" name="rbHorasDias" value="horas" checked />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-4">Dias:&nbsp;</label>
+                                                        <div class="col-md-6">
+                                                            <input type="radio" id="rbDias" name="rbHorasDias" value="dias" />
+                                                        </div>
+                                                    </div>
+                                                </div>*@
+
+                                            @*<div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-4">Tiempo:&nbsp;<span class="text-danger">*</span></label>
+                                                        <div class="col-md-6">
+                                                            @Html.Editor("txtTiempoEstimado", new { htmlAttributes = new { @class = "form-control", @required = "required", @placeholder = "Digite tiempo", @name = "txtTiempoEstimado" } })
+                                                        </div>
+                                                    </div>
+                                                </div>*@
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Entrega:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        @Html.Editor("txtEntregaEstimado", new { htmlAttributes = new { @class = "form-control", @required = "required", @placeholder = "Fecha entrega estimada", @readonly = "readonly" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Notas:</label>
+                                                    <div class="col-md-6">
+                                                        @Html.TextAreaFor(m => m.notas, new RouteValueDictionary(new { @class = "someClass", style = "width: 100%; height:80px;" }))
+                                                        @Html.ValidationMessageFor(model => model.notas, "", new { @class = "text-danger" })
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="panelmantenimiento" style="">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-cogs"></i>&nbsp;&nbsp;&nbsp;Plan de Mantenimiento
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="row">
+                                        <div class="row">
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Plan de Mantenimiento:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        @Html.DropDownListFor(model => model.id_plan_mantenimiento, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                        @Html.ValidationMessageFor(model => model.id_plan_mantenimiento, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-sm-6" id="selectInfoPlan" style="display:none">
+                                            <div class="form-group">
+                                                <div class="col-md-12">
+                                                    <div class="alert alert-info">
+                                                        <strong></strong><p id="textoplandesc"></p><br />
+                                                        <strong></strong><p id="textoplanpre"></p><br />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 areaOperacionesPorPlan areaReferenciasPorPlan" style="display:none">
+                                            <hr style="height:3px; background-color:#777;" />
+                                        </div>
+
+                                        <div class="col-md-12 text-center areaReferenciasPorPlan" style="display:none">
+                                            <h4><label class="label label-default">Referencias segun el plan</label></h4>
+                                        </div>
+
+
+                                        <div class="row" style="display:none" id="contenedorPlanes">
+                                            <div class="col-md-12 areaReferenciasPorPlan" style="display:none">
+                                                <div class="col-sm-12">
+                                                    <div class="form-group">
+                                                        <div class="col-md-12">
+                                                            <div class="table-responsive">
+                                                                <div id="div-mensaje-buscar"></div>
+                                                                <table class="table table-striped table-bordered table-hover" id="tablaRepuestos">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="text-align:center">C&oacute;digo</th>
+                                                                            <th style="text-align:center">Descripci&oacute;n</th>
+                                                                            <th style="text-align:center">Precio</th>
+                                                                            <th style="text-align:center">Cantidad</th>
+                                                                            @*<th style="text-align:center">Iva (%)</th>*@
+                                                                            @*<th style="text-align:center">Valor Iva</th>*@
+                                                                            <th style="text-align:center">Precio Total</th>
+                                                                            <th style="text-align:center"><input type="checkbox" id="checkSeleccionarTodos" /></th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody></tbody>
+                                                                    <tfoot></tfoot>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12 text-center areaOperacionesPorPlan" style="display:none">
+                                                <h4><label class="label label-default">Operaciones segun el plan</label></h4>
+                                            </div>
+
+                                            <div class="col-md-12 areaOperacionesPorPlan" style="display:none">
+                                                <div class="col-sm-12">
+                                                    <div class="form-group">
+                                                        <div class="col-md-12">
+                                                            <div class="table-responsive">
+                                                                <div id="div-mensaje-buscar"></div>
+                                                                <table class="table table-striped table-bordered table-hover" id="tablaOperacionesPorPlan">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="text-align:center">C&oacute;digo</th>
+                                                                            <th style="text-align:center">Descripci&oacute;n</th>
+                                                                            <th style="text-align:center">Tiempo (Horas)</th>
+                                                                            <th style="text-align:center">Precio</th>
+                                                                            @*<th style="text-align:center">Iva (%)</th>*@
+                                                                            @*<th style="text-align:center">Valor Iva</th>*@
+                                                                            <th style="text-align:center">Precio Total</th>
+                                                                            <th style="text-align:center"><input type="checkbox" id="checkTodasOperaciones" /></th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody></tbody>
+                                                                    <tfoot></tfoot>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12">
+                                                <button type="button" class="btn btn-primary">
+                                                    Total a pagar <span class="badge badge-light"></span><p id="valorAPagar"></p>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <hr style="height:3px; background-color:#777;" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-cogs"></i>&nbsp;&nbsp;&nbsp;Operaciones
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div class="form-group">
+                                                <div class="panel-body-btns text-right">
+                                                    <button type="button" class="btn btn-success" id="btnAgregarOperacion"><i class="fa fa-plus"></i>&nbsp;&nbsp;Agregar</button>
+                                                    @*<button type="button" class="btn btn-success" id="btnGarantia" onclick="agregarGarantia()"><i class="fa fa-file-archive-o"></i>&nbsp;&nbsp;Garantía</button>*@
+                                                    <a class="btn btn-info" href="@ViewBag.linkrepuestos" target="_blank"><i class="fa fa-car"></i>&nbsp;&nbsp;&nbsp;Catálogo de Repuestos</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="row">
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Operación:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.DropDownList("operacionesTempario", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                        @*@Html.ValidationMessageFor(model => model.idtipodoc, "", new { @class = "text-danger" })*@
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6" id="selectCentroCosto" style="display:none">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Centro costo:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.DropDownList("centroCostoModal", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
+                                            @*<div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-4">Descuento:</label>
+                                                        <div class="col-md-6">
+                                                            @Html.Editor("txtDescuentoOperacion", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite descuento" } })
+                                                        </div>
+                                                    </div>
+                                                </div>*@
+
+                                            @*<div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <div class="col-md-6 col-md-offset-4">
+                                                            <button type="button" class="btn btn-primary" id="btnAgregarOperacion"><i class="fa fa-plus"></i>&nbsp;&nbsp;Agregar</button>
+                                                            <button type="button" class="btn btn-primary" id=""><i class="fa fa-plus"></i>&nbsp;&nbsp;Agregar</button>
+                                                        </div>
+                                                    </div>
+                                                </div>*@
+
+                                            <div class="col-sm-12 text-center" style="display:none;" id="alertaAgregarOperacion">
+                                                <div class="form-group">
+                                                    <div class="col-md-12">
+                                                        <div class="alert alert-info">
+                                                            <strong>Alerta!</strong><p id="mensajeAlertaAgregarOperacion"></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="table-responsive">
+                                                <div id="div-mensaje-buscar"></div>
+                                                <table class="table table-striped table-bordered table-hover" id="tablaOperacionesPorPlaca">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="text-align:center">Código</th>
+                                                            <th style="text-align:center">Operación</th>
+                                                            <th style="text-align:center">Centro de costo</th>
+                                                            <th style="text-align:center">Tecnico</th>
+                                                            <th style="text-align:center">Tiempo</th>
+                                                            <th style="text-align:center">Valor</th>
+                                                            <th style="text-align:center">Descuento (%)</th>
+                                                            <th style="text-align:center">Valor Descuento</th>
+                                                            <th style="text-align:center">Iva (%)</th>
+                                                            <th style="text-align:center">Valor Iva</th>
+                                                            <th style="text-align:center">Valor Total</th>
+                                                            <th style="text-align:center">Acción</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-cogs"></i>&nbsp;&nbsp;&nbsp;Repuestos
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        @Html.Hidden("nombre_repuesto")
+
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-6">Tipo de repuesto:<span class="text-danger">*&nbsp;</span></label>
+                                                    <div class="col-md-6">
+                                                        <input type="checkbox" name="tipoRepuesto" id="tipoRepuesto" value="" data_toggle="toggle" data_size="mini" checked />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+
+
+                                            <div class="col-sm-6" id="rOficial">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Referencia:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.DropDownList("repuestos", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6" style="display:none" id="rGenerico">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Referencia Generica:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.DropDownList("repuestosG", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Cantidad:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.Editor("txtCantidadRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite cantidad", @onkeypress = "return soloNumeros(event)" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Precio Unitario:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.Editor("txtPrecioRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite precio", @readonly = "readonly" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Iva:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-3">
+                                                        @Html.Editor("txtPorIvaRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Iva (%)", @readonly = "readonly" } })
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        @Html.Editor("txtValorIvaRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Iva ($)", @readonly = "readonly" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Descuento:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-3">
+                                                        @Html.Editor("txtPorDsctoRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Descuento (%)", @readonly = "readonly" } })
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        @Html.Editor("txtValorDsctoRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Descuento ($)", @readonly = "readonly" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <div class="col-md-6 col-md-offset-4">
+                                                        <button type="button" class="btn btn-primary" id="btnAgregarRepuesto"><i class="fa fa-plus"></i>&nbsp;&nbsp;Agregar</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-12 text-center" style="display:none;" id="alertaAgregarRepuesto">
+                                                <div class="form-group">
+                                                    <div class="col-md-12">
+                                                        <div class="alert alert-info">
+                                                            <strong>Alerta!</strong><p id="mensajeAlertaAgregarRepuesto"></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="table-responsive">
+                                                <div id="div-mensaje-buscar"></div>
+                                                <table class="table table-striped table-bordered table-hover" id="tablaRepuestosPorPlaca">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="text-align:center">Código</th>
+                                                            <th style="text-align:center">Descripción</th>
+                                                            <th style="text-align:center">Cantidad</th>
+                                                            <th style="text-align:center">Precio Unitario</th>
+                                                            <th style="text-align:center">Iva (%)</th>
+                                                            <th style="text-align:center">Iva ($)</th>
+                                                            <th style="text-align:center">Descuento (%)</th>
+                                                            <th style="text-align:center">Descuento ($)</th>
+                                                            <th style="text-align:center">Total</th>
+                                                            <th style="text-align:center">Solicitar</th>
+                                                            <th style="text-align:center">Acción</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-12 text-center" style="display:none;" id="alertaSolicitarRepuesto">
+                                            <div class="form-group">
+                                                <div class="col-md-12">
+                                                    <div class="alert alert-info">
+                                                        <strong>Alerta!</strong><p id="mensajeAlertaSolicitarRepuesto"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="panel-body-btns text-right">
+                                                <button class="btn btn-primary" type="button" id="btnSolicitarRespuestos"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Solicitar</button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            @*/**********************************************************************************************************************************************************************************************************/*@
+                            <div class="hpanel" id="tareasInspeccion" style="display:none">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-clone"></i>&nbsp;&nbsp;&nbsp;Adicionales de Inspección
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="row">
+                                            <div class="col-md-12 text-center">
+                                                <h4><label class="label label-default">Tareas Solicitadas en Inspección</label></h4>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <input type="hidden" name="numeroTareas" id="numeroTareas" value="" />
+                                                    <div class="table-responsive">
+                                                        <div id="div-mensaje-buscar"></div>
+                                                        <table class="table table-striped table-bordered table-hover" id="tablaTareas">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="text-align:center">Tarea Inspección</th>
+                                                                    <th style="text-align:center">Cantidad</th>
+                                                                    <th style="text-align:center">Valor</th>
+                                                                    <th style="text-align:center">Fecha Autorización</th>
+                                                                    <th style="text-align:center">Autorizar</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @*/**********************************************************************************************************************************************************************************************************/*@
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="fa fa-clone"></i>&nbsp;&nbsp;&nbsp;Solicitudes
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-2">Solicitud:&nbsp;</label>
+                                                    <div class="col-md-8">
+                                                        <input type="text" class="form-control" id="txtSolicitudCliente" name="txtSolicitudCliente" placeholder="Digite solicitud del cliente" />
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <button type="button" class="btn btn-success" id="btnAgregarSolicitud"><i class="fa fa-plus"></i>&nbsp;Agregar</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr />
+                                        <div class="row">
+                                            <div class="col-md-12 text-center">
+                                                <h4><label class="label label-default">Solicitudes Presentadas</label></h4>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <div class="table-responsive">
+                                                        <div id="div-mensaje-buscar"></div>
+                                                        <table class="table table-striped table-bordered table-hover" id="tablaSolicitudes">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="text-align:center">Solicitud Cliente</th>
+                                                                    <th style="text-align:center">Acción</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="panel-body-btns text-right">
+                                <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center"># Orden</th>
+                                        <th style="text-align:center">Código Orden</th>
+                                        <th style="text-align:center">Documento</th>
+                                        <th style="text-align:center">Cliente</th>
+                                        <th style="text-align:center">Placa</th>
+                                        <th style="text-align:center">Descripcion</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalEditarSolicitudCliente" class="modal hmodal-success" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Editar Solicitud</h4>
+            </div>
+            <div class="modal-body">
+
+                <input type="hidden" id="txtIdFilaEditada" />
+
+                <div class="row" style="text-align:center;">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Solicitud:&nbsp;</label>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="txtSolicitudClienteEditar" name="txtSolicitudClienteEditar" placeholder="Digite solicitud del cliente" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnEditarSolicitud">Aceptar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalOrdenCreada" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Orden de taller registrada con éxito</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align:center;">
+                    <h4>Se registro la orden de taller con el número</h4> <h3><span class="label label-default">@TempData["mensaje"]</span></h3>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalOrdenCreada">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalSeleccionarCitaPorPlaca" class="modal hmodal-success" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Seleccionar Cita</h4>
+                <small class="font-bold">Citas vigentes para asignar orden.</small>
+            </div>
+            <div class="modal-body">
+
+                <input type="hidden" id="txtIdFilaEditada" />
+
+                <div class="row" style="text-align:center;">
+                    <div class="col-sm-12">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaCitasPorPlaca">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Hora</th>
+                                        <th style="text-align:center">Revisión</th>
+                                        <th style="text-align:center">Notas</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnAsignarCita">Asignar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalEditarReferencia" class="modal hmodal-success" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Editar Referencia</h4>
+                <small class="font-bold">Referencias que se asignaran a la orden de taller.</small>
+            </div>
+            <div class="modal-body">
+
+                <input type="hidden" id="txtIdFilaEditadaRepuesto" />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Referencia:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.Editor("txtCodigoReferencia", new { htmlAttributes = new { @class = "form-control", @placeholder = "Nombre Referencia", @readonly = "readonly" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Nombre:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.Editor("txtNombreReferencia", new { htmlAttributes = new { @class = "form-control", @placeholder = "Nombre Referencia", @readonly = "readonly" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Cantidad:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.Editor("txtCantidadReferencia", new { htmlAttributes = new { @class = "form-control", @placeholder = "Cantidad Referencia" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Precio:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.Editor("txtPrecioReferencia", new { htmlAttributes = new { @class = "form-control", @placeholder = "Precio Referencia", @readonly = "readonly" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Iva (%):&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.Editor("txtPorIvaReferencia", new { htmlAttributes = new { @class = "form-control", @placeholder = "Iva (%)", @readonly = "readonly" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Iva ($):&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.Editor("txtValorIvaReferencia", new { htmlAttributes = new { @class = "form-control", @placeholder = "Iva ($)", @readonly = "readonly" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Descuento (%):&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.Editor("txtPorDsctoReferencia", new { htmlAttributes = new { @class = "form-control", @placeholder = "Descuento (%)", @readonly = "readonly" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Descuento ($):&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.Editor("txtValorDsctoReferencia", new { htmlAttributes = new { @class = "form-control", @placeholder = "Descuento ($)", @readonly = "readonly" } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Precio Total:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.Editor("txtPrecioTotalReferencia", new { htmlAttributes = new { @class = "form-control", @placeholder = "Precio Total", @readonly = "readonly" } })
+                        </div>
+                    </div>
+                </div>
+
+                <label></label>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnModificarReferencia">Guardar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script src="~/Vendor/moment/moment.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script type="text/javascript">
+
+    numeroSolicitud = 0;
+    numeroTareas = 0;
+    numeroOperacion = 0;
+    numeroRepuesto = 0;
+    $(document).ready(function () {
+        $('#tiempoTotalPlan').val(0);
+        $('#fecha_soat').datetimepicker({
+            format: 'YYYY/MM/DD'
+        }).on('dp.change', function (e) {
+            debugger;
+            var fechax = e.currentTarget.value;
+            var fechasoat=moment(fechax,"YYYY-MM-DD");
+            var fechahoy2 = new Date().toJSON().slice(0,10).replace(/-/g,'/');
+            var fechahoy=moment(fechahoy2,"YYYY-MM-DD");
+            var diferencia=fechahoy.diff(fechasoat,'days');
+            if(diferencia>365){
+                $('#selectInfoSoat').show();
+                $('#textosoat').html('El SOAT se encuentra vencido');
+            }
+            else{
+                $('#selectInfoSoat').hide();
+                $('#textosoat').html('');
+            }
+        });
+
+        //$('#fecha_soat').change(function(){
+        //    debugger;
+        //    var fechax= $('#fecha_soat').val();
+        //    var fechasoat= moment(fechaestientre,"DD-MM-YYYY HH:mm");
+        //    var fechahoy=moment(new Date(),"DD-MM-YYYY HH:mm");
+        //    var diferencia=fechahoy.diff(fechasoat,'days');
+        //    if(diferencia>635){
+        //        $('#selectInfoSoat').show();
+        //        $('#textosoat').html('El SOAT se encuentra vencido');
+        //    }
+        //    else{
+        //        $('#selectInfoSoat').hide();
+        //        $('#textosoat').html('');
+        //    }
+        //});
+
+        $('#fecha_soat').keypress(function (e) {
+            e.preventDefault();
+            return false;
+        });
+
+        $('.js-source-states').select2();
+        $('#aseguradora').append($('<option>', {
+            value: '',
+            text: 'Ninguna'
+        }));
+        $('#numeroSolicitudes').val(0);
+        $('#numeroOperaciones').val(0);
+        $('#numeroRepuestos').val(0);
+        verfechaentrega();
+        verificargarantia();
+        var razon2=$("#razoningreso option:selected").text();
+
+        if(razon2.indexOf("Colision") >= 0){
+            $('#areaRazonIngreso').show();
+        }
+        else{
+            $('#areaRazonIngreso').hide();
+            $('#aseguradora').val('');
+            $('#poliza').val('');
+            $('#siniestro').val('');
+            $('#minimoOrden').val('');
+            $('#deducibleOrden').val('');
+            $('#aseguradora').val('').trigger('change');
+        }
+
+        if ($('#aseguradora').val() == '') {
+            $('#areaDatosAseguradora').hide();
+            $('.requeridoAseguradora').prop('required', false);
+        } else {
+            $('.requeridoAseguradora').prop('required', true);
+            $('#areaDatosAseguradora').show();
+        }
+    });
+
+    function verificargarantia(){
+      
+        var razon_ingreso=$('#razoningreso').val();
+        //var razon_secundaria=$('#razon_secundaria').val();
+        //if(razon_ingreso==7 || razon_secundaria==7){
+        var razongarantia=@ViewBag.razongarantia;
+        if(razon_ingreso==razongarantia){
+            $('#areaGarantia').show();
+        }
+        else{
+            $('#garantia_falla').val('');
+            $('#garantia_causa').val('');
+            $('#garantia_solucion').val('');
+            $('#areaGarantia').hide();
+
+        }
+        };
+
+    function verfechaentrega()
+    {
+        var fechaestientre= $('#txtEntregaEstimado').val();
+        if(fechaestientre==null || fechaestientre=="")
+        {
+            var tiempo = 0;
+            var fechaHoy = new Date();
+            fechaHoy.setHours(fechaHoy.getHours() + tiempo);
+            var d = fechaHoy.getDate();
+            if(d<10){
+                d="0"+d;
+            }
+            var m =  fechaHoy.getMonth();
+            m += 1;            // JavaScript months are 0-11
+            var mon=m;
+            if(m<10){
+                mon="0"+m;
+            }
+            var y = fechaHoy.getFullYear();
+            var hour = fechaHoy.getHours();
+            if(hour<10){
+                hour="0"+hour;
+            }
+            var minutes = fechaHoy.getMinutes();
+            if(minutes<10){
+                minutes="0"+minutes;
+            }
+            $('#txtEntregaEstimado').val(d + "-" + mon + "-" + y + " " + hour + ":" + minutes);
+        }
+    }
+
+    function agregartiempo(tiempo){
+     
+        var fechaestientre= $('#txtEntregaEstimado').val();
+        if(fechaestientre==null || fechaestientre=="")
+        {
+            var fechaHoy = new Date();
+        }
+        else
+        {
+            fechaestientre= moment(fechaestientre,"DD-MM-YYYY HH:mm");
+            var fechaHoy = new Date(fechaestientre);
+        }
+        fechaHoy.setHours(fechaHoy.getHours() + tiempo);
+        var d = fechaHoy.getDate();
+        if(d<10){
+            d="0"+d;
+        }
+        var m =  fechaHoy.getMonth();
+        m += 1;            // JavaScript months are 0-11
+        var mon=m;
+        if(m<10){
+            mon="0"+m;
+        }
+        var y = fechaHoy.getFullYear();
+        var hour = fechaHoy.getHours();
+        if(hour<10){
+            hour="0"+hour;
+        }
+        var minutes = fechaHoy.getMinutes();
+        if(minutes<10){
+            minutes="0"+minutes;
+        }
+        $('#txtEntregaEstimado').val(d + "-" + mon + "-" + y + " " + hour + ":" + minutes);
+    }
+
+    function eliminartiempo(tiempo){
+      
+        var fechaestientre= $('#txtEntregaEstimado').val();
+        if(fechaestientre==null || fechaestientre=="")
+        {
+            var fechaHoy = new Date();
+        }
+        else
+        {
+            fechaestientre= moment(fechaestientre,"DD-MM-YYYY HH:mm");
+            var fechaHoy = new Date(fechaestientre);
+        }
+        fechaHoy.setHours(fechaHoy.getHours() - tiempo);
+        var d = fechaHoy.getDate();
+        if(d<10){
+            d="0"+d;
+        }
+        var m =  fechaHoy.getMonth();
+        m += 1;            // JavaScript months are 0-11
+        var mon=m;
+        if(m<10){
+            mon="0"+m;
+        }
+        var y = fechaHoy.getFullYear();
+        var hour = fechaHoy.getHours();
+        if(hour<10){
+            hour="0"+hour;
+        }
+        var minutes = fechaHoy.getMinutes();
+        if(minutes<10){
+            minutes="0"+minutes;
+        }
+        $('#txtEntregaEstimado').val(d + "-" + mon + "-" + y + " " + hour + ":" + minutes);
+    }
+
+    //$('#razon_secundaria').change(function(){
+    //    verificargarantia();
+    //});
+
+    $('#razoningreso').change(function(){
+        verificargarantia();
+        var razon=$("#razoningreso option:selected").text();
+        if(razon.indexOf("Colision") >= 0){
+            $('#areaRazonIngreso').show();
+        }
+         else{
+            $('#areaRazonIngreso').hide();
+            $('#aseguradora').val('');
+            $('#poliza').val('');
+            $('#siniestro').val('');
+            $('#minimoOrden').val('');
+            $('#deducibleOrden').val('');
+            $('#aseguradora').val('').trigger('change');
+        }
+
+        //$.ajax({
+        //    url: '/ordenTaller/buscarRazonesSecundarias',
+        //    data: {
+        //        razonprimaria: $('#razoningreso').val(),
+        //    },
+        //    type: 'post',
+        //    dataType: 'json',
+        //    cache: false,
+        //    success: function (data) {
+        //        $('#razon_secundaria').empty();
+        //        if (data != 0) {
+        //            if (data.length > 0) {
+        //                var ope = "";
+        //                ope += ' <option value="">Seleccione</option>'
+
+        //                for (var j = 0; j < data.length; j++) {
+        //                    ope += ' <option value="' + data[j].id + '">' + data[j].nombre + '</option>'
+        //                }
+        //                $('#razon_secundaria').append(ope);
+        //            }
+        //            $('#razon_secundaria').val("").trigger('change');
+        //        }
+        //    }
+        //})
+    });
+
+    $('#btnSolicitarRespuestos').click(function(){
+        $('#mensajeAlertaSolicitarRepuesto').text('Para realizar la solicitud debe primero guardar la orden de taller');
+        $('#alertaSolicitarRepuesto').show();
+        setTimeout(function () {
+            $("#alertaSolicitarRepuesto").fadeOut(2500);
+        }, 10000);
+    });
+
+    $('#tipoRepuesto').bootstrapToggle({
+        on: 'Repuesto',
+        off: 'Generico'
+    });
+
+
+    $('#tipoRepuesto').change(function () {
+        if ($('#tipoRepuesto').prop('checked')) {
+            $('#rOficial').show();
+            $('#rGenerico').hide();
+            $('#repuestosG').val('').select2();
+        } else {
+            $('#rOficial').hide();
+            $('#rGenerico').show();
+            $('#repuestos').val('').select2();
+            $('#txtCantidadRepuesto').val('');
+            $('#txtPrecioRepuesto').val(0);
+            $('#txtPorDsctoRepuesto').val(0);
+            $('#txtPorIvaRepuesto').val(0);
+        }
+    });
+
+    $('#aseguradora').change(function () {
+        if ($('#aseguradora').val() == '') {
+            $('#areaDatosAseguradora').hide();
+            $('.requeridoAseguradora').prop('required', false);
+        } else {
+            $('.requeridoAseguradora').prop('required', true);
+            $('#areaDatosAseguradora').show();
+            //$.ajax({
+            //    url: '/ordenTaller/BuscarNitAseguradora',
+            //    data: {
+            //        aseguradora: $('#aseguradora').val()
+            //    },
+            //    type: 'post',
+            //    dataType: 'json',
+            //    cache: false,
+            //    success: function (data) {
+            //        $('#nitTipoTarifa').val(data);
+            //    }
+            //});
+        }
+    });
+
+    //$('#tipoTarifa').change(function(){
+    //    if ($('#tipoTarifa').val() == parseInt(1) || $('#tipoTarifa').val() == parseInt(3) || $('#tipoTarifa').val() == parseInt(4)) {
+    //        $('#nitTipoTarifa').val($('#docTerceroBuscado').val());
+    //        if ($('#operacionesTempario').val() != "") {
+    //            $.ajax({
+    //                url: '/ordenTaller/BuscarDescuentoOperacion',
+    //                data: {
+    //                    tarifa: $('#tipoTarifa').val(),
+    //                    operacion: $('#operacionesTempario').val(),
+    //                    tercero: $('#nitTipoTarifa').val()
+    //                },
+    //                type: 'post',
+    //                dataType: 'json',
+    //                cache: false,
+    //                success: function (data) {
+    //                    $('#txtDescuentoOperacion').val(data);
+    //                }
+    //            })
+    //        }
+    //    }
+
+    //    if ($('#tipoTarifa').val() == 3) {
+    //        $('#selectCentroCosto').show();
+    //        $('#centroCostoModal').prop('required', true);
+    //    }else {
+    //        $('#selectCentroCosto').hide();
+    //        $('#centroCostoModal').val('').select2();
+    //        $('#centroCostoModal').prop('required', false);
+    //    }
+
+    //    if ($('#tipoTarifa').val() == parseInt(2)) {
+    //        $.ajax({
+    //            url: '/ordenTaller/BuscarNitTarifa',
+    //            data: {
+    //                tarifa: $('#tipoTarifa').val(),
+    //            },
+    //            type: 'post',
+    //            dataType: 'json',
+    //            cache: false,
+    //            success: function (data) {
+    //                $('#nitTipoTarifa').val(data);
+    //                if ($('#operacionesTempario').val() != "") {
+    //                    $.ajax({
+    //                        url: '/ordenTaller/BuscarDescuentoOperacion',
+    //                        data: {
+    //                            tarifa: $('#tipoTarifa').val(),
+    //                            operacion: $('#operacionesTempario').val(),
+    //                            tercero: $('#nitTipoTarifa').val()
+    //                        },
+    //                        type: 'post',
+    //                        dataType: 'json',
+    //                        cache: false,
+    //                        success: function (data) {
+    //                            console.log('que hubo chino')
+    //                            console.log(data)
+    //                            $('#txtDescuentoOperacion').val(data);
+    //                        }
+    //                    })
+    //                }
+    //            }
+    //        })
+    //    }
+    //    if($('#tipoTarifa').val() == parseInt(5)){
+    //        $.ajax({
+    //            url: '/ordenTaller/BuscarNitAseguradora',
+    //            data: {
+    //                aseguradora: $('#aseguradora').val()
+    //            },
+    //            type: 'post',
+    //            dataType: 'json',
+    //            cache: false,
+    //            success: function (data) {
+    //                $('#nitTipoTarifa').val(data);
+    //                if ($('#operacionesTempario').val() != "") {
+    //                    $.ajax({
+    //                        url: '/ordenTaller/BuscarDescuentoOperacion',
+    //                        data: {
+    //                            tarifa: $('#tipoTarifa').val(),
+    //                            operacion: $('#operacionesTempario').val(),
+    //                            tercero: $('#nitTipoTarifa').val()
+    //                        },
+    //                        type: 'post',
+    //                        dataType: 'json',
+    //                        cache: false,
+    //                        success: function (data) {
+    //                            console.log('que hubo chino')
+    //                            console.log(data)
+    //                            $('#txtDescuentoOperacion').val(data);
+    //                        }
+    //                    })
+    //                }
+    //            }
+    //        });
+    //    }
+    //});
+
+    //$('#operacionesTempario').change(function(){
+    //    $.ajax({
+    //        url: '/ordenTaller/BuscarDescuentoOperacion',
+    //        data: {
+    //            tarifa: $('#tipoTarifa').val(),
+    //            operacion: $('#operacionesTempario').val(),
+    //            tercero: $('#nitTipoTarifa').val()
+    //        },
+    //        type: 'post',
+    //        dataType: 'json',
+    //        cache: false,
+    //        success: function (data) {
+    //            $('#txtDescuentoOperacion').val(data);
+    //        }
+    //    })
+    //});
+
+        function agregarGarantia() {
+            var id = $('#placa').val();
+  
+            $.ajax({
+                url: '/ordenTaller/agregarGarantia',
+                data: {
+                    id: id
+                },
+                type: "post",
+                cache: false,
+                success: function (result) {
+
+                    if (result == 1) {
+                        swal("Exito", "Se asigno garantía", "success");
+                    } else {
+                        swal("Error", "Error al asignar garantía", "error");
+                    }
+
+                }
+            })
+        }
+
+
+    $('#repuestos').change(function(){
+        $.ajax({
+            url: '/ordenTaller/BuscarReferencia',
+            data: {
+                codigo_referencia: $('#repuestos').val(),
+                documento_cliente: $('#txtDocumentoCliente').val()
+            },
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            success: function (data) {
+                if (data.error == false) {
+                    $('#nombre_repuesto').val(data.referenciaEncontrada.ref_descripcion);
+                    $('#txtPrecioRepuesto').val(addComas(data.referenciaEncontrada.precio));
+                    $('#txtPorIvaRepuesto').val(data.referenciaEncontrada.por_iva);
+                    $('#txtPorDsctoRepuesto').val(data.referenciaEncontrada.por_dscto);
+
+                } else {
+                    $('#mensajeAlertaAgregarRepuesto').text(data.errorMessage);
+                    $('#alertaAgregarRepuesto').show();
+                    setTimeout(function () {
+                        $("#alertaAgregarRepuesto").fadeOut(2500);
+                    }, 10000);
+                }
+            }
+        });
+    });
+
+    $('#repuestosG').change(function () {
+        $('#nombre_repuesto').val($('#repuestosG option:selected').text());
+        $('#txtPrecioRepuesto').val(0);
+        $('#txtPorIvaRepuesto').val(0);
+        $('#txtPorDsctoRepuesto').val(0);
+        $('#txtPorIvaRepuesto').val(0);
+        $('#txtPorDsctoRepuesto').val(0);
+    });
+
+    $('#txtCantidadRepuesto').keyup(function () {
+        var valorDescuento = Math.round(parseInt(quitCommas($('#txtPrecioRepuesto').val())) * parseInt(quitCommas($('#txtCantidadRepuesto').val())) * ($('#txtPorDsctoRepuesto').val() / 100))
+        var valorIVA = Math.round((parseInt(quitCommas($('#txtPrecioRepuesto').val())) * parseInt(quitCommas($('#txtCantidadRepuesto').val())) - valorDescuento) * ($('#txtPorIvaRepuesto').val() / 100))
+
+        $('#txtValorDsctoRepuesto').val(addComas(valorDescuento));
+        $('#txtValorIvaRepuesto').val(addComas(valorIVA));
+    });
+
+    $('#btnAgregarRepuesto').click(function(){
+        if($('#repuestos').val() != '' && $('#txtCantidadRepuesto').val() != ''){
+            if ($('#txtCantidadRepuesto').val() > 0) {
+                var calcularTotal = ($('#txtCantidadRepuesto').val() * parseInt(quitCommas($('#txtPrecioRepuesto').val())) - parseInt(quitCommas($('#txtValorDsctoRepuesto').val())) + parseInt(quitCommas($('#txtValorIvaRepuesto').val())));
+
+                $('#tablaRepuestosPorPlaca').find('tbody').append('<tr id="rowRepuesto'+ numeroRepuesto +'">'
+                        +'<td align="left">'
+                            +'<input style="display:none" type="text" id="codigoRepuesto'+numeroRepuesto+'" name="codigoRepuesto'+ numeroRepuesto+'" value="' + $('#repuestos').val() + '"/>'
+                            + $('#repuestos').val()
+                        + '</td>'
+                        +'<td align="left">'
+                            +'<input style="display:none" type="text" id="nombreRepuesto'+numeroRepuesto+'" name="nombreRepuesto'+ numeroRepuesto+'" value="' + $('#nombre_repuesto').val() + '"/>'
+                            + $('#nombre_repuesto').val()
+                        + '</td>'
+                        //+'<td align="left">'
+                        //    +'<input style="display:none" type="text" id="tipoTarifaRpt'+numeroRepuesto+'" name="tipoTarifaRpt'+ numeroRepuesto+'" value="' + $('#tipoTarifaR').val() + '"/>'
+                        //    + $('#tipoTarifaR option:selected').text()
+                        //+ '</td>'
+                        +'<td align="right">'
+                            +'<input style="display:none" type="text" id="cantidadRepuesto'+ numeroRepuesto + '" name="cantidadRepuesto' + numeroRepuesto + '" value="' + $('#txtCantidadRepuesto').val() + '"/>'
+                            + addComas($('#txtCantidadRepuesto').val())
+                        + '</td>'
+                        +'<td align="right">'
+                            +'<input style="display:none" type="text" id="precioRepuesto'+ numeroRepuesto + '" name="precioRepuesto'+ numeroRepuesto + '" value="' + $('#txtPrecioRepuesto').val() + '"/>'
+                            + addComas($('#txtPrecioRepuesto').val())
+                        + '</td>'
+                        +'<td align="right">'
+                            +'<input style="display:none" type="text" id="porIvaRepuesto'+ numeroRepuesto + '" name="porIvaRepuesto' + numeroRepuesto + '" value="' + $('#txtPorIvaRepuesto').val() + '"/> '
+                            + $('#txtPorIvaRepuesto').val()
+                        + '</td>'
+                        +'<td align="right">'
+                            + $('#txtPorIvaRepuesto').val()
+                        + '</td>'
+                        +'<td align="right">'
+                            +'<input style="display:none" type="text" id="porDsctRepuesto'+ numeroRepuesto + '" name="porDsctRepuesto'+ numeroRepuesto + '" value="' + $('#txtPorDsctoRepuesto').val() + '"/>'
+                            +  $('#txtPorDsctoRepuesto').val()
+                        + '</td>'
+                        +'<td align="right"> '
+                            +  $('#txtValorDsctoRepuesto').val()
+                        + '</td>'
+                        +'<td align="right"> '
+                            + addComas(calcularTotal)
+                        + '</td>'
+                        +'<td align="center">'
+                            + '<input type="checkbox" id="solicitarRepuesto'+ numeroRepuesto +'" name="solicitarRepuesto'+ numeroRepuesto +'" checked/>'
+                        + '</td>'
+                        +'<td width="15%" style="text-align:center">'
+                            +'<button type="button" class="btn btn-warning btn-xs" onclick="editarRepuesto('+ numeroRepuesto + ')">&nbsp;&nbsp;<i class="fa fa-edit"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                            +'<button type="button" class="btn btn-danger btn-xs" onclick="eliminarRepuesto('+ numeroRepuesto + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>'
+                        +'</td>'
+                    +'</tr>');
+                numeroRepuesto++;
+                $('#numeroRepuestos').val(numeroRepuesto);
+                $('#repuestos').val('').select2();
+                $('#txtCantidadRepuesto').val('');
+                $('#txtPrecioRepuesto').val('');
+                $('#txtPorIvaRepuesto').val('');
+                $('#txtValorIvaRepuesto').val('');
+                $('#txtPorDsctoRepuesto').val('');
+                $('#txtValorDsctoRepuesto').val('');
+            }else {
+                $('#mensajeAlertaAgregarRepuesto').text('No puedes agregar referencias cuya cantidad es 0');
+                $('#alertaAgregarRepuesto').show();
+                setTimeout(function () {
+                    $("#alertaAgregarRepuesto").fadeOut(2500);
+                }, 10000);
+            }
+        }
+        else if($('#repuestosG').val() != '' && $('#txtCantidadRepuesto').val() != ''){
+            if ($('#txtCantidadRepuesto').val() != 0){
+                $('#tablaRepuestosPorPlaca').find('tbody').append('<tr id="rowRepuesto'+ numeroRepuesto +'">'
+                        +'<td align="left">'
+                            +'<input style="display:none" type="text" id="codigoRepuesto'+numeroRepuesto+'" name="codigoRepuesto'+ numeroRepuesto+'" value="' + $('#repuestosG').val() + '"/>'
+                            + $('#repuestosG').val()
+                        + '</td>'
+                        +'<td align="left">'
+                            +'<input style="display:none" type="text" id="nombreRepuesto'+numeroRepuesto+'" name="nombreRepuesto'+ numeroRepuesto+'" value="' + $('#nombre_repuesto').val() + '"/>'
+                            + $('#nombre_repuesto').val()
+                        + '</td>'
+                        //+'<td align="left">'
+                        //    +'<input style="display:none" type="text" id="tipoTarifaRpt'+numeroRepuesto+'" name="tipoTarifaRpt'+ numeroRepuesto+'" value="' + $('#tipoTarifaR').val() + '"/>'
+                        //    + $('#tipoTarifaR option:selected').text()
+                        //+ '</td>'
+                        +'<td align="right">'
+                            +'<input style="display:none" type="text" id="cantidadRepuesto'+ numeroRepuesto + '" name="cantidadRepuesto' + numeroRepuesto + '" value="' + $('#txtCantidadRepuesto').val() + '"/>'
+                            + addComas($('#txtCantidadRepuesto').val())
+                        + '</td>'
+                        +'<td align="right">'
+                            +'<input style="display:none" type="text" id="precioRepuesto'+ numeroRepuesto + '" name="precioRepuesto'+ numeroRepuesto + '" value="' + $('#txtPrecioRepuesto').val() + '"/>'
+                            + addComas($('#txtPrecioRepuesto').val())
+                        + '</td>'
+                        +'<td align="right">'
+                            +'<input style="display:none" type="text" id="porIvaRepuesto'+ numeroRepuesto + '" name="porIvaRepuesto' + numeroRepuesto + '" value="' + $('#txtPorIvaRepuesto').val() + '"/> '
+                            + $('#txtPorIvaRepuesto').val()
+                        + '</td>'
+                        +'<td align="right">'
+                            + $('#txtPorIvaRepuesto').val()
+                        + '</td>'
+                        +'<td align="right">'
+                            +'<input style="display:none" type="text" id="porDsctRepuesto'+ numeroRepuesto + '" name="porDsctRepuesto'+ numeroRepuesto + '" value="' + $('#txtPorDsctoRepuesto').val() + '"/>'
+                            +  $('#txtPorDsctoRepuesto').val()
+                        + '</td>'
+                        +'<td align="right"> '
+                            +  $('#txtValorDsctoRepuesto').val()
+                        + '</td>'
+                        +'<td align="right"> '
+                            + 0
+                        + '</td>'
+                        +'<td align="center">'
+                            + '<input type="checkbox" id="solicitarRepuesto'+ numeroRepuesto +'" name="solicitarRepuesto'+ numeroRepuesto +'" checked/>'
+                        + '</td>'
+                        +'<td width="15%" style="text-align:center">'
+                            +'<button type="button" class="btn btn-warning btn-xs" onclick="editarRepuesto('+ numeroRepuesto + ')">&nbsp;&nbsp;<i class="fa fa-edit"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                            +'<button type="button" class="btn btn-danger btn-xs" onclick="eliminarRepuesto('+ numeroRepuesto + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>'
+                        +'</td>'
+                    +'</tr>');
+                numeroRepuesto++;
+                $('#numeroRepuestos').val(numeroRepuesto);
+                $('#repuestos').val('').select2();
+                $('#txtCantidadRepuesto').val('');
+                $('#txtPrecioRepuesto').val('');
+                $('#txtPorIvaRepuesto').val('');
+                $('#txtValorIvaRepuesto').val('');
+                $('#txtPorDsctoRepuesto').val('');
+                $('#txtValorDsctoRepuesto').val('');
+            }
+            else {
+                $('#mensajeAlertaAgregarRepuesto').text('No puedes agregar referencias cuya cantidad es 0');
+                $('#alertaAgregarRepuesto').show();
+                setTimeout(function () {
+                    $("#alertaAgregarRepuesto").fadeOut(2500);
+                }, 10000);
+            }
+        }
+        else{
+            $('#mensajeAlertaAgregarRepuesto').text('Debe digitar una referencia y una cantidad');
+            $('#alertaAgregarRepuesto').show();
+            setTimeout(function () {
+                $("#alertaAgregarRepuesto").fadeOut(2500);
+            }, 10000);
+        }
+    });
+
+    function quitCommas(nStr) {
+        nStr.toString();
+        var s = nStr.replace(/\./g, "");
+        return s;
+    }
+
+    function editarRepuesto(pos){
+        var porcentajeIva = $('#porIvaRepuesto'+pos+'').val();
+        var porcentajeDescuento = $('#porDsctRepuesto'+pos+'').val();
+        var precio = $('#precioRepuesto'+pos+'').val();
+        var valorIva = parseFloat($('#precioRepuesto'+pos+'').val())*$('#porIvaRepuesto'+pos+'').val()/100;
+        var valorDescuento = parseFloat($('#precioRepuesto'+pos+'').val())*$('#porDsctRepuesto'+pos+'').val()/100;
+        var valorTotal = (parseFloat(precio)+ valorIva - valorDescuento) * parseFloat($('#cantidadRepuesto'+pos+'').val())
+        $('#txtIdFilaEditadaRepuesto').val(pos);
+        $('#txtCodigoReferencia').val($('#codigoRepuesto'+pos+'').val());
+        $('#txtNombreReferencia').val($('#nombreRepuesto'+pos+'').val());
+        $('#txtCantidadReferencia').val(addComas($('#cantidadRepuesto'+pos+'').val()));
+        $('#txtPrecioReferencia').val(addComas($('#precioRepuesto'+pos+'').val()));
+        $('#txtPorIvaReferencia').val($('#porIvaRepuesto'+pos+'').val());
+        $('#txtValorIvaReferencia').val(addComas(valorIva));
+        $('#txtPorDsctoReferencia').val($('#porDsctRepuesto'+pos+'').val());
+        $('#txtValorDsctoReferencia').val(addComas(valorDescuento));
+        $('#txtPrecioTotalReferencia').val(addComas(valorTotal));
+        $('#modalEditarReferencia').modal('show');
+    }
+
+    $('#btnModificarReferencia').click(function(){
+        var posicionEditada = $('#txtIdFilaEditadaRepuesto').val();
+        var cant = $('#txtCantidadReferencia').val();
+        if($.trim(cant) == ''){
+            $('#txtCantidadReferencia').val(0);
+        }
+        var filaAModificar= '<tr id="rowRepuesto'+ posicionEditada +'">'
+            +'<td align="left">'
+                +'<input style="display:none" type="text" id="codigoRepuesto'+posicionEditada+'" name="codigoRepuesto'+ posicionEditada+'" value="' + $('#txtCodigoReferencia').val() + '"/>'
+                + $('#txtCodigoReferencia').val()
+            +'</td>'
+            +'<td align="left">'
+                +'<input style="display:none" type="text" id="nombreRepuesto'+posicionEditada+'" name="nombreRepuesto'+ posicionEditada+'" value="' + $('#txtNombreReferencia').val() + '"/>'
+                + $('#txtNombreReferencia').val()
+            +'</td>'
+            +'<td align="right">'
+                +'<input style="display:none" type="text" id="cantidadRepuesto'+ posicionEditada + '" name="cantidadRepuesto' + posicionEditada + '" value="' + $('#txtCantidadReferencia').val() + '"/>'
+                + addComas($('#txtCantidadReferencia').val())
+            +'</td>'
+            +'<td align="right">'
+                +'<input style="display:none" type="text" id="precioRepuesto'+ posicionEditada + '" name="precioRepuesto' + posicionEditada + '" value="' + $('#txtPrecioReferencia').val() + '"/>'
+                + $('#txtPrecioReferencia').val()
+            +'</td>'
+            +'<td align="right">'
+                +'<input style="display:none" type="text" id="porIvaRepuesto'+ posicionEditada + '" name="porIvaRepuesto' + posicionEditada + '" value="' + $('#txtPorIvaReferencia').val() + '"/>$ '
+                + $('#txtPorIvaReferencia').val()
+            +'</td>'
+            +'<td align="right">$'
+                + $('#txtValorIvaReferencia').val()
+            +'</td>'
+            +'<td align="right">'
+                +'<input style="display:none" type="text" id="porDsctRepuesto'+ posicionEditada + '" name="porDsctRepuesto' + posicionEditada + '" value="' + $('#txtPorDsctoReferencia').val() + '"/>$'
+                + $('#txtPorDsctoReferencia').val()
+            +'</td>'
+            +'<td align="right">$'
+                + $('#txtValorDsctoReferencia').val()
+            +'</td>'
+            +'<td align="right">$ '
+                + $('#txtPrecioTotalReferencia').val()
+            +'</td>'
+            +'<td align="center">'
+                + '<input type="checkbox" id="solicitarRepuesto'+ posicionEditada +'" name="solicitarRepuesto'+ posicionEditada +'" checked/>'
+            +'</td>'
+            +'<td width="15%" style="text-align:center">'
+                +'<button type="button" class="btn btn-warning btn-xs" onclick="editarRepuesto('+ posicionEditada + ')">&nbsp;&nbsp;<i class="fa fa-edit"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                +'<button type="button" class="btn btn-danger btn-xs" onclick="eliminarRepuesto('+ posicionEditada + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>'
+            +'</td>'
+        +'</tr>';
+        $("#rowRepuesto" + posicionEditada + "").replaceWith(filaAModificar);
+        $('#modalEditarReferencia').modal('hide');
+    });
+
+    $('#txtCantidadReferencia').keyup(function(){
+        var cant = $('#txtCantidadReferencia').val();
+        if($.trim(cant) == ''){
+            cant = 0;
+        }
+        var precio = $('#txtPrecioReferencia').val().replace(/\./g, "");
+        var iva = $('#txtPorIvaReferencia').val().replace(/\./g, "");
+        var descuento = $('#txtPorDsctoReferencia').val().replace(/\./g, "");
+        var valorIva = parseFloat($('#txtPrecioReferencia').val())* parseFloat(iva)/100;
+        var valorDescuento = parseFloat($('#txtPrecioReferencia').val())* parseFloat(descuento)/100;
+        var total = (parseFloat(precio) + valorIva - valorDescuento ) * parseFloat(cant);
+        $('#txtPrecioTotalReferencia').val(addComas(total));
+    });
+
+    function eliminarOperacion(pos){
+        var tiempo=$("#tiempo" + pos + "").val();
+        eliminartiempo(tiempo);
+        $("#rowOperaciones" + pos + "").remove();
+    }
+
+    function eliminarRepuesto(pos){
+        $("#rowRepuesto" + pos + "").remove();
+    }
+
+    $('#btnAgregarOperacion').click(function(){
+        //if($('#tipoTarifa').val() == '' || $('#operacionesTempario').val() == '' || $('#tecnico').val() == '' || $('#id_cliente').val() == ''){
+        if( $('#operacionesTempario').val() == '' || $('#tecnico').val() == '' || $('#id_cliente').val() == ''){
+            $('#mensajeAlertaAgregarOperacion').text('Debe digitar operacion, tecnico y cliente para poder agregar');
+            $('#alertaAgregarOperacion').show();
+            setTimeout(function () {
+                $("#alertaAgregarOperacion").fadeOut(2500);
+            }, 10000);
+        }else{
+            $.ajax({
+                url: '/ordenTaller/BuscarTiempoTempario',
+                data: {
+                    codigoOperacion: $('#operacionesTempario').val(),
+                    id_cliente: $('#id_cliente').val(),
+                    //tipo_tarifa: $('#tipoTarifa').val(),
+                    tecnico: $('#tecnico').val(),
+                    //descuento: $('#txtDescuentoOperacion').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+
+                    if (data.existeTarifa == false) {
+                        $('#mensajeAlertaAgregarOperacion').text(data.mensajeExisteTarifa);
+                        $('#alertaAgregarOperacion').show();
+                        setTimeout(function () {
+                            $("#alertaAgregarOperacion").fadeOut(2500);
+                        }, 10000);
+                    } else {
+                        agregartiempo(data.tiempo);
+                        $('#tablaOperacionesPorPlaca').find('tbody').append('<tr id="rowOperaciones' + numeroOperacion + '">'
+                            + '<td align="left">'
+                            + '<input style="display:none" type="text" id="codigoOperacion' + numeroOperacion + '" name="codigoOperacion' + numeroOperacion + '" value="' + $('#operacionesTempario').val() + '"/>'
+                            + $('#operacionesTempario').val()
+                            + '</td>'
+                            + '<td align="left">'
+                            + $("#operacionesTempario option:selected").text()
+                            + '</td>'
+                            //+'<td align="left">'
+                            //    +'<input style="display:none" type="text" id="tipoTarifa' + numeroOperacion+'" name="tipoTarifa'+ numeroOperacion + '" value="' + $('#tipoTarifa').val() + '"/>'
+                            //    + $("#tipoTarifa option:selected").text()
+                            //+'</td>'
+                            + '<td align="left">'
+                            + '<input style="display:none" type="text" id="centroCosto' + numeroOperacion + '" name="centroCosto' + numeroOperacion + '" value="' + $('#centroCostoModal').val() + '"/>'
+                            + $("#centroCostoModal option:selected").text()
+                            + '</td>'
+                            + '<td align="left">'
+                            + '<input style="display:none" type="text" id="id_tecnico' + numeroOperacion + '" name="id_tecnico' + numeroOperacion + '" value="' + data.idTecnico + '"/>'
+                            + $("#tecnico option:selected").text()
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input style="display:none" type="text" id="tiempo' + numeroOperacion + '" name="tiempo' + numeroOperacion + '" value="' + data.tiempo + '"/>'
+                            + data.tiempo
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input style="display:none" type="text" id="precio' + numeroOperacion + '" name="precio' + numeroOperacion + '" value="' + data.precio + '"/>$ '
+                            + addComas(data.precio)
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input style="display:none" type="text" id="descuento' + numeroOperacion + '" name="descuento' + numeroOperacion + '" value="' + 0 + '"/>'
+                            + 0
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input style="display:none" type="text" id="descuentoV' + numeroOperacion + '" name="descuentoV' + numeroOperacion + '" value="' + data.valorDescuento + '"/>'
+                            + addComas(data.valorDescuento)
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input style="display:none" type="text" id="iva' + numeroOperacion + '" name="iva' + numeroOperacion + '" value="' + data.ivaOperacion + '"/>'
+                            + data.ivaOperacion
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input style="display:none" type="text" id="ValorIva' + numeroOperacion + '" name="ValorIva' + numeroOperacion + '" value="' + data.valorIva + '"/>$ '
+                            + addComas(data.valorIva)
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input style="display:none" type="text" id="ValorTotal' + numeroOperacion + '" name="ValorTotal' + numeroOperacion + '" value="' + data.valorTotal + '"/>$ '
+                            + addComas(data.valorTotal)
+                            + '</td>'
+                            + '<td width="15%" style="text-align:center">'
+                            + '<button type="button" class="btn btn-danger btn-xs" onclick="eliminarOperacion(' + numeroOperacion + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>'
+                            + '</td>'
+                            + '</tr>');
+                        numeroOperacion++;
+                        $('#numeroOperaciones').val(numeroOperacion);
+                        //$('#tipoTarifa').val('').select2();
+                        $('#operacionesTempario').val('').select2();
+                        //$('#tecnico').val('').select2();
+                        //$('#txtDescuentoOperacion').val('');
+                    }
+                }
+            });
+        }
+    });
+
+    $('#btnBuscarCitasPlaca').click(function(){
+
+        $.ajax({
+            url: '/ordenTaller/BuscarCitasPorPlaca',
+            data: {
+                placa: $('#placa').val()
+            },
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            success: function (data) {
+                $('#tablaCitasPorPlaca').find('tbody').empty();
+                for (var i = 0; i < data.length; i++) {
+                    $('#tablaCitasPorPlaca').find('tbody').append('<tr><td align="right">' + data[i].desde + '</td><td align="left">' + data[i].horaDesde
+                        + '</td><td align="left">' + data[i].Descripcion + '</td><td align="left">'
+                        + data[i].notas + '</td><td width="5%" align="center"><input type="radio" id="rbCita" name="rbCita" value="' + data[i].id + '"/></td></tr>');
+                }
+            },
+            complete: function () {
+                $('#modalSeleccionarCitaPorPlaca').modal('show');
+            }
+        });
+    });
+
+    $('#btnAsignarCita').click(function(){
+        var idCita = $('input[name=rbCita]:checked').val();
+        $('#citaSeleccionada').val(idCita);
+        $.ajax({
+            url: '/ordenTaller/BuscarSolicitudesDeAgentaTaller',
+            data: {
+                id_cita: idCita
+            },
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            success: function (data) {
+                if (data.posicion == 5) {
+                    if (data.tareasInspeccion != null) {
+                        $('#tareasInspeccion').show()
+                        $('#tablaTareas').find('tbody').empty();
+                        for (var i = 0; i < data.tareasInspeccion.length; i++) {
+                            $('#tablaTareas').find('tbody').append('<tr id="row' + numeroTareas + '">'
+                                + '<td align="left">'
+                                + '<input style="display:none" type="text" id="descripcionTarea' + numeroTareas + '" name="descripcionTarea' + numeroTareas + '" value="' + data.tareasInspeccion[i].descripcion + '"/>'
+                                + data.tareasInspeccion[i].descripcion
+                                + '</td>'
+                                + '<td align="right">'
+                                + '<input style="display:none" type="text" id="cantidadTarea' + numeroTareas + '" name="cantidadTarea' + numeroTareas + '" value="' + data.tareasInspeccion[i].cantidad + '"/>'
+                                + data.tareasInspeccion[i].cantidad
+                                + '</td>'
+                                + '<td align="right">'
+                                + '<input style="display:none" type="text" id="valorTarea' + numeroTareas + '" name="valorTarea' + numeroTareas + '" value="' + data.tareasInspeccion[i].valor_unitario + '"/>'
+                                + data.tareasInspeccion[i].valor_unitario
+                                + '</td>'
+                                + '<td align="right">'
+                                + '<input style="display:none" type="text" id="fechaTarea' + numeroTareas + '" name="fechaTarea' + numeroTareas + '" value="' + data.tareasInspeccion[i].fecautorizacion + '"/>'
+                                + data.tareasInspeccion[i].fecautorizacion
+                                + '</td>'
+                                + '<td align="center">'
+                                + '<input type="checkbox" onclick="autorizarTarea(' + data.tareasInspeccion[i].id + ')" id="autorizoTarea' + numeroTareas + '" name="autorizoTarea' + numeroTareas + '" value="' + data.tareasInspeccion[i].autorizado + '"/>'
+                                + '</td>'
+                                + '</tr>');
+                            numeroTareas++;
+                            $('#numeroTareas').val(numeroTareas);
+
+                            if (data.tareasInspeccion[i].autorizado == true) {
+                                $('#autorizoTarea' + i).prop('checked', true)
+                            }
+                        }
+                    }
+                }
+
+                if (data.buscarKilometraje != null) {
+                    $('#kilometraje').val(data.buscarKilometraje.kilometraje)
+                } else {
+                    $('#kilometraje').val('0')
+                }
+
+                $('#tablaSolicitudes').find('tbody').empty();
+                for (var i = 0; i < data.buscarSintomas.length; i++) {
+                    $('#tablaSolicitudes').find('tbody').append('<tr id="row' + numeroSolicitud + '">'
+                        + '<td align="center">'
+                        + '<input style="display:none" type="text" id="solicitud' + numeroSolicitud + '" name="solicitud' + numeroSolicitud + '" value="' + data.buscarSintomas[i].sintomas + '"/>'
+                        + data.buscarSintomas[i].sintomas
+                        + '</td>'
+                        + '<td align="left">' + ''
+                        + '</td>'
+                        + '</tr>');
+                    numeroSolicitud++;
+                    $('#numeroSolicitudes').val(numeroSolicitud);
+                }
+
+                //<td width="15%" style="text-align:center"><button type="button" class="btn btn-danger btn-xs" onclick="eliminarSolicitud('
+                //                            + numeroSolicitud + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;<button type="button" class="btn btn-warning btn-xs" onclick="editarSolicitud('
+                //                            + numeroSolicitud + ')">&nbsp;&nbsp;<i class="fa fa-pencil-square-o"></i>&nbsp;&nbsp;</button></td>
+
+
+                $('#tablaOperacionesPorPlaca').find('tbody').empty();
+                for (var i = 0; i < data.buscarOperaciones.length; i++) {
+                    $('#tablaOperacionesPorPlaca').find('tbody').append('<tr id="rowOperaciones' + numeroOperacion + '">'
+                        + '<td align="left">'
+                        + '<input style="display:none" type="text" id="codigoOperacion' + numeroOperacion + '" name="codigoOperacion' + numeroOperacion + '" value="' + data.buscarOperaciones[i].codigo + '"/>'
+                        + data.buscarOperaciones[i].codigo
+                        + '</td>'
+                        + '<td align="left">'
+                        + data.buscarOperaciones[i].operacion
+                        + '</td>'
+                        //+'<td align="left">'
+                        // +'<input style="display:none" type="text" id="tipoTarifa'+numeroOperacion+'" name="tipoTarifa' + numeroOperacion+'" value="' + data.buscarOperaciones[i].tipoTariID + '"/>'
+                        //    + data.buscarOperaciones[i].tarifa
+                        //+'</td>'
+                        + '<td align="left">'
+                        + '<input style="display:none" type="text" id="centroCosto' + numeroOperacion + '" name="centroCosto' + numeroOperacion + '" value="' + data.buscarOperaciones[i].idcentro + '"/>'
+                        + data.buscarOperaciones[i].centcst_nombre
+                        + '</td>'
+                        + '<td align="left">'
+                        + '<input style="display:none" type="text" id="id_tecnico' + numeroOperacion + '" name="id_tecnico' + numeroOperacion + '" value="' + data.buscarOperaciones[i].tecnico_id + '"/>'
+                        + data.buscarOperaciones[i].tecnico
+                        + '</td>'
+                        + '<td align="right">'
+                        + '<input style="display:none" type="text" id="tiempo' + numeroOperacion + '" name="tiempo' + numeroOperacion + '" value="' + data.buscarOperaciones[i].tiempo + '"/>'
+                        + data.buscarOperaciones[i].tiempo
+                        + '</td>'
+                        + '<td align="right">'
+                        + '<input style="display:none" type="text" id="precio' + numeroOperacion + '" name="precio' + numeroOperacion + '" value="' + data.buscarOperaciones[i].precio + '"/>$ ' + addComas(data.buscarOperaciones[i].precio)
+                        + '</td>'
+                        + '<td align="right">'
+                        + ''
+                        + '</td>'
+                        + '<td align="right">'
+                        + ''
+                        + '</td>'
+                        + '<td align="right">'
+                        + data.buscarOperaciones[i].ivaOperacion
+                        + '</td>'
+                        + '<td align="right">$ '
+                        + addComas(data.buscarOperaciones[i].valorIva)
+                        + '</td>'
+                        + '<td align="right">$ '
+                        + addComas(data.buscarOperaciones[i].valorTotal)
+                        + '</td>'
+                        + '<td width="15%" style="text-align:center">'
+                        + '<button type="button" class="btn btn-danger btn-xs" onclick="eliminarOperacion(' + numeroOperacion + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>'
+                        + '</td>'
+                        + '</tr>');
+                    numeroOperacion++;
+                    $('#numeroOperaciones').val(numeroOperacion);
+                }
+
+                $('#tablaRepuestosPorPlaca').find('tbody').empty();
+                for (var i = 0; i < data.repuestosAgendados.length; i++) {
+                    $('#tablaRepuestosPorPlaca').find('tbody').append('<tr id="rowRepuesto' + numeroRepuesto + '">'
+                        + '<td align="left">'
+                        + '<input style="display:none" type="text" id="codigoRepuesto' + numeroRepuesto + '" name="codigoRepuesto' + numeroRepuesto + '" value="' + data.repuestosAgendados[i].ref_codigo + '"/>'
+                        + data.repuestosAgendados[i].ref_codigo
+                        + '</td>'
+                        + '<td align="left">'
+                        + '<input style="display:none" type="text" id="nombreRepuesto' + numeroRepuesto + '" name="nombreRepuesto' + numeroRepuesto + '" value="' + $('#nombre_repuesto').val() + '"/>'
+                        + data.repuestosAgendados[i].ref_descripcion
+                        + '</td>'
+
+                        //+'<td align="left">'
+                        //    +'<input style="display:none" type="text" id="tipoTarifaRpt'+numeroRepuesto+'" name="tipoTarifaRpt' + numeroRepuesto+'" value="' + data.repuestosAgendados[i].tipoTariID + '"/>'
+                        //    + data.repuestosAgendados[i].Descripcion
+                        //+'</td>'
+
+                        + '<td align="right">'
+                        + '<input style="display:none" type="text" id="cantidadRepuesto' + numeroRepuesto + '" name="cantidadRepuesto' + numeroRepuesto + '" value="' + data.repuestosAgendados[i].cantidad + '"/>'
+                        + data.repuestosAgendados[i].cantidad
+                        + '</td>'
+                        + '<td align="right">'
+                        + '<input style="display:none" type="text" id="precioRepuesto' + numeroRepuesto + '" name="precioRepuesto' + numeroRepuesto + '" value="' + data.repuestosAgendados[i].precio + '"/>'
+                        + addComas(data.repuestosAgendados[i].precio)
+                        + '</td>'
+                        + '<td align="right">'
+                        + '<input style="display:none" type="text" id="porIvaRepuesto' + numeroRepuesto + '" name="porIvaRepuesto' + numeroRepuesto + '" value="' + data.repuestosAgendados[i].por_iva + '"/>$ '
+                        + data.repuestosAgendados[i].por_iva
+                        + '</td>'
+                        + '<td align="right">$'
+                        + addComas(data.repuestosAgendados[i].valorIva)
+                        + '</td>'
+                        + '<td align="right">'
+                        + '<input style="display:none" type="text" id="porDsctRepuesto' + numeroRepuesto + '" name="porDsctRepuesto' + numeroRepuesto + '" value="' + data.repuestosAgendados[i].por_dscto + '"/>$'
+                        + addComas(data.repuestosAgendados[i].por_dscto)
+                        + '</td>'
+                        + '<td align="right">$'
+                        + addComas(data.repuestosAgendados[i].valor_dscto)
+                        + '</td>'
+                        + '<td align="right">$ '
+                        + addComas(data.repuestosAgendados[i].valorTotal)
+                        + '</td>'
+                        + '<td align="center">'
+                        + '<input type="checkbox" id="solicitarRepuesto' + numeroRepuesto + '" name="solicitarRepuesto' + numeroRepuesto + '" checked/>'
+                        + '</td>'
+                        + '<td width="15%" style="text-align:center">'
+                        + '<button type="button" class="btn btn-warning btn-xs" onclick="editarRepuesto(' + numeroRepuesto + ')">&nbsp;&nbsp;<i class="fa fa-edit"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                        + '<button type="button" class="btn btn-danger btn-xs" onclick="eliminarRepuesto(' + numeroRepuesto + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>'
+                        + '</td>'
+                        + '</tr>');
+                    numeroRepuesto++;
+                    $('#numeroRepuestos').val(numeroRepuesto);
+                }
+            },
+            complete: function () {
+                $('#modalSeleccionarCitaPorPlaca').modal('hide');
+            }
+        });
+    });
+
+    function autorizarTarea(id) {
+        $.ajax({
+            url: '/ordenTaller/autorizarTarea',
+            data: {
+                idTarea: id
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+                //buscarTareasAsignadas()
+            }
+        });
+    }
+
+    var numero_miles = "";
+    function formatNumber (n) {
+        n = String(n).replace(/\D/g, "");
+        return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function miles (id) {
+        numero_miles = formatNumber($('#'+id+'').val());
+        $('#'+id+'').val(numero_miles);
+    }
+
+    $('#txtTiempoEstimado').keyup(function(){
+        var tiempo = 0;
+        if($.trim($('#txtTiempoEstimado').val()) != ''){
+            tiempo = parseFloat($('#txtTiempoEstimado').val());
+        }
+        if($('input[name="rbHorasDias"]:checked').val() == 'dias'){
+            tiempo = tiempo * 24;
+        }
+        var fechaHoy = new Date();
+        fechaHoy.setHours(fechaHoy.getHours() + tiempo);
+        var d = fechaHoy.getDate();
+        var m =  fechaHoy.getMonth();
+        m += 1;  // JavaScript months are 0-11
+        var y = fechaHoy.getFullYear();
+        var hour = fechaHoy.getHours()
+        var minutes = fechaHoy.getMinutes();
+        $('#txtEntregaEstimado').val(d + "/" + m + "/" + y + " " + hour + ":" + minutes);
+    });
+
+    var cantidadContactosActual = 0;
+    function buscarContactosCliente(id_tercero) {
+        $.ajax({
+            url: '/ordenTaller/BuscarContactosCliente',
+            data: {
+                id_tercero: id_tercero
+            },
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            success: function (data) {
+                if (data.buscarContactos.length != cantidadContactosActual) {
+                    cantidadContactosActual = data.buscarContactos.length;
+                    $('#recibidode').empty();
+                    $('#recibidode').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.buscarContactos.length; i++) {
+                        $('#recibidode').append($('<option>', {
+                            value: data.buscarContactos[i].con_tercero_id,
+                            text: data.buscarContactos[i].con_tercero_nombre
+                        }));
+                    }
+                    $('#recibidode').append($('<option>', {
+                        value: 'Otro',
+                        text: 'Otro'
+                    }));
+                    $('#recibidode').val('').attr('display', 'visible:visible').select2();
+                }
+            },
+            complete: function () {
+                setTimeout(function () {
+                    buscarContactosCliente(id_tercero);
+                }, 12000);
+            }
+        });
+    }
+
+    $('#btnEditarSolicitud').click(function(){
+        if($.trim($('#txtSolicitudClienteEditar').val()) != ''){
+            var posicion = $('#txtIdFilaEditada').val();
+            var newRow = '<tr id="row'+ posicion +'"><td align="center"><input style="display:none" type="text" id="solicitud'+posicion+'" name="solicitud'
+                                            + posicion+'" value="' + $.trim($('#txtSolicitudClienteEditar').val()) + '"/>' + $.trim($('#txtSolicitudClienteEditar').val())
+                                            + '</td><td width="15%" style="text-align:center"><button type="button" class="btn btn-danger btn-xs" onclick="eliminarSolicitud('
+                                            + posicion + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;<button type="button" class="btn btn-warning btn-xs" onclick="editarSolicitud('
+                                            + posicion + ')">&nbsp;&nbsp;<i class="fa fa-pencil-square-o"></i>&nbsp;&nbsp;</button></td></tr>';
+            $("#row" + posicion + "").replaceWith(newRow);
+            $('#modalEditarSolicitudCliente').modal('hide');
+        }
+    });
+
+    function eliminarSolicitud(pos){
+        $("#row" + pos + "").remove();
+    }
+
+    function editarSolicitud(pos){
+        var valorAnterior = $('#solicitud'+pos+'').val();
+        $('#txtSolicitudClienteEditar').val(valorAnterior);
+        $('#txtIdFilaEditada').val(pos);
+        $('#modalEditarSolicitudCliente').modal('show');
+    }
+
+    $('#btnAgregarSolicitud').click(function(){
+        if($.trim($('#txtSolicitudCliente').val()) != ''){
+            $('#tablaSolicitudes').find('tbody').append('<tr id="row'+ numeroSolicitud +'">'
+                    +'<td align="center">'
+                        +'<input style="display:none" type="text" id="solicitud'+numeroSolicitud+'" name="solicitud' + numeroSolicitud+'" value="' + $.trim($('#txtSolicitudCliente').val()) + '"/>'
+                        + $.trim($('#txtSolicitudCliente').val())
+                    +'</td>'
+                    +'<td width="15%" style="text-align:center">'
+                        +'<button type="button" class="btn btn-danger btn-xs" onclick="eliminarSolicitud('+ numeroSolicitud + ')">&nbsp;&nbsp;<i class="fa fa-times"></i>&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                        +'<button type="button" class="btn btn-warning btn-xs" onclick="editarSolicitud(' + numeroSolicitud + ')">&nbsp;&nbsp;<i class="fa fa-pencil-square-o"></i>&nbsp;&nbsp;</button>;'
+                    +'</td>'
+                +'</tr>');
+            numeroSolicitud++;
+            $('#numeroSolicitudes').val(numeroSolicitud);
+            $('#txtSolicitudCliente').val('');
+        }
+    });
+
+    $('#recibidode').change(function () {
+        if ($('#recibidode').val() == 'Otro') {
+            window.open('@Url.Action("update", "icb_terceros")?id=' + $('#tercero').val()+'&&menu='+@ViewBag.id_menu, '_blank');
+        }
+    });
+
+    function buscarCliente(id_tercero) {
+        $.ajax({
+            url: '/ordenTaller/BuscarClientePorDocumento',
+            data: {
+                id_tercero: id_tercero,
+                documento: $('#txtDocumentoCliente').val()
+            },
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            success: function (data) {
+                if (data.success == true) {
+                    $('#documentoNoEncontrado').hide();
+                    $('#txtDocumentoCliente').val(data.buscarCliente.doc_tercero);
+                    $('#documentoBuscado').text(data.buscarCliente.doc_tercero);
+                    $('#docTerceroBuscado').val(data.buscarCliente.tercero_id);
+                    $('#nombreBuscado').text(data.buscarCliente.nombres);
+                    $('#telefonoBuscado').text(data.buscarCliente.telf_tercero);
+                    $('#celularBuscado').text(data.buscarCliente.celular_tercero);
+                    $('#emailBuscado').text(data.buscarCliente.email_tercero);
+                    $('#ciudadBuscado').text('');
+                    $('.areaClienteOculta').show();
+
+                    $('#tercero').val(data.buscarCliente.tercero_id);
+                    $('#id_cliente').val(data.buscarCliente.cltercero_id);
+                    buscarContactosCliente(data.buscarCliente.tercero_id);
+                } else {
+                    $('#documentoNoEncontrado').show();
+                    $('.areaClienteOculta').hide();
+                    $('#documentoBuscado').text('');
+                    $('#nombreBuscado').text('');
+                    $('#telefonoBuscado').text('');
+                    $('#celularBuscado').text('');
+                    $('#emailBuscado').text('');
+                    $('#ciudadBuscado').text('');
+                    $('#tercero').val('');
+                }
+            }
+        });
+    }
+
+    $('#txtDocumentoCliente').keyup(function () {
+        $('#documentoNoEncontrado').show();
+        $('.areaClienteOculta').hide();
+    });
+
+    //Esta funcion se habia hecho con el proposito de vlidar que lo diligenciado fura una placa (vehiculo usado), se comentarea por que ahora la OT permite vehiculos nuevos (planmayor)
+    //$('#placa').keyup(function () {
+    //    $('#placaNoEncontrada').hide();
+    //    $('.areaVehiculoOculta').hide();
+    //    $('#areaPanelCliente').hide();
+    //    $('#tablaOperacionesPorPlaca').find('tbody').empty();
+    //    var placa_inicial = $('#placa').val();
+    //    var placa_mayus = placa_inicial.toUpperCase();
+    //    $('#placa').val(placa_mayus);
+    //    var expreg = /^[A-Z]{3}[0-9]{3}$/;
+    //    if (expreg.test(placa_mayus)) {
+    //        $('#btnBuscarPlaca').attr("disabled", false);
+    //        $('#btnBuscarPlaca').trigger('click')
+    //    }else{
+    //        $('#btnBuscarPlaca').attr("disabled", true);
+    //    };
+    //});
+
+    $('#btnBuscarCliente').click(function () {
+        buscarCliente(null);
+    });
+
+    $('#btnBuscarPlaca').click(function () {
+        $.ajax({
+            url: '/ordenTaller/BuscarVehiculoPorPlaca',
+            data: {
+                placa: $('#placa').val()
+            },
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            success: function (data) {
+                if (data.success == true) {
+                    $('#placaNoEncontrada').hide();
+
+                    $('#serieBuscado').text(data.buscarVehiculo.vin);
+                    $('#numMotorBuscado').text(data.buscarVehiculo.nummot_vh);
+                    $('#kilometrajeBuscado').text(data.buscarVehiculo.kilometraje);
+                    $('#colorBuscado').text(data.buscarVehiculo.colvh_nombre);
+                    $('#fechaVentaBuscado').text(data.buscarVehiculo.fecha_venta);
+                    $('#fechaFinGarantiaBuscado').text(data.buscarVehiculo.fecha_fin_garantia);
+                    $('.areaVehiculoOculta').show();
+                    $('#areaPanelCliente').show();
+
+                    // Validacion para propietario del vehiculo si existe
+                    if (data.buscarVehiculo.propietario == null || data.buscarVehiculo.propietario == '') {
+                        $('#documentoNoEncontrado').show();
+                        $('#areaTxtBuscarDocumento').show();
+                        $('.areaClienteOculta').hide();
+                    } else {
+                        $('#documentoNoEncontrado').hide();
+                        $('#areaTxtBuscarDocumento').hide();
+                        buscarCliente(data.buscarVehiculo.propietario);
+                    }
+
+                    $('#id_plan_mantenimiento').empty();
+                    $('#id_plan_mantenimiento').append($('<option>', {
+                        value: '',
+                        text: 'Seleccione'
+                    }));
+                    for (var i = 0; i < data.planesMantenimiento.length; i++) {
+                        $('#id_plan_mantenimiento').append($('<option>', {
+                            value: data.planesMantenimiento[i].id,
+                            text: data.planesMantenimiento[i].nombre
+                        }));
+                    }
+                    $('#id_plan_mantenimiento').select2();
+                    $('#panelmantenimiento').show();
+                    /*
+                        if(data.buscarCantidadCitas > 0){
+                            $('#btnBuscarCitasPlaca').trigger('click');
+                        }
+                        */
+
+                } else {
+                    $('#placaNoEncontrada').show();
+                    $('.areaVehiculoOculta').hide();
+                    $('#areaPanelCliente').hide();
+                    $('#serieBuscado').text('');
+                    $('#numMotorBuscado').text('');
+                    $('#kilometrajeBuscado').text('');
+                    $('#colorBuscado').text('');
+                    $('#fechaVentaBuscado').text('');
+                    $('#fechaFinGarantiaBuscado').text('');
+                }
+            },
+        });
+    });
+
+    $('#cerrarModalOrdenCreada').click(function () {
+        $('#modalOrdenCreada').hide();
+    });
+
+    function valida(id){
+        window.location.href = '@Url.Action("Update", "ordenTaller")?menu='+@ViewBag.id_menu+'&&id=' + id;
+    }
+
+    function buscarAjaxOrdenesTaller(){
+        $.ajax({
+            url: '/ordenTaller/BuscarOrdenesDeTaller',
+            data: {},
+            type: "post",
+            cache: false,
+            success: function (data) {
+                $('#tablaPaginada').find('tbody').empty();
+                for (var i = 0; i < data.length; i++) {
+                    $('#tablaPaginada').find('tbody').append('<tr>'
+                        + '<td align="right">' + data[i].numero + '</td>'
+                        + '<td align="right">' + data[i].codigoentrada + '</td>'
+                        + '<td align="left">' + data[i].doc_tercero + '</td>'
+                        + '<td align="left">' + data[i].nombreTercero + '</td>'
+                        + '<td align="left">' + data[i].plac_vh + '</td>'
+                        + '<td align="left">' + data[i].modvh_nombre + '</td>'
+                        + '<td align="left">' + data[i].fecha + '</td>'
+                        + '<td align="left"><label class="label label" style="background-color:' + data[i].colorEstado + '" >' + data[i].estado + '</label></td>'
+                        + '<td width="5%" align="center">'
+                        + '<button class="btn btn-info btn-xs" onclick="valida(' + data[i].id + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>'
+                        + '</td>'
+                        + '</tr>');
+                }
+            },
+            complete: function (data) {
+                $('#tablaPaginada').dataTable({
+                    //"ajax": 'api/datatables.json',
+                    //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: [
+                        //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                        //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                    ]
+                });
+            }
+        });
+    }
+
+    $('#id_plan_mantenimiento').change(function(){
+        $.ajax({
+            url: '/ordenTaller/BuscarOperacionPorPlan',
+            data: {
+                id_vehiculo: $('#placa').val(),
+                id_plan: $('#id_plan_mantenimiento').val()
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+                //Operaciones del plan
+                $('#tablaOperacionesPorPlan').find('tbody').empty();
+                var numerooperacionesplan = 0;
+                $('#numeroOperacionesPlan').val(data.buscarOperaciones.length);
+                $('#numeroRepuestosPlan').val(data.buscarReferencias.length);
+
+                for (var i = 0; i < data.buscarOperaciones.length; i++) {
+
+                    var valorIVA = Math.round(((parseInt(data.buscarOperaciones[i].preciomatriz)) * parseInt(data.buscarOperaciones[i].porcentaje)) / 100);
+                    var total = parseInt(data.buscarOperaciones[i].preciomatriz) + valorIVA;
+                    $('#tablaOperacionesPorPlan').find('tbody').append('<tr>'
+                        + '<td align="center">'//codigo
+                        + '<input type="text" style="display:none" id="txtCodigoOperacion' + numerooperacionesplan + '" name="txtCodigoOperacion' + numerooperacionesplan + '" value="' + data.buscarOperaciones[i].codigo + '"/>'
+                        + '<input type="text" style="display:none" id="txtEsInspeccion' + numerooperacionesplan + '" name="txtEsInspeccion' + numerooperacionesplan + '" value="1"/>'
+                        + data.buscarOperaciones[i].codigo
+                        + '</td>'
+                        + '<td align="center">'//descripcion
+                        + data.buscarOperaciones[i].operacion
+                        + '</td>'
+                        + '<td align="center">'//tiempo
+                        + '<input type="text" style="display:none" id="txtTiempoOperacion' + numerooperacionesplan + '" name="txtTiempoOperacion' + numerooperacionesplan + '" value="' + data.buscarOperaciones[i].tiempomatriz + '"/>'
+                        + data.buscarOperaciones[i].tiempomatriz
+                        + '</td>'
+
+                        + '<td align="center">'//precio
+                        + '<input type="text" style="display:none" id="txtPrecioMatriz' + numerooperacionesplan + '" name="txtPrecioMatriz' + numerooperacionesplan + '" value="' + data.buscarOperaciones[i].preciomatriz + '"/>'
+                        + '<input type="text" style="display:none" id="txtPorcetajeIVA' + numerooperacionesplan + '" name="txtPorcetajeIVA' + numerooperacionesplan + '" value="' + data.buscarOperaciones[i].porcentaje + '"/>'
+                        + '<input type="text" style="display:none" id="txtValorIVA' + numerooperacionesplan + '"  name="txtValorIVA' + numerooperacionesplan + '" value="' + valorIVA + '"/>'
+                        + addComas(data.buscarOperaciones[i].preciomatriz)
+                        + '</td>'
+                        //+'<td align="center">'
+                        //    +''
+                        //    + data.buscarOperaciones[i].porcentaje
+                        //+'</td>'
+                        //+'<td align="center">'
+                        //    + addComas(valorIVA)
+                        //+'</td>'
+                        + '<td align="center">'//total
+                        + '<input type="text" style="display:none" id="txtValorTotal' + numerooperacionesplan + '" name="txtValorTotal' + numerooperacionesplan + '" value="' + total + '"/>'
+                        + addComas(total)
+                        + '</td>'
+
+                        + '<td width="10%" align="center">'
+                        + '<input type="checkbox" value="' + i + '" id="ckOperacion' + i + '"  name="ckOperacion' + i + '" class="checkOperaciones" onclick="clickOperaciones(' + '\'' + i + '\')"/>'
+                        + '</td>'
+                        + '</tr>');
+                    numerooperacionesplan++;
+                }
+                if (data.buscarOperaciones.length > 0) {
+                    $('.areaOperacionesPorPlan').show();
+                    $('#selectInfoPlan').show();
+                    $('#textoplandesc').html('El tiempo total del plan es de <b>' + data.tiempo + ' horas </b>');
+                    $('#textoplanpre').html('El precio total del plan es de <b> $ ' + data.valortotal + ' </b> ');
+
+                } else {
+                    $('.areaOperacionesPorPlan').hide();
+                    $('#selectInfoPlan').hide();
+                    $('#textoplandesc').html('');
+                    $('#textoplanpre').html('');
+                }
+
+                // Referencias del plan
+                $('#tablaRepuestos').find('tbody').empty();
+                var numeroreferenciasplan = 0;
+                for (var i = 0; i < data.buscarReferencias.length; i++) {
+                    $('#tablaRepuestos').find('tbody').append('<tr>'
+                        + '<td align="center">' + data.buscarReferencias[i].ref_codigo + '</td>'
+                        + '<td align="center">' + data.buscarReferencias[i].ref_descripcion + '</td>'
+                        + '<td align="center">'
+                        + '<input type="text" style="display:none" id="txtCodigoReferencia' + numeroreferenciasplan + '" name="txtCodigoReferencia' + numeroreferenciasplan + '"  value="' + data.buscarReferencias[i].ref_codigo + '"/> '
+                        + '<input type="text" style="display:none" id="txtPrecioReferencia' + numeroreferenciasplan + '" name="txtPrecioReferencia' + numeroreferenciasplan + '"  value="' + data.buscarReferencias[i].precio + '"/>$ '
+                        + addComas(data.buscarReferencias[i].precio)
+                        + '</td>'
+                        + '<td align="center">'
+                        + '<input type="text" style="display:none" id="txtPorcentajeIvaReferencia' + numeroreferenciasplan + '" name="txtPorcentajeIvaReferencia' + numeroreferenciasplan + '"  value="' + data.buscarReferencias[i].por_iva + '"/> '
+                        + '<input type="text" style="display:none" id="txtValorIvaReferencia' + numeroreferenciasplan + '" name="txtValorIvaReferencia' + numeroreferenciasplan + '" value="' + data.buscarReferencias[i].valorIva + '"/> '
+                        + '<input type="text" style="display:none" id="txtCantidadReferencia' + numeroreferenciasplan + '" name="txtCantidadReferencia' + numeroreferenciasplan + '" value="' + data.buscarReferencias[i].cantidad + '"/>'
+                        + data.buscarReferencias[i].cantidad
+                        + '</td>'
+                        //+'<td align="center">' + data.buscarReferencias[i].por_iva + '</td>'
+                        //+'<td align="center">'
+                        //    + addComas(data.buscarReferencias[i].valorIva)
+                        //+'</td>'
+                        + '<td align="center">'
+                        + '<input type="text" style="display:none" id="txtValorTotalReferencia' + numeroreferenciasplan + '" name="txtValorTotalReferencia' + numeroreferenciasplan + '" value="' + data.buscarReferencias[i].valorTotal + '"/>$ '
+                        + addComas(data.buscarReferencias[i].valorTotal)
+                        + '</td>'
+                        + '<td width="10%" align="center">'
+                        + '<input type="checkbox" value="' + numeroreferenciasplan + '" id="ckReferencia' + numeroreferenciasplan + '" name="ckReferencia' + numeroreferenciasplan + '" class="checkReferencias" onclick="clickReferencias(' + '\'' + i + '\')"/>'
+                        + '</td>'
+                        + '</tr>');
+                    numeroreferenciasplan++;
+                }
+                if (data.buscarReferencias.length > 0) {
+                    $('#contenedorPlanes').show();
+                    $('.areaReferenciasPorPlan').show();
+                } else {
+                    $('#contenedorPlanes').hide();
+                    $('.areaReferenciasPorPlan').hide();
+                }
+            }
+        });
+    });
+
+    $('#checkTodasOperaciones').change(function(){
+        $(".checkOperaciones").prop('checked', $(this).prop("checked"));
+        clickOperaciones(0);
+    });
+
+    function clickOperaciones(id){
+      
+        var sumaTiempo = 0;
+        var sumaTiempo2 = 0;
+        var sumaTiempo3 = 0;
+        var sumaPrecio = 0;
+        var sumaValorIVA = 0;
+        var sumaTotal = 0;
+        var numerooperaciones=$('#numeroOperacionesPlan').val();
+        $(".checkOperaciones:checked").each(function() {
+            var tiempoOperacionesAdicionales = ($('#txtTiempoOperacion'+$(this).val()+'').val());
+            if (typeof tiempoOperacionesAdicionales !== "undefined") {
+                sumaTiempo += parseFloat(tiempoOperacionesAdicionales);
+            }
+            //sumaTiempo += parseInt($('#txtTiempoOperacion'+$(this).val()+'').val());
+            sumaPrecio += parseInt($('#txtPrecioMatriz'+$(this).val()+'').val());
+            sumaValorIVA += parseInt($('#txtValorIVA'+$(this).val()+'').val());
+            sumaTotal += parseInt($('#txtValorTotal'+$(this).val()+'').val());
+        });
+        var sumaTiempo2=$('#tiempoTotalPlan').val();
+        if (typeof sumaTiempo2 !== "undefined") {
+            sumaTiempo3 = parseFloat(sumaTiempo2);
+        }
+        eliminartiempo(sumaTiempo3);
+        agregartiempo(sumaTiempo);
+        $('#tiempoTotalPlan').val(sumaTiempo);
+        $('#tablaOperacionesPorPlan').find('tfoot').empty();
+        $('#tablaOperacionesPorPlan').find('tfoot').append(
+                '<tr>'
+                    +'<td align="center">'
+                        +''
+                    +'</td>'
+                    +'<td align="center">'
+                        +'<b>' + 'Total Tiempo' + '</b>'
+                    +'</td>'
+                    +'<td align="center">'
+                        +'<b>' + addComas(sumaTiempo) + '</b>'
+                    +'</td>'
+                    +'<td align="center">'
+                        +'<b>' + addComas(sumaPrecio) + '</b>'
+                    +'</td>'
+                    //+'<td width="10%" align="center">'+''+'</td>'
+                    //+'<td align="center">'
+                    //    +'<b>' + addComas(sumaValorIVA) + '</b>'
+                    //+'</td>'
+                    +'<td align="center">'
+                        +'<input type="text" style="display:none" id="valor1" value="' + sumaTotal + '"/>'
+                        +'<b>' + addComas(sumaTotal) + '</b>'
+                    +'</td>'
+                +'</tr>');
+
+
+        //for(var i =0; i< contadorOperacion; i++){
+        //    var tiempoOperacionesAdicionales = $('#txtTiempo'+i+'').val();
+        //    if (typeof tiempoOperacionesAdicionales !== "undefined") {
+        //        sumaTiempo += parseFloat(tiempoOperacionesAdicionales);
+        //    }
+        //}
+        $('#HorasTotalesModal').val(sumaTiempo);
+
+        var v3 = $('#valor1').val();
+        if (v3 == "" || v3 == undefined) {
+            v3 = 0
+        }else{
+            v3 = parseInt($('#valor1').val())
+        }
+
+        var v4 = $('#valor2').val();
+        if (v4 == "" || v4 == undefined) {
+            v4 = 0
+        }else{
+            v4 = parseInt($('#valor2').val())
+        }
+
+        $('#valorAPagar').text(addComas(v3 + v4));
+    }
+
+    $('#checkSeleccionarTodos').change(function(){
+        $(".checkReferencias").prop('checked', $(this).prop("checked"));
+        clickReferencias(0);
+    });
+
+    function clickReferencias(id){
+        debugger;
+        var sumaPrecios = 0;
+        var sumaIvas = 0;
+        var sumaCantidad = 0;
+        var sumaTotales = 0;
+        $(".checkReferencias:checked").each(function() {
+       
+            var precioreferencia=parseInt($('#txtPrecioReferencia'+$(this).val()+'').val());
+            sumaCantidad += parseInt($('#txtCantidadReferencia'+$(this).val()+'').val());
+            sumaPrecios += parseInt($('#txtPrecioReferencia'+$(this).val()+'').val());
+            sumaIvas += parseInt($('#txtValorIvaReferencia'+$(this).val()+'').val());
+            sumaTotales += parseInt($('#txtValorTotalReferencia'+$(this).val()+'').val());
+        });
+        $('#tablaRepuestos').find('tfoot').empty();
+        $('#tablaRepuestos').find('tfoot').append('<tr><td align="center">'
+                                    + '' + '</td><td align="center"><b>' + 'Total'
+                                    + '</b></td><td align="center"><b>$ '
+                                    + addComas(sumaPrecios) + '</b></td><td align="center"><b>'
+                                    + addComas(sumaCantidad) + '</b></td>'
+                                    //+ '<td align="center"></td>'
+                                    //+ '<td align="center">$ '
+                                    //+ addComas(sumaIvas) + '</td>'
+                                    +'<td align="center"><input type="text" style="display:none" id="valor2" value="' + sumaTotales + '"/>$ '
+                                    + addComas(sumaTotales) + '</td><td width="10%" align="center">'+''+'</td></tr>');
+
+        var v1 = $('#valor1').val();
+        if (v1 == "" || v1 == undefined) {
+            v1 = 0
+        }else{
+            v1 = parseInt($('#valor1').val())
+        }
+
+        var v2 = $('#valor2').val();
+        if (v2 == "" || v2 == undefined) {
+            v2 = 0
+        }else{
+            v2 = parseInt($('#valor2').val());
+        }
+
+        $('#valorAPagar').text(addComas(v1 + v2));
+    }
+
+    function soloNumeros(e){
+        key = e.keyCode || e.which;
+        tecla = String.fromCharCode(key).toLowerCase();
+        letras = "1234567890";
+        especiales = "8-37-39-46";
+
+        tecla_especial = false
+        for(var i in especiales){
+            if(key == especiales[i]){
+                tecla_especial = true;
+                break;
+            }
+        }
+        if(letras.indexOf(tecla)==-1 && !tecla_especial){
+            return false;
+        }
+    };
+
+    </script>
+
+
+    @if (TempData["mensaje"] != null)
+    {
+        <script type="text/javascript">
+            $('#modalOrdenCreada').show();
+        </script>
+    }
+}

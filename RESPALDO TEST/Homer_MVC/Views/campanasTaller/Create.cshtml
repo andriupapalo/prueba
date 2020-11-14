@@ -1,0 +1,713 @@
+﻿@model Homer_MVC.Models.CampanaTallerModel
+
+@{
+    ViewBag.Title = "Campañas Taller";
+    ViewBag.Icono = "fa fa-calendar-check-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="" onclick="buscarAjaxCampanas();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+                <li class=""><a data-toggle="tab" href="#buscarPorVin"><i class="fa fa-search-plus"></i>&nbsp;&nbsp;Busqueda Por VIN</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm(Html.BeginForm("Create", "campanasTaller", FormMethod.Post, new { enctype = "multipart/form-data" })))
+                        {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.Hidden("cantidadVines")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Nombre:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.nombre, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite nombre campaña", @required = "required" } })
+                                                    @Html.ValidationMessageFor(model => model.nombre, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Numero Circular:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.numerocircular, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite numero circular", @required = "required" } })
+                                                    @Html.ValidationMessageFor(model => model.numerocircular, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Fecha Inicio:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.fecha_inicio, new { htmlAttributes = new { @class = "form-control fecha", @placeholder = "Digite fecha", @required = "required" } })
+                                                    @Html.ValidationMessageFor(model => model.fecha_inicio, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Fecha Fin:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.fecha_fin, new { htmlAttributes = new { @class = "form-control fecha", @placeholder = "Digite fecha" } })
+                                                    @Html.ValidationMessageFor(model => model.fecha_fin, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Referencia:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.referencia, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite codigo referencia" } })
+                                                    @Html.ValidationMessageFor(model => model.referencia, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Descripci&oacute;n:<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    @Html.TextAreaFor(model => model.Descripcion, new RouteValueDictionary(new { @class = "someClass", style = "width: 100%; height:80px;" }))
+                                                    @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Numero GWM:&nbsp;</label>
+                                                <div class="col-md-4">
+                                                    @Html.EditorFor(model => model.numerogwm, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite codigo GWM" } })
+                                                    @Html.ValidationMessageFor(model => model.numerogwm, "", new { @class = "text-danger" })
+                                                </div>
+
+                                                <div class="col-md-2">
+                                                    <button type="button" class="btn btn-primary" id="btnagregarnumgwn" onclick="agergarnumgwn()"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Estado:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.CheckBoxFor(model => model.estado, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="table-responsive">
+                                                <div id="div-mensaje-buscar"></div>
+                                                <input type="hidden" id="cantnum" name="cantnum" />
+                                                <table class="table table-striped table-bordered table-hover" id="tablaPaginadagwn">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="text-align:center">Numero gwn</th>
+                                                            <th style="text-align:center">Acción</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+
+                                            <div class="col-sm-12">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Tipo Cargue:&nbsp;</label>
+                                                    <div class="col-md-3">
+                                                        Excel&nbsp;&nbsp;<input type="checkbox" id="checkCargueExcel" name="checkCargueExcel" data-toggle="toggle" data-size="mini" checked />
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        Manual&nbsp;&nbsp;<input type="checkbox" id="checkCargueManual" name="checkCargueManual" data-toggle="toggle" data-size="mini" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="col-sm-12" id="ocultoVinExcel">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Cargar Excel:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        <input type="file" id="excelfile" name="excelfile">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div id="ocultoVinManual" style="display:none;">
+                                                <div class="col-sm-12">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-4">Vin:&nbsp;</label>
+                                                        <div class="col-md-6">
+                                                            @Html.Editor("txtVin", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite VIN" } })
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <button type="button" class="btn btn-primary" id="btnAgregarVin"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-12" style="display:none;" id="alertaVin">
+                                                    <div class="form-group">
+                                                        <div class="col-md-6 col-md-offset-4">
+                                                            <div class="alert alert-warning">
+                                                                <strong>Error!</strong><p id="alertaMensaje"></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-12">
+                                                    <div class="col-md-10 col-md-offset-2">
+                                                        <div class="form-group">
+                                                            <div class="table-responsive">
+                                                                <div id="div-mensaje-buscar"></div>
+                                                                <table class="table table-striped table-bordered table-hover" id="tablaVines">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="text-align:center">Codigo VIN</th>
+                                                                            <th style="text-align:center">Eliminar</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody></tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-12" style="display:none;">
+                                                    <div class="col-md-10 col-md-offset-2">
+                                                        <div class="form-group">
+                                                            <div class="table-responsive">
+                                                                <div id="div-mensaje-buscar"></div>
+                                                                <table class="table table-striped table-bordered table-hover" id="tablaVinesOculto">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="text-align:center">Codigo VIN</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody></tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+
+                                    </div>
+                                    <div class="col-md-6" id="inactividad" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Razón Inactividad:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.razon_inactivo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Razón Inactividad" } })
+                                                @Html.ValidationMessageFor(model => model.razon_inactivo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+
+
+
+
+
+                                </div>
+
+
+
+
+
+                            </div>
+
+                        </div>
+                        }
+
+
+                  
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Fecha Inicio</th>
+                                        <th style="text-align:center">Fecha Fin</th>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Descripcion</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="buscarPorVin" class="tab-pane">
+                <div class="panel-body">
+
+                    <div class="form-horizontal">
+
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Busqueda Por VIN
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Codigo VIN:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.Editor("txtBuscarVIN", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite codigo VIN" } })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <div class="col-md-6">
+                                            <button type="button" class="btn btn-primary" id="btnBuscarVin"><i class="fa fa-search" aria-hidden="true"></i>&nbsp;&nbsp;Buscar</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12" style="display:none;" id="alertaVin">
+                                    <div class="form-group">
+                                        <div class="col-md-10 col-md-offset-1">
+                                            <div class="alert alert-warning">
+                                                <strong>Error!</strong><p></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12">
+                                    <div class="col-md-10 col-md-offset-1">
+                                        <div class="form-group">
+                                            <div class="table-responsive">
+                                                <div id="div-mensaje-buscar"></div>
+                                                <table class="table table-striped table-bordered table-hover" id="tablaBusquedaVin">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="text-align:center">Fecha Inicio</th>
+                                                            <th style="text-align:center">Fecha Fin</th>
+                                                            <th style="text-align:center">Campaña</th>
+                                                            <th style="text-align:center">Descripcion</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                            
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+        </div>
+
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+    <script type="text/javascript">
+
+        var arreglo = new Array();
+        var contador = 1;
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $('#cantidadVines').val(1);
+            $("#excelfile").prop('required', true);
+            $('#tablaVines').dataTable({
+                //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                buttons: [
+                ]
+            });
+               $('#cantnum').val(0);
+
+
+        });
+
+        $('.fecha').datetimepicker({
+            format: 'YYYY/MM/DD',
+            minDate: new Date(),
+        });
+
+        $('#estado').change(function () {
+            if ($('#estado').prop('checked')) {
+                $('#inactividad').hide();
+                $("#razon_inactivo").prop('required', false);
+            } else {
+                $("#razon_inactivo").prop('required', true);
+                $('#razon_inactivo').val('');
+                $('#inactividad').show();
+            }
+        });
+
+        $('#btnBuscarVin').click(function () {
+            $('#tablaBusquedaVin').dataTable().fnDestroy();
+            $.ajax({
+                url: '/campanasTaller/BuscarCampanasDeVin',
+                data: {
+                    vin: $('#txtBuscarVIN').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaBusquedaVin').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaBusquedaVin').find('tbody').append('<tr><td align="right">' + data[i].fecha_inicio + '</td><td align="right">'
+                            + data[i].fecha_fin + '</td><td align="left">'
+                            + data[i].nombre + '</td><td align="left">'
+                            + data[i].Descripcion + '</td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaBusquedaVin').dataTable({
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        ]
+                    });
+                }
+            });
+        });
+
+        $('#checkCargueExcel').change(function () {
+            if ($('#checkCargueExcel').prop('checked')) {
+                $('#checkCargueManual').prop('checked', false);
+                $("#excelfile").prop('required', true);
+                $('#ocultoVinManual').hide();
+                $('#ocultoVinExcel').show();
+                $('#checkCargueManual').bootstrapToggle('off');
+            } else {
+                $('#checkCargueManual').prop('checked', true);
+                $("#excelfile").prop('required', false);
+                $('#ocultoVinExcel').hide();
+                $('#ocultoVinManual').show();
+                $('#checkCargueManual').bootstrapToggle('on');
+            }
+        });
+
+        $('#checkCargueManual').change(function () {
+            if ($('#checkCargueManual').prop('checked')) {
+                $('#checkCargueExcel').prop('checked', false);
+                $("#excelfile").prop('required', false);
+                $('#ocultoVinExcel').hide();
+                $('#ocultoVinManual').show();
+                $('#checkCargueExcel').bootstrapToggle('off');
+            } else {
+                $('#checkCargueExcel').prop('checked', true);
+                $("#excelfile").prop('required', true);
+                $('#ocultoVinManual').hide();
+                $('#ocultoVinExcel').show();
+                $('#checkCargueExcel').bootstrapToggle('on');
+            }
+        });
+
+        function eliminar(contador) {
+            for (var i = 0; i < arreglo.length; i++) {
+                if(arreglo[i] === $('#vin'+contador).val()){
+                    arreglo[i] = '';
+                }
+            }
+            $('#fila' + contador + '').remove();
+            actualizarTabla();
+        }
+
+        $('#btnAgregarVin').click(function () {
+            if ($.trim($('#txtVin').val()) == '' || $.trim($('#txtVin').val()).length > 17) {
+                $('#alertaMensaje').text('El codigo VIN debe contener entre 1 y 17 caracteres.');
+                $('#alertaVin').show();
+                setTimeout(function () {
+                    $("#alertaVin").fadeOut(1500);
+                }, 3000);
+            } else {
+                if (validarYaCreado() == true) {
+                    $('#alertaMensaje').text('El codigo VIN ya se encuentra registrado en esta campaña.');
+                    $('#alertaVin').show();
+                    setTimeout(function () {
+                        $("#alertaVin").fadeOut(1500);
+                    }, 3000);
+                } else {
+                    $('#tablaVinesOculto').find('tbody').append('<tr id="fila' + contador + '"><td align="left"><input type="text" id="vin' + contador
+                                   + '" name="vin' + contador + '" value="' + $('#txtVin').val() + '" style="display:none;"/>'
+                                   + $('#txtVin').val() + '</td></tr>');
+
+                    $('#tablaVines').find('tbody').append('<tr id="fila' + contador + '"><td align="left">'
+                                        + $('#txtVin').val() + '</td><td width="40%" align="center"><button class="btn btn-danger btn-xs" onclick="eliminar(' + contador
+                                        + ')">&nbsp;<i class="fa fa-times" aria-hidden="true"></i>&nbsp;</button></td></tr>');
+                    $('#cantidadVines').val(contador);
+                    arreglo.push($('#txtVin').val());
+                    contador++;
+                    $('#txtVin').val('');
+                    actualizarTabla();
+                }
+            }
+        });
+
+        function validarYaCreado() {
+            for (var i = 0; i < arreglo.length; i++) {
+                if (arreglo[i] == $.trim($('#txtVin').val())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function actualizarTabla() {
+            contador = 1;
+            $('#tablaVines').dataTable().fnDestroy();
+            $('#tablaVines').find('tbody').empty();
+            $('#tablaVinesOculto').find('tbody').empty();
+            for (var i = 0; i < arreglo.length; i++) {
+                if (arreglo[i] != '') {
+
+                    $('#tablaVinesOculto').find('tbody').append('<tr id="fila' + contador + '"><td align="center"><input type="text" id="vin' + contador
+                                    + '" name="vin' + contador + '" value="' + arreglo[i] + '" style="display:none;"/>'
+                                    + arreglo[i] + '</td></tr>');
+
+                    $('#tablaVines').find('tbody').append('<tr id="fila' + contador + '"><td align="center">'
+                                            + arreglo[i] + '</td><td width="40%" align="center"><button class="btn btn-danger btn-xs" onclick="eliminar(' + contador
+                                            + ')">&nbsp;<i class="fa fa-times" aria-hidden="true"></i>&nbsp;</button></td></tr>');
+                    contador++;
+                }
+            }
+            $('#cantidadVines').val(contador);
+            $('#tablaVines').dataTable({
+                //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                buttons: [
+                { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                ]
+            });
+        }
+
+        function valida(idCampana) {
+            window.location.href = '@Url.Action("Edit", "campanasTaller")?menu='+@ViewBag.id_menu+'&&id=' + idCampana;
+        }
+
+        function buscarAjaxCampanas() {
+            $('#tablaPaginada').dataTable().fnDestroy();
+            $.ajax({
+                url: '/campanasTaller/BuscarCampanasTaller',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="right">' + data[i].fecha_inicio + '</td><td align="right">'
+                            + data[i].fecha_fin + '</td><td align="left">'
+                            + data[i].nombre + '</td><td align="left">'
+                            + data[i].Descripcion + '</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                            + data[i].id
+                            + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+        function agergarnumgwn() {
+            var numgwn = $('#numerogwm').val();   
+            var canti = $('#cantnum').val();
+            var campo = "";
+            campo += "<tr id='linea" + canti + "'>";
+            campo += "<td>";
+            campo += "<input  id='Cant"+canti+"' name='Cant"+canti+"' type='text' class='form-control'  readonly='readonly' value='"+numgwn+"'  />";
+            campo += "</td>";
+            campo += "<td align='center'>";
+            campo += "<button   class='btn btn-danger btn-xs'  onclick='Eliminar("+canti+")' >&nbsp;&nbsp;<i class='fa fa-times'></i>&nbsp;&nbsp;</button> ";
+            campo += "</td>";
+            campo += "</tr>";
+            $('#tablaPaginadagwn').find('tbody').append(campo);
+            numgwn = parseInt(numgwn) + 1;
+             $('#numerogwm').val('');
+            $('#cantnum').val(numgwn);
+
+        }
+        function Eliminar(index) {
+
+             $("#linea"+ index ).remove();
+
+        }
+
+    </script>
+
+}

@@ -1,0 +1,251 @@
+﻿@{
+    ViewBag.Icono = "fa fa-arrow-circle-o-right";
+    ViewBag.Title = "Tiempo Comprometidos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+        </div>
+    </div>
+</div>
+
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+
+    <div id="tabs" class="tab-content">
+
+        <div class="m float-e-margins text-right">
+            <div class="tooltip-demo">
+
+                <div id="div-mensaje"></div>
+
+            </div>
+        </div>
+
+        <ul id="tabs-crear" class="nav nav-tabs">
+            <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+            <li class="" onclick="buscarAjaxTiempos();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Busqueda</a></li>
+        </ul>
+
+        <div id="crear" class="tab-pane active">
+            <div class="panel-body">
+
+                @using (Html.BeginForm("Create", "Comprometidos"))
+                {
+                    <div class="panel-body-btns text-right">
+                        <button class="btn btn-info" type="submit" onclick=""><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                    </div>
+
+                    <div class="form-horizontal">
+
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                            </div>
+                            <div class="panel-body">
+
+
+                                <div class="row">
+                                    <div class="col-sm-6" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Documentos :&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <select id="doccons_idtpdoc" name="doccons_idtpdoc" multiple="multiple" placeholder="Seleccione">
+                                                    <option></option>
+                                                    @foreach (var item in ViewBag.doccons_idtpdoc)
+                                                    {
+                                                        <option class="selector" value="@item.tpdoc_id">@item.tpdoc_nombre</option>
+                                                    }
+                                                </select>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Documentos:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("documento", null, "", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", @required = "required" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tiempo Comprometido:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.TextBox("txtTiempo", null, "", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", @required = "required" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <hr />
+
+                            </div>
+                        </div>
+
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div id="buscar" class="tab-pane">
+            <div class="panel-body">
+                <div class="panel-body-busqueda">
+                    <div class="table-responsive">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Codigo</th>
+                                    <th style="text-align:center">Documento</th>
+                                    <th style="text-align:center">Tiempo</th>
+                                    @*<th style="text-align:center">Acción</th>*@
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/fullcalendar/dist/fullcalendar.min.js"></script>
+    <script src="~/Vendor/fullcalendar/dist/lang-all.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000);
+
+          var documentos = '@ViewBag.documentosSeleccionadas';
+            var doc = documentos.split(",");
+            $('#doccons_idtpdoc').val(0);
+            $('#doccons_idtpdoc').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400,
+            });
+
+        });
+
+
+        function buscarAjaxTiempos() {
+
+            $('#tablaPaginada').dataTable().fnDestroy();
+            $.ajax({
+                url: '/Comprometidos/buscarTiempos',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    debugger
+
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append(
+                            '<tr>'
+                            + '<td align="center">' + data[i].codigo + '</td>'
+                            + '<td align="center">' + data[i].documento + '</td>'
+                            + '<td align="center">' + data[i].tiempo + '</td>'
+                            //+ '<td style="text-align: center">'
+                            //+ '<a class="btn btn-info btn-xs" id="btnActualizar" onclick="ver(' + data[i].id + ')">&nbsp;Ver&nbsp;</a></td>&nbsp;'
+                            //+ '</td>'
+                            + '</tr>');
+                    }
+
+
+                },
+                complete: function (data) {
+
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                        ]
+                    });
+                }
+            })
+        }
+
+
+    </script>
+}

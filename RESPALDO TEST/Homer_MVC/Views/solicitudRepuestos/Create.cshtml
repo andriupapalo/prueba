@@ -1,0 +1,749 @@
+﻿@model Homer_MVC.IcebergModel.rsolicitudesrepuestos
+
+@{
+    ViewBag.Icono = "fa fa-calendar-check-o";
+    ViewBag.Title = "Solicitud de Repuestos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.themes.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="" onclick="buscarAjaxSolicitudes();"><a data-toggle="tab" href="#solicitudes"><i class="fa fa-search"></i>&nbsp;&nbsp;Solicitudes</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="button" onclick="validarBoton()"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                            <button style="display:none" class="btn btn-info" type="submit" id="btnSubmit"></button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.Hidden("lista_repuestos")
+                        @Html.Hidden("ot")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos Generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("bodega", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.bodega, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cliente:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("cliente", ViewBag.cliente as SelectList, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.cliente, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        @*<div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Tipo Solicitud:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.DropDownList("tiposolicitud", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                        @Html.ValidationMessageFor(model => model.tiposolicitud, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>*@
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Placa:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("planm_vehiculo", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.planm_vehiculo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Modelo vehiculo:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    @Html.TextBoxFor(m => m.modelo_vehiculo, new RouteValueDictionary(new { @class = "someClass form-control" }))
+                                                    @Html.ValidationMessageFor(model => model.modelo_vehiculo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tipo Compra:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("tipo_compra", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.tipo_compra, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Clasificacion Solicitud:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("clasificacion_solicitud", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.clasificacion_solicitud, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+
+
+
+
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Detalle:<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    @Html.TextAreaFor(m => m.Detalle, new RouteValueDictionary(new { @class = "someClass form-control", style = "width: 100%; height:80px;" }))
+                                                    @Html.ValidationMessageFor(model => model.Detalle, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <hr />
+                                            <hr />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Referencia:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.Editor("codigo", new { htmlAttributes = new { @class = "form-control", @placeholder = "#", @onkeyup = "traerReferencias(this.id)" } })
+                                                    @*<input id="codigo" name="codigo" placeholder="Seleccione" class="form-control" onkeyup="traerReferencias(this.id)" />*@
+
+                                                    @*@Html.DropDownList("codigo", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                        @Html.ValidationMessageFor(model => model.tiposolicitud, "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cantidad:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <input type="number" class="form-control" name="cantidadInput" id="cantidadInput" value="@ViewBag.cantidadInput" />
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Precio:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <input type="text" class="form-control" name="precioInput" id="precioInput" value="" onkeyup="return miles(this.id)" />
+                                                    <input type="hidden" class="form-control" name="precioInputHidden" id="precioInputHidden" value="" readonly />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Iva:</label>
+                                                <div class="col-md-2">
+                                                    <input type="text" class="form-control" name="porivaInput" id="porivaInput" value="" readonly />
+                                                    <input type="hidden" class="form-control" name="porivaInputHidden" id="porivaInputHidden" value="" readonly />
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="text" class="form-control" name="valivaInput" id="valivaInput" value="" readonly />
+                                                    <input type="hidden" class="form-control" name="valivaInputHidden" id="valivaInputHidden" value="" readonly />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <div class="col-md-4"></div>
+                                                <div class="col-md-2">
+                                                    <button type="button" class="form-control btn-success" id="agregarReferencias" name="agregarReferencias" title="agregar"><i class="fa fa-plus"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-hover" id="tabla_referencias">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Referencia</th>
+                                                    <th style="text-align:center">Cantidad</th>
+                                                    <th style="text-align:center">Valor Unitario</th>
+                                                    <th style="text-align:center">Valor Antes IVA</th>
+                                                    <th style="text-align:center">% Iva</th>
+                                                    <th style="text-align:center">Valor Iva</th>
+                                                    <th style="text-align:center">Total</th>
+                                                    <th style="text-align:center">Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <td colspan="5" style="border-left:hidden; border-bottom:hidden"></td>
+                                                    <th style="text-align:right; border-left:hidden; border-bottom:hidden">Gran Total</th>
+                                                    <td>
+                                                        <input type="text" class="form-control" name="grantotalTablaReferencias" id="grantotalTablaReferencias" style="text-align:right" readonly value="" />
+                                                    </td>
+                                                    <td style="border-right:hidden; border-bottom:hidden"></td>
+                                                </tr>
+
+                                            </tfoot>
+                                        </table>
+                                        <input type="hidden" name="listaReferencias" id="listaReferencias" value="" />
+                                        <input type="hidden" name="contador" id="contador" value="" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div id="solicitudes" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Bodega</th>
+                                        <th style="text-align:center">Fecha Solicitud</th>
+                                        <th style="text-align:center">Cliente</th>
+                                        <th style="text-align:center">Usuario Solicita</th>
+                                        <th style="text-align:center">Cantidad Repuestos</th>
+                                        <th style="text-align:center">Cantidad Solicitada</th>
+                                        <th style="text-align:center">Detalle</th>
+                                        <th style="text-align:center">Tipo Solicitud</th>
+                                        <th style="text-align:center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/EasyAutocomplete-1.3.5/jquery.easy-autocomplete.min.js"></script>
+    <script type="text/javascript">
+        var contador = 0;
+        var lista = 0
+        $(document).ready(function () {
+
+            @*var bod = $('#bodega').val(@ViewBag.Id_bodega_origen);*@
+            var cod = $('#codigo').val(String('@ViewBag.CodReferencia'));
+            var clie = $('#cliente').val(@ViewBag.Cliente1);
+            if (clie === "") {
+
+            }else {
+                $('#tiposolicitud').val(2);
+            }
+
+
+
+            //    debugger
+            //}
+
+            $('.js-source-states').select2();
+            $('#menu').val(@ViewBag.id_menu);
+            $('form input').on('keypress', function (e) {
+                return e.which !== 13;
+            });
+            var referencias = {
+                data: []
+            };
+            $("#codigo").easyAutocomplete(referencias);
+            setTimeout(function(event){
+                vercodigo();
+            }, 100);
+
+            $('#div-mensaje-buscar').text('');
+        });
+
+
+        $('#cliente').change(function () {
+
+            $.ajax({
+                url: '/solicitudRepuestos/DatosPorCedula',
+                data: {
+                    idcliente: $('#cliente option:selected').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    debugger;
+                    $('#planm_vehiculo').val(data.plan_mayor);
+                    $('#planm_vehiculo').val(data.plan_mayor).trigger('change.select2');
+                    $('#modelo_vehiculo').val(data.modvh_nombre);
+                }
+            });
+
+            //if ($('#cliente').val() != "" && $('#cliente').val != undefined && $('#cliente') != null) {
+            //    $.ajax({
+            //        url: '/solicitudRepuestos/buscarPedidosCliente',
+            //        data: {
+            //            idCLiente: $('#cliente').text(),
+            //        },
+            //        type: "post",
+            //        cache: false,
+            //        success: function (data) {
+
+            //        }
+            //    });
+            //}
+
+        });
+
+        $('#codigo').change(function (event) {
+            setTimeout(function(event){
+                vercodigo();
+            }, 100);
+        });
+
+        function vercodigo(){
+            if ($('#codigo').val() != "" && $('#codigo').val()!=undefined) {
+                infoReferencia();
+            }
+        }
+
+        function infoReferencia(){
+            var code=$('#codigo').val();
+            if (code.indexOf('|') > -1)
+            {
+                var  codigo_arr= $('#codigo').val().split("|");
+                var codigo = codigo_arr[0].trim();
+                $.ajax({
+                    url: '/solicitudRepuestos/buscarReferencia',
+                    data: {
+                        codigo: codigo
+                    },
+                    type: 'POST',
+                    cache: false,
+                    success: function (data) {
+                        $('#porivaInput').val(data.por_iva)
+                        $('#precioInput').val(data.precio1)
+                        $('#valivaInput').val(data.precioIva)
+                        $('#porivaInputHidden').val(data.por_ivaHidden)
+                        $('#precioInputHidden').val(data.precio1Hidden)
+                        $('#valivaInputHidden').val(data.precioIvaHidden)
+                    }
+                });
+            }
+        }
+
+        $('#precioInput').change(function () {
+            var precio = quitCommas($('#precioInput').val())
+            var iva = $('#porivaInput').val()
+            $('#valivaInput').val(addCommas(precio * iva / 100))
+        });
+
+        $('#planm_vehiculo').change(function () {
+
+            $.ajax({
+                    url: '/solicitudRepuestos/DatosPorPlaca',
+                data: {
+                    placa: $('#planm_vehiculo option:selected').text(),
+
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    debugger;
+                    $('#cliente').val(data.propietario);
+                    $('#cliente').val(data.propietario).trigger('change.select2');
+                    //$('#cliente').val(data.propietario).trigger('change');
+                    $('#modelo_vehiculo').val(data.modvh_nombre);
+
+
+                }
+
+
+
+            });
+        });
+
+        //$('#cliente').change(function () {
+        //    $.ajax({
+        //        url: '/solicitudRepuestos/DatosPorCedula',
+        //        data: {
+        //            idcliente: $('#cliente option:selected').val()
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //            console.log(data)
+        //            debugger;
+        //            $('#planm_vehiculo').val(data.plan_mayor);
+        //            $('#planm_vehiculo').val(data.plan_mayor).trigger('change.select2');
+        //            $('#modelo_vehiculo').val(data.modvh_nombre);
+        //        }
+        //    });
+        //});
+
+        $('#agregarReferencias').click(function () {
+
+            if ($('#codigo').val() == "" || $('#cantidadInput').val() == "" || $('#precioInput').val() == "") {
+                swal("Los campos con (*) son obligatorios, por favor valide", "", "warning");
+            } else {
+                var codigo_arr = $('#codigo').val().split("|");
+                var codigo = codigo_arr[0].trim();
+                var codigonombre = codigo_arr[1].trim();
+
+                $.ajax({
+                    url: '/solicitudRepuestos/validarStock',
+                    data: {
+                        codigoRef: codigo,
+                        bodega: $('#bodega').val(),
+                        cantidad: $('#cantidadInput').val()
+                    },
+                    type: 'post',
+                    cache: false,
+                    success: function (data) {
+                        console.log(data)
+                        var cantidad = $('#cantidadInput').val();
+                        var precio = $('#precioInput').val();
+                        var iva = $('#porivaInputHidden').val();
+                        var codigotxt = codigonombre;
+                        var valorAntesIva = cantidad * parseInt(quitCommas(precio));
+                        var valorIva = valorAntesIva * iva / 100;
+                        var total = valorIva + valorAntesIva;
+                        var valorTotal = 0
+
+
+                        $('#tabla_referencias').find('tbody').append(
+                            '<tr id="fila' + contador + '">'
+                            + '<td>'
+                            + '<input type="hidden" id="codigoTabla' + contador + '" name="codigoTabla' + contador + '" value="' + codigo + '"/>' + codigotxt
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="hidden" id="cantidadTabla' + contador + '" name="cantidadTabla' + contador + '" value="' + cantidad + '"/>' + cantidad
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="hidden" id="precioTabla' + contador + '" name="precioTabla' + contador + '" value="' + precio + '"/>' + precio
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="hidden" id="valorAntesIvaTabla' + contador + '" name="valorAntesIvaTabla' + contador + '" value="' + valorAntesIva + '"/>' + addCommas(valorAntesIva)
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="hidden" id="ivaTabla' + contador + '" name="ivaTabla' + contador + '" value="' + iva + '"/>' + iva
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="hidden" id="valorIvaTabla' + contador + '" name="valorIvaTabla' + contador + '" value="' + valorIva + '"/>' + comasGer(valorIva)
+                            + '</td>'
+                            + '<td align="right">'
+                            + '<input type="hidden" class="sumaTotales" value="' + total + '"/>' + comasGer(total)
+                            + '<input type="hidden" id="totalTabla' + contador + '" name="totalTabla' + contador + '" value="' + total + '"/>'
+                            + '</td>'
+                            + '<td align="center">'
+                            + '<button type="button" class="btn btn-danger btn-xs" onclick="eliminar(' + contador + ',this)"><i class="fa fa-times"></i></button>'
+                            + '</td>'
+                            + '</tr>'
+                        )
+                        $('.sumaTotales').each(function () {
+                            valorTotal += parseFloat(this.value);
+                            $('#grantotalTablaReferencias').val(comasGer(valorTotal))
+
+                        })
+                        contador++
+                        lista++
+                        $('#listaReferencias').val(lista);
+                        //$('#codigo').val('').select2()
+                        $('#cantidadInput').val('');
+                        $('#precioInput').val('');
+                        $('#porivaInput').val('');
+                        $('#valivaInput').val('');
+
+                    }
+                });
+            }
+        });
+
+        function getCodigoRef(code) {
+            var ret = '';
+            if (code.indexOf('|') > -1) {
+                ret = code.split("|")[0].trim();
+            }
+            return ret;
+        }
+
+        function eliminar(i, obj){
+            //$('#fila'+i).remove()
+            $(obj).parent().parent().remove();
+            var valorTotal = 0
+            $('.sumaTotales').each(function(){
+                valorTotal += parseFloat(this.value)
+                $('#grantotalTablaReferencias').val(comasGer(valorTotal))
+
+            })
+            contador--
+            if (contador == 0) {
+                $('#grantotalTablaReferencias').val('')
+            }
+        }
+
+        function validarBoton(){
+            var rowCount = $('#tabla_referencias tbody tr').length
+            if (rowCount > 0) {
+                swal({
+                    title: 'Solicitud Repuestos',
+                    text: '¿Desea enviar la solicitud de repuestos?',
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Si, enviar!",
+                    cancelButtonText: "No, cancelar!",
+                    closeOnConfirm: false,
+                    closeOnCancel: false
+                },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        $('#btnSubmit').trigger('click')
+                    } else {
+                        swal("Cancelado","", "error");
+                    }
+                });
+            }else{
+                swal("La tabla de referencias debe tener al menos una referencia", "", "warning");
+            }
+        }
+
+        var numero_miles = "";
+
+        function formatNumber(n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles(id) {
+            numero_miles = formatNumber($('#' + id + '').val());
+            $('#' + id + '').val(numero_miles);
+            //console.log($('#'+id+'').val);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function comasGer(number) {
+            return new Intl.NumberFormat("de-DE").format(number);
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            //console.log(nStr);
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        function valida(id){
+            window.open('@Url.Action("Edit", "solicitudRepuestos")?id='+id+'');
+        }
+
+        function buscarAjaxSolicitudes() {
+            $('#tablaPaginada').dataTable().fnDestroy();
+            $.ajax({
+                url: '/compraRepuestos/solicitudRepuestos',
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    if ($.fn.dataTable.isDataTable('#example')) {
+                        $('#tablaPaginada').dataTable().fnDestroy();
+                    }
+                    //console.log(data)
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append(
+                            '<tr>'
+                            + '<td>' + data[i].bodega + '</td>'
+                            + '<td align="right">' + data[i].fecha + '</td>'
+                            + '<td>' + data[i].cliente + '</td>'
+                            + '<td>' + data[i].usuario + '</td>'
+                            + '<td align="right">' + data[i].cantidadRepuestos + '</td>'
+                            + '<td align="right">' + data[i].cantidad + '</td>'
+                            + '<td>' + data[i].Detalle + '</td>'
+                            + '<td>' + data[i].tipo + '</td>'
+                            + '<td align="center">'
+                            + '<button class="btn btn-xs btn-info" onclick="valida(' + data[i].id + ')">Ver</button>'
+                            + '</td>'
+                            + '</tr>'
+                        )
+                    }
+                },
+                complete: function () {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+
+                        ]
+                    });
+                }
+            });
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+        function traerReferencias(id) {
+            var conteo_caracteres = $('#'+id).val().length;
+
+            if (conteo_caracteres==2) {
+                $.ajax({
+                    url: '/kardex/traerReferencias',
+                    data: {
+                        referencia: $('#' + id).val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        var referencias = {
+                            data: data,
+                            list: {
+                                match: {
+                                    enabled: true
+                                }
+                            }
+                        };
+                        $("#codigo").easyAutocomplete(referencias);
+                        $("#codigo").focus();
+                    }
+                });
+            }
+        }
+    </script>
+}

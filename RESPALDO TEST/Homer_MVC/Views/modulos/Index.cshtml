@@ -1,0 +1,583 @@
+﻿
+@{
+    ViewBag.Title = "Módulos";
+    ViewBag.Icono = "fa fa-cube";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+<link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="panel-body">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="button" id="btnGuardar"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-key"></i>&nbsp;&nbsp;&nbsp;Datos Generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2">Crear:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-3">
+                                                <select id="selectCreaProceso" class="form-control" required >
+                                                    <option value="" selected>Seleccione</option>
+                                                    <option value="proceso">Proceso</option>
+                                                    <option value="subProceso">SubProceso</option>
+                                                    <option value="grupo">Grupo</option>                                                    
+                                                    <option value="subGrupo">SubGrupo</option>                                                    
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-12" id="ProcesoTextArea" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2">Nombre Proceso:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-3">
+                                                <input type="text" class="form-control" id="ProcesoText" />
+                                            </div>
+                                            <p class="text-danger" id="nombreProcesoObligatorio" style="display:none">El campo nombre es obligatorio</p>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="col-sm-12" id="ProcesoSelectArea" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2">Proceso:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-3">
+                                                <select id="selectProcesos" class="form-control">
+                                                    <option value="">Seleccione...</option>
+
+                                                    @foreach (var item in ViewBag.procesos)
+                                                    {
+                                                        <option value="@item.idMenu">@item.nombreMenu</option>
+                                                    }
+                                                </select>
+
+                                            </div>
+                                            <p class="text-danger" id="IdProcesoObligatorio" style="display:none">El campo proceso es obligatorio</p>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-12" id="SubProcesoTextArea" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2">Nombre SubProceso:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-3">
+                                                <input type="text" class="form-control" id="subProcesoText" />
+                                            </div>
+                                            <p class="text-danger" id="nombreSubProcesoObligatorio" style="display:none">El campo nombre es obligatorio</p>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-12" id="SubProcesoSelectArea" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2">SubProceso:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-3">
+                                                <select id="selectSubProcesos" class="form-control"></select>
+                                            </div>
+                                            <p class="text-danger" id="IdSubProcesoObligatorio" style="display:none">El campo subProceso es obligatorio</p>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-12" id="GrupoTextArea" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2">Nombre Grupo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-3">
+                                                <input type="text" class="form-control" id="grupoText" />
+                                            </div>
+                                            <p class="text-danger" id="nombreGrupoObligatorio" style="display:none">El campo nombre es obligatorio</p>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-12" id="GrupoSelectArea" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2">Grupo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-3">
+                                                <select id="selectGrupos" class="form-control"></select>
+                                            </div>
+
+                                            <p class="text-danger" style="display:none" id="alertGrupoSelect">El grupo seleccionado no esta disponible para asignarle un subGrupo</p>
+
+                                            <p class="text-danger" id="IdGrupoObligatorio" style="display:none">El campo grupo es obligatorio</p>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-12" id="SubGrupoTextArea" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2">Nombre SubGrupo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-3">
+                                                <input type="text" class="form-control" id="subGrupoText" />
+                                            </div>
+                                            <p class="text-danger" id="nombreSubGrupoObligatorio" style="display:none">El campo nombre es obligatorio</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12" id="tipoModuloGrupo">
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-md-6 col-md-offset-2">
+                                                    <label class="col-md-1">&nbsp;&nbsp;&nbsp;Menu&nbsp;&nbsp;&nbsp;</label>
+                                                    <input type="radio" class="col-md-1" name="tipoModulo" id="tipoModulo" value="menu" checked />
+                                                    <label class="col-md-1">&nbsp;&nbsp;&nbsp;Vista&nbsp;&nbsp;&nbsp;</label>
+                                                    <input type="radio" class="col-md-1" name="tipoModulo" id="tipoModulo" value="vista" />
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+                    }
+
+                    <div class="alert alert-success" style="display:none" id="alertCorrecto">
+                        <strong>Correcto!</strong> La creacion del modulo fue correcta, actualiza para ver los cambios.
+                    </div>
+
+                    <div class="alert alert-danger" style="display:none" id="alertError">
+                        <strong>Error!</strong> Verifique que los campos esten completos o que el nombre del menu no exista.
+                    </div>
+
+                </div>
+            </div>
+
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Nombre Menu</th>
+                                        <th style="text-align:center">Menu Anterior</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+<script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+<script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+<script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+<script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+<script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+<script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+<script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#selectCreaProceso').select2();
+            $('#selectProcesos').select2();
+            buscarAjaxMenus();
+        });
+
+        $('#selectCreaProceso').change(function () {
+            limpiarAlertas();
+            if ($('#selectCreaProceso').val() == 'proceso') {
+                $('#ProcesoTextArea').show();
+                $('#ProcesoSelectArea').hide();
+                $('#SubProcesoTextArea').hide();
+                $('#GrupoTextArea').hide();
+                $('#SubProcesoSelectArea').hide();
+                $('#GrupoSelectArea').hide();
+                $('#SubGrupoTextArea').hide();
+            } else if ($('#selectCreaProceso').val() == 'subProceso') {
+                $('#ProcesoTextArea').hide();
+                $('#ProcesoSelectArea').show();
+                $('#SubProcesoTextArea').show();
+                $('#GrupoTextArea').hide();
+                $('#SubProcesoSelectArea').hide();
+                $('#SubGrupoTextArea').hide();
+                $('#GrupoSelectArea').hide();
+            } else if ($('#selectCreaProceso').val() == 'grupo') {
+                $('#SubProcesoSelectArea').show();
+                $('#ProcesoTextArea').hide();
+                $('#ProcesoSelectArea').show();
+                $('#SubProcesoTextArea').hide();
+                $('#GrupoTextArea').show();
+                $('#SubGrupoTextArea').hide();
+                $('#GrupoSelectArea').hide();
+            } else if ($('#selectCreaProceso').val() == 'subGrupo') {
+                $('#GrupoSelectArea').show();
+                $('#ProcesoTextArea').hide();
+                $('#SubProcesoTextArea').hide();
+                $('#GrupoTextArea').hide();
+                $('#ProcesoSelectArea').show();
+                $('#SubProcesoSelectArea').show();
+                $('#SubGrupoTextArea').show();
+            }
+        });
+
+
+
+        $('#selectProcesos').change(function () {
+            limpiarAlertas();
+            $.ajax({
+               url: '/modulos/BuscarSubProcesos',
+               data: { idProceso: $('#selectProcesos').val() },
+               type: "post",
+               cache: false,
+               success: function (retorno) {
+                   $('#selectSubProcesos').empty();
+                   $('#selectGrupos').empty();
+                   $('#selectGrupos').select2();
+                   $('#selectSubProcesos').append($('<option>', {
+                       value: '',
+                       text: 'Seleccione...'
+                   }));
+                   for(var i=0;i<retorno.length;i++){
+                       $('#selectSubProcesos').append($('<option>', {
+                           value: retorno[i].idMenu,
+                           text: retorno[i].nombreMenu
+                       }));
+                   }
+                   $('#selectSubProcesos').select2();
+                  //$("#selectProcesos").find("option").eq(0).remove();
+               }
+            })
+        });
+
+
+
+        $('#selectSubProcesos').change(function () {
+            limpiarAlertas();
+            $.ajax({
+                url: '/modulos/BuscarGrupos',
+                data: { idSubProceso: $('#selectSubProcesos').val() },
+                type: "post",
+                cache: false,
+                success: function (retorno) {
+                    console.log(retorno);
+                    $('#selectGrupos').empty();
+                    $('#selectGrupos').append($('<option>', {
+                        value: '',
+                        text: 'Seleccione...'
+                    }));
+                    for (var i = 0; i < retorno.length; i++) {
+                        $('#selectGrupos').append($('<option>', {
+                            value: retorno[i].idMenu,
+                            text: retorno[i].nombreMenu
+                        }));
+                    }
+                    $('#selectGrupos').select2();
+                    //$("#selectSubProcesos").find("option").eq(0).remove();
+                }
+            })
+        });
+
+
+
+        $('#selectGrupos').change(function () {
+            limpiarAlertas();
+            $.ajax({
+                url: '/modulos/ValidarGrupo',
+                data: { idGrupo: $('#selectGrupos').val() },
+                type: "post",
+                cache: false,
+                success: function (retorno) {
+                    console.log(retorno);
+                    if (!retorno) {
+                        $('#alertGrupoSelect').show();
+                    } else {
+                        $('#alertGrupoSelect').hide();
+                    }
+                }
+            })
+        });
+
+        function agregarAjax() {
+            $.ajax({
+                url: '/modulos/AgregarModulo',
+                data: {
+                    accion: $('#selectCreaProceso').val(),
+                    procesoId: $('#selectProcesos').val(),
+                    procesoNombre: $('#ProcesoText').val(),
+                    subProcesoId: $('#selectSubProcesos').val(),
+                    subProcesoNombre: $('#subProcesoText').val(),
+                    grupoId: $('#selectGrupos').val(),
+                    grupoNombre: $('#grupoText').val(),
+                    subGrupoNombre: $('#subGrupoText').val(),
+                    tipoModulo: $('input[name=tipoModulo]:checked').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (retorno) {
+                    console.log(retorno);
+                    if (retorno > 0) {
+                        $('#alertCorrecto').show();
+                        $('#alertError').hide();
+
+                        $('#selectCreaProceso').val('').trigger('change');
+                        $('#selectProcesos').val('').trigger('change');
+                        $('#selectSubProcesos').val('').trigger('change');
+                        $('#selectGrupos').val('').trigger('change');
+                        $('#ProcesoText').val('');
+                        $('#subProcesoText').val('');
+                        $('#subGrupoText').val('');
+                        $('#grupoText').val('');
+
+
+                        setTimeout(function () {
+                            $('#alertCorrecto').fadeOut(1500);
+                        }, 3000);
+                    } else {
+                        $('#alertError').show();
+                        $('#alertCorrecto').hide();
+                        setTimeout(function () {
+                            $('#alertError').fadeOut(1500);
+                        }, 3000);
+                    }
+                }
+            })
+        }
+
+
+        function limpiarAlertas() {
+            $('#nombreProcesoObligatorio').hide();
+            $('#nombreSubProcesoObligatorio').hide();
+            $('#nombreGrupoObligatorio').hide();
+            $('#nombreSubGrupoObligatorio').hide();
+            $('#IdProcesoObligatorio').hide();
+            $('#IdGrupoObligatorio').hide();
+            $('#IdSubProcesoObligatorio').hide();
+        }
+
+
+        $('#btnGuardar').click(function () {
+            limpiarAlertas();
+            // Valida la opcion crear proceso
+            if ($('#selectCreaProceso').val() == 'proceso') {
+                if ($.trim($('#ProcesoText').val()) == '') {
+                    $('#nombreProcesoObligatorio').show();
+                } else {
+                    agregarAjax();
+                }
+            // Valida la opcion para crear subprocesos
+            } else if ($('#selectCreaProceso').val() == 'subProceso') {
+                if ($.trim($('#subProcesoText').val()) == '' || $.trim($('#selectProcesos').val()) == '') {
+                    if ($.trim($('#subProcesoText').val()) == '') {
+                        $('#nombreSubProcesoObligatorio').show();
+                    }
+                    if ($.trim($('#selectProcesos').val()) == '') {
+                        $('#IdProcesoObligatorio').show();
+                    }
+                } else {
+                    agregarAjax();
+                }
+            // Valida la opcion para crear grupos
+            } else if ($('#selectCreaProceso').val() == 'grupo') {
+                if ($.trim($('#grupoText').val()) == '' || $.trim($('#selectProcesos').val()) == '' || $.trim($('#selectSubProcesos').val()) == '' || $('#selectSubProcesos').val() == null) {
+                    if ($.trim($('#grupoText').val()) == '') {
+                        $('#nombreGrupoObligatorio').show();
+                    }
+                    if ($.trim($('#selectProcesos').val()) == '') {
+                        $('#IdProcesoObligatorio').show();
+                    }
+                    if ($.trim($('#selectSubProcesos').val()) == '' || $('#selectSubProcesos').val() == null) {
+                        $('#IdSubProcesoObligatorio').show();
+                    }
+                } else {
+                    agregarAjax();
+                }
+            // Valida l opcion para crear sub grupos
+            } else if ($('#selectCreaProceso').val() == 'subGrupo') {
+                if ($.trim($('#subGrupoText').val()) == '' || $.trim($('#selectProcesos').val()) == '' || $.trim($('#selectSubProcesos').val()) == '' || $('#selectSubProcesos').val() == null || $.trim($('#selectGrupos').val()) == '' || $('#selectGrupos').val() == null) {
+                    if ($.trim($('#subGrupoText').val()) == '') {
+                        $('#nombreSubGrupoObligatorio').show();
+                    }
+                    if ($.trim($('#selectProcesos').val()) == '') {
+                        $('#IdProcesoObligatorio').show();
+                    }
+                    if ($.trim($('#selectSubProcesos').val()) == '' || $('#selectSubProcesos').val() == null) {
+                        $('#IdSubProcesoObligatorio').show();
+                    }
+                    if ($.trim($('#selectGrupos').val()) == '' || $('#selectGrupos').val() == null) {
+                        $('#IdGrupoObligatorio').show();
+                    }
+                } else {
+                    agregarAjax();
+                }
+            }
+
+
+        });
+
+
+
+        function valida(idMenu) {
+            window.location.href = '@Url.Action("Update", "modulos")?menuActual='+@ViewBag.id_menu+'&&idMenu=' + idMenu;
+        }
+
+
+        function buscarAjaxMenus() {
+            var parametros = null;
+            if ($('#selectBusquedasParametros').val() != null) {
+                parametros = $('#selectBusquedasParametros').val().toString();
+            }
+
+            $.ajax({
+                url: '/modulos/BuscarMenusPaginados',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="left">'
+                                        + data[i].nombreMenu + '</td><td align="left">'
+                                        + data[i].menuPadre + '</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                                        + '\'' + data[i].idMenu
+                                       + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            ////{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            ////{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            })
+        }
+
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar de Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+
+    </script>
+
+}

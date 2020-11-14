@@ -1,0 +1,754 @@
+﻿@using System.Globalization;
+@{
+    ViewBag.Title = "Repuestos solicitados pendientes";
+    ViewBag.Icono = "fa fa-address-card";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    CultureInfo elGR = CultureInfo.CreateSpecificCulture("el-GR");
+}
+
+@section Styles {
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/sweetalert/lib/sweet-alert.css" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+            {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+            {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i>&nbsp;&nbsp;@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                    <br />
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        <div class="form-horizontal">
+                            <div class="col-md-12">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center"># Orden</th>
+                                                <th style="text-align:center">Cliente</th>
+                                                <th style="text-align:center">Vehículo</th>
+                                                <th style="text-align:center">A&ntilde;o Vehículo</th>
+                                                <th style="text-align:center">Fecha orden</th>
+                                                <th style="text-align:center">Kilometraje</th>
+                                                <th style="text-align:center">Bodega</th>
+                                                <th style="text-align:center">Accion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalDetalleOrden" class="modal fade" role="dialog">
+    <div class="modal-dialog hmodal-info modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Detalle De Repuestos Pendientes</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar"></div>
+                    <input type="hidden" id="idOrden" name="idOrden" value="" />
+                    <input type="hidden" id="contador" name="contador" value="" />
+                    <input type="hidden" id="cont" name="cont" value="" />
+                    <table class="table table-striped table-bordered table-hover" id="tablaPaginada2">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center"># Orden</th>
+                                @*<th style="text-align:center">Tarifa</th>*@
+                                @*<th style="text-align:center">Cliente</th>*@
+                                @*<th style="text-align:center">Vehículo</th>*@
+                                <th style="text-align:center">A&ntilde;o Vehículo</th>
+                                <th style="text-align:center">Fecha orden</th>
+                                @*<th style="text-align:center">Kilometraje</th>*@
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Repuesto</th>
+                                <th style="text-align:center">Cantidad</th>
+                                <th style="text-align:center">Fecha solicitud</th>
+                                <th style="text-align:center">Recibido</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="panel-body-btns text-center">
+                        <button class="btn btn-info" type="button" id="btnTraslado" onclick="trasladar()">&nbsp;&nbsp;Trasladar repuestos&nbsp;&nbsp;</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id="btnCerrarModalDetalle">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalCambioGenerico" class="modal fade" role="dialog">
+    <div class="modal-dialog hmodal-info modal-lg">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Detalle De Repuestos Pendientes</h4>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="idOrden" name="idOrden" value="" />
+                <div class="row">
+                    @Html.Hidden("nombre_repuesto")
+                    <div class="row">
+                        @****** Campos ocultos ******@
+                        <input type="hidden" name="docTercero" id="docTercero" value="" />
+                        <input type="hidden" name="idRepuesto" id="idRepuesto" value="" />
+                        <input type="hidden" name="stock" id="stock" value="" />
+                        <input type="hidden" name="idBod" id="idBod" value="" />
+                        @****** Fin Campos ocultos ******@
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Tipo Tarifa:&nbsp;<span class="text-danger">*</span></label>
+                                <div class="col-md-8">
+                                    @Html.DropDownList("tipoTarifaR", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @readonly = "readonly" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6" id="rOficial">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Referencia:&nbsp;<span class="text-danger">*</span></label>
+                                <div class="col-md-8">
+                                    @Html.DropDownList("repuestos", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Cantidad:&nbsp;<span class="text-danger">*</span></label>
+                                <div class="col-md-8">
+                                    @Html.Editor("txtCantidadRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite cantidad", @onkeypress = "return soloNumeros(event)" } })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Precio Unitario:&nbsp;<span class="text-danger">*</span></label>
+                                <div class="col-md-8">
+                                    @Html.Editor("txtPrecioRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite precio", @readonly = "readonly" } })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Iva:&nbsp;<span class="text-danger">*</span></label>
+                                <div class="col-md-4">
+                                    @Html.Editor("txtPorIvaRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Iva (%)", @readonly = "readonly" } })
+                                </div>
+                                <div class="col-md-4">
+                                    @Html.Editor("txtValorIvaRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Iva ($)", @readonly = "readonly" } })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Descuento:&nbsp;<span class="text-danger">*</span></label>
+                                <div class="col-md-4">
+                                    @Html.Editor("txtPorDsctoRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Descuento (%)", @readonly = "readonly" } })
+                                </div>
+                                <div class="col-md-4">
+                                    @Html.Editor("txtValorDsctoRepuesto", new { htmlAttributes = new { @class = "form-control", @placeholder = "Descuento ($)", @readonly = "readonly" } })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12 text-center" style="display:none;" id="alertaSolicitarRepuesto">
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    <div class="alert alert-info">
+                                        <strong>Alerta!</strong><p id="mensajeAlertaSolicitarRepuesto"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12 text-center" style="display:none;" id="msjCMax">
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    <div class="alert alert-info">
+                                        <strong>Alerta!</strong><p>La cantidad ingresada es mayor a la que se encuentra en stock para la referencia</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" disabled id="btnCambioRespuestos"><i class="fa fa-exchange"></i>&nbsp;&nbsp;&nbsp;Cambiar</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+@*modal modalSiStock*@
+<div id="modalSiStock" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Consulta stock de inventario</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        <p>No se encontro stock disponible en esta bodega. Verifique en la(s) siguiente(s) bodega(s)</p>
+                    </div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaStock">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Referencia</th>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalSiStock">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal modalNoStock*@
+<div id="modalNoStock" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Consulta stock de inventario</h4>
+            </div>
+            <div class="modal-body">
+                <h4>Lo sentimos, no tenemos stock disponible en ninguna de nuestras bodegas para la referencia seleccionada</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalNoStock">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalExito" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Traslado de repuestos registrado con éxito</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align:center;">
+                    <h4>Se registro el traslado de repuestos con el número</h4> <h3><span class="label label-default">@ViewBag.numTrasladoCreado</span></h3>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalTraslado">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal error documentoDescuadrado*@
+<div id="modal_diferencia" class="modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <div class="alert alert-danger  alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                    <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+                </div>
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Error, los valores no coinciden</h4>
+            </div>
+            @if (ViewBag.documentoDescuadrado != null)
+            {
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Cuenta</th>
+                                    <th style="text-align:center">Parametro</th>
+                                    <th style="text-align:center">Debito</th>
+                                    <th style="text-align:center">Credito</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.documentoDescuadrado)
+                                {
+                                    <tr>
+                                        <th style="text-align:left">@item.NumeroCuenta</th>
+                                        <th style="text-align:left">@item.DescripcionParametro</th>
+                                        <th style="text-align:right">@item.ValorDebito.ToString("0,0", elGR)</th>
+                                        <th style="text-align:right">@item.ValorCredito.ToString("0,0", elGR)</th>
+                                    </tr>
+                                }
+                                <tr>
+                                    <th style="text-align:center">&nbsp;</th>
+                                    <th style="text-align:center">&nbsp;</th>
+                                    <th style="text-align:right">@ViewBag.calculoDebito.ToString("0,0", elGR)</th>
+                                    <th style="text-align:right">@ViewBag.calculoCredito.ToString("0,0", elGR)</th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalDiferencia">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/sweetalert/lib/sweet-alert.min.js"></script>
+
+    <script type="text/javascript">
+        var cont = 0;
+        var rango = document.getElementById('cont');
+
+        
+        $(document).ready(function () {
+            buscarOrdenes()
+            $('.js-source-states').select2();
+        });
+
+        function buscarOrdenes() {
+            $("#tablaPaginada").dataTable().fnDestroy();
+            $.ajax({
+                url: '/Almacen/buscarOrdenes',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr>'
+                                    + '<td align="right"><input type="hidden" name="id" value="' + data[i].idRS + '" />' + data[i].numero + '</td>'
+                                    + '<td align="left"><input type="hidden" name="idTercero" id="idTercero" value="' + data[i].idTercero + '" />' + data[i].cliente + '</td>'
+                                    + '<td align="left">' + data[i].vehiculo + '</td>'
+                                    + '<td align="right">' + data[i].anioV + '</td>'
+                                    + '<td align="right">' + data[i].fechaO + '</td>'
+                                    + '<td align="right">' + addComas(data[i].kilometraje) + '</td>'
+                                    + '<td align="left">' + data[i].bodega + '</td>'
+                                    + '<td align="center" width="5%">'
+                                        + '<button  type="button" class="btn btn-info btn-xs" onclick="buscarDatos(' + '\'' + data[i].idRS + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>'
+                                    + '</td>'
+                                + '</tr>');
+                    }
+                },
+                complete: function (data) {
+                    //$('.i-checks').iCheck({
+                    //    checkboxClass: 'icheckbox_square-green',
+                    //    radioClass: 'iradio_square-green'
+                    //});
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        }
+
+        function buscarDatos(id) {
+            $("#contador").val(id)
+            //$("#tablaPaginada2").dataTable().fnDestroy();
+            $.ajax({
+                url: '/Almacen/buscarDatos',
+                data: {
+                    idORden: id,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada2').find('tbody').empty();
+                    var a = $('#idTercero').val()
+                    $('#docTercero').val(a)
+                    for (var i = 0; i < data.length; i++) {
+
+                        var recibido = '';
+                        if (data[i].recibido == true) {
+                            recibido = 'checked';
+                        }
+                        $('#idOrden').val(id)
+                        if (data[i].cantidad > 0) {
+                            $('#tablaPaginada2').find('tbody').append('<tr>'
+                                    + '<td align="right">' + data[i].nOrden + '</td>'
+                                    //+ '<td align="right">'
+                                    //    + '<input type="hidden" id="tarifaID' + i + '" name="tarifaID' + i + '" value="' + data[i].idTarifa + '"/>'
+                                    //    + data[i].desTarifa
+                                    //+ '</td>'
+                                    //+ '<td align="left">' + data[i].cliente + '</td>'
+                                    //+ '<td align="left">' + data[i].vehiculo + '</td>'
+                                    + '<td align="right">' + data[i].anioV + '</td>'
+                                    + '<td align="right">' + data[i].fechaO + '</td>'
+                                    //+ '<td align="right">' + addComas(data[i].kilometraje) + '</td>'
+                                    + '<td align="left">' + data[i].bodega + '</td>'
+                                    + '<td align="left">' + data[i].repuesto + '</td>'
+                                    + '<td align="right">' + addComas(data[i].cantidad) + '</td>'
+                                    + '<td align="right">' + data[i].fechaS + '</td>'
+                                    + '<td align="center" width="5%">'
+                                        + '<input type="hidden" id="bodegaOrden' + i + '" name="bodegaOrden' + i + '" value="' + data[i].idBodega + '"/>'
+                                        + '<input type="hidden" id="cantGenerico' + i + '" name="cantGenerico' + i + '" value="' + data[i].cantidad + '"/>'
+                                        + '<input type="hidden" id="ReferenciaSolicitada' + i + '" name="ReferenciaSolicitada' + i + '" value="' + data[i].idRS + '"/>'
+                                        + '<input type="hidden" id="refCodigo' + i + '" name="refCodigo' + i + '" value="' + data[i].ref_codigo + '"/>'
+                                        + '<input type="checkbox" onclick="recibidoReferencia(' + i + ')" class="i-checks" name="seleccion' + i + '" id="seleccion' + i + '" ' + recibido + ' />'
+                                    + '</td>'
+                                + '</tr>');
+
+                            if ($('#seleccion' + i + '').is(':checked')) {
+                                $('#seleccion' + i + '').prop('disabled', true)
+                            }
+                        }
+                    }
+                    $('#modalDetalleOrden').modal('show');
+                },
+                complete: function (data) {
+                    //$('.i-checks').iCheck({
+                    //    checkboxClass: 'icheckbox_square-green',
+                    //    radioClass: 'iradio_square-green'
+                    //});
+                    //$('#tablaPaginada2').dataTable({
+                    //    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    //    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    //    buttons: []
+                    //});
+                }
+            })
+        }
+
+        function recibidoReferencia(id) {
+            debugger;
+            $.ajax({
+                url: '/Almacen/recibidoReferencia',
+                data: {
+                    idSolicitado: $('#ReferenciaSolicitada' + id + '').val(),
+                    referencia: $('#refCodigo' + id + '').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.error == false) {
+                        $('#seleccion' + id + '').prop('disabled', true)
+                    } else {
+                        $('#seleccion' + id + '').prop('checked', false)
+                    }
+                    if (data.generico == true) {
+                        var a = $('#tarifaID' + id + '').val()
+                        console.log(a)
+                        $('#tipoTarifaR').val(a).select2()
+                        $('#refCodigo' + id + '').val()
+                        $('#docTercero').val($('#docTercero').val())
+                        $('#idBod').val($('#bodegaOrden' + id + '').val())
+                        $('#idRepuesto').val($('#ReferenciaSolicitada' + id + '').val())
+                        //$('#txtCantidadRepuesto').val($('#cantGenerico' + id + '').val())
+
+                        $('#modalCambioGenerico').modal('show');
+                    }
+                },
+                complete: function (data) {
+
+                    $('#tipoTarifaR').select2('readonly', true)
+
+                }
+            })
+        }
+
+        $('#repuestos').change(function () {
+            $.ajax({
+                url: '/ordenTaller/BuscarReferencia',
+                data: {
+                    codigo_referencia: $('#repuestos').val(),
+                    documento_cliente: $('#docTercero').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    if (data.error == false) {
+                        $('#nombre_repuesto').val(data.referenciaEncontrada.ref_descripcion);
+                        $('#txtPrecioRepuesto').val(addComas(data.referenciaEncontrada.precio));
+                        $('#txtPorIvaRepuesto').val(data.referenciaEncontrada.por_iva);
+                        //$('#txtValorIvaRepuesto').val(addComas(data.referenciaEncontrada.valorIva));
+                        $('#txtPorDsctoRepuesto').val(data.referenciaEncontrada.por_dscto);
+                        //$('#txtValorDsctoRepuesto').val(addComas(data.referenciaEncontrada.valor_dscto));
+                    } else {
+                        $('#mensajeAlertaAgregarRepuesto').text(data.errorMessage);
+                        $('#alertaAgregarRepuesto').show();
+                        setTimeout(function () {
+                            $("#alertaAgregarRepuesto").fadeOut(2500);
+                        }, 10000);
+                    }
+                }
+            })
+
+            $.ajax({
+                url: '/FacturacionRepuestos/buscarStock',
+                data: {
+                    codigo: $("#repuestos").val(),
+                    bodega: $('#idBod').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                },
+                complete: function (data) {
+                    if (data.responseJSON.puede == true) {
+                        $('#stock').val(data.responseJSON.cantidad);
+                    } else if (data.responseJSON.puede == false && data.responseJSON.inven == true) {
+                        //mostrar modal informando de que en que bodega si hay stock de esa referencia
+                        $('#modalSiStock').show();
+                        $('#tablaStock').find('tbody').empty();
+                        for (var i = 0; i < data.responseJSON.info.length; i++) {
+                            $('#tablaStock').find('tbody').append('<tr><td align="left">'
+                                            + data.responseJSON.info[i].ref_codigo + " " + data.responseJSON.info[i].ref_descripcion + '</td><td align="left">'
+                                            + data.responseJSON.info[i].bodccs_nombre + '</td><td align="right">'
+                                            + data.responseJSON.info[i].stock + '</td></tr>');
+                        }
+                    } else if (data.responseJSON.puede == false && data.responseJSON.inven == false) {
+                        //mostrar modal informando no hay stock en ninguna bodega para la referencia
+                        $('#modalNoStock').show();
+                    }
+                }
+            });
+        });
+
+        $('#txtCantidadRepuesto').change(function () {
+            stock = parseInt($('#stock').val());
+            if ($('#txtCantidadRepuesto').val() != "") {
+                if (parseInt($('#txtCantidadRepuesto').val()) <= parseInt($('#stock').val())) {
+                    if ($('#txtCantidadRepuesto').val() != 0) {
+                        var stock = 0;
+                        if ($('#stock').val() == "") {
+                            stock = 0
+                        } else {
+                            $('#txtCantidadRepuesto').val($('#txtCantidadRepuesto').val())
+                        }
+                    }
+                }
+                else {
+                    $('#msjCMax').show();
+                    $('#txtCantidadRepuesto').val(stock)
+
+                    setTimeout(function () {
+                        $("#msjCMax").fadeOut(2500);
+                    }, 5000);
+                }
+            } else {
+                $('#txtCantidadRepuesto').val('0')
+            }
+            
+
+            var valorDescuento = Math.round(parseInt(quitCommas($('#txtPrecioRepuesto').val())) * parseInt(quitCommas($('#txtCantidadRepuesto').val())) * ($('#txtPorDsctoRepuesto').val() / 100))
+            var valorIVA = Math.round((parseInt(quitCommas($('#txtPrecioRepuesto').val())) * parseInt(quitCommas($('#txtCantidadRepuesto').val())) - valorDescuento) * ($('#txtPorIvaRepuesto').val() / 100))
+
+            $('#txtValorDsctoRepuesto').val(addComas(valorDescuento));
+            $('#txtValorIvaRepuesto').val(addComas(valorIVA));
+
+            if ($('#txtCantidadRepuesto').val() == 0) {
+                $('#btnCambioRespuestos').prop('disabled', true)
+            } else {
+                $('#btnCambioRespuestos').prop('disabled', false)
+            }
+        })
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        function soloNumeros(e) {
+            key = e.keyCode || e.which;
+            tecla = String.fromCharCode(key).toLowerCase();
+            letras = "1234567890";
+            especiales = "8-37-39-46";
+
+            tecla_especial = false
+            for (var i in especiales) {
+                if (key == especiales[i]) {
+                    tecla_especial = true;
+                    break;
+                }
+            }
+            if (letras.indexOf(tecla) == -1 && !tecla_especial) {
+                return false;
+            }
+        };
+
+        $('#btnCambioRespuestos').click(function () {
+            var valorUnitario = parseInt(quitCommas($('#txtPrecioRepuesto').val()));
+            $.ajax({
+                url: '/Almacen/cambioGenerico',
+                data: {
+                    id: $('#idRepuesto').val(),
+                    repuesto: $('#repuestos').val(),
+                    iva: $('#txtPorIvaRepuesto').val(),
+                    valorU: valorUnitario,
+                    descuento: $('#txtPorDsctoRepuesto').val(),
+                    cantidad: $('#txtCantidadRepuesto').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    if (data.exito == true) {
+                        $('#mensajeAlertaSolicitarRepuesto').text('Se actualizo la referencia')
+                        $('#alertaSolicitarRepuesto').show()
+                        setTimeout(function () {
+                            $("#alertaSolicitarRepuesto").fadeOut(2500);
+                        }, 5000);
+                    }                  
+                }
+            })
+        })
+
+        var varInterval = 0;
+        $('#modalDetalleOrden').on('shown.bs.modal', function () {
+            cont = 1
+            if (cont > 0) {
+                varInterval = setInterval(function () {
+                    buscarDatos($('#contador').val());
+                    rango.innerHTML = cont;   
+                }, 10000);
+            }            
+        })
+
+        $('#btnCerrarModalDetalle').click(function () {
+            cont = 0;
+            clearInterval(varInterval);
+            $('#modalDetalleOrden').modal('hide');
+        });
+
+        $('#cerrarModalNoStock').click(function () {
+            $('#modalNoStock').hide();
+        });
+
+        $('#cerrarModalSiStock').click(function () {
+            $('#modalSiStock').hide();
+        });
+
+        $('#cerrarModalTraslado').click(function () {
+            $('#modalExito').hide();
+        });
+
+        $('#cerrarModalDiferencia').click(function () {
+            $('#modal_diferencia').hide();
+        });
+        
+        function trasladar() {
+            window.location.href = '@Url.Action("trasladoRepuestos", "Almacen")?id=' + $('#idOrden').val();
+        }
+
+    </script>
+
+}
+@if (TempData["mensaje"] != null)
+{
+    <script type="text/javascript">
+        $('#modalExito').show();
+    </script>
+}
+
+@if (TempData["documento_descuadrado"] != null)
+{
+    <script type="text/javascript">
+        $('#modal_diferencia').show();
+    </script>
+}

@@ -1,0 +1,570 @@
+﻿
+@{
+    ViewBag.Title = "Vehículos con Avería";
+    ViewBag.Icono = "fa fa-car";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button class="btn btn-mini btn-default" style="border-radius:25px">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+            <div id="buscar" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="table-responsive" style="width:100%;">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaBusquedas">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Modelo</th>
+                                    <th style="text-align:center">Vin</th>
+                                    <th style="text-align:center">Plan Mayor</th>
+                                    <th style="text-align:center">Placa</th>
+                                    <th style="text-align:center">Año Modelo</th>
+                                    <th style="text-align:center">Color</th>
+                                    <th style="text-align:center">Averias</th>
+                                    <th style="text-align:center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@*Modal de Averias*@
+<div id="modalAverias" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content modal-lg">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Averías Registradas</h4>
+            </div>
+            <div class="modal-body">
+                <ul id="tabs-crear" class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#pendientes"><i class="fa fa-search"></i>&nbsp;&nbsp;Averias Pendientes</a></li>
+                    <li class=""><a data-toggle="tab" href="#gestionadas"><i class="fa fa-search"></i>&nbsp;&nbsp;Averias Gestionadas</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div id="pendientes" class="tab-pane active">
+                        <div class="panel-body">
+                            <div class="panel-body-busqueda">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tabla_averias">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">Plan Mayor</th>
+                                                <th style="text-align:center">Fecha</th>
+                                                <th style="text-align:center">Descripción</th>
+                                                <th style="text-align:center">Estado Averia</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="gestionadas" class="tab-pane">
+                        <div class="panel-body">
+                            <div class="panel-body-busqueda">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tabla_averias_gestionadas">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">Modelo</th>
+                                                <th style="text-align:center">PlanMayor</th>
+                                                <th style="text-align:center">Vin</th>
+                                                <th style="text-align:center">Placa</th>
+                                                <th style="text-align:center">Color</th>
+                                                <th style="text-align:center">Pedido</th>
+                                                <th style="text-align:center">Observacion</th>
+                                                <th style="text-align:center">Persona Encargada</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                    <button type="button" class="btn btn-warning" style="float: right" id="btnNegocio">Ir a Estado de Negocio</button>
+                                    <input type="hidden" id="numPlan" value="" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+@*Modal de Hoja de Vida del Vehiculo*@
+<div id="modalHV" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Hoja de Vida Vehiculo</h4>
+            </div>
+            <div class="modal-body">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                        <i class="fa fa-address-card"></i>&nbsp;&nbsp;&nbsp;Datos Personales Cliente
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <label class="col-md-3">Documento: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="doc" value="" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="col-md-3">Nombre: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="nombre" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <label class="col-md-3">Direccion: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="dir" value="" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="col-md-3">Telefono: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="tel" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <label class="col-md-3">Celular: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="cel" value="" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                        <i class="fa fa-car"></i>&nbsp;&nbsp;&nbsp;Datos del Vehiculo
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <label class="col-md-3">Plan Mayor: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="planmayor" value="" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="col-md-3">Serie: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="vin" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <label class="col-md-3">Placa: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="placa" value="" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="col-md-3">Modelo: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="modelo" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <label class="col-md-3">Color: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="color" value="" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="col-md-3">Kilometraje: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="km" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <label class="col-md-3">Año Modelo: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="anio" value="" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="col-md-3">Tipo: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="tipo" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <label class="col-md-3">Tipo de Servicio: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="tipos" value="" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="col-md-3">Tipo de Compra: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="tipoc" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <label class="col-md-3">Nit Prenda: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="nit" value="" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="col-md-3">Es Flota: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="flota" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <label class="col-md-3">Codigo Flota: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="cod" value="" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="col-md-3">Nuevo / Usado: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" readonly id="nu" value="" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modalNotas" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Nota de seguimiento</h4>
+            </div>
+            <div class="modal-body">
+                <div class="hpanel">
+                    <div class="panel-body">
+
+                        <div class="col-md-12">
+                                <label class="col-md-3">Plan Mayor: </label>
+                                <div class="col-md-9">
+                                    <input class="form-control" id="planmayor1" value="" />
+                                </div>
+                        </div>
+
+                        <div class="col-md-12">
+                                <label class="col-md-3">Nota: </label>
+                                <div class="col-md-9">
+                                    <textarea class="form-control" rows="5" id="notaSeguimiento" value=""></textarea>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="notaseguimiento()">Agregar</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+                    @section Scripts {
+                        <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+                        <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+                        <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+                        <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+                        <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+                        <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+                        <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+                        <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+                        <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+                        <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+                        <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+                        <script src="~/Vendor/moment/min/moment.min.js"></script>
+                        <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+                        <script type="text/javascript">
+                            $(document).ready(function () {
+                                buscarDatos();
+                            });
+
+                            function buscarDatos() {
+                                $.ajax({
+                                    url: '/Vehiculo/buscarVhConAverias',
+                                    data: {
+                                    },
+                                    type: "post",
+                                    cache: false,
+                                    success: function (data) {
+                                        console.log(data);
+                                        $('#tablaBusquedas').find('tbody').empty();
+                                        for (var i = 0; i < data.length; i++) {
+                                            if (data[i].bodega > 0 && data[i].cantidadAverias > 0) {
+                                                if (data[i].anio == 0) {
+                                                    var anio = ""
+                                                } else {
+                                                    var anio = data[i].anio
+                                                }
+                                                $('#tablaBusquedas').find('tbody').append('<tr>' +
+                                                    '<td align="left">' + data[i].modelo + '</td>'
+                                                    + '<td align="center">' + data[i].vin + '</td>'
+                                                    + '<td align="center">' + data[i].planmayor + '</td>'
+                                                    + '<td align="center">' + data[i].placa + '</td>'
+                                                    + '<td align="center">' + data[i].anomodelo + '</td>'
+                                                    + '<td align="center">' + data[i].color + '</td>'
+                                                    + '<td align="center">'
+                                                    + '<button type="button" class="btn btn-info btn-xs" onclick="buscarAverias(\'' + data[i].planmayor + '\')">' + data[i].cantidadAverias + '</button>'
+                                                    + '</td>'
+                                                    + '<td align="center">'
+                                                    /*+ '<button type="button" class = "btn btn-info btn-xs">' + "Opciones" + '</button>&nbsp;&nbsp;'*/
+                                                    + '<button type="button" class="btn btn-warning btn-xs" title="Hoja de Vida del Vehiculo" onclick="hojavidaVH(\'' + data[i].planmayor + '\')"><i class="fa fa-file-text"></i></button>'
+                                                    + '<button type="button" class="btn btn-info btn-xs" title="Notas de seguimiento" onclick="mostrarModal(\'' + data[i].planmayor + '\')"><i class="fa fa-book"></i></button>'
+                                                    + '</td>'
+                                                    + '</tr>');
+                                            }
+                                        }
+                                    },
+                                    complete: function (data) {
+                                        $('#tablaBusquedas').dataTable({
+                                            dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                                            "lengthMenu": [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                                            buttons: []
+                                        });
+                                    }
+                                });
+                            }
+
+                            function mostrarModal(planmayor) {
+                                debugger;
+                                $('#planmayor1').val(planmayor);
+                                console.log($('#planmayor1').val(planmayor));
+                                debugger;
+                                $('planmayor1').prop('readonly', true);
+                                $("#planmayor1").attr('readonly','readonly');
+                                $('#modalNotas').modal('show');
+                                debugger;
+                            }
+
+                            debugger;
+                            var planmayor = $('#planmayor1').val();
+                            var notaSeguimiento=$('#notaSeguimiento').val();
+                            debugger;
+
+                            function notaseguimiento(planmayor= $('#planmayor1').val(), insp_observacion=$('#notaSeguimiento').val()) {
+                                debugger;
+                                $('#planmayor1').val(planmayor);
+                                $('#notaSeguimiento').val(insp_observacion);
+                                debugger;
+                                $.ajax({
+                                    url: '/Vehiculo/agregarNotas',
+                                    data: { planmayor,insp_observacion},
+                                    type: 'post',
+                                    cache: false,
+                                    success: function (flag) {
+                                        debugger;
+                                        if (flag == 1) {
+                                            swal("Exito", "La nota quedo registrada", "success")
+                                        } else {
+                                            swal("Error", "La nota no se regitro", "error")
+                                        }
+                                        $('#modalNotas').modal('hide');
+
+                                    }
+                                });
+                            }
+
+                            function hojavidaVH(planmayor) {
+                                $('#modalHV').modal('show');
+                                $.ajax({
+                                    url: '/Vehiculo/hojavidaVH',
+                                    data: { planmayor },
+                                    type: "get",
+                                    success: function (data) {
+                                        debugger;
+                                        $('#doc').val(data.documento);
+                                        $('#nombre').val(data.nombre);
+                                        $('#dir').val(data.direccion);
+                                        $('#tel').val(data.telefono);
+                                        $('#cel').val(data.celular);
+                                        $('#planmayor').val(data.plan_mayor);
+                                        $('#vin').val(data.vin);
+                                        $('#placa').val(data.placa);
+                                        $('#modelo').val(data.modelo);
+                                        $('#color').val(data.color);
+                                        $('#km').val(data.km);
+                                        $('#anio').val(data.anio);
+                                        $('#tipo').val(data.tipo);
+                                        $('#tipos').val(data.tiposervicio);
+                                        $('#tipoc').val(data.tipocompra);
+                                        $('#nit').val(data.nitprenda);
+                                        $('#flota').val(data.flota);
+                                        $('#cod').val(data.codflota);
+                                        $('#nu').val(data.nuevo);
+                                    }
+                                });
+                            }
+
+                            function buscarAverias(planmayor) {
+                                $('#modalAverias').modal('show');
+                                $.ajax({
+                                    url: '/Vehiculo/buscarAveriasBackOffice',
+                                    data: { planmayor },
+                                    type: 'post',
+                                    cache: false,
+                                    success: function (data) {
+                                        $('#tabla_averias').find('tbody').empty();
+                                        for (var i = 0; i < data.singestionar.length; i++) {
+                                            $('#tabla_averias').find('tbody').append(
+                                                '<tr>'
+                                                + '<td align="center">' + data.singestionar[i].planmayor + '</td>'
+                                                + '<td align="center">' + data.singestionar[i].fecha + '</td>'
+                                                + '<td align="left">' + data.singestionar[i].observacion + '</td>'
+                                                + '<td align="left">' + data.singestionar[i].estadoA + '</td>'
+                                                + '</tr>'
+                                            );
+                                        }
+                                        $('#tabla_averias_gestionadas').find('tbody').empty();
+                                        $('#numPlan').val('');
+                                        for (var i = 0; i < data.gestionados.length; i++) {
+                                            $('#tabla_averias_gestionadas').find('tbody').append(
+                                                '<tr>'
+                                                + '<td align="center">' + data.gestionados[i].modelo + '</td>'
+                                                + '<td align="center">' + data.gestionados[i].planmayor + '</td>'
+                                                + '<td align="center">' + data.gestionados[i].vin + '</td>'
+                                                + '<td align="center">' + data.gestionados[i].placa + '</td>'
+                                                + '<td align="center">' + data.gestionados[i].color + '</td>'
+                                                + '<td align="center" class="pedido">' + data.gestionados[i].pedido + '</td>'
+                                                + '<td align="left">' + data.gestionados[i].observacion + '</td>'
+                                                + '<td align="left">' + data.gestionados[i].encargado + '</td>'
+                                                + '</tr>'
+                                            );
+                                            if (data.gestionados[i].pedido == "") {
+                                                $('#btnNegocio').css('display', 'none');
+                                            } else {
+                                                $('#btnNegocio').css('display', 'block');
+                                                $('#numPlan').val(data.gestionados[i].planmayor);
+                                            }
+                                        }
+                                        if (data.gestionados.length == 0) {
+                                            $('#tabla_averias_gestionadas').find('tbody').append(
+                                                '<tr>'
+                                                + '<td align="center" colspan="8">No hay averias gestionadas.</td>'
+                                                + '</tr>'
+                                            );
+                                        }
+                                        if (data.singestionar.length == 0) {
+                                            $('#tabla_averias_gestionadas').find('tbody').append(
+                                                '<tr>'
+                                                + '<td align="center" colspan="4">No hay averias sin gestionar.</td>'
+                                                + '</tr>'
+                                            );
+                                        }
+                                        if (data.gestionados.length == 0) {
+                                            $('#btnNegocio').css('display', 'none');
+                                            $('#numPlan').val('');
+                                        }
+
+                                    }
+                                });
+                            }
+
+                            $('#btnNegocio').click(function () {
+                                window.open("/vpedidos/BrowserPendientesAlistamiento?planmayor=" + $('#numPlan').val(), "_blank");
+                            });
+
+                        </script>
+                    }

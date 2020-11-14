@@ -1,0 +1,1634 @@
+﻿@model Homer_MVC.IcebergModel.tplanrepuestosmodelo
+
+@{
+    ViewBag.Icono = "fa fa-calendar";
+    ViewBag.Title = "Matrices Mantenimiento";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.themes.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear" onclick=""><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class=""><a data-toggle="tab" onclick="" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm("Create", "matricesMantenimiento", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                            <a class="btn btn-success" href="~/Documents/MatrizDemo.xlsx" download="MatrizDemo">Descargar Demo</a>
+
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="row">
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Modelo General:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("modeloGeneral", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                    @*@Html.ValidationMessageFor(model => model., "", new { @class = "text-danger" })*@
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6 areaExcelRepuestos">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cargar excel matriz de mantenimiento:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    <input type="file" id="excelfileRepuestos" name="excelfileRepuestos" multiple class="file-loading">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="row">
+
+                                        <div class="col-sm-6" style="display:none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tipo:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" id="tipo" name="tipo">
+                                                        <option value="M">Mano De Obra</option>
+                                                        <option value="R">Repuestos</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6 areaExcelRepuestos" style="display:none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Lista Precios:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" name="lista_precios" id="lista_precios" placeholder="Seleccione">
+                                                        <option></option>
+                                                        <option value="precio1">Precio 1</option>
+                                                        <option value="precio2">Precio 2</option>
+                                                        <option value="precio3">Precio 3</option>
+                                                        <option value="precio4">Precio 4</option>
+                                                        <option value="precio5">Precio 5</option>
+                                                        <option value="precio6">Precio 6</option>
+                                                        <option value="precio7">Precio 7</option>
+                                                        <option value="precio8">Precio 8</option>
+                                                        <option value="precio9">Precio 9</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="row">
+
+                                        <div class="col-sm-6 areaExcelManoObra" style="display:none;">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cargar Excel M.O:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    <input type="file" id="excelfileManoObra" name="excelfileManoObra" multiple class="file-loading">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @*<div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Nombre Actividad Económica:&nbsp;<span class="text-danger">*</span></label>
+                                                    <div class="col-md-6">
+                                                        @Html.EditorFor(model => model.acteco_nombre, new { htmlAttributes = new { @class = "form-control", @required = "required", @placeholder = "Digite nombre" } })
+                                                        @Html.ValidationMessageFor(model => model.acteco_nombre, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>*@
+
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    }
+                </div>
+            </div>
+
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+
+                    <div class="form-horizontal">
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Formulario de Matriz de Mantenimiento
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="panel-body-btns text-right">
+                                    <button class="btn btn-success" type="button" onclick="agregarMatriz()"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                                    <button class="btn btn-primary" style="display:none" type="button" onclick="editarMatriz()"><i class="fa fa-edit"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                                </div>
+
+                                <div class="row">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Modelo General:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("modeloGeneral2", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Referencia / Operación :&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <input type="checkbox" id="switch" data-toggle="toggle" data-size="small">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Codigo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <input type="hidden" name="banderaCodigo" id="banderaCodigo" value="" />
+                                                <input type="hidden" name="banderaCodigo2" id="banderaCodigo2" value="" />
+
+                                                <div style="display:none" id="idCodigo">
+                                                    <input id="codigo" name="codigo" placeholder="Seleccione" class="form-control" onkeyup="traerReferencias(this.id)" />
+                                                </div>
+
+                                                <div id="idCodigo2">
+                                                    <input id="codigo2" name="codigo2" placeholder="Seleccione" class="form-control" onkeyup="traerOperaciones(this.id)" />
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cantidad:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <input type="number" name="" id="cantidad" value="" class="form-control" required />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+                                    <table class="table table-striped table-bordered table-hover" id="tablaLetras" style="border:none">
+                                        <thead>
+                                            <tr style="border:none">
+                                                <th style="text-align:center;border:none"> <label class="label label" style="background-color:#07CFA2">N/A No Aplica</label></th>
+                                                <th style="text-align:center;border:none"> <label class="label label" style="background-color:#07B1CF">AC Aplica Costo</label></th>
+                                                <th style="text-align:center;border:none"> <label class="label label" style="background-color:#077DCF">R Reemplazo </label></th>
+                                                <th style="text-align:center;border:none"> <label class="label label" style="background-color:#6207CF">I Inspeccionar </label></th>
+                                                <th style="text-align:center;border:none"> <label class="label label" style="background-color:#CF9207">L Lubricar </label></th>
+                                                <th style="text-align:center;border:none"> <label class="label label" style="background-color:#E72121">A Ajustar </label></th>
+                                                <th style="text-align:center;border:none"> <label class="label label" style="background-color:#12E50F">M Mantenimiento </label></th>
+
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+
+                                <div class="row">
+
+                                    <div style="text-align:left">
+                                        <label class="control-label">Inspecciones:&nbsp;<span class="text-danger">*</span></label>
+                                    </div> <br />
+
+                                    <table class="table table-striped table-bordered table-hover" id="tablaKm">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">5</th>
+                                                <th style="text-align:center">10</th>
+                                                <th style="text-align:center">15</th>
+                                                <th style="text-align:center">20</th>
+                                                <th style="text-align:center">25</th>
+                                                <th style="text-align:center">30</th>
+                                                <th style="text-align:center">35</th>
+                                                <th style="text-align:center">40</th>
+                                                <th style="text-align:center">45</th>
+                                                <th style="text-align:center">50</th>
+                                                <th style="text-align:center">55</th>
+                                                <th style="text-align:center">60</th>
+                                                <th style="text-align:center">65</th>
+                                                <th style="text-align:center">70</th>
+                                                <th style="text-align:center">75</th>
+                                                <th style="text-align:center">80</th>
+                                                <th style="text-align:center">85</th>
+                                                <th style="text-align:center">90</th>
+                                                <th style="text-align:center">95</th>
+                                                <th style="text-align:center">100</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                            <tr>
+                                                <td align="center">
+                                                    <select name="" id="Km5" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km10" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km15" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km20" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km25" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km30" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km35" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km40" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km45" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km50" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km55" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km60" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km65" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km70" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km75" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km80" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km85" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km90" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km95" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                                <td align="center">
+                                                    <select name="" id="Km100" class="Kms" required>
+                                                        <option value="0"></option>
+                                                        <option value="N/A">N/A</option>
+                                                        <option value="AC">AC</option>
+                                                        <option value="R">R</option>
+                                                        <option value="I">I</option>
+                                                        <option value="L">L</option>
+                                                        <option value="A">A</option>
+                                                        <option value="M">M</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+
+
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                                <br />
+
+                                <div class="row" style="display:none">
+                                    <div style="text-align:left">
+                                        <label class="control-label">Tiempo Mano de Obra:&nbsp;<span class="text-danger">*</span></label>
+                                    </div>
+                                    <br />
+                                    <table class="table table-striped table-bordered table-hover" id="tablaTMO">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">5</th>
+                                                <th style="text-align:center">10</th>
+                                                <th style="text-align:center">15</th>
+                                                <th style="text-align:center">20</th>
+                                                <th style="text-align:center">25</th>
+                                                <th style="text-align:center">30</th>
+                                                <th style="text-align:center">35</th>
+                                                <th style="text-align:center">40</th>
+                                                <th style="text-align:center">45</th>
+                                                <th style="text-align:center">50</th>
+                                                <th style="text-align:center">55</th>
+                                                <th style="text-align:center">60</th>
+                                                <th style="text-align:center">65</th>
+                                                <th style="text-align:center">70</th>
+                                                <th style="text-align:center">75</th>
+                                                <th style="text-align:center">80</th>
+                                                <th style="text-align:center">85</th>
+                                                <th style="text-align:center">90</th>
+                                                <th style="text-align:center">95</th>
+                                                <th style="text-align:center">100</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                            <tr>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="name" value="" class="form-control TMO" />
+                                                </td>
+                                            </tr>
+
+
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                                <br />
+
+                                @*<div class="row">
+                                    <div style="text-align:left">
+                                        <label class="control-label">Tiempo Insumos:&nbsp;<span class="text-danger">*</span></label>
+                                    </div>
+                                    <br />
+
+                                    <table class="table table-striped table-bordered table-hover" id="tablaTIS">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">5</th>
+                                                <th style="text-align:center">10</th>
+                                                <th style="text-align:center">15</th>
+                                                <th style="text-align:center">20</th>
+                                                <th style="text-align:center">25</th>
+                                                <th style="text-align:center">30</th>
+                                                <th style="text-align:center">35</th>
+                                                <th style="text-align:center">40</th>
+                                                <th style="text-align:center">45</th>
+                                                <th style="text-align:center">50</th>
+                                                <th style="text-align:center">55</th>
+                                                <th style="text-align:center">60</th>
+                                                <th style="text-align:center">65</th>
+                                                <th style="text-align:center">70</th>
+                                                <th style="text-align:center">75</th>
+                                                <th style="text-align:center">80</th>
+                                                <th style="text-align:center">85</th>
+                                                <th style="text-align:center">90</th>
+                                                <th style="text-align:center">95</th>
+                                                <th style="text-align:center">100</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                            <tr>
+                                                <td>
+                                                    <input type="text" id="insumo1" name="insumo1" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo2" name="insumo2" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo3" name="insumo3" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo4" name="insumo4" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo5" name="insumo5" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo6" name="insumo6" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo7" name="insumo7" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo8" name="insumo8" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo9" name="insumo9" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo10" name="insumo10" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo11" name="insumo11" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo12" name="insumo12" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo13" name="insumo13" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo14" name="insumo14" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo15" name="insumo15" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo16" name="insumo16" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo17" name="insumo17" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo18" name="insumo18" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo19" name="insumo19" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="insumo20" name="insumo20" value="" onkeyup="return miles(this.id)" class="form-control TIS" />
+                                                </td>
+                                            </tr>
+
+
+                                        </tbody>
+                                    </table>
+                                    <br />
+                                    <div style="text-align:left">
+                                        <button type="button" class="btn btn-sm btn-info" id="guardarinsumos" style="display:none"><i class="fa fa-save"></i>&nbsp;Actualizar</button>
+                                    </div>
+                                </div>*@
+                                <br />
+
+                            </div>
+                        </div>
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Matriz de Mantenimiento
+                            </div>
+                            <div class="panel-body">
+
+                                <div style="overflow-x:scroll">
+                                    <table class="table table-striped table-bordered table-hover" id="tablaMatriz">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">Ref.</th>
+                                                <th style="text-align:center">Descripción</th>
+                                                <th style="text-align:center">Cantidad</th>
+                                                @*<th style="text-align:center">Insumos</th>
+                    <th style="text-align:center">Mano de Obra</th>
+                    <th style="text-align:center">Valor Total</th>*@
+                                                <th style="text-align:center">5</th>
+                                                <th style="text-align:center">10</th>
+                                                <th style="text-align:center">15</th>
+                                                <th style="text-align:center">20</th>
+                                                <th style="text-align:center">25</th>
+                                                <th style="text-align:center">30</th>
+                                                <th style="text-align:center">35</th>
+                                                <th style="text-align:center">40</th>
+                                                <th style="text-align:center">45</th>
+                                                <th style="text-align:center">50</th>
+                                                <th style="text-align:center">55</th>
+                                                <th style="text-align:center">60</th>
+                                                <th style="text-align:center">65</th>
+                                                <th style="text-align:center">70</th>
+                                                <th style="text-align:center">75</th>
+                                                <th style="text-align:center">80</th>
+                                                <th style="text-align:center">85</th>
+                                                <th style="text-align:center">90</th>
+                                                <th style="text-align:center">95</th>
+                                                <th style="text-align:center">100</th>
+                                                <th style="text-align:center">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                        <tfoot>
+                                        </tfoot>
+                                    </table>
+                                </div>                               
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+
+            <div id="buscar2" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar2"></div>
+
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Tipo</th>
+                                        <th style="text-align:center">Inspección</th>
+                                        <th style="text-align:center">Referencia</th>
+                                        <th style="text-align:center">Tempario</th>
+                                        <th style="text-align:center">Cantidad</th>
+                                        <th style="text-align:center">Precio</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+</div>
+<br />
+<br />
+
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script src="~/Vendor/EasyAutocomplete-1.3.5/jquery.easy-autocomplete.min.js"></script>
+
+    <script type="text/javascript">
+
+        var i = 0;
+        var kilometros = [];
+        var tmo = [];
+        var tis = [];
+
+
+      $(document).ready(function () {
+        $('#menu').val(@ViewBag.id_menu);
+        $('.js-source-states').select2();
+        $('#tipo').val('R');
+
+        $('.dataTables_length').addClass('bs-select');
+
+      });
+
+        $('.Kms').change(function () {
+
+             var Km = $(this).prop('value');
+             kilometros.push(Km);
+             //console.log(kilometros);
+        });
+
+        $('.TMO').change(function () {
+
+             var Tmo = $(this).prop('value');
+             tmo.push(Tmo);
+             console.log(tmo);
+        });
+
+        //$('.TIS').change(function () {
+        //     var Tis = $(this).prop('value');
+        //     tis.push(Tis);
+        //     console.log(tis);
+        //});
+
+        $('.TIS').change(function () {
+            var vacios = 0;
+            debugger;
+            $.each($('.TIS'),function() {
+               if ($(this).val().length == 0) {
+                   vacios = 1;
+               }
+            });
+            if (vacios == 0 && $('#').val!="") {
+                $('#guardarinsumos').show();
+            }
+            else {
+                $('#guardarinsumos').hide();
+            }
+        //     var Tis = $(this).prop('value');
+        //     tis.push(Tis);
+        //     console.log(tis);
+        });
+        $('#switch').bootstrapToggle({
+            on: 'Referencia',
+            off: 'Operacion'
+        });
+
+
+        $('#modeloGeneral2').change(function () {
+
+            var id=$('#modeloGeneral2').val();
+            buscarMatriz(id);
+        });
+
+        $('#switch').change(function () {
+
+            if ($('#switch').prop('checked')) {
+
+                $('#idCodigo2').hide();
+                $('#idCodigo').show();
+
+            } else {
+
+                $('#idCodigo').hide();
+                $('#idCodigo2').show();
+
+            }
+        });
+
+        function addCommas(nStr) {
+
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? `,${x[1]}` : '';
+            const rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+
+        }
+
+
+
+        function agregarMatriz() {
+
+            var modeloGeneral = $('#modeloGeneral2').val();
+            var referencia = $('#codigo').val();
+            var operacion = $('#codigo2').val();
+            var cantidad = $('#cantidad').val();
+
+            debugger;
+
+            if (modeloGeneral != '' && referencia != '' || operacion != '' && cantidad != '') {
+
+                $.ajax({
+                    url: '/matricesMantenimiento/agregarMatriz',
+                    data: {
+                        modeloGeneral: modeloGeneral,
+                        referencia: referencia,
+                        operacion: operacion,
+                        cantidad: cantidad,
+                        //TIS: tis,
+                        kilometros: kilometros,
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data == 1) {
+                            swal("Éxito", "Se registro correctamente", "success");
+                        } else {
+                            swal("Error", "Error al Registrar", "error");
+                        }
+                    }, complete: function (data) {
+                        buscarMatriz(modeloGeneral);
+                    }
+                });
+            } else {
+                swal("Error", "Digite todos  los campos", "error");
+
+            }
+
+
+
+        }
+
+
+        function traerReferencias(id) {
+            const conteo_caracteres = $(`#${id}`).val().length;
+
+            if (conteo_caracteres === 1) {
+                $.ajax({
+                    url: '/kardex/traerReferencias',
+                    data: {
+                        referencia: $(`#${id}`).val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function(data) {
+                        const referencias = {
+                            data: data,
+                            list: {
+                                match: {
+                                    enabled: true
+                                }
+                            }
+                        };
+                        $("#codigo").easyAutocomplete(referencias);
+                        $("#codigo").focus();
+                    }
+                });
+            }
+        }
+
+        function traerOperaciones(id) {
+            const conteo_caracteres = $(`#${id}`).val().length;
+
+            if (conteo_caracteres === 1) {
+                $.ajax({
+                    url: '/kardex/traerOperaciones',
+                    data: {
+                        operacion: $(`#${id}`).val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function(data) {
+                        const operaciones = {
+                            data: data,
+                            list: {
+                                match: {
+                                    enabled: true
+                                }
+                            }
+                        };
+                        $("#codigo2").easyAutocomplete(operaciones);
+                        $("#codigo2").focus();
+                    }
+                });
+            }
+        }
+
+        function buscarMatriz(id) {
+
+            //tablaMatriz
+            //$('#tablaMatriz').dataTable().fnDestroy();
+            $.ajax({
+                url: '/matricesMantenimiento/buscarMatriz',
+                data: {
+                    id: id,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    debugger;
+                    var referencias = data.referencias;
+                    var operaciones = data.operaciones;
+                    //totales
+                    var total_mano_obra = data.valor_total_mano_obra;
+                    var total_insumos = data.valor_total_insumos;
+                    var total_total = data.valor_total_total;
+
+                    debugger;
+                    $('#tablaMatriz').find('tbody').empty();
+                    $('#tablaMatriz').find('tfoot').empty();
+                    for (var i = 0; i < referencias.length; i++) {
+                        debugger;
+                        //console.log(referencias)
+                        var text = '';
+                        var boton = '';
+                        var cod = referencias[i].detalle;
+
+                        text += '<tr>';
+                        text += '<td align="left">' + referencias[i].codigo + '</td>';
+                        text += '<td align="left">' + referencias[i].nombre + '</td>';
+                        text += '<td align="left">' + referencias[i].cantidad + '</td>';
+
+                        for (var j = 0; j < cod.length; j++) {
+
+                            text += '<td align="left">' + addCommas(cod[j].valor) + '</td>';
+
+                        }
+
+                        boton += '<td align="center">';
+                        boton += '<button class="btn btn-danger btn-xs" onclick="notaEliminar(' + referencias[i].iditem + ')">&nbsp;<i class="fa fa-times"></i></button></td>';
+                        text += boton;
+                        text += '</tr>';
+                        $('#tablaMatriz').find('tbody').append(text);
+                        
+
+
+                    }
+
+                    var text2 = '';
+                    if (total_mano_obra.length > 0) {
+                        text2 += '<tr>';
+                        text2 += '<td align="left" colspan="3">Total Mano de Obra</td>';
+                        for (var k = 0; k < total_mano_obra.length; k++) {
+                            console.log(total_mano_obra)                                                        
+                            text2 += '<td align="left">' + addCommas(total_mano_obra[k].precio2) + '</td>';                                                       
+                        }
+                         text2 += '</tr>';
+                    }
+
+                    if (total_insumos.length > 0) {
+                        text2 += '<tr>';
+                        text2 += '<td align="left" colspan="3">Porcentaje Insumos</td>';
+                        for (var k = 0; k < total_insumos.length; k++) {
+                            var n = k + 1;
+                            console.log(total_mano_obra)
+                            text2 += '<td align="left"><input type="text" id="insumo' + n + '" id="insumo' + n + '" value="' + addCommas(total_insumos[k].porcentaje) + '" onkeyup="return miles(this.id)" class="form-control TIS" /></td>';                            
+                        }
+                        text2 += '<td><button type="button" class="btn btn-sm btn-info" id="guardarinsumos" name="guardarinsumos" onclick="actualizarInsumos()"><i class="fa fa-save"></i>&nbsp;Actualizar</button></td>';                            
+                        text2 += '</tr>';
+                        text2 += '<tr>';
+                        text2 += '<td align="left" colspan="3">Total Insumos</td>';
+                        for (var k = 0; k < total_insumos.length; k++) {
+                            console.log(total_mano_obra)
+                            text2 += '<td align="left">' + addCommas(total_insumos[k].precio2) + '</td>';                            
+                        }
+                        text2 += '</tr>';
+                    }
+
+                    if (total_total.length > 0) {
+                        text2 += '<tr>';
+                        text2 += '<td align="left" colspan="3">Total</td>';
+                        for (var k = 0; k < total_total.length; k++) {
+                            console.log(total_mano_obra)
+                            text2 += '<td align="left">' + addCommas(total_total[k].precio2) + '</td>';                            
+                        }
+                    text2 += '</tr>';
+                    }
+                    var textfoot = "";
+                    textfoot += "<tr>";
+                                        textfoot += "<th style='text-align:center' colspan='3'></th>";
+                                        textfoot += "<th style='text-align:center'>5</th>";
+                                        textfoot += "<th style='text-align:center'>10</th>";
+                                        textfoot += "<th style='text-align:center'>15</th>";
+                                        textfoot += "<th style='text-align:center'>20</th>";
+                                        textfoot += "<th style='text-align:center'>25</th>";
+                                        textfoot += "<th style='text-align:center'>30</th>";
+                                        textfoot += "<th style='text-align:center'>35</th>";
+                                        textfoot += "<th style='text-align:center'>40</th>";
+                                        textfoot += "<th style='text-align:center'>45</th>";
+                                        textfoot += "<th style='text-align:center'>50</th>";
+                                        textfoot += "<th style='text-align:center'>55</th>";
+                                        textfoot += "<th style='text-align:center'>60</th>";
+                                        textfoot += "<th style='text-align:center'>65</th>";
+                                        textfoot += "<th style='text-align:center'>70</th>";
+                                        textfoot += "<th style='text-align:center'>75</th>";
+                                        textfoot += "<th style='text-align:center'>80</th>";
+                                        textfoot += "<th style='text-align:center'>85</th>";
+                                        textfoot += "<th style='text-align:center'>90</th>";
+                                        textfoot += "<th style='text-align:center'>95</th>";
+                                        textfoot += "<th style='text-align:center'>100</th>";
+                    textfoot += "</tr>";
+                         $('#tablaMatriz').find('tfoot').append(textfoot);
+
+                        $('#tablaMatriz').find('tfoot').append(text2);
+                        //$('#tablaTotales').find('tbody').append(text2);
+
+                    for (var i = 0; i < operaciones.length; i++) {
+                        debugger;
+                        //console.log(operaciones)
+                        var text = '';
+                        var boton = '';
+                        var cod = operaciones[i].detalle;
+
+                        text += '<tr>';
+                        text += '<td align="left">' + operaciones[i].codigo + '</td>';
+                        text += '<td align="left">' + operaciones[i].nombre + '</td>';
+                        text += '<td align="left">' + operaciones[i].cantidad + '</td>';
+
+                        for (var j = 0; j < cod.length; j++) {
+
+                            text += '<td align="left">' + addCommas(cod[j].valor) + '</td>';
+
+                        }
+                        boton += '<td align="center">';
+                        boton += '<button class="btn btn-danger btn-xs" onclick="notaEliminar(' + operaciones[i].iditem + ')" >&nbsp;<i class="fa fa-times"></i></button></td>';
+                        text += boton;
+                        text += '</tr>';
+                        text2 += '</tr>';
+                        $('#tablaMatriz').find('tbody').append(text);
+
+                    }
+
+
+                },
+                complete: function (data) {
+
+                    //$('#tablaMatriz').dataTable({
+
+                    //    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    //    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    //    buttons: [
+
+                    //    ]
+                    //});
+
+                    //$('#tablaTotales').dataTable({
+
+                    //    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    //    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    //    buttons: [
+
+                    //    ]
+                    //});
+                }
+            });
+        }
+        function notaEditar(id) {
+
+            //$('#modalEditarMatriz').modal('show');
+            $.ajax({
+                url: '/matricesMantenimiento/traerMatriz',
+                data: {
+                    id:id,
+                },
+                type: "post",
+                cache: false,
+                success: function (items) {
+                    debugger;
+                    console.log(items);
+                    for (var i = 0; i < items.length; i++) {
+
+                        var codigo = items[i].codigo;
+                        var cantidad = items[i].cantidad;
+                        var cod = items[i].detalle;
+
+                        $('#codigo2').val(codigo);
+                        $('#cantidad').val(cantidad);
+
+                        //for (var j = 0; j < cod.length; j++) {
+
+                        //    text += '<td align="left">' + cod[j].valor + '</td>';
+
+                        //}
+
+                    }
+
+
+
+
+                },
+                complete: function (items) {
+
+                }
+            });
+
+
+        }
+
+
+        function notaEliminar(id) {
+            debugger;
+            swal({
+                title: '',
+                text: '¿Esta seguro que desea eliminar el registro de la Matriz?',
+                confirmButtonText: "SI",
+                confirmButtonColor: "#62cb31",
+                showCancelButton: true,
+                cancelButtonText: "NO",
+                closeOnCancel: true,
+                closeOnConfirm: true,
+                allowOutsideClick: true
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        eliminarMatriz(id); // 1 cuando es original
+                    } else {
+
+                    }
+                });
+
+        }
+
+        function eliminarMatriz(id) {
+
+            $.ajax({
+                url: '/matricesMantenimiento/eliminarMatriz',
+                data: {
+                    id:id,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                    if (data == 1) {
+                        swal("Exito!", "Se elimino el registro correctamente", "success");
+                    }
+                    else {
+                        swal("Error", "Error al eliminar", "error");
+                    }
+
+                },
+                complete: function (data) {
+                    var id = $('#modeloGeneral2').val();
+                    buscarMatriz(id);
+                }
+            });
+
+        }
+
+        function buscarMatriz1() {
+
+            $('#buscar2').show();
+            $('#crear').hide();
+
+
+            $('#tablaPaginada').dataTable().fnDestroy();
+            $.ajax({
+                url: '/matricesMantenimiento/buscarMatrices',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+
+
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append(
+                            '<tr>'
+                            + '<td align="left">' + data[i].tipo + '</td>'
+                            + '<td align="left">' + data[i].inspeccion + '</td>'
+                            + '<td align="left">' + (data[i].referencia != null ? data[i].referencia: "") + '</td>'
+                            + '<td align="left">' + (data[i].tempario != null ? data[i].tempario: "") + '</td>'
+                            + '<td align="left">' + (data[i].cantidad != null ? data[i].cantidad : "") + '</td>'
+                            + '<td align="left">' + (data[i].precio != null ? data[i].precio : "")  + '</td>'
+                            + '<td align="left">' + (data[i].estado != true ? 'Inactivo' : 'Activo') + '</td>'
+                            + '<td align="center">'
+                            + '<button class="btn btn-info btn-xs" onclick="cambiarEstado(' + data[i].id + ')">&nbsp;&nbsp;Cambiar estado&nbsp;&nbsp;</button>'
+                            + '</td>'
+                            + '</tr>');
+                    }
+
+                },
+                complete: function (data) {
+
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+
+        function cambiarEstado(id) {
+
+            $.ajax({
+                url: '/matricesMantenimiento/cambiarEstado',
+                data: {
+                    id:id,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                    if (data == 1) {
+                        swal("Exito!", "Se cambio el estado correctamente", "success");
+                    }
+                    else {
+                        swal("Error", "Error al actualizar", "error");
+                    }
+
+                },
+                complete: function (data) {
+                    buscarMatriz();
+                }
+            });
+
+        }
+
+
+
+        $('#tipo').change(function(){
+            if($('#tipo').val() == 'M'){
+                $('.areaExcelRepuestos').hide();
+                $('.areaExcelManoObra').show();
+            }else{
+                $('.areaExcelManoObra').hide();
+                $('.areaExcelRepuestos').show();
+            }
+        });
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+        function formatNumber3(n) {
+        var m = n;
+        var nn = m.indexOf(",");
+        if (nn != -1) {
+            var n2 = n.split(',', 2);
+            m = n2[0];
+            if (m === '') {
+                return m;
+            }
+            else {
+                var o = n2[1];
+                o = String(o).replace(/\D/g, "");
+                m = String(m).replace(/\D/g, "");
+                m=String(m).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                m = m +','+ o;
+                return m;
+            }
+
+        }
+        else {
+            m = String(m).replace(/\D/g, "");
+            return m === '' ? m : String(m).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+        // return n === '' ? n : Number(n).toLocaleString();
+    }
+
+    function miles(id) {
+        numero_miles = formatNumber3($('#' + id + '').val());
+        $('#' + id + '').val(numero_miles);
+        console.log($('#' + id + '').val);
+        }
+
+        $("tablaMatriz").on("click", "button#guardarinsumos", function(){
+            alert('click');
+        });
+        $('#guardarinsumos').click(function () {
+            debugger;
+            var modelog = $('#modeloGeneral2').val();
+            var vacios = 0;
+            $.each($('.TIS'),function() {
+               if ($(this).val().length == 0) {
+                   vacios = 1;
+               }
+            });
+            if (modelog != "" && vacios == 0) {
+                var insumo1 = $('#insumo1').val();
+                var insumo2 = $('#insumo2').val();
+                var insumo3 = $('#insumo3').val();
+                var insumo4 = $('#insumo4').val();
+                var insumo5 = $('#insumo5').val();
+                var insumo6 = $('#insumo6').val();
+                var insumo7 = $('#insumo7').val();
+                var insumo8 = $('#insumo8').val();
+                var insumo9 = $('#insumo9').val();
+                var insumo10 = $('#insumo10').val();
+                var insumo11= $('#insumo11').val();
+                var insumo12 = $('#insumo12').val();
+                var insumo13 = $('#insumo13').val();
+                var insumo14 = $('#insumo14').val();
+                var insumo15 = $('#insumo15').val();
+                var insumo16 = $('#insumo16').val();
+                var insumo17 = $('#insumo17').val();
+                var insumo18 = $('#insumo18').val();
+                var insumo19 = $('#insumo19').val();
+                var insumo20 = $('#insumo20').val();
+                $.ajax({
+                url: '/matricesMantenimiento/guardarInsumos',
+                data: {
+                    modelogeneral: modelog,
+                    insumo1,
+                    insumo2,
+                    insumo3,
+                    insumo4,
+                    insumo5,
+                    insumo6,
+                    insumo7,
+                    insumo8,
+                    insumo9,
+                    insumo10,
+                    insumo11,
+                    insumo12,
+                    insumo13,
+                    insumo14,
+                    insumo15,
+                    insumo16,
+                    insumo17,
+                    insumo18,
+                    insumo19,
+                    insumo20,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data == 1) {
+
+                        //vuelvo a mostrar toda la matriz
+
+                    } else {
+
+                    }
+                }
+            })
+            }
+
+        });
+
+        function actualizarInsumos() {
+            debugger;
+            var modelog = $('#modeloGeneral2').val();
+            var vacios = 0;
+            $.each($('.TIS'),function() {
+               if ($(this).val().length == 0) {
+                   vacios = 1;
+               }
+            });
+            if (modelog != "" && vacios == 0) {
+                var insumo1 = $('#insumo1').val();
+                var insumo2 = $('#insumo2').val();
+                var insumo3 = $('#insumo3').val();
+                var insumo4 = $('#insumo4').val();
+                var insumo5 = $('#insumo5').val();
+                var insumo6 = $('#insumo6').val();
+                var insumo7 = $('#insumo7').val();
+                var insumo8 = $('#insumo8').val();
+                var insumo9 = $('#insumo9').val();
+                var insumo10 = $('#insumo10').val();
+                var insumo11= $('#insumo11').val();
+                var insumo12 = $('#insumo12').val();
+                var insumo13 = $('#insumo13').val();
+                var insumo14 = $('#insumo14').val();
+                var insumo15 = $('#insumo15').val();
+                var insumo16 = $('#insumo16').val();
+                var insumo17 = $('#insumo17').val();
+                var insumo18 = $('#insumo18').val();
+                var insumo19 = $('#insumo19').val();
+                var insumo20 = $('#insumo20').val();
+                $.ajax({
+                url: '/matricesMantenimiento/guardarInsumos',
+                data: {
+                    modelogeneral: modelog,
+                    insumo1,
+                    insumo2,
+                    insumo3,
+                    insumo4,
+                    insumo5,
+                    insumo6,
+                    insumo7,
+                    insumo8,
+                    insumo9,
+                    insumo10,
+                    insumo11,
+                    insumo12,
+                    insumo13,
+                    insumo14,
+                    insumo15,
+                    insumo16,
+                    insumo17,
+                    insumo18,
+                    insumo19,
+                    insumo20,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data == 1) {
+
+                        //vuelvo a mostrar toda la matriz
+                        buscarMatriz(modelog);
+
+                    } else {
+                        swal("Debe ingresar valores a todos los insumos","Error");
+                    }
+                }
+            })
+            }
+        }
+    </script>
+
+}

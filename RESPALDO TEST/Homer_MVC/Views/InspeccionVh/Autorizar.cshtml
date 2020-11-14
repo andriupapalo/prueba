@@ -1,0 +1,175 @@
+﻿@model Homer_MVC.Models.AutorizacionTallerModel
+@using System.Globalization;
+
+@{
+    ViewBag.Icono = "fa fa-user";
+    ViewBag.Title = "Autorización Taller";
+    Layout = null;
+}
+
+@Styles.Render("~/bundles/font-awesome/css")
+@Styles.Render("~/bundles/bootstrap/css")
+@Styles.Render("~/bundles/peicon7stroke/css")
+@Styles.Render("~/bundles/homer/css")
+<link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+
+<!DOCTYPE html>
+
+<br />
+<br />
+<br />
+<div class="panel-body col-md-6 col-md-offset-3">
+    <div class="hpanel">
+        <div class="panel-body">
+            <a class="small-header-action" href="">
+                <div class="clip-header">
+                    <i class="fa fa-arrow-up"></i>
+                </div>
+            </a>
+
+            <div id="hbreadcrumb" class="pull-right m-t-lg">
+                <ol class="hbreadcrumb breadcrumb">
+                </ol>
+            </div>
+            <h2 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h2>
+            <small>Registrar @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="hpanel">
+
+        <div class="panel-body col-md-6 col-md-offset-3">
+
+            @using (Html.BeginForm())
+            {
+
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(model => model.id_encabezado)
+                @Html.HiddenFor(model => model.id_encabezado_encryptado)
+
+                <div class="form-horizontal">
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="panel-body">
+                        <h3 class="panel-body-title">
+                            <i class="ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Items A Autorizar
+                        </h3>
+
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tablaItemsAutorizacion">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">Item</th>
+                                                <th style="text-align:center">Costo Unitario</th>
+                                                <th style="text-align:center">Cantidad</th>
+                                                <th style="text-align:center">Autorizar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @{
+                                                CultureInfo elGR = CultureInfo.CreateSpecificCulture("el-GR");
+                                            }
+                                            @foreach (var item in Model.listaItems)
+                                            {
+                                                <tr>
+                                                    <td style="text-align:left">@item.nombre_item</td>
+                                                    <td style="text-align:right">
+                                                        $ @item.valor_item.ToString("0,0", elGR)
+                                                        <input type="text" id="@String.Format("costo{0}", item.id_item)" value="@item.valor_item" style="display:none;" />
+                                                    </td>
+                                                    <td style="text-align:right">
+                                                        @item.cantidad_item
+                                                    <input type="text" id="@String.Format("cantidad{0}", item.id_item)" value="@item.cantidad_item" style="display:none;" />
+                                                </td>
+                                                <td style="text-align:center">
+                                                    <input type="checkbox" onchange="recalcularCosto();" data-toggle="toggle" data-size="mini" id="@item.id_item" name="@item.id_item">
+                                                </td>
+                                            </tr>
+                                        }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <div class="col-md-6 col-md-offset-4">
+                                    <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Autorizar</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <div class="form-group">
+
+                                <div class="col-md-12">
+                                    @if (TempData["mensaje"] != null)
+                                    {
+                                        <div class="alert alert-success  alert-dismissible">
+                                            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                                            <p>@TempData["mensaje"]</p>
+                                        </div>
+                                    }
+
+                                    @if (TempData["mensaje_error"] != null)
+                                    {
+                                        <div class="alert alert-danger  alert-dismissible">
+                                            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                                            <p>@TempData["mensaje_error"]</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
+
+<script src="~/Vendor/jquery/dist/jquery.min.js"></script>
+<script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        recalcularCosto();
+    });
+
+    function addComas(nStr) {
+        nStr += '';
+        x = nStr.split('.');
+        x1 = x[0];
+        x2 = x.length > 1 ? '.' + x[1] : '';
+        var rgx = /(\d+)(\d{3})/;
+        while (rgx.test(x1)) {
+            x1 = x1.replace(rgx, '$1' + '.' + '$2');
+        }
+        return x1 + x2;
+    }
+
+    function recalcularCosto() {
+        var costo_total = 0;
+        $('#filaTotal').remove();
+        $("input:checkbox:checked").each(function () {
+            var id_item = $(this).attr('id');
+            var valor_item = $('#costo' + id_item + '').val();
+            var cantidad_item = $('#cantidad' + id_item + '').val();
+            costo_total += parseFloat(valor_item) * parseFloat(cantidad_item);
+        });
+        $('#tablaItemsAutorizacion').find('tbody').append('<tr id="filaTotal"><td align="left"><b>' + 'Costo Total' + '</b></td><td align="right">$ ' + addComas(costo_total) + '</td><td align="left">'
+            + '' + '</td><td align="right">' + '' + '</td></tr>');
+    }
+
+</script>
+

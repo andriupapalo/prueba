@@ -1,0 +1,631 @@
+﻿@model Homer_MVC.IcebergModel.recibidoTrasladosModel
+
+@{
+    ViewBag.Icono = "fa fa-arrow-circle-o-right";
+    ViewBag.Title = "Traslado de Repuestos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>@ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+            {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@Html.Raw(TempData["mensaje"])</p>
+            </div>
+            }
+
+        @if (TempData["mensaje_error"] != null)
+            {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@Html.Raw(TempData["mensaje_error"])</p>
+            </div>
+            }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="" onclick="solicitudTraslados();"><a data-toggle="tab"><i class="fa fa-arrow-circle-o-right"></i>&nbsp;&nbsp;Solicitudes de Traslados</a></li>
+                <li class=""><a href="@Url.Action("Create","trasladoRepuestos")"><i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;Salida</a></li>
+                <li class="principal active"><a data-toggle="tab" href="#destino"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Entrada</a></li>
+                <li class=""><a data-toggle="tab" href="#recibidos"><i class="fa fa-arrow-circle-o-left"></i>&nbsp;&nbsp;Seguimiento Traslados</a></li>
+                @*<li class="" onclick="buscarAjaxTraslados();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>*@
+            </ul>
+            <div id="destino" class="tab-pane active">
+                <div class="panel-body">
+
+
+
+                    @using (Html.BeginForm())
+                        {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                            @*<button class="btn btn-danger" type="button" onclick="devolverSolicitud()"><i class="fa fa-warning"></i>&nbsp;&nbsp;&nbsp;Devolver</button>*@
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Recepción del traslado
+                                </div>
+                                <div class="panel-body">
+                                    <div class="panel-body-busqueda">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table class="table table-striped table-bordered table-hover" id="tablaDestinos">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">N&uacute;mero</th>
+                                                        <th style="text-align:center">Referencia</th>
+                                                        <th style="text-align:center">Cantidad Enviada</th>
+                                                        <th style="text-align:center">Cantidad Pendiente</th>
+                                                        <th style="text-align:center">Fecha</th>
+                                                        <th style="text-align:center">Costo Promedio</th>
+                                                        <th style="text-align:center">Origen</th>
+                                                        <th style="text-align:center">Destino</th>
+                                                        <th style="text-align:center">Destinatario</th>
+                                                        <th style="text-align:center">Cantidad Recibida</th>
+                                                        <th style="text-align:center">CheckList</th>
+                                                        @*<th style="text-align:center">Devolver</th>*@
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                            <input type="hidden" id="listaReferencias" name="listaReferencias" value="" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label>Notas: <span style="color:red">*</span></label>
+                                        <textarea class="form-control" id="notas" name="notas" required maxlength="200"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        }
+                </div>
+            </div>
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">N&uacute;mero</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Origen</th>
+                                        <th style="text-align:center">Destino</th>
+                                        <th style="text-align:center">Mensajer&iacute;a</th>
+                                        <th style="text-align:center">Referencias</th>
+                                        <th style="text-align:center">Acci&oacute;n</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="recibidos" class="tab-pane">
+                <div class="panel-body">
+                    <div class="form-horizontal">
+                        <div class="row">
+                            <div class="col-md-12" id="errorBusqueda" name="errorBusqueda" style="display:none">
+                                <div class="alert alert-danger" role="alert">
+                                    No se encontró el traslado buscado
+                                </div>
+                            </div>
+                            <div class="col-md-12" id="pedidoVacio" name="errorBusqueda" style="display:none">
+                                <div class="alert alert-warning" role="alert">
+                                    Por favor diligencie el número del traslado para buscarlo
+                                </div>
+                            </div>
+                            <div class="col-md-12" id="sinDatos" name="sinDatos" style="display:none">
+                                <div class="alert alert-success" role="alert">
+                                    No hay traslados en estado pendiente
+                                </div>
+                            </div>
+                            <div class="col-md-12" id="bodegaEquivocada" name="bodegaEquivocada" style="display:none">
+                                <div class="alert alert-danger" role="alert">
+                                    No puede ver este pedido por que pertenece a otra bodega
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="col-sm-2"><label class="control-label">Periodo:&nbsp;</label></div>
+
+                                <div class="col-sm-4">
+                                    @Html.Editor("fechaini", new { htmlAttributes = new { @class = "form-control" } })
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="col-sm-2"><label class="control-label">Hasta:&nbsp;</label></div>
+
+                                <div class="col-sm-4">
+                                    @Html.Editor("fechafin", new { htmlAttributes = new { @class = "form-control" } })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Buscar traslado</label>
+                                    <div class="col-md-6">
+                                        <input class="form-control" type="text" name="numeroPedido" id="numeroPedido" value="" />
+                                    </div>
+                                    <button class="btn btn-primary" type="button" onclick="buscarTraslado()"><i class="fa fa-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-3"></div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <button class="btn btn-primary" type="button" onclick="buscarTrasladoPendiente(4)"><i class="fa fa-search">&nbsp;&nbsp;</i>Todos</button>
+                                    <button class="btn btn-primary" type="button" onclick="buscarTrasladoPendiente(3)"><i class="fa fa-search">&nbsp;&nbsp;</i>Recibidos</button>
+                                    <button class="btn btn-danger" type="button" onclick="buscarTrasladoPendiente(1)"><i class="fa fa-search">&nbsp;&nbsp;</i>Por Recibir</button>
+                                    <button class="btn btn-danger2" type="button" onclick="buscarTrasladoPendiente_(2)"><i class="fa fa-search">&nbsp;&nbsp;</i>Recibidos (incompletos)</button>
+
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div id="tablaSeg" style="display:none">
+                            <div class="table-responsive">
+                                <div id="div-mensaje-buscar"></div>
+                                <table class="table table-striped table-bordered table-hover" id="tablaSeguimiento">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:center">N&uacute;mero</th>
+                                            <th style="text-align:center">Referencia</th>
+                                            <th style="text-align:center">Cantidad Enviada</th>
+                                            <th style="text-align:center">Cantidad Recibida</th>
+                                            <th style="text-align:center">Fecha Envío</th>
+                                            <th style="text-align:center">Fecha Recibido</th>
+                                            <th style="text-align:center">Costo</th>
+                                            <th style="text-align:center">Origen</th>
+                                            <th style="text-align:center">Destino</th>
+                                            <th style="text-align:center">Asesor</th>
+                                            <th style="text-align:center">Estado</th>
+                                            <th style="text-align:center">Notas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="sinrecibido" style="display:none">
+                            <div class="table-responsive">
+                                <div id="div-mensaje-buscar"></div>
+                                <table class="table table-striped table-bordered table-hover" id="tablasinrecibido">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:center">N&uacute;mero</th>
+                                            <th style="text-align:center">Referencia</th>
+                                            <th style="text-align:center">Cantidad Enviada</th>
+                                            <th style="text-align:center">Cantidad Recibida</th>
+                                            <th style="text-align:center">Fecha Envío</th>
+                                            <th style="text-align:center">Costo</th>
+                                            <th style="text-align:center">Origen</th>
+                                            <th style="text-align:center">Destino</th>
+                                            <th style="text-align:center">Notas</th>
+                                            <th style="text-align:center">mensajeria</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+
+                                <table class="table table-striped table-bordered table-hover" id="tablasinrecibidoincompleto">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:center">N&uacute;mero</th>
+                                            <th style="text-align:center">Referencia</th>
+                                            <th style="text-align:center">Cantidad Enviada</th>
+                                            <th style="text-align:center">Cantidad Recibida</th>
+                                            <th style="text-align:center">Fecha Envío</th>
+                                            <th style="text-align:center">Costo</th>
+                                            <th style="text-align:center">Origen</th>
+                                            <th style="text-align:center">Destino</th>
+                                            <th style="text-align:center">Notas</th>
+                                            <th style="text-align:center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript">
+
+
+        $(document).ready(function () {
+            cargarTraslados();
+              $('#fechaini').datetimepicker({
+                    format: 'YYYY/MM/DD'
+                });
+                $('#fechafin').datetimepicker({
+                    format: 'YYYY/MM/DD'
+                });
+            buscarTrasladoPendiente(4);
+        });
+
+        function solicitudTraslados() {
+            debugger;
+            window.location.href = '@Url.Action("VerSolicitudesTraslado", "trasladoRepuestos")';
+            debugger;
+        }
+
+        function buscarAjaxTraslados() {
+            $("#tablaPaginada").dataTable().fnDestroy();
+            $.ajax({
+                url: '/trasladoRepuestos/BuscarTrasladosRepuestos',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+
+                        var referencias = '';
+                        for (var j = 0; j < data[i].referencias.length; j++) {
+                            referencias += data[i].referencias[j].ref_descripcion + ', '
+                        }
+
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="right">'
+                            + data[i].numero + '</td><td align="right">'
+                            + data[i].fecha + '</td><td align="left">'
+                            + data[i].origen + '</td><td align="left">'
+                            + data[i].destino + '</td><td align="left">'
+                            + data[i].mensajeria + '</td><td align="left">'
+                            + referencias + '</td>'
+                            + '<td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                            + data[i].idencabezado
+                            + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            })
+        }
+
+        function cargarTraslados() {
+            $.ajax({
+                url: '/trasladoRepuestos/cargarTrasladosDestino',
+                data: {},
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaDestinos').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        var estilo = "";
+                        if (data[i].esfaltante == 1) {
+                            estilo = "class='danger'";
+                        }
+                        $('#tablaDestinos').find('tbody').append(
+                            '<tr ' + estilo + '>'
+                            + '<td style="display:none" id="id' + i + '"><input id="oculto' + i + '" name="oculto' + i + '" onchange="validacion(' + i + ')' + i + '" value="' + data[i].id + '" /></td>'
+                            + '<td align="right">' + data[i].numero + '</td>'
+                            + '<td align="left">' + data[i].referencia + '</td>'
+                            + '<td align="right">' + data[i].cantidad + '</td>'
+                            + '<td align="right">' + data[i].cantidad_pendiente + '</td>'
+                            + '<td align="right">' + data[i].fechatraslado + '</td>'
+                            + '<td align="right">$'
+                            + '<input type="hidden" name="costo_' + i + '" value="' + data[i].costo + '"/>' + data[i].costo
+                            + '</td>'
+                            + '<td align="left">' + data[i].origen + '</td>'
+                            + '<td align="left">' + data[i].destino + '</td>'
+                            + '<td align="left">' + data[i].destinatario + '</td>'
+                            + '<td align="left">'
+                            + '<input type="number" min="1" id="cantidad_' + i + '" name="cantidad_' + i + '" class="form-control" onchange="validarpendiente(' + i + ')" />'
+                            + '</td>'
+                            + '<td width="5%" align="center"><input id="checkbox' + i + '" name="checkbox' + i + '" onchange="validacion(' + i + ')" class="i-checks" type="checkbox" value="0" /></td>'
+
+                            + '</tr>');
+                        $('#listaReferencias').val(i)
+                    }
+                },
+                complete: function (data) {
+                    //$('.i-checks').iCheck({
+                    //    checkboxClass: 'icheckbox_square-green',
+                    //    radioClass: 'iradio_square-green'
+                    //});
+
+
+                }
+            })
+        }
+
+        function validarpendiente(indice) {
+            debugger;
+            var id = $('#oculto' + indice).val();
+            var cantidad = $('#cantidad_' + indice).val();
+            if (cantidad != "" && cantidad != "0") {
+                $.ajax({
+                    url: '/trasladoRepuestos/validarcantidad',
+                    data: { id: id, cantidad: cantidad },
+                    type: 'post',
+                    cache: false,
+                    success: function (data) {
+                        if (data.valor != 0) {
+                            console.log(data)
+                            debugger;
+                            var nota = $('#notas').val(data.result + " Incompleto");
+                            $("#checkbox" + id).prop("checked", true);
+                        }
+                        else {
+                            swal("Error", data.respuesta, "danger");
+                            var cantidad = $('#cantidad_' + indice).val('');
+                            $("#checkbox" + id).prop("checked", false);
+                        }
+                    }
+                });
+            }
+        }
+
+        function validacion(id) {
+            if ($('#checkbox' + id).is(':checked')) {
+                if ($('#cantidad_' + id).val() == "" || $('#cantidad_' + id).val() == 0) {
+                    $('#checkbox' + id).prop('checked', false);
+                    $('#checkbox' + id).val(0)
+                } else {
+                    $('#checkbox' + id).val(1)
+                }
+            } else {
+                $('#checkbox' + id).val(0)
+            }
+        }
+
+        function buscarTraslado() {
+            if ($('#numeroPedido').val() == "") {
+                $('#pedidoVacio').show()
+                $('#pedidoVacio').fadeOut(3000)
+            } else {
+                $.ajax({
+                    url: '/trasladoRepuestos/buscartraslado',
+                    data: { numero: $('#numeroPedido').val() },
+                    type: 'post',
+                    cache: false,
+                    success: function (data) {
+                        if (data.error == true && data.info == false) {
+                            $('#bodegaEquivocada').show()
+                            $('#bodegaEquivocada').fadeOut(10000)
+                        }
+                        if (data.info == true && data.error == false) {
+                            $('#tablaSeg').show()
+                            $('#sinrecibido').hide()
+                            $('#tablaSeguimiento').find('tbody').empty();
+                            for (var i = 0; i < data.data.length; i++) {
+                                if (data.data[i].recibido == false) {
+                                    var td = '<td align="left">No recibido</td>'
+                                } else if (data.data[i].recibido == true && data.data[i].recibo_completo == true) {
+                                    var td = '<td align="left">Recibido</td>'
+                                }
+                                else {
+                                    var td = '<td align="left">Recibido (faltantes)</td>'
+                                }
+                                $('#tablaSeguimiento').find('tbody').append(
+                                    '<tr id="linea' + i + '">'
+                                    + '<td align="right">' + data.data[i].numero + '</td>'
+                                    + '<td align="left">' + data.data[i].referencia + '</td>'
+                                    + '<td align="right">' + data.data[i].cantidad + '</td>'
+                                    + '<td align="right">' + data.data[i].cant_recibida + '</td>'
+                                    + '<td align="right">' + data.data[i].fechatraslado + '</td>'
+                                    + '<td align="right">' + data.data[i].fecharecibido + '</td>'
+                                    + '<td align="right">$' + data.data[i].costo + '</td>'
+                                    + '<td align="left">' + data.data[i].origen + '</td>'
+                                    + '<td align="left">' + data.data[i].destino + '</td>'
+                                    + '<td align="left">' + data.data[i].asesor + '</td>'
+                                    + td
+                                    + '<td align="left">' + data.data[i].notas + '</td>'
+                                    + '</tr>');
+                                if (data.data[i].recibido == false) {
+                                    $('#linea' + i).addClass('danger')
+                                }
+                            }
+                        } if (data.info == false && data.error == false) {
+                            $('#errorBusqueda').show()
+                            $('#errorBusqueda').fadeOut(7000)
+                        }
+                    }
+                })
+            }
+        }
+
+        function buscarTrasladoPendiente_(id) {
+            $('#tablasinrecibidoincompleto').show();
+            $('#tablasinrecibidoincompleto').dataTable().fnDestroy();
+            $('#tablasinrecibido').hide();
+            debugger;
+
+            $.ajax({
+                url: '/trasladoRepuestos/trasladoPendiente',
+                data: { id: id },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    if (data.info == true) {
+                        $('#tablaSeg').hide()
+                        $('#sinrecibido').show()
+                        $('#tablasinrecibidoincompleto').find('tbody').empty();
+                        for (var i = 0; i < data.data.length; i++) {
+                            $('#tablasinrecibidoincompleto').find('tbody').append(
+                                '<tr>'
+                                + '<td align="right">' + data.data[i].numero + '</td>'
+                                + '<td align="left">' + data.data[i].referencia + '</td>'
+                                + '<td align="right">' + data.data[i].cantidad + '</td>'
+                                + '<td align="right">' + data.data[i].cant_recibida + '</td>'
+                                + '<td align="right">' + data.data[i].fechatraslado + '</td>'
+                                + '<td align="right">$' + data.data[i].costo + '</td>'
+                                + '<td align="left">' + data.data[i].origen + '</td>'
+                                + '<td align="left">' + data.data[i].destino + '</td>'
+                                + '<td align="left">' + data.data[i].notas + '</td>'
+                                //+ '<td align="left">' + data.data[i].mensajeria + '</td>'
+                                + '<td width="5%" align="center"><a class="btn btn-info btn-xs" onclick="devolverSolicitud(' + data.data[i].id + ',' + data.data[i].id_origen + ',' + data.data[i].id_destino + ',' + i + ')">Devolver</button></td>'
+                                + '</tr>');
+                        }
+                    } else {
+                        $('#tablaSeg').hide()
+                        $('#sinrecibido').hide()
+                        $('#sinDatos').show()
+                        $('#sinDatos').fadeOut(7000)
+                    }
+                }
+            })
+        }
+
+        function devolverSolicitud(id, bodega_origen,bodega_destino, indice) {
+
+            debugger;
+            $.ajax({
+                url: '/trasladoRepuestos/devolverSolicitud',
+                data: {
+                    id: id,
+                    bodega_origen: bodega_origen,
+                    bodega_destino: bodega_destino,
+                },
+                type: "post",
+                cache: false,
+                success: function (result) {
+
+                    if (result == 1) {
+                        swal("Exito!", "Se ha hecho la devolucion exitosamente!", "success");
+                        cargarTraslados();
+                    } else {
+                        swal("Error!", "Error al realizar la devolucion!", "error");
+                    }
+
+                }
+            })
+        }
+
+        function buscarTrasladoPendiente(id) {
+            $('#tablasinrecibido').dataTable().fnDestroy();
+            $('#tablasinrecibidoincompleto').hide();
+            $.ajax({
+                url: '/trasladoRepuestos/trasladoPendiente',
+                data: {
+                    id: id,
+                    fechaini: $('#fechaini').val(),
+                    fechafin: $('#fechafin').val()
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    if (data.info == true) {
+                        $('#tablaSeg').hide()
+                        $('#sinrecibido').show()
+                        $('#tablasinrecibido').find('tbody').empty();
+                        for (var i = 0; i < data.data.length; i++) {
+                            $('#tablasinrecibido').find('tbody').append(
+                                '<tr>'
+                                + '<td align="right">' + data.data[i].numero + '</td>'
+                                + '<td align="left">' + data.data[i].referencia + '</td>'
+                                + '<td align="right">' + data.data[i].cantidad + '</td>'
+                                + '<td align="right">' + data.data[i].cant_recibida + '</td>'
+                                + '<td align="right">' + data.data[i].fechatraslado + '</td>'
+                                + '<td align="right">$' + data.data[i].costo + '</td>'
+                                + '<td align="left">' + data.data[i].origen + '</td>'
+                                + '<td align="left">' + data.data[i].destino + '</td>'
+                                + '<td align="left">' + data.data[i].notas + '</td>'
+                                + '<td align="left">' + data.data[i].mensajeria + '</td>'
+                                + '</tr>');
+                        }
+                    } else {
+                        $('#tablaSeg').hide()
+                        $('#sinrecibido').hide()
+                        $('#sinDatos').show()
+                        $('#sinDatos').fadeOut(7000)
+                    }
+                }
+            })
+        }
+
+
+    </script>
+
+
+}
+
+

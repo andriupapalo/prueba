@@ -1,0 +1,593 @@
+﻿@{
+    ViewBag.Icono = "fa fa-search";
+    ViewBag.Title = "Consulta Documentos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+            <div id="hbreadcrumb" class="pull-right">
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Modulo @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        <div id="tabs" class="tab-content">
+        </div>
+        <div class="m float-e-margins text-right">
+            <div class="tooltip-demo">
+                <div id="div-mensaje"></div>
+            </div>
+        </div>
+        <ul id="tabs-crear" class="nav nav-tabs">
+            <li class="active"><a data-toggle="tab" href="#buscar"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+        </ul>
+        <div id="buscar" class="tab-pane active">
+            <div class="panel-body">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="form-horizontal">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                            </div>
+                            <div class="panel-body">
+                                <div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("tipoDoc", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" id="selectBodegas" name="bodega" required="required">
+                                                        <option></option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Número Documento:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("numeroDocumento", Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" id="otrodocumentodiv" style="display:none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Número Documento Específico:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.Editor("otrodocumento", new { htmlAttributes = new { @type = "number", @class = "form-control", @placeholder = "Digite documento" } })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Factura:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.Editor("plan_mayor", new { htmlAttributes = new { @type = "number", @class = "form-control", @placeholder = "número documento" } })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <div class="col-md-6 col-md-offset-4">
+                                                    <button type="button" class="btn btn-primary" id="btnBuscarDocumento"><i class="fa fa-search" aria-hidden="true"></i>&nbsp;&nbsp;Buscar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <br />
+
+                                <div class="form-horizontal" style="display:none" id="panelInfoEncontrada">
+                                    <div class="row">
+                                        <div class="col-lg-12 col-lg-offset-0">
+                                            <div class="hpanel hblue">
+                                                <div class="panel-heading hbuilt text-center">
+                                                    <b>INFORMACION GENERAL</b>
+                                                </div>
+                                                <div class="panel-body">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4"># Documento:&nbsp;</label>
+                                                                <div class="col-md-6">
+                                                                    <h5>
+                                                                        <p id="num_documento"></p>
+                                                                    </h5>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        @*<div class="col-sm-6" id="esCompra" style="display:none">*@
+                                                        <div id="esCompra" style="display:none">
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                    <label class="control-label col-md-4"># Factura:&nbsp;</label>
+                                                                    <div class="col-md-6">
+                                                                        <h5>
+                                                                            <p id="num_factura"></p>
+                                                                        </h5>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Fecha Documento:&nbsp;</label>
+                                                                <div class="col-md-6">
+                                                                    <p id="fechaRealizacion"></p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Fecha Vencimiento:&nbsp;</label>
+                                                                <div class="col-md-6">
+                                                                    <p id="fechaVence"></p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Cliente:&nbsp;</label>
+
+                                                                <div class="col-md-8">
+                                                                    <p id="NombreCliente"></p>
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+
+                                                        @*<div class="col-md-12">
+                                                                <div class="form-group">
+                                                                    <label class="control-label col-md-4">Cliente:&nbsp;</label>
+                                                                    <div class="col-md-2">
+                                                                            <p id="nit"></p>
+                                                                        </div>
+                                                                    <div class="col-md-8">
+                                                                        <p id="NombreCliente"></p>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>*@
+
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Dirección:&nbsp;</label>
+                                                                <div class="col-md-6">
+                                                                    <p id="direccion"></p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-4">Celular:&nbsp;</label>
+                                                                <div class="col-md-6">
+                                                                    <p id="celular"></p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-sm-12">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-2">Correo:&nbsp;</label>
+                                                                <div class="col-md-6">
+                                                                    <p id="correo"></p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-12">
+                                            <div class="hpanel hblue">
+                                                <div class="panel-heading hbuilt text-center">
+                                                    <b>INFORMACIÓN CONTABLE</b>
+                                                </div>
+                                                <div class="panel-body">
+                                                    <div class="table-responsive">
+                                                        <div id="div-mensaje-buscar"></div>
+                                                        <table class="table table-striped table-bordered table-hover" id="tablaDatosContables">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="text-align:center">Cuenta</th>
+                                                                    <th style="text-align:center">C Cuenta</th>
+                                                                    <th style="text-align:center">C Costo</th>
+                                                                    <th style="text-align:center">Debito</th>
+                                                                    <th style="text-align:center">Credito</th>
+                                                                    <th style="text-align:center">Base</th>
+                                                                    <th style="text-align:center">Debito Niif</th>
+                                                                    <th style="text-align:center">Credito Niif</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="panelDetalles" style="display:none;">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Items de Inventario
+                                </div>
+                                <div class="panel-body">
+                                    <div class="table-responsive">
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tablaDetalles">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Bodega</th>
+                                                    <th style="text-align:center">Codigo Referencia</th>
+                                                    <th style="text-align:center">Descripci&oacute;n</th>
+                                                    <th style="text-align:center">Cantidad</th>
+                                                    <th style="text-align:center">Costo Unitario</th>
+                                                    <th style="text-align:center">Iva (%)</th>
+                                                    <th style="text-align:center">Iva ($)</th>
+                                                    <th style="text-align:center">Descuento (%)</th>
+                                                    <th style="text-align:center">Descuento ($)</th>
+                                                    <th style="text-align:center">Valor Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hpanel" id="panelDetalles" style="display:none;">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Items de Inventario
+                            </div>
+                            <div class="panel-body">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tablaDetalles">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">Bodega</th>
+                                                <th style="text-align:center">Codigo Referencia</th>
+                                                <th style="text-align:center">Descripci&oacute;n</th>
+                                                <th style="text-align:center">Cantidad</th>
+                                                <th style="text-align:center">Costo Unitario</th>
+                                                <th style="text-align:center">Iva (%)</th>
+                                                <th style="text-align:center">Iva ($)</th>
+                                                <th style="text-align:center">Descuento (%)</th>
+                                                <th style="text-align:center">Descuento ($)</th>
+                                                <th style="text-align:center">Valor Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hpanel" id="DocumentosAplicados" style="display:none;">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Documentos Aplicados
+                            </div>
+                            <div class="panel-body">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tablaDocumentos">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">Tipo Documento</th>
+                                                <th style="text-align:center">Descripción</th>
+                                                <th style="text-align:center">Número</th>
+                                                <th style="text-align:center">Valor ($)</th>
+                                                <th style="text-align:center">Fecha</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+
+                $(document).ready(function () {
+                    $('.js-source-states').select2();
+                    $('#panelDetalles').find('.showhide').trigger('click');
+                    @*buscardocumento('@ViewBag.numero','@ViewBag.tpDoc','@ViewBag.bodega','@ViewBag.otro');*@
+                });
+
+                $('#tipoDoc').change(function(){
+                    $.ajax({
+                        url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                        data: {
+                            id: $('#tipoDoc').val()
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            $('#selectBodegas').empty();
+                            $('#selectBodegas').append($('<option>', {
+                                value: '',
+                                text: ''
+                            }));
+                            for (var i = 0; i < data.buscarBodega.length; i++) {
+                                $('#selectBodegas').append($('<option>', {
+                                    value: data.buscarBodega[i].id,
+                                    text: data.buscarBodega[i].bodccs_nombre
+                                }));
+                            }
+                        }
+                    });
+                });
+
+                $('#selectBodegas').change(function(){
+                    ConsultarDocumentos();
+                });
+
+                function ConsultarDocumentos(){
+                    $.ajax({
+                        url: '/consultaDocumentos/BuscarDocumentos',
+                        data: {
+                            tipo_documento: $('#tipoDoc').val(),
+                            bodega_id: $('#selectBodegas').val()
+                        },
+                        type: 'post',
+                        dataType: 'json',
+                        cache: false,
+                        success: function (data) {
+                            $('#numeroDocumento').empty();
+
+                            $('#numeroDocumento').append($('<option>', {
+                                value: '',
+                                text: ''
+                            }));
+                            for (var i = 0; i < data.length; i++) {
+                                $('#numeroDocumento').append($('<option>', {
+                                    value: data[i].numero,
+                                    text: data[i].numero + ' - ' + data[i].cliente
+                                }));
+                            }
+                            $('#numeroDocumento').append($('<option>', {
+                                value: '9999999999999999999',
+                                text: 'Otro Número de documento'
+                            }));
+                            $('#numeroDocumento').val('').trigger('change');
+                        },
+                        complete: function (data) {
+                            @*$('#numeroDocumento').val(@ViewBag.numero).attr('style','visible:visible').select2();*@
+
+                        }
+                    });
+                }
+
+
+
+                $('#numeroDocumento').change(function(){
+
+                    var documento=$('#numeroDocumento').val();
+                    if(documento=='9999999999999999999'){
+                        $('#otrodocumentodiv').show();
+                    }
+                    else{
+                        $('#otrodocumentodiv').hide();
+                        $('#otrodocumento').val('');
+                    }
+                });
+
+                $('#btnBuscarDocumento').click(function () {
+                    $.ajax({
+                        url: '/consultaDocumentos/BuscarDocumento',
+                        data: {
+                            numero: $('#numeroDocumento').val(),
+                            tpDoc: $('#tipoDoc').val(),
+                            bodega: $('#selectBodegas').val(),
+                            otro: $('#otrodocumento').val(),
+                            plan_mayor: $('#plan_mayor').val()
+                        },
+                        type: 'post',
+                        dataType: 'json',
+                        cache: false,
+                        success: function (data) {
+                            console.log(data);
+                            if (data.encontrado == true) {
+                                num_documento
+                                $('#num_documento').text(data.buscarFactura.numero);
+                                $('#fechaRealizacion').text(data.buscarFactura.fecha);
+                                $('#fechaVence').text(data.buscarFactura.vencimiento);
+                                console.log("Factura " + data.buscarFactura.facturacompra + " SW " + data.buscarFactura.tipoCompra);
+
+                                if (data.buscarFactura.tipoCompra == 1 || data.buscarFactura.tipoCompra == 2) {
+                                    $('#esCompra').show();
+
+                                } else {
+
+                                    $('#esCompra').hide();
+                                };
+
+
+                                $('#num_factura').text(data.buscarFactura.facturacompra);
+
+                                console.log(data.buscarFactura.fecha);
+                                //$('#NombreCliente').text(data.buscarFactura.razon_social +" "+ data.buscarFactura.prinom_tercero + " " + data.buscarFactura.segnom_tercero + " " + data.buscarFactura.apellido_tercero + " " + data.buscarFactura.segapellido_tercero);
+                                $('#NombreCliente').text(data.buscarFactura.nombrecliente);
+                                //$('#segundoNombre').text(data.buscarFactura.segnom_tercero);
+                                //$('#primerApellido').text(data.buscarFactura.apellido_tercero);
+                                //$('#razonSocial').text(data.buscarFactura.razon_social);
+                                $('#direccion').text(data.buscarFactura.direc_tercero != null ? data.buscarFactura.direc_tercero.direccion : "");
+                                $('#celular').text(data.buscarFactura.celular_tercero);
+                                $('#nit').text(data.buscarFactura.doc_tercero);    /// Actualizacion realizada el 04 /07 /2018
+                                $('#correo').text(data.buscarFactura.email_tercero); /// Actualizacion realizada el 04 /07 /2018
+                                /// <td align="right">'+ data.movimientos[i].nomcentro + '</td>    Actualizacion realizada el 04 /07 /2018
+
+                                $('#tablaDatosContables').find('tbody').empty();
+                                for (var i = 0; i < data.movimientos.length; i++) {
+                                    $('#tablaDatosContables').find('tbody').append('<tr><td align="right">'
+                                        + data.movimientos[i].cntpuc_numero + '</td><td align="left">'
+                                        + data.movimientos[i].cntpuc_descp + '</td><td align="left">'
+                                        + data.movimientos[i].nomcentro + '</td><td align="right">$ '
+                                        + addComas(Math.round(data.movimientos[i].debito)) + '</td><td align="right">$ '
+                                        + addComas(Math.round(data.movimientos[i].credito)) + '</td><td align="right">$ '
+                                        + addComas(Math.round(data.movimientos[i].basecontable)) + '</td><td align="right">$ '
+                                        + addComas(Math.round(data.movimientos[i].debitoniif)) + '</td><td align="right">$ '
+                                        + addComas(Math.round(data.movimientos[i].creditoniif)) + '</td></tr>');
+                                }
+                                // Se agregan los totales de cada columna
+                                // <b> </b> Actualizacion realizada el 04 /07 /2018
+                                $('#tablaDatosContables').find('tbody').append('<tr><td align="center">'
+                                    + '' + '</td><td align="center"><b>'
+                                    + 'Total' + '</b></td><td align="center"><b> </b><td align="right"><b>$ '
+                                    + addComas(Math.round(data.calculoMovimientos.debitoTotal)) + '</b></td><td align="right"><b>$ '
+                                    + addComas(Math.round(data.calculoMovimientos.creditoTotal)) + '</b></td><td align="right"><b>$ '
+                                    + addComas(Math.round(data.calculoMovimientos.baseTotal)) + '</b></td><td align="right"><b>$ '
+                                    + addComas(Math.round(data.calculoMovimientos.debitoNiffTotal)) + '</b></td><td align="right"><b>$ '
+                                    + addComas(Math.round(data.calculoMovimientos.creditoNiffTotal)) + '</b></td></tr>');
+
+                                $('#tablaDetalles').find('tbody').empty();
+                                for (var i = 0; i < data.detalles.length; i++) {
+                                    $('#tablaDetalles').find('tbody').append('<tr><td align="center">'
+                                        + data.detalles[i].bodega1 + '</td><td align="center">'
+                                        + data.detalles[i].codigo + '</td><td align="center">'
+                                        + data.detalles[i].ref_descripcion + '</td><td align="center">'
+                                        + addComas(Math.round(data.detalles[i].cantidad)) + '</td><td align="right">$ '
+                                        + addComas(Math.round(data.detalles[i].costo_unitario)) + '</td><td align="right">'
+                                        + addComas(Math.round(data.detalles[i].porcentaje_iva)) + '</td><td align="right">$ '
+                                        + addComas(Math.round(data.detalles[i].valorIva)) + '</td><td align="right">'
+                                        + addComas(Math.round(data.detalles[i].porcentaje_descuento)) + '</td><td align="right">$ '
+                                        + addComas(Math.round(data.detalles[i].valorDescuento)) + '</td><td align="right">$ '
+                                        + addComas(Math.round(data.detalles[i].valorTotal)) + '</td></tr>');
+
+
+                                }
+
+                                $('tablaDocumentos').find('tbody').empty();
+                                for (var i = 0; i < data.documentosaplicados.length; i++) {
+                                    $('#tablaDocumentos').find('tbody').append('<tr><td align="left">'
+                                        + data.documentosaplicados[i].prefijo + '</td><td align="left">'
+                                        + data.documentosaplicados[i].descripcion + '</td><td align="right">'
+                                        + data.documentosaplicados[i].valorap + '</td><td align="right">$'
+                                        + addComas(Math.round(data.documentosaplicados[i].valor)) + '</td><td align="left">'
+                                        + data.documentosaplicados[i].fecha) + '</td><td align="left">';
+                                }
+
+                                $('#panelInfoEncontrada').show();
+                                //$('#alertaNoEncontrada').hide();
+                                $('#panelDetalles').show();
+                                $('#DocumentosAplicados').show();
+                            } else {
+                                $('#panelInfoEncontrada').hide();
+                                $('#panelDetalles').hide();
+
+                                $('#DocumentosAplicados').hide();
+                                //$('#alertaNoEncontrada').show();
+                            }
+                        },
+                    });
+                });
+
+                function AgregarQuitarFavorito(){
+                    $.ajax({
+                        url: '/Inicio/AgregarQuitarFavorito',
+                        data: {
+                            id_menu: @ViewBag.id_menu,
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            if (data.esFavorito == true) {
+                                $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                            } else {
+                                $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                            }
+                        }
+                    });
+                }
+
+    </script>
+
+}

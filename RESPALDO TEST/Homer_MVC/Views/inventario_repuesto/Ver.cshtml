@@ -1,0 +1,1294 @@
+﻿@model Homer_MVC.IcebergModel.ReferenciasModel
+@{
+    ViewBag.Icono = "fa fa-file-powerpoint-o";
+    ViewBag.Title = "Cotizaciones y Pedidos a Clientes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.themes.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Cargue de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <br />
+
+        <div id="tabs" class="tab-content">
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class=""><a href="@Url.Action("create", "inventario_repuesto", new { menu = @ViewBag.id_menu })"><i class="fa fa-arrow-up"></i>&nbsp;&nbsp;Crear</a></li>
+                <li class=""><a href="@Url.Action("Index", "inventario_repuesto", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+                <li class="active"><a data-toggle="tab" href="#ver"><i class="fa fa-bars"></i>&nbsp;&nbsp;Detalles</a></li>
+            </ul>
+
+            <div id="ver" class="tab-pane active">
+                <div class="panel-body">
+                    @using (Html.BeginForm("Ver", "inventario_repuesto", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                        {
+                        <input type="hidden" name="id" id="id" value="@ViewBag.id" />
+                        <input type="hidden" name="tpdocid" id="tpdocid" value="@ViewBag.tpdocid" />
+                        <input type="hidden" name="tpdoc_id" id="tpdoc_id" value="@ViewBag.tpdoc_id" />
+                        <input type="hidden" name="estado" id="estado" value="@ViewBag.estado" />
+
+                        <div class="form-horizontal">
+
+                            @Html.AntiForgeryToken()
+                            @Html.Hidden("menu")
+                            @Html.HiddenFor(model => model.refmov_id)
+
+                            <div class="panel-body-btns text-right">
+                                <button class="btn btn-info col-md-offset-4" type="button" id="btnGuardarSimulacion" onclick="validarObligatorios()"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                                <button class="btn btn-info" type="submit" id="btnSave" style="display: none"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                                <button class="btn btn-danger btnModal" type="button" style="text-align:right"><i class="fa fa-times"></i>&nbsp;&nbsp;&nbsp;Anular</button>
+                                @*<button class="btn btn-danger" type="button" id="btnAnular" onclick="Anular(@ViewBag.id)"><i class="fa fa-times"></i>&nbsp;&nbsp;&nbsp;Anular</button>*@
+                            </div>
+
+                            <div class="panel-body-btns text-right">
+
+                                <button class="btn btn-success" type="button" id="btnGenerarPDFCotizacion"><i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;&nbsp;Generar PDF</button>&nbsp;&nbsp;
+
+                            </div>
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" value="@ViewBag.pedido" id="pedido" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 pedido">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cotizacion:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" value="@ViewBag.cotizacion" id="cotizacion" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cliente:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="hidden" class="form-control" value="@ViewBag.nit" id="nit" readonly />
+                                                @Html.DropDownListFor(model => model.cliente, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Bodega:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.bodega_id, ViewBag.bodega_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Vendedor:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" value="@ViewBag.vendedor" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" value="@ViewBag.fecela" id="fecha" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Condición:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" value="@ViewBag.condicion" id="condicion" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Días de validez:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" value="@ViewBag.dias_validez" id="diasValidez" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Descuento PIE:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" value="" id="descuentoPie" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 cotizacion">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Valor Total:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" value="" id="valor_total" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Estado:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" value="@ViewBag.estado" id="estados" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Usuario Creación:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" value="@ViewBag.usuario" id="usuario" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+
+
+
+                        <div class="hpanel" id="panelHabeasData">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-calendar-check-o"></i>&nbsp;&nbsp;&nbsp;Historico
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-lg-12">
+                                    <div class="table-responsive">
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tablaHistorico">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Código</th>
+                                                    <th style="text-align:center">Descripción</th>
+                                                    <th style="text-align:center">Cantidad</th>
+                                                    <th style="text-align:center">Valor Unitario</th>
+                                                    <th style="text-align:center">Valor antes IVA</th>
+                                                    <th style="text-align:center">Descuento (%)</th>
+                                                    <th style="text-align:center">Total Descuento ($)</th>
+                                                    <th style="text-align:center">Descuento PIE (%)</th>
+                                                    <th style="text-align:center">Total Descuento PIE ($)</th>
+                                                    <th style="text-align:center">IVA (%)</th>
+                                                    <th style="text-align:center">Total IVA ($)</th>
+                                                    <th style="text-align:center">Valor Total</th>
+                                                    <th style="text-align:center">Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                            <tfoot>
+                                                <tr id="filaSubTotal">
+                                                    <td align="center" colspan="11" style="border-bottom:hidden; border-left:hidden; text-align:right">
+                                                        <b>SUB TOTAL</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD">
+                                                        <input class="form-control input-sm" id="valorSubH" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                                <tr id="filaTotalDescuento">
+                                                    <td align="center" colspan="11" style="border-bottom:hidden; border-top:hidden; border-left:hidden; text-align:right">
+                                                        <b>DESCUENTO</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD">
+                                                        <input class="form-control input-sm" id="valorDesH" name="valorDes" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                                <tr id="filaTotalDescuentoPIE">
+                                                    <td align="center" colspan="11" style="border-bottom:hidden; border-top:hidden; border-left:hidden; text-align:right">
+                                                        <b>DESCUENTO PIE</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD">
+                                                        <input class="form-control input-sm" id="valorDesPie" name="valorDesPie" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                                <tr id="filaTotalIVA">
+                                                    <td align="center" colspan="11" style="border-bottom:hidden; border-top:hidden; border-left:hidden; text-align:right">
+                                                        <b>IVA</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                                        <input class="form-control input-sm" id="valorIVAH" name="valorIVA" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                                <tr id="filaTotal">
+                                                    <td align="center" colspan="11" style="text-align:right; border-top:hidden; border-bottom:hidden; border-left:hidden; border-top:hidden">
+                                                        <b>TOTAL</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD">
+                                                        <input class="form-control input-sm" id="valorFinalH" name="valorFinalH" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                                <button class="btn btn-success" id="btnAgregar" type="button" onclick="agregarCotizacion()">Agregar <i class="fa fa-plus"></i></button>
+                                <input type="hidden" value="" name="lista_historico" id="lista_historico" />
+                            </div>
+                        </div>
+
+
+                        <div class="hpanel" id="paneldocumentos">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-calendar-check-o"></i>&nbsp;&nbsp;&nbsp;Documentos Asociadoss
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-lg-12">
+                                    <div class="table-responsive">
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tabladocumentos">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Tipo Documento</th>
+                                                    <th style="text-align:center">Num. Documento</th>
+                                                    <th style="text-align:center">Fecha</th>
+                                                    <th style="text-align:center">Estado</th>                  
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>                                        
+                                        </table>
+                                    </div>
+                                </div>
+                            
+                            </div>
+                        </div>
+
+                        <div class="hpanel" style="display: none" id="subirMas">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Cargue de Referencias
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Referencia:&nbsp;<span class="text-danger">*</span> </label>
+                                        <div class="col-md-6">
+                                            <input type="hidden" name="banderaCodigo" id="banderaCodigo" value="" />
+                                            <input id="referencia" name="referencia" placeholder="Seleccione" class="form-control" onkeyup="traerReferencias(this.id)" />
+                                            @*<select class="multiselect-ui form-control input-sm" onchange="buscarPrecios()" id="referencia" name="referencia">
+                                    <option></option>
+                                </select>*@
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Precio $&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            <input class="form-control input-sm number" id="precio" onkeyUp="return miles(this.id)" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Descuento %</label>
+                                        <div class="col-md-6">
+                                            <input class="form-control input-sm number" id="descuento" min="0" max="100" step="any" onkeypress="return valida(event, this.id)" } />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">IVA %</label>
+                                        <div class="col-md-6">
+                                            <input class="form-control input-sm number" id="iva" onkeyUp="return miles(this.id)" readonly="readonly" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Cantidad:&nbsp;<span class="text-danger">*</span> </label>
+                                        <div class="col-md-6">
+                                            <input class="form-control input-sm " type="number" min="0" max="" id="cantidad" value="" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-2">
+                                    <div class="form-group">
+                                        <div class="col-md-2 rpt">
+                                            <button class="btn btn-success" type="button" id="btnAgregarRepuesto">agregar</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-12">
+                                    <div class="table-responsive">
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tablaCotizacion">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Referencia</th>
+                                                    <th style="text-align:center">Cantidad</th>
+                                                    <th style="text-align:center">Valor Unitario</th>
+                                                    <th style="text-align:center">Valor antes IVA</th>
+                                                    <th style="text-align:center">Descuento (%)</th>
+                                                    <th style="text-align:center">Total Descuento ($)</th>
+                                                    <th style="text-align:center">IVA (%)</th>
+                                                    <th style="text-align:center">Total IVA ($)</th>
+                                                    <th style="text-align:center">Valor Total</th>
+                                                    <th style="text-align:center">Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                            <tfoot>
+                                                <tr id="filaSubTotal">
+                                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                        <b>SUB TOTAL</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                                        <input class="form-control input-sm" id="valorSub" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                                <tr id="filaTotalDescuento">
+                                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                        <b>DESCUENTO</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                                        <input class="form-control input-sm" id="valorDes" name="valorDes" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                                <tr id="filaTotalIVA">
+                                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                        <b>IVA</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                                        <input class="form-control input-sm" id="valorIVA" name="valorIVA" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                                <tr id="filaTotal">
+                                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                        <b>TOTAL</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD">
+                                                        <input class="form-control input-sm" id="valorFinal" name="valorFinal" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" value="" name="lista_referencias" id="lista_referencias" />
+
+                            </div>
+                        </div>
+                        }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal Cotizacion actualizado*@
+<div id="modalCotizacion" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Cotizacion registrada con éxito</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align:center;">
+                    <h4>Se registro la actualizacion de la cotizacion cotización con el número</h4> <h3><span class="label label-default">@ViewBag.pedido</span></h3>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal Cotizacion vacio*@
+<div id="modalVacio" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Error en la cotizacion</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align:center;">
+                    <h4>No puede guardar la cotizacion sin antes haber incluido items de inventario</h4>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalVacio">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal devolucion ya realizada*@
+<div id="modal_anulacion" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h5 class="modal-title" id="exampleModalLongTitle"><b>Anular Cotización</b></h5>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align:left;">
+                    <label>Motivo de anulación </label>
+                    <select id="motivo_anulacion" name="motivo_anulacion" placeholder="Seleccione" style="width:50%"></select>
+                    <input name="id_cotizacion" id="id_cotizacion" value="@ViewBag.idCotizacion" type="hidden" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary btnAnular" data-dismiss="modal">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modalErrorAgregar" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Referencia no agregada</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align:center;">
+                    <p>No puedes agregar una referencia sin haber completado todos los campos correspondientes, por favor valide!</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalError">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/EasyAutocomplete-1.3.5/jquery.easy-autocomplete.min.js"></script>
+
+
+    <script type="text/javascript">
+        var i = 0;
+        var r = 0;
+        var re = 0;
+        var cot = 0;
+        var cos = 0;
+        var contadorReferencias = 0;
+        var total = 0;
+        var subtotal = 0; 
+        var descuento = 0;
+        var descuentoPie = 0;
+        var porIva = 0;
+        var valorTotal = 0;
+        $('#motivo_anulacion').select2();
+        //$('#referencia').select2();
+        $('#cerrarModal').click(function () {
+            $('#modalCotizacion').hide();
+        });
+        $('#btnAgregarRepuesto').click(function () {
+
+            if ($('#referencia').val() == '' || $('#referencia').val() == null || $.trim($('#cantidad').val()) == '' || $.trim($('#precio').val()) == '' || $.trim($('#cantidad').val()) == 0  || $('#precio').val() == 0 ||
+                 $('#precio').val() == "" || $('#precio').val() == null) {
+                $('#modalErrorAgregar').show();
+            }
+            else{
+
+                var descuento = 0;
+                if ($.trim($('#descuento').val()) != '') {
+                    //jefe = parseFloat($('#cantidad').val()) * parseInt(quitCommas($('#precio').val())) * (parseFloat($('#descuento').val()) / 100);
+                    descuento = Math.round((parseFloat($('#descuento').val()) * parseInt(quitCommas($('#precio').val())) / 100) * parseFloat($('#cantidad').val()));
+                }
+                var iva = 0;
+                if ($.trim($('#iva').val()) != '') {
+                    iva = Math.round(((parseFloat($('#cantidad').val()) * parseInt(quitCommas($('#precio').val())) - descuento) * parseFloat($('#iva').val()) / 100) );
+                }
+                var valorAntesIva = (parseFloat($('#cantidad').val()) * parseInt(quitCommas($('#precio').val())));
+                var valorTotal = (valorAntesIva + iva) - descuento;
+
+                var codigo_arr = $('#referencia').val().split("|");
+                var codigo = codigo_arr[0].trim();
+                var codigonombre = codigo_arr[1].trim();
+
+                $('#tablaCotizacion').find('tbody').append('<tr id="filaReferencias' + contadorReferencias + '">'
+                        +'<td align="center">'//referencia
+                            +'<input type="text" style="display:none;" id="referencia'+ contadorReferencias + '" name="referencia' + contadorReferencias + '" value="' + codigo + '"/>'
+                            + codigonombre
+                        +'</td>'
+                        +'<td align="center">'//cantidad
+                            +'<input type="text" style="display:none;" id="cantidadReferencia'+ contadorReferencias + '" name="cantidadReferencia' + contadorReferencias + '" value="' + $('#cantidad').val() + '"/>'
+                            + $('#cantidad').val()
+                        +'</td>'
+                        +'<td align="center">'//valor unitario
+                            +'<input type="text" style="display:none;" id="valorUnitarioReferencia'+ contadorReferencias + '" name="valorUnitarioReferencia' + contadorReferencias + '" value="' + $('#precio').val() + '"/>'
+                            + $('#precio').val()
+                        +'</td>'
+                        +'<td align="center">'//valor antes de iva
+                            +'<input class="ai" type="text" style="display:none;" id="valorAntesIvaReferencia'+ contadorReferencias + '" name="valorAntesIvaReferencia' + contadorReferencias + '" value="' + valorAntesIva + '"/>'
+                            + addCommas(valorAntesIva)
+                        +'</td>'
+                        +'<td align="center">'//descuento(%)
+                            +'<input type="text" style="display:none;" id="descuentoReferencia'+ contadorReferencias + '" name="descuentoReferencia' + contadorReferencias + '" value="' + $('#descuento').val() + '"/>'
+                            + $('#descuento').val()
+                        +'</td>'
+                        +'<td align="center">'//total descuento($)
+                            +'<input class="sumaDescuento" type="text" style="display:none;" id="totalDescuentoReferencia'+ contadorReferencias + '" name="totalDescuentoReferencia' + contadorReferencias + '" value="' + descuento + '"/>'
+                            + addCommas(descuento)
+                        +'</td>'
+                        +'<td align="center">'//iva(%)
+                            +'<input type="text" style="display:none;" id="ivaReferencia'+ contadorReferencias + '" name="ivaReferencia' + contadorReferencias + '" value="' + $('#iva').val() + '"/>'
+                            + $('#iva').val()
+                        + '</td>'
+                        +'<td align="center">'//total iva($)
+                            +'<input class="sumaIVA" type="text" style="display:none;" id="ivaTotalReferencia'+ contadorReferencias + '" name="ivaTotalReferencia' + contadorReferencias + '" value="' + iva + '"/>'
+                            + addCommas(iva)
+                        +'</td>'
+                        +'<td align="center">'//valor total
+                            +'<input class="sumamos" type="text" style="display:none;" id="valorTotalReferencia'+ contadorReferencias + '" name="valorTotalReferencia' + contadorReferencias + '" value="' + valorTotal + '"/>'
+                            + addCommas(valorTotal)
+                        +'</td>'
+                        +'<td width="5%" align="center">'//acciones
+                            +'<button class="btn btn-danger btn-xs" onclick="eliminarReferencia('+ contadorReferencias + ')">&nbsp;&nbsp;<i class="fa fa-times" aria-hidden="true"></i>&nbsp;&nbsp;</button>'
+                        +'</td>'
+                    +'</tr>');
+                //subtotal de la cotizacion
+                var subTotal = 0;
+                $( ".ai" ).each( function( index, element ){
+                    subTotal += parseInt($( this ).val());
+                    $('#valorSub').val(addCommas(subTotal));
+                });
+                //sumatoria de descuento
+                var totalDes = 0;
+                $( ".sumaDescuento" ).each( function( index, element ){
+                    totalDes += parseInt($( this ).val());
+                    $('#valorDes').val(addCommas(totalDes));
+                });
+                //sumatoria de IVA
+                var totalIVA = 0;
+                $( ".sumaIVA" ).each( function( index, element ){
+                    totalIVA += parseInt($( this ).val());
+                    $('#valorIVA').val(addCommas(totalIVA));
+                });
+                //sumatoria de total a pagar
+                var totala = 0;
+                $( ".sumamos" ).each( function( index, element ){
+                    //console.log(index);
+                    totala += parseInt($( this ).val());
+                    $('#valorFinal').val(addCommas(totala));
+                });
+
+                contadorReferencias++;
+
+                $('#cantidadesReferencias').val(contadorReferencias);
+
+                $('#lista_referencias').val(contadorReferencias);
+                $('#cantidad').val('');
+                $('#precio').val('');
+                $('#iva').val('');
+                $('#descuento').val('');
+                //$('#referencia').val('').select2();
+                //calcularValorTotal();
+            }
+        });
+
+        $('#cerrarModalVacio').click(function () {
+            $('#modalVacio').hide();
+        });
+        $('#cerrarModalAnular').click(function () {
+            $('#modalAnular').hide();
+        });
+        $('.btnModal').click(function () {
+            buscarMotivos()
+            $("#modal_anulacion").modal('show');
+        });
+        $('#cerrarModalError').click(function () {
+            $('#modalErrorAgregar').hide();
+        });
+        $('.btnAnular').click(function() {
+            $("#modal_anulacion").modal('hide');
+            swal({
+                title: "¿Esta Seguro?",
+                text: "No se puede recuperar la cotización después de anularla",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Si, anular!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+            function (isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        url: '/inventario_repuesto/Anular',
+                        data: {
+                            id: @ViewBag.id,
+                            motivo: $('#motivo_anulacion').val(),
+                            menu: @ViewBag.id_menu,
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            console.log(data)
+                            location.reload();
+
+                        },
+
+                        complete: function (data) {
+                        }
+                    });
+                } else {
+                    swal("Cancelado", "La cotización no será anulada", "error");
+                }
+            })
+
+        })
+        $(document).ready(function () {
+            $('#valor_total_tp').val(addCommas(parseInt('@ViewBag.valor_total')));
+            $('#valor_total').val(addCommas(parseInt('@ViewBag.valor_total')));
+            modificarDescuento();
+            modificarPrecio();
+            buscarReferencias();
+
+            $(".js-source-states").select2();
+            $('#menu').val(@ViewBag.id_menu);
+            $('.cotizacion').hide();
+            $('.pedido').hide();
+            $('#contenido').show();
+            $('#btnAgregar').hide();
+            $('#bodega_id').prop('disabled', true);
+            $('#cliente').prop('disabled', true);
+
+            $('#btnAnular').hide();
+            cargarHistorico()
+            cargardocumentos()
+            $('#descuentoPie').val(addCommas(parseInt('@ViewBag.descuento_pie')));
+
+            if ($('#estado').val() == 'Anulado') {
+                $('#btnAnular').hide();
+                $('#btnAgregar').hide();
+                $('#btnGenerarPDFCotizacion').hide();
+
+            }
+            if(@ViewBag.anulado == 1){
+                $('.cotizacion').show();
+                $('.cotizacion').attr('required', 'required');
+                $('.pedido').show();
+                $('#btnAgregar').hide();
+                $('.btnModal').hide();
+                $('#btnAgregar').hide();
+                $('#btnGuardarSimulacion').hide();
+                $('#botonEliminar').hide();
+
+                $('#btnGenerarPDFCotizacion').hide();
+
+            }
+            else{
+                $('.cotizacion').show();
+                $('.cotizacion').attr('required', 'required');
+                $('.pedido').show();
+                $('#btnAgregar').show();
+                $('.btnModal').show();
+                $('#btnAgregar').show();
+                $('#btnGuardarSimulacion').show();
+
+                $('#btnGenerarPDFCotizacion').show();
+
+            }
+
+        });
+
+        function traerReferencias(id) {
+            var conteo_caracteres = $('#'+id).val().length;
+
+            if (conteo_caracteres==2) {
+                $.ajax({
+                    url: '/kardex/traerReferencias',
+                    data: {
+                        referencia: $('#' + id).val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        var referencias = {
+                            data: data,
+                            list: {
+                                match: {
+                                    enabled: true
+                                }
+                            }
+                        };
+                        $("#referencia").easyAutocomplete(referencias);
+                        $("#referencia").focus();
+                    }
+                });
+            }
+
+        }
+
+        $('#referencia').change(function (event) {
+            setTimeout(function(event){
+                vercodigo();
+            }, 100);
+        });
+
+        function vercodigo(){
+            if ($('#referencia').val() != "" && $('#referencia').val()!=undefined) {
+                $('#kit').prop('disabled', true);
+                $('#banderaCodigo').val('1');
+                $('#banderaKit').val('0');
+                infoReferencia();
+            }
+            else
+            {
+                $('#kit').prop('disabled', false);
+                $('#banderaCodigo').val('0');
+                $('#banderaKit').val('0');
+            }
+        }
+
+        function infoReferencia(j){
+            debugger;
+            $('#stock').val('');
+            $("#porcentaje_descuento").val(0)
+            $("#porcentaje_iva").val('')
+            $("#costo").val(0);
+            var code=$('#referencia').val();
+            if ((code.indexOf('|') > -1) || (j!=="" && j!==undefined))
+            {
+                var codigo="";
+                if(code!=""){
+                    var codigo_arr = $('#referencia').val().split("|");
+                    codigo = codigo_arr[0].trim();
+                }
+                $.ajax({
+                    url: '/FacturacionRepuestos/buscarStock',
+                    data: {
+                        codigo:codigo,
+                        bodega: $("#bodega_id").val(),
+                        codigoPedido : $('#referenciaP'+j).val(),
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+
+                    },
+                    complete: function (data) {
+                        buscarPrecios();
+                        if(data.responseJSON.puede == true){
+
+
+                            //buscar el iva, el descuento y el precio  de acuerdo al cliente que ta esta seleccionado
+                            $('#stock').val(data.responseJSON.cantidad);
+                            $('#btnAgregar').show();
+
+                            if (j>=0) {
+                                chequeo(j);
+                            }else{
+
+                            }
+
+                        }else if (data.responseJSON.puede == false && data.responseJSON.inven == true) {
+                            //mostrar modal informando de que en que bodega si hay stock de esa referencia
+                            $('#modalSiStock').show();
+                            $('#tablaStock').find('tbody').empty();
+                            for (var i = 0; i < data.responseJSON.info.length; i++) {
+                                $('#tablaStock').find('tbody').append('<tr><td align="left">'
+                                                + data.responseJSON.info[i].ref_codigo + " " + data.responseJSON.info[i].ref_descripcion + '</td><td align="left">'
+                                                + data.responseJSON.info[i].bodccs_nombre + '</td><td align="right">'
+                                                + data.responseJSON.info[i].stock + '</td></tr>');
+                            }
+                        }else if (data.responseJSON.puede == false && data.responseJSON.inven == false) {
+                            //mostrar modal informando no hay stock en ninguna bodega para la referencia
+                            $('#modalNoStock').show();
+                            if (j>=0) {
+                                chequeo(j);
+                            }else{
+
+                            }
+                        }
+                    }
+
+                });
+            }
+        };
+
+
+        function cargarHistorico(){
+            $.ajax({
+                url: '/inventario_repuesto/BuscarReferenciasHistorico',
+                data: {
+                    id: $('#id').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    subtotal = 0;
+                    descuento = 0;
+                    descuentoPie = 0;
+                    porIva = 0; 
+                    valorTotal = 0;                        
+                    $('#tablaHistorico').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        var btnEliminar = '<button id="botonEliminar"class="btn btn-danger btn-circle" id="' + i + '" type="button" onclick="eliminarPedido('+ data[i].id+')"><i class="fa fa-remove"></i></button>'
+
+                        $('#tablaHistorico').find('tbody').append(
+                            '<tr>'
+                                +'<td align="left">' + data[i].codigo + '</td>'
+                                +'<td align="left">' + data[i].descripcion + '</td>'
+                                +'<td align="right">' + data[i].cantidad + '</td>'
+                                +'<td align="right">$' + addCommas(data[i].valorUnitario)+ '</td>'
+                                +'<td align="right">$' + addCommas(data[i].valorAntesIva)+ '</td>'
+                                +'<td align="right">' + data[i].porDescuento + '</td>'
+                                + '<td align="right"$>$' + addCommas(data[i].totalDescuento) + '</td>'
+                                +'<td align="right">' + data[i].porDescuentoPie + '</td>'
+                                +'<td align="right"$>$' + addCommas(data[i].totalDescuentoPie)+ '</td>'
+                                +'<td align="right">' + data[i].porIva + '</td>'
+                                +'<td align="right">$'+ addCommas(data[i].totalIva) + '</td>'
+                                +'<td align="right">$' + addCommas(data[i].valorAntesIva - data[i].totalDescuento + data[i].totalIva) + '</td>'
+                                +'<td align="center">' + btnEliminar +'</td>'
+                             +'</tr>');
+                        
+                                               
+                        subtotal += data[i].valorAntesIva - data[i].totalDescuento;
+                        descuento += data[i].totalDescuento;
+                        descuentoPie += data[i].totalDescuentoPie;
+                        porIva += data[i].totalIva;
+                        valorTotal += (data[i].valorAntesIva - data[i].totalDescuento + data[i].totalIva)
+                        
+
+                        $('#valorSubH').val('$'+addCommas(subtotal))
+                        $('#valorDesH').val('$'+addCommas(descuento))
+                        $('#valorDesPie').val('$'+addCommas(descuentoPie))
+                        $('#valorIVAH').val('$'+addCommas(porIva))
+                        $('#valorFinalH').val('$'+addCommas(valorTotal))
+                    }
+                    $('#lista_historico').val(i);
+
+                },
+              
+            })
+        }
+
+
+
+              function cargardocumentos(){
+            $.ajax({
+                url: '/inventario_repuesto/BuscarDocumentos',
+                data: {
+                    id: $('#id').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    var tabla = "";
+                    $('#tabladocumentos').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                    
+                         tabla += "<tr>";
+                        tabla += "<td align='center'>" + data[i].tipodoc + "</td>";
+                        tabla += "<td align='center'>" + data[i].id + "</td>";
+                        tabla += "<td align='center'>" + data[i].fecha + "</td>";
+                        tabla += "<td align='center'>" + data[i].estado + "</td>";
+                        tabla += "</tr>";                       
+                                             
+                    }
+              $('#tabladocumentos').find('tbody').append(tabla);
+              
+
+                },
+              
+            })
+        }
+
+
+
+
+        var numero_miles = "";
+
+        function formatNumber (n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function buscarMotivos() {
+            $.ajax({
+                url: '/cotizacion/buscarMotivos',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#motivo_anulacion').empty()
+                    for (var i = 0; i < data.length; i++) {
+                        $('#motivo_anulacion').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].motivo
+                        }));
+                    }
+                }
+            })
+        } //ok
+
+        function miles (id) {
+            numero_miles = formatNumber($('#'+id+'').val());
+            $('#'+id+'').val(numero_miles);
+            //console.log($('#'+id+'').val);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            //console.log(nStr);
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        function valida(e, id)	//Solo numeros y SOLO 1 punto decimal
+        {
+            var key = (document.all) ? e.which : e.keyCode;
+            cadena = $('#' + id + '').val();
+            console.log(cadena)
+            if (cadena.indexOf('.') == -1) {
+                return (key <= 13 || (key >= 48 && key <= 57) || key == 46);
+            }
+            else {
+                return (key <= 13 || (key >= 48 && key <= 57));
+            }
+        }
+
+        function buscarReferencias() {
+            $.ajax({
+                url: '/inventario_repuesto/BuscarReferencias',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                    var option = '<option value=""></option>'
+                    for (var j = 0; j < data.length; j++) {
+                        option += '<option value="' + data[j].codigo + '">' + data[j].nombre + '</option>'
+                    }
+                    $('#referencia').html(option);
+                }
+            });
+        }
+
+        function modificarDescuento() {
+            $.ajax({
+                url: '/inventario_repuesto/permisoDescuento',
+                data:{
+
+                },
+                type: "post",
+                cache: false,
+                success: function(data){
+                    if (data ==1) {
+                        $('#descuento').prop('readonly', false);
+                    }else{
+                        $('#descuento').prop('readonly', true);
+                    }
+                },
+                complete: function(data){
+                }
+            })
+        }
+
+        function modificarPrecio() {
+            $.ajax({
+                url: '/inventario_repuesto/permisoPrecio',
+                data:{
+
+                },
+                type: "post",
+                cache: false,
+                success: function(data){
+                    if (data ==1) {
+                        $('#precio').prop('readonly', false);
+                    }else{
+                        $('#precio').prop('readonly', true);
+                    }
+                },
+                complete: function(data){
+                }
+            })
+        }
+
+        function eliminarPedido(id) {
+            if (@ViewBag.anulado == 1) {
+                swal({
+                    title: "Anulado",
+                    text: "Esta cotización o pedido ha sido anulado",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Aceptar",
+                })
+
+            }
+            else{
+                swal({
+                    title: "Esta seguro que desea eliminar?",
+                    text: "El registro se eliminara de la base de datos",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Si, Eliminar!",
+                    cancelButtonText: "No, cancelar!",
+                    closeOnConfirm: false,
+                    closeOnCancel: false
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $.ajax({
+                                url: '/inventario_repuesto/EliminarPedido',
+                                data: {
+                                    id: id,
+                                    mov :$('#refmov_id').val(),
+                                },
+                                type: "post",
+                                cache: false,
+                                success: function () {
+                                    swal("Eliminado!", "El registro se ha eliminado correctamente.", "success");
+                                    cargarHistorico()
+                                }
+                            });
+
+                        } else {
+                            swal("Cancelado", "Se ha cancelado la operación", "error");
+                        }
+                    });
+            }
+        }
+
+        function eliminarReferencia(id) {
+            //resta del subtotal
+            var totalSub = $('#valorSub').val();
+            var restaT = 0;
+            restaT = parseInt(quitCommas(totalSub)) - parseInt($('#valorAntesIvaReferencia' + id + '').val());
+            $('#valorSub').val(addCommas(restaT));
+
+            //resta del descuento
+            var totalDes = $('#valorDes').val();
+            var restaD = 0;
+            restaD = parseInt(quitCommas(totalDes)) - parseInt($('#totalDescuentoReferencia' + id + '').val());
+            $('#valorDes').val(addCommas(restaD));
+
+            //resta del IVA
+            var totalIVA = $('#valorIVA').val();
+            var restaI = 0;
+            restaI = parseInt(quitCommas(totalIVA)) - parseInt($('#ivaTotalReferencia' + id + '').val());
+            $('#valorIVA').val(addCommas(restaI));
+
+            //resta del valor total
+            var totala = $('#valorFinal').val();
+            var resta = 0
+            resta = parseInt(quitCommas(totala)) - parseInt(quitCommas($('#valorTotalReferencia' + id + '').val()));
+            $('#valorFinal').val(addCommas(resta));
+
+
+
+            $('#filaReferencias' + id + '').remove();
+        }
+
+        function agregarCotizacion() {
+            $('#subirMas').show();
+            $('#btnAgregar').hide();
+        };
+
+        function buscarPrecios() {
+            $("#precio").val('')
+            $("#descuento").val('')
+            $("#iva").val('')
+            var codigo_arr = $('#referencia').val().split("|");
+            var codigo = codigo_arr[0].trim();
+
+            $.ajax({
+                url: '/inventario_repuesto/BuscarCostoReferenciaCompras',
+                data: {
+                    codigo: codigo,
+                    id_cliente: $('#nit').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    if (data.empleado == false) {
+                        $('#precio').val(addCommas(data.precio));
+                        $('#iva').val(data.iva);
+                        $('#descuento').val(data.descuento);
+                        descuentoMaximo();
+                    }else {
+                        $('#precio').val(addCommas(data.precio));
+                        $('#iva').val(data.iva);
+                        $('#descuento').val(0);
+                    }                    
+                }
+            })
+        }
+
+        function validarObligatorios() {
+            if (($('#lista_referencias').val() == "" || $('#lista_referencias').val() == "0") && ( $('#lista_historico').val() == "" ||  $('#lista_historico').val() == "0")) {
+                $('#modalVacio').show();
+                $('#lista_referencias').prop('required', true);
+                $('#lista_historico').prop('required', true);
+                $('#btnSave').prop('disabled', true);
+                $('#btnSave').hide();
+            }else {
+                //$('#btnSave').show();
+                $('#btnSave').prop('disabled', false);
+                $('#btnSave').click();
+                //$('#btnSave').trigger('click');
+            }
+        };
+        
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+        $('#btnGenerarPDFCotizacion').click(function () {
+          
+            if ($('#tpdoc_id').val() == 25)
+            {
+                window.open('@Url.Action("crearPDFcotizacion", "inventario_repuesto")?id=' + $('#refmov_id').val(), '_blank');
+            }
+            if ($('#tpdoc_id').val() == 27)
+            {
+                window.open('@Url.Action("crearPDFpedido", "inventario_repuesto")?id=' + $('#refmov_id').val(), '_blank');
+            }
+        });
+        
+        ///btnGenerarPDFCrystal
+
+        $('#btnGenerarPDFCrystal').click(function () {
+            window.open('@Url.Action("exportReport", "inventario_repuesto")?id=' + $('#refmov_id').val(), '_blank');
+        });
+
+    </script>
+
+}
+
+@if (TempData["mensaje"] != null)
+{
+    <script type="text/javascript">
+        $('#modalCotizacion').show();
+    </script>
+}

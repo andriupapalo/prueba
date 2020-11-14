@@ -1,0 +1,248 @@
+﻿@{
+    ViewBag.Icono = "fa fa-file-text-o";
+    ViewBag.Title = "Diferencias Compra Repuestos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+        @Html.Hidden("menu")
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class=""><a href="@Url.Action("Index","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-arrow-circle-up"></i>&nbsp;&nbsp;Pre Cargue</a></li>
+                <li class=""><a href="@Url.Action("BrowserPreCargue","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Buscar PreCargue</a></li>
+                <li class=""><a href="@Url.Action("compraManual","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-hand-pointer-o"></i>&nbsp;&nbsp;Compra Manual</a></li>
+                <li class=""><a href="@Url.Action("ComprasRealizadas","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-cart-arrow-down"></i>&nbsp;&nbsp;Compras Realizadas</a></li>
+                @*<li class=""><a href="@Url.Action("BrowserDevoluciones","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-reply"></i>&nbsp;&nbsp;Devoluciones Realizadas</a></li>*@
+                <li class="active"><a data-toggle="tab" href="#buscar"><i class="fa fa-refresh"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                @*<li class=""><a href="@Url.Action("BrowserBackorder","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-history"></i>&nbsp;&nbsp;BackOrder</a></li>*@
+            </ul>
+
+            <div id="buscar" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive" style="width:100%;">
+                            <div id="div-mensaje-buscar"></div>
+                            <div class="col-lg-12">
+                                <center>
+                                    <span class="badge badge-important"><h5>Diferencias en Cantidades</h5></span>
+                                </center>
+                            </div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaDifCantidad">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Provedor</th>
+                                        <th style="text-align:center">Referencia</th>
+                                        <th style="text-align:center"># Pedido</th>
+                                        <th style="text-align:center">Valor Unitario</th>
+                                        <th style="text-align:center">Cantidad Pedida</th>
+                                        <th style="text-align:center">Cantidad Facturada</th>
+                                        <th style="text-align:center">Cantidad Real</th>
+                                        <th style="text-align:center">Diferencia</th>
+                                        <th style="text-align:center">Fecha Compra</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive" style="width:100%;">
+                            <div id="div-mensaje-buscar"></div>
+                            <div class="col-lg-12">
+                                <center>
+                                    <span class="badge badge-important"><H5>Diferencias en Costos</H5></span>
+                                </center>
+                            </div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaDifCostos">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Provedor</th>
+                                        <th style="text-align:center">Referencia</th>
+                                        <th style="text-align:center"># Pedido</th>
+                                        <th style="text-align:center">Valor Unitario</th>
+                                        <th style="text-align:center">Costo Promedio</th>
+                                        <th style="text-align:center">Precio</th>
+                                        <th style="text-align:center">Fecha Compra</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@Scripts.Render("~/bundles/select2/js")
+<script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+<script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+<script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+<script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+<script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+<script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+<script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+<script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        buscarDatos();
+        $('.js-source-states').select2();
+    });
+
+    function addCommas(nStr) {
+        nStr += '';
+        x = nStr.split('.');
+        x1 = x[0];
+        x2 = x.length > 1 ? '.' + x[1] : '';
+        var rgx = /(\d+)(\d{3})/;
+        while (rgx.test(x1)) {
+            x1 = x1.replace(rgx, '$1' + '.' + '$2');
+        }
+        return x1 + x2;
+    };
+
+    function buscarDatos() {
+        $.ajax({
+            url: '/compraRepuestos/buscarDiferenciasDatos',
+            data: {
+                numero: @ViewBag.numeroCompra,
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+                console.log(data)
+                $('#tablaDifCantidad').find('tbody').empty();
+                for (var i = 0; i < data.difCantidad.length; i++) {
+                    $('#tablaDifCantidad').find('tbody').append('<tr>'
+                        + '<td align="left">' + data.difCantidad[i].nit + '</td>'
+                        + '<td align="left">' + data.difCantidad[i].referencia + '</td>'
+                        //+'<td align="right">' + data.difCantidad[i].numero + '</td>'
+                        + '<td align="right">' + data.difCantidad[i].pedidogm + '</td>'
+                        + '<td align="right">' + addCommas(data.difCantidad[i].valor_unitario) + '</td>'
+                        + '<td align="right">' + addCommas(data.difCantidad[i].cant_ped) + '</td>'
+                        + '<td align="right">' + addCommas(data.difCantidad[i].cant_fact) + '</td>'
+                        + '<td align="right">' + addCommas(data.difCantidad[i].cant_real) + '</td>'
+                        + '<td align="right">' + addCommas(data.difCantidad[i].cant_fact - data.difCantidad[i].cant_real) + '</td>'
+                        + '<td align="right">' + data.difCantidad[i].fecha.fechas + '</td>'
+                        + '</tr>');
+                }
+
+                $('#tablaDifCostos').find('tbody').empty();
+                for (var i = 0; i < data.difCostos.length; i++) {
+                    $('#tablaDifCostos').find('tbody').append('<tr>'
+                        + '<td align="left">' + data.difCostos[i].nit + '</td>'
+                        + '<td align="left">' + data.difCostos[i].referencia + '</td>'
+                        //+'<td align="right">' + data.difCostos[i].numero + '</td>'
+                        + '<td align="right">' + data.difCostos[i].pedidogm + '</td>'
+                        + '<td align="right">' + addCommas(data.difCostos[i].valor_unitario) + '</td>'
+                        + '<td align="right">' + addCommas(data.difCostos[i].Promedio) + '</td>'
+                        + '<td align="right">' + addCommas(data.difCostos[i].precio1) + '</td>'
+                        + '<td align="right">' + data.difCostos[i].fecha.fechas + '</td>'
+                        + '</tr>');
+                }
+            },
+            complete: function (data) {
+                $('#tablaDifCantidad').dataTable({
+                    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: []
+                });
+
+                $('#tablaDifCostos').dataTable({
+                    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: []
+                });
+            }
+        });
+    }
+
+    @*function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }*@
+
+</script>
+}
+

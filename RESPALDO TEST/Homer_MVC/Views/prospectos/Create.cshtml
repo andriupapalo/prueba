@@ -1,0 +1,1779 @@
+﻿@model Homer_MVC.IcebergModel.Prospecto
+
+@{
+    ViewBag.Title = "Prospectos";
+    ViewBag.Icono = "fa fa-child";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    @Styles.Render("~/bundles/datatables/css")
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/sweetalert/lib/sweet-alert.css" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_obligatorios"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@Html.Raw(@TempData["mensaje_obligatorios"])</p>
+            </div>
+        }
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+        @if (TempData["mensajeExiste"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensajeExiste"]</p>
+            </div>
+        }
+        @*@if (TempData["BotonCotizarDeAsesor"] != null)
+            {
+                <div class="panel-body-btns text-right">
+                    <button class="btn btn-info" type="button" id="btnCotizar"><i class="fa fa-usd"></i>&nbsp;&nbsp;&nbsp;Cotizar</button>
+                </div>
+            }*@
+
+    <div id="tabs" class="tab-content">
+
+        <div class="m float-e-margins text-right">
+            <div class="tooltip-demo">
+                <div id="div-mensaje"></div>
+            </div>
+        </div>
+
+        <ul id="tabs-crear" class="nav nav-tabs">
+            <li id="terceroTab" class="active"><a data-toggle="tab" href="#tercero"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+            <li id="activosTab" class="" onclick="buscarDisponibles();"><a data-toggle="tab" href="#buscarActivos"><i class="fa fa-search"></i>&nbsp;&nbsp;Prospecto activos</a></li>
+            <li id="enSalaTab" class="" onclick="buscarAjaxProspectosSala();"><a data-toggle="tab" href="#buscarSala"><i class="fa fa-search"></i>&nbsp;&nbsp;Prospecto sala</a></li>
+        </ul>
+
+        <div id="tercero" class="tab-pane active">
+            <div class="panel-body">
+
+                @using (Html.BeginForm("Create", "prospectos", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("menu")
+                    @Html.Hidden("rol")
+                    @Html.Hidden("requiere")
+                    @*@Html.Hidden("asesor_id");*@
+                    @Html.Hidden("asesor_nombre");
+
+                    <div class="form-horizontal">
+
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Información general
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Tipo Documento:&nbsp;</label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownListFor(model => model.tipoDocumento, ViewBag.tipoDocumento.Items as List<SelectListItem>, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            @Html.ValidationMessageFor(model => model.tipoDocumento, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Documento:&nbsp;</label>
+                                        <div class="col-md-4">
+                                            @Html.EditorFor(model => model.numDocumento, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Documento", @onkeypress = "return soloNumeros(event)" } })
+                                            @*@Html.ValidationMessageFor(model => model.numDocumento, "", new { @class = "text-danger" })*@
+                                            <label id="documentoYaExiste" class="text-danger" style="display:none;">Documento ya existe y el prospecto esta en estado activo</label>
+                                        </div>
+                                        <div class="col-md-2 campoOcultoNit" style="display:none;">
+                                            @Html.EditorFor(model => model.digito_verificacion, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "D.V", @readonly = "readonly" } })
+                                            @Html.ValidationMessageFor(model => model.digito_verificacion, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6 campoOcultoNit" style="display:none;">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Razon Social:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.razonSocial, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Razon Social" } })
+                                            @Html.ValidationMessageFor(model => model.razonSocial, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6 campoOcultoCedula">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Primer Nombre:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.prinom_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Primer nombre", /*@required = "required",*/ @onkeypress = "return soloLetras(event)" } })
+                                            @Html.ValidationMessageFor(model => model.prinom_tercero, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6 campoOcultoCedula">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Segundo Nombre:&nbsp;<span class="text-danger"></span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.segnom_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Segundo nombre", @onkeypress = "return soloLetras(event)" } })
+                                            @Html.ValidationMessageFor(model => model.segnom_tercero, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 campoOcultoCedula">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Primer Apellido:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.apellido_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Primer Apellido",/*@required = "required",*/ @onkeypress = "return soloLetras(event)" } })
+                                            @Html.ValidationMessageFor(model => model.apellido_tercero, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 campoOcultoCedula">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Segundo Apellido:&nbsp;<span class="text-danger"></span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.segapellido_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Segundo Apellido", @onkeypress = "return soloLetras(event)" } })
+                                            @Html.ValidationMessageFor(model => model.segapellido_tercero, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">E-mail:</label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.email_tercero, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese correo electrónico" } })
+                                            @Html.ValidationMessageFor(model => model.email_tercero, "", new { @class = "text-danger" })
+                                            <label id="correoNoValido" class="text-danger" style="display:none;">Digite un correo valido</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Telefono:</label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.telf_tercero, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese telefono", @onkeypress = "return soloNumeros(event)", @minlength = 7, @maxlength = 10 } })
+                                            @Html.ValidationMessageFor(model => model.telf_tercero, "", new { @class = "text-danger" })
+                                            <label id="telefonoYaExiste" class="text-danger" style="display:none;">Telefono ya existe y el prospecto esta en estado activo</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Celular:</label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.celular_tercero, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese celular", /*@required = "required",*/ @onkeypress = "return soloNumeros(event)", @minlength = 7, @maxlength = 10 } })
+                                            @Html.ValidationMessageFor(model => model.celular_tercero, "", new { @class = "text-danger" })
+                                            <label id="celularYaExiste" class="text-danger" style="display:none;">Celular ya existe y el prospecto esta en estado activo</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6 campoOcultoCedula">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Genero:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownListFor(model => model.genero_tercero, ViewBag.genero_tercero.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            @Html.ValidationMessageFor(model => model.genero_tercero, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @*<div class="col-md-6 col-md-offset-2">*@
+                                @*<div class="col-sm-6 campoOcultoCedula">
+
+                                    @foreach (var item in (IEnumerable<Homer_MVC.IcebergModel.gen_tercero>)ViewBag.genero_tercero)
+                                    {
+
+                                        <label>
+                                            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                                            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                                            @item.gentercero_nombre&nbsp;&nbsp;&nbsp;
+                                        </label>
+
+
+                                        if (Model.genero_tercero == item.gentercero_id)
+                                        {
+                                            <input type="radio" name="genero" id="genero" value="@item.gentercero_id.ToString()" checked="checked"><span>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <input type="radio" name="genero" id="genero" value="@item.gentercero_id.ToString()"><span>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                            </span>
+                                        }
+
+
+                                    }
+                                    @Html.ValidationMessageFor(model => model.tptrapros_id, "", new { @class = "text-danger" })
+                                    <label><span class="text-danger">@ViewBag.errorGenero</span></label>
+                                </div>*@
+                            </div>
+                        </div>
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                <i class="fa fa-automobile"></i>&nbsp;&nbsp;&nbsp;Tramite
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo De Tramite:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.tptrapros_id, ViewBag.tptrapros_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", /*@required = "required"*/})
+                                                @Html.ValidationMessageFor(model => model.tptrapros_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" style="display:none;" id="areaAsesores">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Asesores Disponibles:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-5">
+                                                
+
+                                                @Html.DropDownListFor(model => model.asesor_id, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new
+                                           {
+                                               @class = "form-control js-source-states multiselect multiselect-icon",
+                                               @placeholder = "Seleccionar"@*, @role = "multiselect"*@})
+                                                @Html.ValidationMessageFor(model => model.asesor_id, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-1">
+                                                <a class="btn btn-default" id="btnCambiarAsesor" onclick="VerificarAsesoresDisponibles()">
+                                                    <i class="fa fa-refresh"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Buscar Asesorress:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-5">
+                                                
+
+                                                @Html.DropDownListFor(model => model.buscarAsesor_id, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new
+                                           {
+                                               @class = "form-control js-source-states multiselect multiselect-icon",
+                                               @placeholder = "Seleccione"@*, @role = "multiselect"*@})
+                                                @Html.ValidationMessageFor(model => model.buscarAsesor_id, "", new { @class = "text-danger" })
+                                            </div>
+                                            <div class="col-md-1">
+                                                <a class="btn btn-default" id="btnBuscarAsesores" onclick="BusquedaAsesoresDisponibles()">
+                                                    <i class="fa fa-refresh"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Fuente:</label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownListFor(model => model.tporigen_id, ViewBag.tporigen_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", /*@required = "required"*/ })
+                                            @Html.ValidationMessageFor(model => model.tporigen_id, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6" style="display:none" id="areaSubfuente">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Sub-Fuente:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownListFor(model => model.subfuente_id, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6" style="display:none" id="sitioEvento">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Evento:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownListFor(model => model.eventoOrigen, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            @Html.ValidationMessageFor(model => model.eventoOrigen, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Medio Comunicación:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownListFor(model => model.medcomun_id, ViewBag.medcomun_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", /*@required = "required"*/ })
+                                            @*@Html.DropDownList("medcomun_id", null, "Seleccione...", htmlAttributes: new { @class = "form-control js-source-states", @id = "medcomun_id", @placeholder = "Seleccione" })*@
+                                            @Html.ValidationMessageFor(model => model.medcomun_id, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row col-sm-12">
+                                    <label class="control-label col-md-7">VEHICULO INTERESADO&nbsp;<span class="text-danger"></span></label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Modelo general:&nbsp;<span class="text-danger"></span></label>
+                                        <div class="col-md-6">
+                                            <select id="modeloGenInt" class="form-control js-source-states">
+                                                <option selected value="0">Seleccione</option>
+                                            </select>
+                                            @*@Html.DropDownListFor(model => model.modelo, ViewBag.modeloGeneralInt.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione"})*@
+                                            @*@Html.DropDownList("medcomun_id", null, "Seleccione...", htmlAttributes: new { @class = "form-control js-source-states", @id = "medcomun_id", @placeholder = "Seleccione" })*@
+                                            @*@Html.ValidationMessageFor(model => model.medcomun_id, "", new { @class = "text-danger" })*@
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Modelo:&nbsp;<span class="text-danger"></span></label>
+                                        <div class="col-md-6">
+                                            <select id="modelosInt" class="form-control js-source-states" name="modelosInt">
+                                                <option selected value="0">Seleccione</option>
+                                            </select>
+                                            @*@Html.DropDownListFor(model => model.modeloOpcional, ViewBag.modeloOpcional2.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })*@
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row col-sm-12">
+                                    <label class="control-label col-md-7">VEHICULO OPCIONAL&nbsp;<span class="text-danger"></span></label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Modelo general:&nbsp;<span class="text-danger"></span></label>
+                                        <div class="col-md-6">
+                                            <select id="modeloGenOpc" class="form-control js-source-states">
+                                                <option selected value="0">Seleccione</option>
+                                            </select>
+                                            @*@Html.DropDownListFor(model => model.modeloOpcional, ViewBag.modeloGeneralOpc.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })*@
+                                            @*@Html.DropDownList("medcomun_id", null, "Seleccione...", htmlAttributes: new { @class = "form-control js-source-states", @id = "medcomun_id", @placeholder = "Seleccione" })*@
+                                            @*@Html.ValidationMessageFor(model => model.medcomun_id, "", new { @class = "text-danger" })*@
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Modelo:&nbsp;<span class="text-danger"></span></label>
+                                        <div class="col-md-6">
+                                            <select id="modelosOpc" class="form-control js-source-states" name="modelosOpc">
+                                                <option selected value="0">Seleccione</option>
+                                            </select>
+                                            @*@Html.DropDownListFor(model => model.modeloOpcional, ViewBag.modeloOpcional2.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })*@
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Observaciones:<span class="text-danger"></span></label>
+                                        <div class="col-md-6">
+                                            @Html.TextAreaFor(model => model.observacion, new RouteValueDictionary(new { @class = "someClass", style = "width: 100%; height:100px;" }))
+                                            @Html.ValidationMessageFor(model => model.observacion, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @*<div class="col-sm-6" style="display:none">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-md-offset-2">Vehículo Interesado:&nbsp;<span class="text-danger" id="ocultarJ">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("modvh_codigo", null, "Seleccione...", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione" })
+                                            @Html.ValidationMessageFor(model => model.modvh_id, "", new { @class = "text-danger", @id = "ocultarF" })
+                                            <span class="text-danger">@ViewBag.error</span>
+                                        </div>
+                                    </div>
+                                </div>*@
+
+                            </div>
+                        </div>
+
+                        <div class="hpanel" id="panelHabeasData">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                </div>
+                                <i class="fa fa-key"></i>&nbsp;&nbsp;&nbsp;Información habeas data
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Correo:&nbsp;</label>
+                                        <div class="col-md-8">
+                                            <label class="control-label col-md-6">
+                                                @Html.CheckBoxFor(model => model.habdtautor_correo, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Celular:&nbsp;</label>
+                                        <div class="col-md-6">
+                                            <label class="control-label col-md-8">
+                                                @Html.CheckBoxFor(model => model.habdtautor_celular, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">SMS:&nbsp;</label>
+                                        <div class="col-md-6">
+                                            <label class="control-label col-md-8">
+                                                @Html.CheckBoxFor(model => model.habdtautor_msm, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3">Whatsapp:&nbsp;</label>
+                                        <div class="col-md-6">
+                                            <label class="control-label col-md-8">
+                                                @Html.CheckBoxFor(model => model.habdtautor_whatsapp, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hpanel" id="acompanantes">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                            </div>
+                            <i class="fa fa-cubes"></i>&nbsp;&nbsp;&nbsp;Acompañantes
+                        </div>
+                        <div class="panel-body">
+                            <br />
+                            <div class="col-sm-6">
+                                <div class="form-group">
+
+                                    <label class="control-label col-md-3 col-md-offset-2">
+                                        Familiar:&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <img src="~/Content/img/familia.png" class="img-circle" alt="Familia" width="50" height="50"> &nbsp;<span class="text-danger"></span>
+                                    </label>
+                                    <div class="col-md-5">
+                                        @Html.EditorFor(model => model.numeroFamiliares, new { htmlAttributes = new { @Value = 0, @type = "text", @class = "form-control", @placeholder = "Ingrese Numero de Familiares", @onkeypress = "return soloNumeros(event)" } })
+
+                                        @*<span class="text-danger">@ViewBag.error</span>*@
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">
+                                        Amigos:&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <img src="~/Content/img/amigos.png" class="img-circle" alt="Amigos" width="50" height="50"> &nbsp;<span class="text-danger"></span>
+                                    </label>
+                                    <div class="col-md-5">
+                                        @Html.EditorFor(model => model.numeroAmigos, new { htmlAttributes = new { @Value = 0, @type = "text", @class = "form-control", @placeholder = "Ingrese Numero de Acompañantes", @onkeypress = "return soloNumeros(event)" } })
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="panel-body-btns text-right">
+                        <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div id="buscarActivos" class="tab-pane ">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6" style="padding-top: 10px;">
+                        <div class="input-group">
+                            <input type="text" id="txtFiltroGeneral" placeholder="Buscar..." class="form-control">
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-primary" id="botonbuscar">
+                                    <i class="fa fa-search">&nbsp;Buscar</i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3" style="padding-top:10px;">
+                        <div class="input-group">
+                            <button type="button" class="btn btn-danger" id="btnExportar" onclick="ExportarExcel()">
+                                <i class="fa fa-file-excel-o">&nbsp;Exportar</i>
+                            </button>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+
+
+
+            <div class="panel-body-busqueda">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar"></div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Documento</th>
+                                <th style="text-align:center">Nombre Prospecto</th>
+                                <th style="text-align:center">Fuente</th>
+                                <th style="text-align:center">Subfuente</th>
+                                <th style="text-align:center">Medio Comunicacion</th>
+                                <th style="text-align:center">Trámite</th>
+                                <th style="text-align:center">Fecha</th>
+                                @*<th style="text-align:center">Estado</th>*@
+                                <th style="text-align:center">Asesor</th>
+                                <th style="text-align:center">Accion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contenido"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+            <div id="buscarSala" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div class="row">
+                                <div class="col-md-4" id="fechas_consulta">
+                                    <label>Fechas</label>
+                                    <div class="input-daterange input-group" id="datepicker">
+                                        <input type="text" class="input-sm form-control" name="fechaDesde" id="fechaDesde" value="@ViewBag.fecha_desde" placeholder="Fecha Inicio" required="required" />
+                                        <span class="input-group-addon">Hasta</span>
+                                        <input type="text" class="input-sm form-control" name="fechaHasta" id="fechaHasta" value="@ViewBag.fecha_hasta" placeholder="Fecha Fin" required="required" />
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="col-md-2 col-md-offset-2">
+                                    <button type="button" class="btn btn-primary" id="btnFiltrar"><i class="fa fa-filter" aria-hidden="true"></i>&nbsp;&nbsp;Filtrar</button>
+                                </div>
+                            </div>
+                            <br />
+                            <br />
+                            <br />
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginadaSala">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Documento</th>
+                                        <th style="text-align:center">Nombre Prospecto</th>
+                                        <th style="text-align:center">Fuente</th>
+                                        <th style="text-align:center">Medio Comunicacion</th>
+                                        <th style="text-align:center">Trámite</th>
+                                        <th style="text-align:center">Fecha/Hora Ingreso</th>
+                                        <th style="text-align:center">Fecha/Hora Salida</th>
+                                        <th style="text-align:center">Tiempo</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Asesor</th>
+                                        <th style="text-align:center">Detalle</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contenido"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade hmodal-success in" id="modalReasignacion" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header">
+                @*@using (Ajax.BeginForm("metodoTexto", "prospectos", new AjaxOptions()
+                    {
+                        HttpMethod="POST",
+                        InsertionMode=InsertionMode.Replace,
+                        UpdateTargetId="id-prospecto-ajax"
+                    }))
+
+                    {
+                    <div><span id="id-prospecto-ajax"></span> </div>*@
+                @*<h4 class="modal-title" >Hola titulo</h4>*@
+                <h4 class="modal-title">Reasignar Prospecto</h4>
+
+                <small class="font-bold">Seleccione el asesor disponible para la atenc&oacute;n al usuario</small>
+
+            </div>
+
+            @*@using (Html.BeginForm("DevolverFacturaManual", "devolucionVentaAutomatica", FormMethod.Post, new { enctype = "multipart/form-data", @target = "_blank" }))
+                {*@
+            @Html.AntiForgeryToken()
+
+            <div class="modal-body">
+
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <input type="hidden" name="id_tercero" id="id_tercero" value="" />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Tipo De Tramite:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.DropDownList("tptrapros_idReasignado", ViewBag.tptrapros_id.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Asesores asignados:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <input type="hidden" readonly="readonly" class="form-control" id="asesorAsignadoID" name="asesorAsignadoID" value="" />
+                       @*     @Html.EditorFor(model => model.asesor_id, new { htmlAttributes = new { @Value = 0, @type = "text", @class = "form-control", @placeholder = "Ingrese Numero de Acompañantes", @onkeypress = "return soloNumeros(event)" } })*@
+                            <input type="text" readonly="readonly" class="form-control" id="asesorAsignado" name="asesorAsignado" value="" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Asesores Disponibles:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @Html.DropDownList("asesor_idReasignado", Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states multiselect multiselect-icon", @placeholder = "Seleccione" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12" id="divMotivo" style="display:none">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Motivo:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <textarea class="form-control" id="motivo" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12" id="areaAlertaReasignacion" style="display:none;">
+                    <div class="alert alert-warning">
+                        <strong><p id="respuestaReasignacion"></p></strong>
+                    </div>
+                </div>
+
+                <label></label>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btnReasignarAsesor">Reasignar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script src="~/Vendor/sweetalert/lib/sweet-alert.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            buscarPermisos()
+            var fecha = '@DateTime.Now.Date.ToString("yyyy/MM/dd")';
+            var fecha2 = '@DateTime.Now.Date.ToString("yyyy/MM/dd")';
+            $('#fechaDesde').val(fecha);
+            $('#fechaHasta').val(fecha2);
+            $('#fechaDesde').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: '-' + new Date() + '',
+            });
+            $('#fechaHasta').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: '-' + new Date() + '',
+            });
+            ValidarObligatorios();
+            $('#menu').val(@ViewBag.id_menu);
+            $('#rol').val(@ViewBag.RolLog);
+            buscarModeloGeneral();
+            if($('#rol').val() == 7) {
+                $('#acompanantes').show();
+                $('#terceroTab').show();
+                $('#activosTab').show();
+                $('#enSalaTab').show();
+                VerificarAsesoresDisponibles();
+                //BusquedaAsesoresDisponibles();
+                VerficarAsesoresEnModal();
+                //setInterval(VerificarAsesoresDisponibles, 7000);
+                //setInterval(VerficarAsesoresEnModal, 10000);
+            }else {
+                $('#acompanantes').hide();
+                $('#terceroTab').show();
+                $('#activosTab').hide();
+                $('#enSalaTab').hide();
+            }
+
+            $('#numeroFamiliares').val('');
+            $('#numeroAmigos').val('');
+
+            $('.js-source-states').select2();
+            ValidarSiEsEventoOSubFuente();
+            //VerificarAsesoresDisponibles();
+            $('form select').each(function (i) {
+                this.addEventListener('invalid', function (e) {
+                    var _s2Id = 's2id_' + e.target.id; //s2 autosuggest html ul li element id
+                    var _posS2 = $('#' + _s2Id).position();
+                    //get the current position of respective select2
+                    $('#' + _s2Id + ' ul').addClass('_invalid'); //add this class with border:1px solid red;
+                    //this will reposition the hidden select2 just behind the actual select2 autosuggest field with z-index = -1
+                    $('#' + e.target.id).attr('style', 'display:block !important;position:absolute;z-index:-1;top:' + (0 - $('#' + _s2Id).outerHeight() + 30) + 'px;left:' + (15 - ($('#' + _s2Id).width() / 10)) + 'px;');
+                    /*
+                    //Adjust the left and top position accordingly
+                    */
+                    //remove invalid class after 3 seconds
+                    setTimeout(function () {
+                        $('#' + _s2Id + ' ul').removeClass('_invalid');
+                    }, 3000);
+                    return true;
+                }, false);
+            });
+
+            if($('#tptrapros_id').val()!=""){
+                buscarAsesorT();
+            }
+        });
+        
+
+
+        $('#modeloGenInt').change(function () {
+            $("#modelosInt").empty();
+            $.ajax({
+                url: '/prospectos/modelosXGeneralInt',
+                data: {
+                    id: $('#modeloGenInt').val()
+                },
+                type: "post",
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        $("#modelosInt").append('<option value = "' + data[i].modvh_codigo + '">' + data[i].modvh_nombre + '</option>');
+                    }
+                }
+            });
+        });
+
+        $('#modeloGenOpc').change(function () {
+            $("#modelosOpc").empty();
+            $.ajax({
+                url: '/prospectos/modelosXGeneralOpc',
+                data: {
+                    id: $('#modeloGenOpc').val()
+                },
+                type: "post",
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        $("#modelosOpc").append('<option value = "' + data[i].modvh_codigo + '">' + data[i].modvh_nombre + '</option>');
+                    }
+                }
+            });
+        });
+
+        function buscarModeloGeneral(){
+            $.ajax({
+                url: '/prospectos/modeloGeneral',
+                data: {},
+                type: "post",
+                success: function (data){
+                    for(var i = 0; i < data.length; i++){
+                        $("#modeloGenInt").append('<option value = "'+ data[i].id +'">'+ data[i].Descripcion +'</option>');
+                        $("#modeloGenOpc").append('<option value = "'+ data[i].id +'">'+ data[i].Descripcion +'</option>');
+                    }
+                }
+            });
+        };
+
+        function buscarPermisos(){
+            $.ajax({
+                url: '/prospectos/buscarPermisos',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i] == 20) {
+                            $('#celular_tercero').prop('required', false)
+                        }
+                        if (data[i] == 21) {
+                            $('#email_tercero').prop('required', false)
+                        }
+                    }
+                },
+                complete: function (data) { }
+            });
+        }
+
+
+
+
+
+
+        $('#btnCotizar').click(function () {
+            window.location.href = '@Url.Action("Create", "cotizacion")?menu='+@ViewBag.id_menu+'&&id=' + '@TempData["ultimoTerceroId"]';
+        });
+
+        $('#btnFiltrar').click(function () {
+            buscarAjaxProspectosSala();
+        });
+         $(document).ready(function() {
+
+            buscarDisponibles();
+        });
+
+         $('#botonbuscar').click(function() {
+            $('#botonbuscar').prop('disabled', true);
+            const tipotrans = 1;
+            buscarDisponibles();
+        });
+
+        
+        function buscarDisponibles() {
+            debugger;
+            $("#tablaPaginada").dataTable().fnDestroy();
+
+            const general = $('#txtFiltroGeneral').val();
+
+            const table = $('#tablaPaginada').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "filter": true,
+                "orderMulti": false,
+                "searching": false,
+                dom: "<''<'col-sm-4'><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'li>p",
+                "lengthMenu": [[10,20,50,100,200,-1], [10,20,50, 100, 200, "All"]],
+                buttons: [
+                    //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm', text: 'Exportar a Excel' }
+                ],
+                "ajax": {
+                    "url": '/prospectos/BuscarJson',
+                    "type": "POST",
+                    "datatype": "json",
+                    "data": {
+                        filtrogeneral: general,
+                    }
+                },
+                "columns": [
+             
+                    { "data": "doc_tercero", "name": "doc_tercero", "autoWidth": true, className: "align-right" },
+                    { "data": "nombre_completo", "name": "nombre_completo", "autoWidth": true },
+                    { "data": "tporigen_nombre", "name": "tporigen_nombre", "autoWidth": true },
+                    { "data": "subfuente", "name": "subfuente", "autoWidth": true },
+                    { "data": "medcomun_descripcion", "name": "medcomun_descripcion", "autoWidth": true },
+                    { "data": "tptrapros_descripcion", "name": "tptrapros_descripcion", "autoWidth": true },
+                    { "data": "fecha2", "name": "fecha2", "autoWidth": true },
+                    { "data": "nombreasesorcompleto", "name": "nombreasesorcompleto", "autoWidth": true },
+                        {
+                        "mData": null,
+                        "bSortable": false,
+                        "mRender": function(o) {
+                            var boton = "";
+                            debugger
+                            boton += `<button class="btn btn-info btn-xs" onclick="verSeguimiento('${o.id}')">&nbsp;&nbsp;Gestionar&nbsp;&nbsp;</button>`;
+                             boton +=`<button class="btn btn-success btn-xs" onclick="reasignar('${o.id}')">&nbsp;&nbsp;Asignar&nbsp;&nbsp;</button>`;
+                            debugger
+                           
+                            return boton;
+                        }
+                    }
+                ]
+            });
+            const data = table.buttons.exportData();
+            // Buscar filtros
+            $('#botonbuscar').prop('disabled', false);
+
+        }
+        function ExportarExcel() {
+            debugger;
+                       
+            window.open('@Url.Action("DescargarExcel", "prospectos")?filtroGeneral=' + $('#txtFiltroGeneral').val() );
+        }
+
+        
+          
+
+
+        function buscarAjaxProspectosSala() {
+            if ($.fn.dataTable.isDataTable('#tablaPaginadaSala')) {
+                $("#tablaPaginadaSala").dataTable().fnDestroy();
+            }
+            $.ajax({
+                url: '/prospectos/BuscarProspectosPaginadosSala',
+                data: {
+                    fechaDesde: $('#fechaDesde').val(),
+                    fechaHasta: $('#fechaHasta').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginadaSala').find('tbody').empty();
+                    $('#tablaPaginadaSala').find('tbody').empty();
+                    console.log(data)
+                    for (var i = 0; i < data.dataProspectos.length; i++) {
+                        debugger
+                        if (data.dataProspectos[i].estado == 1 || data.dataProspectos[i].estado == 4 ){
+                            var caso = '<span class="badge badge-success">Atendido</span>'
+                            var tiempo = data.dataProspectos[i].tiempo.Hours +":"+ data.dataProspectos[i].tiempo.Minutes+":"+ data.dataProspectos[i].tiempo.Seconds
+                        }else if (data.dataProspectos[i].estado == 2 ) {
+                            var caso = '<span class="badge badge-info">En proceso</span>'
+                            var tiempo = ''
+                        } else if (data.dataProspectos[i].asesorAsignado == null) {
+                            var caso = '<span class="badge badge-danger">Sin asignar</span>'
+                            var tiempo = ''
+                        } else {
+                            var caso = ''
+                            var tiempo = ''
+                        }
+                        debugger
+                        $('#tablaPaginadaSala').find('tbody').append(
+                            '<tr>'
+                            + '<td align="right">' + data.dataProspectos[i].documento + '</td>'
+                            + '<td align="left">' + data.dataProspectos[i].nombreProspecto + '</td>'
+                            + '<td align="left">' + data.dataProspectos[i].fuente + '</td>'
+                            + '<td align="left">' + data.dataProspectos[i].medio + '</td>'
+                            + '<td align="left">' + data.dataProspectos[i].tramite + '</td>'
+                            + '<td align="right">' + data.dataProspectos[i].hora + '</td>'
+                            + '<td align="right">' + data.dataProspectos[i].fechaTermina + '</td>'
+                            + '<td align="right">' + tiempo + '</td>'
+                            + '<td align="center">' + caso + '</td>' 
+                            + '<td align="left">' + data.dataProspectos[i].asesor + '</td>'
+                            + '<td width="20%" align="left">' + data.dataProspectos[i].modelo + '</td>'
+                            + '</tr>'
+                        );
+                        debugger
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginadaSala').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        destroy: true,
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            });
+        }
+
+        function ValidarSiEsEventoOSubFuente() {
+            var tipoOrigen = 0;
+            if ($('#tporigen_id').val() != null && $('#tporigen_id').val() != '') {
+                tipoOrigen = $('#tporigen_id').val();
+            }
+            $.ajax({
+                url: '/prospectos/BuscarLugaresEvento',
+                data: {
+                    idOrigen: tipoOrigen
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#eventoOrigen').empty();
+                    $('#eventoOrigen').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+
+                    $('#subfuente_id').empty();
+                    $('#subfuente_id').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+
+                    if (data.requiere == true) {
+                        for (var i = 0; i < data.eventos.length; i++) {
+                            $('#eventoOrigen').append($('<option>', {
+                                value: data.eventos[i].id,
+                                text: data.eventos[i].descripcion
+                            }));
+                        }
+                        $('#eventoOrigen').prop('style', 'visible:visible').select2();
+                        //$('#eventoOrigen').prop('required',true);
+                        $('#sitioEvento').show();
+                    } else {
+                        $('#eventoOrigen').prop('required', false);
+                        $('#sitioEvento').hide();
+                    }
+
+                    if (data.requiereSubFuente == true) {
+                        for (var i = 0; i < data.listaSubFuentes.length; i++) {
+                            $('#subfuente_id').append($('<option>', {
+                                value: data.listaSubFuentes[i].id,
+                                text: data.listaSubFuentes[i].subfuente
+                            }));
+                        }
+                        $('#subfuente_id').val('').prop('style', 'visible:visible').select2();
+                        //$('#subfuente_id').prop('required',true);
+                        $('#areaSubfuente').show();
+                    } else {
+                        $('#subfuente_id').prop('required', false);
+                        $('#areaSubfuente').hide();
+                    }
+                }
+            });
+        }
+
+        //----Funcion que valida que el campo solo tenga permitido el ingreso de letras
+        function soloLetras(e){
+            key = e.keyCode || e.which;
+            tecla = String.fromCharCode(key).toLowerCase();
+            letras = " áéíóúabcdefghijklmnñopqrstuvwxyz";
+            especiales = "8-37-39-46";
+
+            tecla_especial = false
+            for(var i in especiales){
+                if(key == especiales[i]){
+                    tecla_especial = true;
+                    break;
+                }
+            }
+            if(letras.indexOf(tecla)==-1 && !tecla_especial){
+                return false;
+            }
+        }
+
+        //----Funcion que valida que el campo solo tenga permitido el ingreso de numeros
+        function soloNumeros(e){
+            key = e.keyCode || e.which;
+            tecla = String.fromCharCode(key).toLowerCase();
+            letras = "1234567890";
+            especiales = "8-37-39-46";
+
+            tecla_especial = false
+            for(var i in especiales){
+                if(key == especiales[i]){
+                    tecla_especial = true;
+                    break;
+                }
+            }
+            if(letras.indexOf(tecla)==-1 && !tecla_especial){
+                return false;
+            }
+        }
+
+        $('#tporigen_id').change(function () {
+            ValidarSiEsEventoOSubFuente();
+        });
+
+        function ValidarObligatorios(){
+            if ($('#tipoDocumento').val() != '1') {
+                $('.campoOcultoNit').hide();
+                $('.campoOcultoCedula').show();
+                $('#digito_verificacion').attr("required", false);
+                //$('#razon_social').removeAttr("required", "required");
+                //$('#genero_tercero').attr("required", "required");
+                //$('#prinom_tercero').attr("required", "required");
+                //$('#apellido_tercero').attr("required", "required");
+            }
+            else {
+                $('.campoOcultoNit').show();
+                $('.campoOcultoCedula').hide();
+                //$('#digito_verificacion').attr("required", "required");
+                //$('#razon_social').attr("required", "required");
+                $('#genero_tercero').attr("required", false);
+                $('#prinom_tercero').attr("required", false);
+                $('#apellido_tercero').attr("required", false);
+                $('#genero_tercero').attr("required", false);
+            }
+            if($('#tipoDocumento').val() == ''){
+                $('#numDocumento').attr("required", false);
+            }else{
+                //$('#numDocumento').attr("required", "required");
+            }
+        }
+
+        $('#tipoDocumento').change(function(){
+            ValidarObligatorios();
+        });
+
+        $('#numDocumento').keyup(function(){
+            // Primero se calcula el digito de verificacion
+            var documento = $('#numDocumento').val()
+            var numero = 0;
+            var numeros = [3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71];
+            var datos = documento.length;
+
+            for (i = 0; i < documento.length; i++) {
+                numero += documento.substring(datos - 1, datos) * numeros[i];
+                datos--;
+            }
+            var digito_verificacion = numero % 11;
+
+            if (digito_verificacion > 1) {
+                digito_verificacion = 11 - digito_verificacion;
+            }
+            $('#digito_verificacion').val(digito_verificacion);
+            // Fin de el calculo del digito de verificacion
+
+            $.ajax({
+                url: '/prospectos/BuscarDocumentoCliente',
+                data: {
+                    numDocumento: $('#numDocumento').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.encontrado == true) {
+                        $('#documentoYaExiste').show();
+                        //$('#tipoDocumento').val(data.buscarTercero.tpdoc_id).attr('display','visible:visible').select2();
+                        //$('#prinom_tercero').val(data.buscarTercero.prinom_tercero);
+                        //$('#segnom_tercero').val(data.buscarTercero.segnom_tercero);
+                        //$('#apellido_tercero').val(data.buscarTercero.apellido_tercero);
+                        //$('#segapellido_tercero').val(data.buscarTercero.segapellido_tercero);
+                        //$('#email_tercero').val(data.buscarTercero.email_tercero);
+                        //$('#telf_tercero').val(data.buscarTercero.telf_tercero);
+                        //$('#celular_tercero').val(data.buscarTercero.celular_tercero);
+                    } else {
+                        //limpiarCamposTercero();
+                        $('#documentoYaExiste').hide();
+                    }
+                }
+            });
+        });
+
+        $('#telf_tercero').keyup(function(){
+            $.ajax({
+                url: '/prospectos/BuscarTelefonoCliente',
+                data: {
+                    telefono: $('#telf_tercero').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.encontrado == true) {
+                        $('#telefonoYaExiste').show();
+                    } else {
+                        //limpiarCamposTercero();
+                        $('#telefonoYaExiste').hide();
+                    }
+                }
+            });
+        });
+
+        $('#celular_tercero').keyup(function(){
+            $.ajax({
+                url: '/prospectos/BuscarCelularCliente',
+                data: {
+                    celular: $('#celular_tercero').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.encontrado == true) {
+                        $('#celularYaExiste').show();
+                    } else {
+                        //limpiarCamposTercero();
+                        $('#celularYaExiste').hide();
+                    }
+                }
+            });
+        });
+
+        $('#email_tercero').keyup(function () {
+            var expreg = /^[a-zA-Z0-9._-]+@@[a-zA-Z0-9.-]+\.([a-zA-Z]{2,4})+$/;
+            var email = $('#email_tercero').val()
+            if (expreg.test(email)) {
+                $('#correoNoValido').hide();
+            } else {
+                $('#correoNoValido').show();
+            };
+        });
+
+        $('#tptrapros_id').change(function () {
+            buscarAsesorT();
+        });
+
+        function buscarAsesorT() {
+            debugger
+            $.ajax({
+                url: '/prospectos/buscarRequiereAsesor',
+                data: {
+                    tipo: $('#tptrapros_id').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    debugger
+                    //console.log(data)
+                    if (data.requiere == true) {
+                        $('#requiere').val(true)
+                        $('#areaAsesores').show();
+                        if (data.rol == 7) {
+                            setTimeout(function () {
+                                $('#asesor_id').empty().select2();
+                                //VerificarAsesoresDisponibles();
+                            }, 1000)
+                            //$('#asesor_id').prop('required',true);
+                        }
+                        else {
+                            VerificarAsesoresDisponibles();
+                            //listarAsesores();
+                            //$('#asesor_id').prop('required',true);
+                        }
+                    } else {
+                        $('#requiere').val(false)
+                        $('#asesor_id').val('').attr('display', 'visible:visible').select2();
+                        $('#asesor_id').prop('required', false);
+                        $('#areaAsesores').hide();
+                    }
+                }
+            });
+        }
+
+        //function validarUsuario(asesor, id) {
+        //    $('#asesor_id').val(id);
+        //    $('#asesor_nombre').val(asesor);
+        //    $('#btnAsesores').text($('#asesor_nombre').val());
+        //}
+
+        $('#btnCambiarAsesor').click(function () {
+            $('#asesor_id option:not(:selected)').prop('disabled', false);
+        });
+
+        var conectadosModal = 0;
+        function VerficarAsesoresEnModal(){
+            if($('#tptrapros_idReasignado').val() == 1 || $('#tptrapros_idReasignado').val() == 2 || $('#tptrapros_idReasignado').val() == 4){
+                var asesorSeleccionado = $('#asesor_idReasignado').val();
+
+                $.ajax({
+                    url: '/prospectos/BuscarAsesoresDisponibles',
+                    data: {
+                        id_tramite: $('#tptrapros_idReasignado').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (conectadosModal != data.length) {
+                            conectadosModal = data.length;
+                            asesorSeleccionado = '';
+                            $('#asesor_idReasignado').empty();
+
+                            $('#asesor_idReasignado').append($('<option>', {
+                                value: '',
+                                text: ''
+                            }));
+
+                            for (var i = 0; i < data.length; i++) {
+                                $('#asesor_idReasignado').append($('<option>', {
+                                    value: data[i].Value,
+                                    text: data[i].Text
+                                }));
+                            }
+
+                            //$('#asesor_idReasignado option:selected').prop('disabled', false);
+                            if (asesorSeleccionado == '' || asesorSeleccionado == null) {
+                                $('#asesor_idReasignado').val($("#asesor_idReasignado option:first").val());
+                            }
+                            else {
+                                $('#asesor_idReasignado').val(asesorSeleccionado);
+                            }
+                            $('#asesor_idReasignado').prop('style', 'visible:visible').select2();
+                            //$('#asesor_idReasignado option:not(:selected)').prop('disabled', true);
+                        }
+                    }
+                });
+            }
+        }
+        $('#btnBuscarAsesores').click(function () {
+            $('#asesor_id option:not(:selected)').prop('disabled', false);
+        });
+
+        function listarAsesores() {
+            $.ajax({
+                url: '/prospectos/BuscarAsesoresTramite',
+                data: {
+                    id_tramite: $('#tptrapros_id').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#asesor_id').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#asesor_id').append($('<option>', {
+                            value: data[i].Value,
+                            text: data[i].Text
+                        }));
+                    }
+                    //VerificarAsesoresDisponibles();
+                    //$('#asesor_id').select2();
+                }
+            });
+        }
+
+        var conectados = 0;
+        function VerificarAsesoresDisponibles() {
+            if($('#requiere').val() == "true"){
+                var asesorSeleccionado = $('#asesor_id').val();
+                $.ajax({
+                    url: '/prospectos/BuscarAsesoresDisponibles',
+                    data: {
+                        id_tramite: $('#tptrapros_id').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        conectados = 0;
+                        $('#asesor_id').empty();
+                        $('#asesor_id').select2();
+
+                        //console.log(data)
+                        if (conectados != data.length) {
+                            conectados = data.length;
+                            asesorSeleccionado = '';
+                            //$('#asesor_idReasignado').empty();
+
+                            for (var i = 0; i < data.length; i++) {
+                                $('#asesor_id').append($('<option>', {
+                                    value: data[i].Value,
+                                    text: data[i].Text
+                                }));
+                                //$('#asesor_idReasignado').append($('<option>', {
+                                //    value: data[i].Value,
+                                //    text: data[i].Text
+                                //}));
+                            }
+
+                            $('#asesor_id option:selected').prop('disabled', false);
+                            if (asesorSeleccionado == '' || asesorSeleccionado == null) {
+                                $('#asesor_id').val($("#asesor_id option:first").val());
+                            }
+                            else {
+                                $('#asesor_id').val(asesorSeleccionado);
+                            }
+                            $('#asesor_id').select2();
+                            //$('#asesor_idReasignado').select2();
+                            //$('#asesor_id option:not(:selected)').prop('disabled', true);
+                        }
+                    }
+                });
+            }
+        }
+        var conectar = 0;
+        function BusquedaAsesoresDisponibles() {
+            debugger
+            if($('#requiere').val() == "true"){
+                var asesorSeleccionado = $('#buscarAsesor_id').val();
+                $.ajax({
+                    url: '/prospectos/BusquedaAsesores',
+                    data: {
+                        id_tramite: $('#tptrapros_id').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        conectar = 0;
+                        $('#buscarAsesor_id').empty();
+                        $('#buscarAsesor_id').select2();
+
+                        //console.log(data)
+                        if (conectar != data.length) {
+                            conectar = data.length;
+                            asesorSeleccionado = '';
+                            //$('#asesor_idReasignado').empty();
+
+                            for (var i = 0; i < data.length; i++) {
+                                $('#buscarAsesor_id').append($('<option>', {
+                                    value: data[i].Value,
+                                    text: data[i].Text
+                                }));
+                                //$('#asesor_idReasignado').append($('<option>', {
+                                //    value: data[i].Value,
+                                //    text: data[i].Text
+                                //}));
+                            }
+
+                            $('#buscarAsesor_id option:selected').prop('disabled', false);
+                            if (asesorSeleccionado == '' || asesorSeleccionado == null) {
+                                $('#buscarAsesor_id').val($("#buscarAsesor_id option:first").val());
+                            }
+                            else {
+                                $('#buscarAsesor_id').val(asesorSeleccionado);
+                            }
+                            $('#buscarAsesor_id').select2();
+                            //$('#asesor_idReasignado').select2();
+                            //$('#asesor_id option:not(:selected)').prop('disabled', true);
+                        }
+                    }
+                });
+            }
+        }
+        function buscarAsesoresReasignado() {
+            if ($('#tptrapros_idReasignado').val() == 1 || $('#tptrapros_idReasignado').val() == 2) {
+                var asesorSeleccionado = $('#asesor_id').val();
+
+                $.ajax({
+                    url: '/prospectos/BuscarAsesoresDisponibles',
+                    data: {
+                        id_tramite: $('#tptrapros_idReasignado').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        //console.log(conectados + ' - ' + data.length);
+                        //if (conectados != data.length) {
+                        //conectados = data.length;
+                        asesorSeleccionado = '';
+                        $('#asesor_idReasignado').empty();
+                        for (var i = 0; i < data.length; i++) {
+                            $('#asesor_idReasignado').append($('<option>', {
+                                value: data[i].Value,
+                                text: data[i].Text
+                            }));
+                        }
+                        $('#asesor_idReasignado').select2();
+                        //}
+                    },
+                    complete: function (data) {
+                        var a = $('#asesor_idReasignado').val();
+                        var b = $('#asesorAsignadoID').val();
+                        if (a != b) {
+                            $('#divMotivo').show()
+                        } else {
+                            $('#divMotivo').hide()
+                        }
+                    }
+                });
+            }
+        }
+
+        $('#tptrapros_idReasignado').change(function(){
+            buscarAsesoresReasignado();
+        });
+
+        $('#asesor_idReasignado').change(function(){
+            var a = $('#asesor_idReasignado').val();
+            var b =  $('#asesorAsignadoID').val();
+            if (a != b) {
+                $('#divMotivo').show()
+                $('#motivo').prop('required', true)
+            }else {
+                $('#divMotivo').hide()
+                $('#motivo').prop('required', false)
+            }
+        });
+
+        $('#btnReasignarAsesor').click(function(){
+            $.ajax({
+                url: '/prospectos/ReasignarProspecto',
+                data: {
+                    id_Tercero: $('#id_tercero').val(),
+                    id_tipo_tramite: $('#tptrapros_idReasignado').val(),
+                    id_asesor: $('#asesor_idReasignado').val(),
+                    motivo: $('#motivo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    swal("Exito", "Se registro correctamente", "success");
+                    $('#btnReasignarAsesorDevuelto').prop('disabled', true);
+                    $('#modalReasignacion').modal('hide');
+                },
+                complete: function (data) {
+                    //console.log(data);
+                    $('#respuestaReasignacionDevuelto').text(data.responseJSON.respuesta);
+                    $('#areaAlertaReasignacionDevuelto').show();
+                    $('#asesor_idReasignadoDevuelto').empty();
+                    $('#asesor_idReasignadoDevuelto').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    $('#asesor_idReasignadoDevuelto').val('').prop('style', 'visible:visible').select2();
+                    $('#tpTramiteVal').val('').prop('style', 'visible:visible');
+                    $('#btnReasignarAsesorDevuelto').prop('disabled', false);
+
+                    setTimeout(function () {
+                        $('#modalReasignacion').modal('hide');
+                    }, 2000)
+                }
+            });
+        });
+
+        function cotizar(idProspecto) {
+            window.location.href = '@Url.Action("Create","cotizacion")?menu='+@ViewBag.id_menu+'&&id=' + idProspecto;
+        }
+
+        function valida(id) {
+            window.location.href = '@Url.Action("Update","prospectos")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        function reasignar(id) {
+            $.ajax({
+                url: '/prospectos/buscarAsesorAsignado',
+                data: {
+                    prospecto: id,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    //console.log(data)
+                    if (data.asesorAsignado != null) {
+                        $('#asesorAsignadoID').val(data.asesorAsignado.id);
+                        $('#asesorAsignado').val(data.asesorAsignado.nombre);
+                        $('#tptrapros_idReasignado').val(data.tipotramite).trigger('change');
+                    } else {
+                        $('#tptrapros_idReasignado').val(data.tipotramite).trigger('change');
+                    }
+                    //$('#asesorAsignadoID').val(data.asesorAsignado.id);
+                    //$('#asesorAsignado').val(data.asesorAsignado.nombre);
+                },
+                complete: function (data) {
+                    $('#id_tercero').val(id);
+                    $('#areaAlertaReasignacion').hide();
+                    $('#modalReasignacion').modal({ backdrop: 'static', keyboard: false })
+                    //$('#modalReasignacion').modal('show');
+                }
+            });
+        }
+
+        $('#modalReasignacion').on('shown.bs.modal', function () {
+            VerificarAsesoresDisponibles();
+            VerficarAsesoresEnModal();
+            //setInterval(VerificarAsesoresDisponibles, 7000);
+            //setInterval(VerficarAsesoresEnModal, 10000);
+            var a = $('#asesor_idReasignado').val();
+            var b = $('#asesorAsignadoID').val();
+            if (a != b) {
+                $('#divMotivo').show()
+                $('#motivo').prop('required', true)
+            } else {
+                $('#divMotivo').hide()
+                $('#motivo').prop('required', false)
+            }
+        });
+
+        function verSeguimiento(id) {
+
+            window.location.href = '@Url.Action("VerSeguimiento","prospectos")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        var arlene2 = new Array(1, 2, 3, 4, 5);
+        $(function () {
+            $('#clie').show();
+            $('#ocultar').hide();
+            $('#ocultarV').hide();
+            $('#ocultarL').hide();
+            $('#panel_razonsocial').hide();
+            $('#clienteT').hide();
+            $('#proveedorT').hide();
+            $('#empleadoT').hide();
+
+            $('#clie').change(function () {
+                valor = parseInt($('#clie').val())
+                if (valor === 1) {
+
+                    $('#ocultarL').show();
+                    $('#ocultarV').show();
+                    $('#ocultarF').show();
+                    $('#ocultarJ').show();
+                } else {
+                    $('#ocultarL').hide();
+                    $('#ocultarV').hide();
+                    $('#ocultarF').hide();
+                    $('#ocultarJ').hide();
+                }
+            });
+        });
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+         
+
+      
+
+        
+
+
+        //$(function () {
+        //    $('#clie').show()
+        //    $('#ocultarV').hide()
+        //    $('#ocultarC').hide()
+        //    $('#panel_razonsocial').hide()
+        //    $('#clienteT').hide()
+        //    $('#proveedorT').hide()
+        //    $('#empleadoT').hide()
+        //    $('#clie').click(function () {
+        //        $('#ocultarV').show();
+        //        $('#ocultarC').hide();
+        //        //var valor = parseInt($('#clie').val())
+        //        //if (valor === 1) {
+        //        //    $('#ocultarV').show()
+        //        //} else
+        //        //    $('#ocultarV').hide()
+        //        //}
+        //    })
+        //    $('#prov').click(function () {
+        //        $('#ocultarC').show();
+        //        $('#ocultarV').hide();
+        //        //var valor = parseInt($('#clie').val())
+        //        //if (valor === 1) {
+        //        //    $('#ocultarV').show()
+        //        //} else {
+        //        //    $('#ocultarV').hide()
+        //        //}
+        //    })
+        //})
+
+        ////////////////////  Paginacion con busqueda
+
+        @*function valida(id) {
+            window.location.href = '@Url.Action("icb_tercero2Update", "icb_terceros2")?id=' + id;
+        }*@
+
+        //function buscarAjaxTercerosAux() {
+        //    $.ajax({
+        //        url: '/icb_terceros2/BuscarTercerosCant',
+        //        data: {
+        //            texto: $("#txBusqueda").val(),
+        //            pagina: 1
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (retorno) {
+        //            console.log(retorno);
+        //            //cantBuscada=retorno;
+        //        },
+        //        complete: function (data) {
+        //            $('#tablaPaginada').find('tbody').empty();
+        //            for (var i = 0; i < data.responseJSON.result2.length; i++) {
+        //                $('#tablaPaginada').find('tbody').append('<tr><td align="center">' + data.responseJSON.result2[i].terceroNombre + '</td><td>'
+        //                               + data.responseJSON.result2[i].terceroFechaCreacion + '</td><td>' + data.responseJSON.result2[i].prospectoTramite
+        //                               + '</td><td width="5%"><button class="btn btn-info" onclick="valida(' + '\'' + data.responseJSON.result2[i].terceroId
+        //                               + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+        //            }
+        //            $('#page-selection').bootpag({
+        //                page: 1,
+        //                total: parseInt((data.responseJSON.result + 4) / 5),
+        //                maxVisible: 10
+        //            });
+        //            //$('#div-mensaje-buscar').html('<div class="alert alert-danger" style="text-align: left;"><button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button><p><i style="font-size: 15pt;" class="fa fa-warning"></i>  Se ha producido un error, intente mas tarde</p></div>')
+        //        }
+        //    })
+        //    $('#page-selection').on("page", function (event, /* page number here */ num) {
+        //        $.ajax({
+        //            url: '/icb_terceros2/BuscarTercerosCant',
+        //            data: {
+        //                texto: $("#txBusqueda").val(),
+        //                pagina: num
+        //            },
+        //            type: "post",
+        //            cache: false,
+        //            success: function (data) {
+        //            },
+        //            complete: function (data) {
+        //                $('#tablaPaginada').find('tbody').empty();
+        //                for (var i = 0; i < data.responseJSON.result2.length; i++) {
+        //                    $('#tablaPaginada').find('tbody').append('<tr><td align="center">' + data.responseJSON.result2[i].terceroNombre + '</td><td>'
+        //                       + data.responseJSON.result2[i].terceroFechaCreacion + '</td><td>' + data.responseJSON.result2[i].prospectoTramite
+        //                       + '</td><td width="5%"><button class="btn btn-info" onclick="valida('
+        //                                + data.responseJSON.result2[i].terceroId + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+        //                }
+        //            }
+        //        })
+        //    });
+        //}
+        //////////////////// Fin del paginacion
+
+    </script>
+}
+
+
+

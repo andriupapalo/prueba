@@ -1,0 +1,618 @@
+﻿
+@{
+    ViewBag.Title = "Cotizacion";
+    ViewBag.Icono = "fa fa-usd";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/toastr/toastr.min.css" rel="stylesheet" />
+    <link href="~/Vendor/toastr/toastr.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje_correcto"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_correcto"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="" onclick="cotizacion();"><a data-toggle="tab" href="#tercero"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="" onclick="buscarAjaxCotizaciones();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+                <li class="active" onclick="verSeguimiento();"><a data-toggle="tab" href="#VerSeguimiento"><i class="fa fa-refresh"></i>&nbsp;&nbsp;Seguimiento</a></li>
+            </ul>
+
+            <div id="VerSeguimiento" class="tab-pane active">
+                <div class="panel-body">
+
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                            </div>
+                            <i class="fa fa-volume-control-phone"></i>&nbsp;&nbsp;&nbsp;Detalle Cotizaci&oacute;n
+                        </div>
+                        <div class="panel-body">
+
+                            <div class="panel-body-btns text-right">
+                                <button class="btn btn-info" type="button" id="btnAgregarNota"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Adicionar Nota</button>
+                            </div>
+                            <hr />
+
+                            <div class="panel-body-busqueda col-md-12">
+                                <div class="table-responsive">
+                                    <div id="div-mensaje-buscar"></div>
+                                    <table class="table table-striped table-bordered table-hover" id="tablaSeguimiento">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">Tipo</th>
+                                                <th style="text-align:center">Fecha</th>
+                                                <th style="text-align:center">Responsable</th>
+                                                <th style="text-align:center">Motivo</th>
+                                                <th style="text-align:center">Nota</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <div class="modal fade hmodal-info" id="modalNotas" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="color-line"></div>
+                                <div class="modal-header text-center">
+                                    <h4 class="modal-title">Seguimiento</h4>
+                                    <small>Agregar Notas A Cotizaci&oacute;n</small>
+                                </div>
+                                <div class="modal-body">
+
+                                    <input type="hidden" id="idCotizacion" />
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-12">Tipo Seguimiento:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                            <div class="col-md-12">
+                                                @Html.DropDownList("tpSeguimiento", ViewBag.tpSeguimiento.Items as List<SelectListItem>, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12" id="txtMotivoSeguimientoDiv" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-12">Motivo:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                            <div class="col-md-12">
+                                                @Html.DropDownList("txtMotivo", Enumerable.Empty<SelectListItem>(), "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.Hidden("requiereMotivo")
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-12">Nota:</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="txtNota" class="form-control" placeholder="Digite Nota" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <label></label>
+                                    <div class="row" style="display:none" id="alertaModal">
+                                        <div class="alert alert-info">
+                                            <strong>Informaci&oacute;n!</strong><p id="alertaMensaje"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="btnGuardarNota">Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+
+                    <div class="row">
+                        <div class="col-sm-6 col-md-offset-3">
+                            <div class="form-group">
+                                <div class="col-md-8">
+                                    <div class="input-group m-b">
+                                        @Html.Editor("txtFechaInicio", new { htmlAttributes = new { @class = "form-control", @placeholder = "Fecha Desde" } })
+                                        <span class="input-group-addon">-</span>
+                                        @Html.Editor("txtFechaFin", new { htmlAttributes = new { @class = "form-control", @placeholder = "Fecha Hasta" } })
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-primary" id="btnBuscarPorFecha">Buscar&nbsp;&nbsp;<i class="fa fa-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Numero Cotizacion</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Identificación</th>
+                                        <th style="text-align:center">Nombre Cliente</th>
+                                        <th style="text-align:center">Telefono</th>
+                                        <th style="text-align:center">Email</th>
+                                        <th style="text-align:center">Fuente</th>
+                                        <th style="text-align:center">Subfuente</th>
+                                        <th style="text-align:center">Asesor</th>
+                                        <th style="text-align:center">Ultimo seguimiento</th>
+                                        <th style="text-align:center">Nota</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="row col-md-4 col-md-offset-4">
+                            <div id="page-selection"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalActivacionCC" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Activar Call Center</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Asignar a:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-8">
+                                <input type="hidden" name="idCotActivacion" id="idCotActivacion" class="form-control" value="" />
+                                <select id="asignado" name="asignado" class="form-control js-source-states" required>
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Notas:&nbsp;<span class="text-danger">*</span></label>
+                            <div class="col-md-8">
+                                <textarea type="text" name="observaciones" id="observaciones" value="" class="form-control" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="alert alert-danger" role="alert" id="msjCamposObligatorios" style="display:none">
+                            Los campos marcados con * son obligatorios
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalPlanPago">Cerrar</button>
+                <button type="button" class="btn btn-info" id="activarCC" onclick="guardarActivacion()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/toastr/toastr.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#idCotizacion').val('@ViewBag.idSeguimiento');
+            $('#tpSeguimiento').select2();
+            buscarAjaxSeguimiento();
+        });
+
+        $("#tpSeguimiento").change(function () {
+            var Id = parseInt($('#tpSeguimiento').val());
+            debugger
+            $.ajax({
+                    url: '/cotizacion/ListMotivoanulacion',
+                data: {
+                    Id
+                    },
+                    type: "post",
+                    cache: false,
+                success: function (data) {
+                    $('#txtMotivo').empty();
+                    if (data.length > 0) {
+                        debugger
+                        $("#txtMotivoSeguimientoDiv").show();
+                        console.log(data)
+                        $('#txtMotivo').append($('<option>', {
+                            value: '',
+                            text: ''
+                        }));
+                        for (var i = 0; i < data.length; i++) {
+                            $('#txtMotivo').append($('<option>', {
+                                value: data[i].IdMotivoAnulacion,
+                                text: data[i].motivo
+                            }));
+                        }
+                        $("#requiereMotivo").val(1);
+                    } else {
+                         $("#requiereMotivo").val(0);
+                        $("#txtMotivoSeguimientoDiv").hide();
+                    }
+
+                },
+                error: function () {
+                    debugger
+                    toastr.error("error");
+                }
+                });
+
+        })
+
+        function generarPDF(cotizacionn){
+            $.ajax({
+                url: '/cotizacion/buscarVehiculo',
+                data: { cotizacionn, },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    if (data == 1) {
+                        window.open('@Url.Action("crearPDF", "cotizacion")?cotizacion=' + cotizacionn, '_blank');
+                    } else {
+                        //$('#sinVehiculo').show()
+                    }
+                }
+            });
+        }
+
+        function generarPDF2(cotizacionn){
+            $.ajax({
+                url:'/cotizacion/buscarVehiculo',
+                data: {
+                    id : cotizacionn
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data == 1) {
+                        window.open('@Url.Action("crearPDF", "cotizacion")?cotizacion='+cotizacionn,'_blank');
+                    }else{
+                        swal("Esta cotización no tiene un vehículo!", "", "warning");
+                    }
+                },
+                fail: function(err) {
+                    console.log('err',err);
+                },
+            });
+        }
+
+        $('#btnAgregarNota').click(function () {
+            debugger                                                                           
+            $("#txtMotivoSeguimientoDiv").hide();
+            $('#tpSeguimiento').val('');//.trigger('change');
+            $('#txtNota').val('');
+            $("#requiereMotivo").val('');     
+            $('#modalNotas').modal('show');
+        });
+
+        function agregarNota() {
+            debugger
+            $.ajax({
+                url: '/cotizacion/AgregarNota',
+                data: {
+                    id: $('#idCotizacion').val(),
+                    tpSeguimiento: $('#tpSeguimiento').val(),
+                    motivo: $('#txtMotivo').val(),
+                    nota: $('#txtNota').val(),
+                    requiereMotivo:$("#requiereMotivo").val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data == true) {
+                        buscarAjaxSeguimiento();
+                        $('#modalNotas').modal('hide');
+                        $('#txtMotivo').val('');
+                        $('#txtNota').val('');
+                    } else {
+                        $('#alertaMensaje').text('No hay conexion con base de datos, verifique su conexion');
+                        $('#alertaModal').show();
+                        setTimeout(function () {
+                            $("#alertaModal").fadeOut(1500);
+                        }, 3000);
+                    }
+                }
+            });
+        }
+
+        $('#btnGuardarNota').click(function () {
+            debugger
+            //var moti = $('#txtMotivo').val().trim();
+            var requiereMotivo = $('#requiereMotivo').val();
+            var tpSeguimiento = $('#tpSeguimiento').val();
+
+           if ($('#tpSeguimiento').val() == '')
+            {
+                toastr.warning("Seguimiento no puede ser Vacio");
+                $('#alertaMensaje').text('Los campos marcados con (*) son obligatorios');
+                $('#alertaModal').show();
+            }
+            else if ($("#requiereMotivo").val() == 1 && $('#txtMotivo').val() == "")
+            {
+                toastr.warning("Selecciona un motivo");
+                $('#alertaMensaje').text('Los campos marcados con (*) son obligatorios');
+                $('#alertaModal').show();
+                setTimeout(function () {
+                    $("#alertaModal").fadeOut(1500);
+                }, 3000);
+            }else {
+                agregarNota();
+            }
+        });
+
+        function cotizacion() {
+            debugger
+            window.location.href = '@Url.Action("Create", "cotizacion")?menu='+@ViewBag.id_menu;
+        }
+
+        function buscarAjaxSeguimiento() {
+            debugger
+            $("#tablaSeguimiento").dataTable().fnDestroy();
+            $.ajax({
+                url: '/cotizacion/BuscarSeguimientos',
+                data: {
+                    id: $('#idCotizacion').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaSeguimiento').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaSeguimiento').find('tbody').append('<tr><td align="center">' + data[i].nombre_seguimiento + '</td><td align="center">'
+                            + data[i].fec_creacion + '</td><td align="center">'
+                            + data[i].responsable + '</td><td align="center">'
+                            + data[i].Motivo + '</td><td width="30%" align="center">'
+                            + data[i].Notas + '</td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaSeguimiento').dataTable({
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+                }
+            });
+        }
+
+        function valida(id) {
+            window.location.href = '@Url.Action("Ver", "cotizacion")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        function Seguimiento(id) {
+            debugger
+            window.location.href = '@Url.Action("Seguimiento", "cotizacion")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        // Paginacion
+        function buscarAjaxCotizaciones() {
+            if ($.fn.DataTable.isDataTable('#tablaPaginada') ) {
+                $('#tablaPaginada').dataTable().fnDestroy();
+            }
+
+            //$("#tablaPaginada").dataTable().fnDestroy();
+            $.ajax({
+                url: '/cotizacion/BuscarCotizacionesPaginadas',
+                data: {
+                    inicio: $('#txtFechaInicio').val(),
+                    fin: $('#txtFechaFin').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#tablaPaginada').find('tbody').empty();
+
+                    for (var i = 0; i < data.buscaCotizacionSQL.length; i++) {
+                        var botonRol = ""
+                        if ($('#rolLog').val() == 2029) {
+                            botonRol = '<button class="btn btn-warning btn-xs" onclick="activarProspecto(' + data.buscaCotizacionSQL[i].cot_idserial + ',' + 1 + ')">&nbsp;&nbsp;Activar Asesor&nbsp;&nbsp;</button>';
+                        } else {
+                            botonRol = '<button class="btn btn-warning btn-xs" onclick="activarProspecto(' + data.buscaCotizacionSQL[i].cot_idserial + ',' + 2 + ')">&nbsp;&nbsp;Activar Call Center&nbsp;&nbsp;</button>';
+                        }
+
+                        $('#tablaPaginada').find('tbody').append('<tr>'
+                            + '<td align="right">' + data.buscaCotizacionSQL[i].cot_numcotizacion + '</td>'
+                            + '<td align="left">' + data.buscaCotizacionSQL[i].cot_feccreacion + '</td>'
+                            + '<td align="left">' + data.buscaCotizacionSQL[i].doc_tercero + '</td>'
+                            + '<td align="left">' + data.buscaCotizacionSQL[i].nombre + '</td>'
+                            + '<td align="left">' + data.buscaCotizacionSQL[i].celular_tercero + '</td>'
+                            + '<td align="right">' + data.buscaCotizacionSQL[i].email_tercero + '</td>'
+                            + '<td align="left">' + data.buscaCotizacionSQL[i].fuente + '</td>'
+                            + '<td align="left">' + data.buscaCotizacionSQL[i].subfuente + '</td>'
+                            + '<td align="left">' + data.buscaCotizacionSQL[i].asesor + '</td>'
+                            + '<td align="right">' + data.buscaCotizacionSQL[i].desTipoUltimoSeg + '</td>'
+                            + '<td align="right">' + data.buscaCotizacionSQL[i].notaultimoSeg + '</td>'
+                            + '<td width="15%" align="center">'
+                            + '<button class="btn btn-info btn-xs" onclick="valida(' + data.buscaCotizacionSQL[i].cot_idserial + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                            + '<button class="btn btn-primary btn-xs" onclick="Seguimiento(' + data.buscaCotizacionSQL[i].cot_idserial + ')">&nbsp;&nbsp;Seguimiento&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                            + '<button class="btn btn-success btn-xs" onclick="generarPDF2(' + data.buscaCotizacionSQL[i].cot_idserial + ')">&nbsp;&nbsp;PDF&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                            + botonRol
+                            + '</td>'
+                            + '</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            });
+        }
+
+        function activarCC(id) {
+            $('#asignado').val('').select2()
+            $('#observaciones').val('')
+            $('#idCotActivacion').val('')
+            $.ajax({
+                url: '/cotizacion/buscarCallCenter',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#idCotActivacion').val(id)
+                    $('#asignado').empty();
+
+                    $('#asignado').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#asignado').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].nombre
+                        }));
+                    }
+                },
+                complete: function (data){
+                    $('#modalActivacionCC').modal('show');
+                }
+            });
+        }
+
+        function guardarActivacion() {
+            if ($('#asignado').val() != "" && $('#observaciones').val() != "") {
+                $('#msjCamposObligatorios').hide('1000')
+                $.ajax({
+                    url: '/cotizacion/guardarActivacion',
+                    data: {
+                        idCot: $('#idCotActivacion').val(),
+                        usuario: $('#asignado').val(),
+                        nota: $('#observaciones').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        console.log(data)
+                        if (data.exito = true) {
+                            $('#modalActivacionCC').modal('hide');
+                            swal("Exito!", "La activación se ha realizado con éxito", "success");
+                        }else {
+                            $('#modalActivacionCC').modal('hide');
+                            swal("Error!", "La activación no se pudo realizar con éxito", "error");
+                        }
+                    },
+                    complete: function (data){
+                    }
+                });
+            }else {
+                $('#msjCamposObligatorios').show('1000');
+            }
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+    </script>
+
+}

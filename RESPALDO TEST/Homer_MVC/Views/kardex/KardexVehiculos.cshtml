@@ -1,0 +1,307 @@
+﻿@{
+    ViewBag.Title = "Kardex";
+    ViewBag.Icono = "fa fa-th-list";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="hpanel">
+        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+            <div class="panel-tools">
+                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+            </div>
+            @ViewBag.Title
+        </div>
+        <div class="panel-body">
+            <div class="form-horizontal">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label class="control-label">Año:&nbsp;</label></div>
+
+                        <div class="col-sm-4">
+                            <div class="input-append date" id="anio" data-date="10-2018" data-date-format="yyyy">
+                                <input type="text" class="form-control" name="date" size="4" data-date="10-2018" required="required">
+                                <span class="add-on"><i class="icon-th"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label class="control-label">Mes:&nbsp;</label></div>
+
+                        <div class="col-sm-4">
+                            <select class="form-control js-source-states" id="mes" name="mes" required="required">
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label>Bodega(s)</label></div>
+                        <div class="col-sm-4">
+                            <select id="listar_bodegas" name="listar_bodegas" multiple="multiple" placeholder="Selección múltiple" class="form-control"></select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="col-sm-2"><label>Referencia(s)</label></div>
+                        <div class="col-sm-4">
+                            <select class="form-control js-source-states" id="codigo" name="codigo" placeholder="Seleccione">
+                                <option value="">Seleccione</option>
+                                @foreach (var item in ViewBag.codigo)
+                                {
+                                    <option value="@item.ref_codigo">@item.ref_codigo - @item.ref_descripcion</option>
+                                }
+                            </select>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <button type="button" class="btn btn-primary" id="btnFiltrar" onclick="buscarKardex()"><i class="fa fa-filter" aria-hidden="true"></i>&nbsp;&nbsp;Filtrar</button>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="alert alert-danger" id="vacio" role="alert" style="display:none">
+                        No existe información disponible para los filtros seleccionados
+                    </div>
+                    <div class="col-lg-12" id="contenedorTablas" name="contenedorTablas">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vendor scripts -->
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <!-- App scripts -->
+    <script src="~/Scripts/homer.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('.js-source-states').select2();
+            var fecha = '@DateTime.Now.Year';
+            $("#anio").val(fecha);
+            $('#anio').find('input').val(fecha);
+
+            $("#anio").datepicker({
+                format: "yyyy",
+                viewMode: "years",
+                minViewMode: "years",
+                autoclose: true
+            });
+
+            buscarBodegas();
+        });
+
+        function buscarKardex() {
+            $('#vacio').hide();
+            $.ajax({
+                url: '/kardex/BuscarKardexVehiculos',
+                data: {
+                    anio: $('#anio').find('input').val(),
+                    mes: $('#mes').val(),
+                    bodega: $('#listar_bodegas').val(),
+                    codigo: $('#codigo').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    var contenido_tablas = "";
+                    if (data.info == false) {
+                        $('#vacio').show();
+                        $('#contenedorTablas').hide();
+                    } else {
+                        $('#contenedorTablas').show();
+                        for (var u = 0; u < data.data.consultaB.length; u++) {
+                            var canIni = 0;
+                            var cosIni = 0;
+                            var canEnt = 0;
+                            var cosEnt = 0;
+                            var canSal = 0;
+                            var cosSal = 0;
+                            var stock = 0;
+                            var cStock = 0;
+
+                            contenido_tablas +=
+                                '<table style="width:100%" class="table table-bordered">'
+                                + '<thead>'
+                                  + '<tr>'
+                                    + '<th colspan="9" style="text-align:left; border:hidden">' + data.data.consultaB[u].bodega + ' - ' + data.data.consultaB[u].bodccs_nombre + '</th>'
+                                  + '</tr>'
+                                  + '<tr style="border:hidden ; border-bottom:solid 1px"><td colspan="9" border-top:"hidden></td></tr>'
+                                  + '<tr>'
+                                        + '<th style="text-align:center">Referencia</th>'
+                                        + '<th style="text-align:center">Can ini</th>'
+                                        + '<th style="text-align:center">Cos ini</th>'
+                                        + '<th style="text-align:center">Can ent</th>'
+                                        + '<th style="text-align:center">Cos ent</th>'
+                                        + '<th style="text-align:center">Can sal</th>'
+                                        + '<th style="text-align:center">Cos sal</th>'
+                                        + '<th style="text-align:center">Stock</th>'
+                                        + '<th style="text-align:center">Costo stock</th>'
+                                  + '</tr>'
+                                + '</thead>'
+                                + '<tbody>';
+
+                            for (var i = 0; i < data.data.consulta.length; i++) {
+                                if (data.data.consultaB[u].bodega == data.data.consulta[i].bodega) {
+
+                                    contenido_tablas +=
+                                             '<tr>'
+                                                    + '<td align="left">' + data.data.consulta[i].codigo + ' - ' + data.data.consulta[i].ref_descripcion + '</td>'
+                                                    + '<td align="right"><input class="canIni" id="canIni' + i + '" name="canIni" type="text" style="display:none;" value="' + data.data.consulta[i].can_ini + '">' + addCommas(data.data.consulta[i].can_ini) + '</td>'
+                                                    + '<td align="right"><input class="cosIni" id="cosIni' + i + '" name="cosIni" type="text" style="display:none;" value="' + data.data.consulta[i].cos_ini + '">' + addCommas(data.data.consulta[i].cos_ini) + '</td>'
+                                                    + '<td align="right"><input class="canEnt" id="canEnt' + i + '" name="canEnt" type="text" style="display:none;" value="' + data.data.consulta[i].can_ent + '">' + addCommas(data.data.consulta[i].can_ent) + '</td>'
+                                                    + '<td align="right"><input class="cosEnt" id="cosEnt' + i + '" name="cosEnt" type="text" style="display:none;" value="' + data.data.consulta[i].cos_ent + '">' + addCommas(data.data.consulta[i].cos_ent) + '</td>'
+                                                    + '<td align="right"><input class="canSal" id="canSal' + i + '" name="canSal" type="text" style="display:none;" value="' + data.data.consulta[i].can_sal + '">' + addCommas(data.data.consulta[i].can_sal) + '</td>'
+                                                    + '<td align="right"><input class="cosSal" id="cosSal' + i + '" name="cosSal" type="text" style="display:none;" value="' + data.data.consulta[i].cos_sal + '">' + addCommas(data.data.consulta[i].cos_sal) + '</td>'
+                                                    + '<td align="right"><input class="stock"  id="stock"  name="stock"  type="text" style="display:none;" value="' + data.data.consulta[i].stock + '">' + addCommas(data.data.consulta[i].stock) + '</td>'
+                                                    + '<td align="right"><input class="cStock" id="cStock" name="cStock" type="text" style="display:none;" value="' + data.data.consulta[i].CostoStock + '">' + addCommas(data.data.consulta[i].CostoStock) + '</td>'
+                                               + '</tr>'
+                                            + '</tbody>'
+                                    canIni += data.data.consulta[i].can_ini;
+                                    cosIni += data.data.consulta[i].cos_ini;
+                                    canEnt += data.data.consulta[i].can_ent;
+                                    cosEnt += data.data.consulta[i].cos_ent;
+                                    canSal += data.data.consulta[i].can_sal;
+                                    cosSal += data.data.consulta[i].cos_sal;
+                                    stock += data.data.consulta[i].stock;
+                                    cStock += data.data.consulta[i].CostoStock;
+                                }
+                            }
+
+                            contenido_tablas += '<tfoot>'
+                                               + '<tr>'
+                                                    + '<td align="left"><b>Totales</b></td>'
+                                                    + '<td align="right"><input class="form-control input-sm" id="valorCanIni" name="valorCosIni" readonly="readonly" type="text" value="' + addCommas(canIni) + '" style="text-align:right"></td>'
+                                                    + '<td align="right"><input class="form-control input-sm" id="valorCanIni" name="valorCanEnt" readonly="readonly" type="text" value="' + addCommas(cosIni) + '" style="text-align:right"></td>'
+                                                    + '<td align="right"><input class="form-control input-sm" id="valorCanIni" name="valorCosEnt" readonly="readonly" type="text" value="' + addCommas(canEnt) + '" style="text-align:right"></td>'
+                                                    + '<td align="right"><input class="form-control input-sm" id="valorCanIni" name="valorCanSal" readonly="readonly" type="text" value="' + addCommas(cosEnt) + '" style="text-align:right"></td>'
+                                                    + '<td align="right"><input class="form-control input-sm" id="valorCanIni" name="valorCosSal" readonly="readonly" type="text" value="' + addCommas(canSal) + '" style="text-align:right"></td>'
+                                                    + '<td align="right"><input class="form-control input-sm" id="valorCanIni" name="valorCanIni" readonly="readonly" type="text" value="' + addCommas(cosSal) + '" style="text-align:right"></td>'
+                                                    + '<td align="right"><input class="form-control input-sm" id="valorCanIni" name="valorStock" readonly="readonly" type="text" value="' + addCommas(stock) + '" style="text-align:right"></td>'
+                                                    + '<td align="right"><input class="form-control input-sm" id="valorCanIni" name="valorCStock" readonly="readonly" type="text" value="' + addCommas(cStock) + '" style="text-align:right"></td>'
+                                               + '</tr>'
+                                    + '</tfoot>'
+                            '</table><br>';
+                        }
+                        $('#contenedorTablas').html(contenido_tablas);
+                    }
+                }
+            })
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            //console.log(nStr);
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        function buscarBodegas() {
+            $.ajax({
+                url: '/kardex/BuscarBodegas',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#listar_bodegas').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#listar_bodegas').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+
+                    $('#listar_bodegas').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 800,
+                    });
+                    $('#listar_bodegas').multiselect('refresh');
+                }
+            })
+        }
+
+    </script>
+}
+
+
+
+

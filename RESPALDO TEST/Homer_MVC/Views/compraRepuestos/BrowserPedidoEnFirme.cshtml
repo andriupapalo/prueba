@@ -1,0 +1,742 @@
+﻿@{
+    ViewBag.Title = "Compra de Repuestos y Accesorios";
+    ViewBag.Icono = "fa fa-address-book-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensajeError"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensajeError"]</p>
+            </div>
+        }
+
+        <div class="alert alert-danger alert-dismissible" id="mensaje" style="display: none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p><i class="fa fa-times fa-2x"></i> Por favor digite los campos obligatorios</p>
+        </div>
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo"></div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class=""><a href="@Url.Action("Index","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-arrow-circle-up"></i>&nbsp;&nbsp;Pre Cargue</a></li>
+                <li class=""><a href="@Url.Action("BrowserPreCargue","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Buscar PreCargue</a></li>
+                <li class=""><a href="@Url.Action("compraManual","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-hand-pointer-o"></i>&nbsp;&nbsp;Compra Manual</a></li>
+                <li class=""><a href="@Url.Action("ComprasRealizadas","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-cart-arrow-down"></i>&nbsp;&nbsp;Compras Realizadas</a></li>
+                <li class=""><a href="@Url.Action("solicitudes","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-cart-arrow-down"></i>&nbsp;&nbsp;Control Pedidos</a></li>
+                <li class="active"><a data-toggle="tab" href="#pedido_firme"><i class="fa fa-pencil"></i>&nbsp;&nbsp;Pedido En Firme</a></li>
+                @*<li class=""><a href="@Url.Action("BrowserDevoluciones","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-reply"></i>&nbsp;&nbsp;Devoluciones Realizadas</a></li>*@
+                <li class=""><a href="@Url.Action("BrowserBackorder","compraRepuestos", new { menu = @ViewBag.id_menu })"><i class="fa fa-history"></i>&nbsp;&nbsp;BackOrder</a></li>
+            </ul>
+
+            <div id="pedido_firme" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label>Forma de Pago <span class="text-danger">*</span></label>
+                                    <div class="div-fpago">
+                                        <input type="radio" name="check_fpago" value="B1"> &nbsp;<label class="control-label">Crédito</label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <input type="radio" name="check_fpago" value="C0"> &nbsp;<label class="control-label">Contado</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Sede Solicitante <span class="text-danger">*</span></label>
+                                    @Html.DropDownList("sedes", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                    @Html.Hidden("idtp_compra")
+                                    @Html.Hidden("numero_siguiente")
+
+                                </div>
+                            </div>
+                            <br />
+                            <div id="div-mensaje-guardar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Código</th>
+                                        <th style="text-align:center">Referencia</th>
+                                        <th style="text-align:center">Cantidad Total <span class="text-danger">*</span></th>
+                                        <th style="text-align:center">Tipo Compra</th>
+                                        @*<th style="text-align:center">Responsable</th>*@
+                                        <th style="text-align:center"># Pedido GM</th>
+                                        <th style="text-align:center">Notas</th>
+                                        @*<th style="text-align:center">Pedido</th>*@
+                                        <th style="text-align:center">Archivo</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+
+                            </table>
+
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="control-label col-md-6"></label>
+                                    <div class="col-md-6" style="padding:0px;" id="DivGuardarPedidoFirme"></div>
+                                </div>
+                            </div>
+
+                                <div class="hpanel">
+                                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                        <div class="panel-tools">
+                                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                        </div>
+                                        <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Pedidos Realizados
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="row">
+                                            <div class="col-sm-3">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Tipo de Compra:&nbsp;<span class="text-danger"></span></label>
+                                                    <div class="col-md-8">
+                                                        @Html.DropDownList("tipo_compra_buscar", null,"Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @multiple = "multiple" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-3">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Sede:&nbsp;<span class="text-danger"></span></label>
+                                                    <div class="col-md-8">
+                                                        @Html.DropDownList("sedes_buscar", null,"Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @multiple = "multiple" })
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-5">
+                                                <div class="row">
+                                                    <div class="col-md-5" style="padding-right: 0">
+                                                        <input type="text" class="input-sm form-control col-md-4 fechas" name="buscardesde" id="buscardesde" value="" placeholder="Fecha Inicio" autocomplete="off" />
+                                                    </div>
+                                                    <div class="col-md-2" style="padding-left: 0; padding-right: 0;">
+                                                        <span class="input-group-addon">Hasta</span>
+                                                    </div>
+                                                    <div class="col-md-5" style="padding-left: 0">
+                                                        <input type="text" class="input-sm form-control col-md-4 fechas" name="buscarhasta" id="buscarhasta" value="" placeholder="Fecha Fin" autocomplete="off" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-4" style="">
+                                                <div class="input-group">
+                                                    <button type="button" class="btn btn-primary" id="botonbuscar">
+                                                        <i class="fa fa-search">&nbsp;Buscar</i>
+                                                    </button>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="panel-body-busqueda">
+                                            <div class="table-responsive">
+                                                <div id="div-mensaje-buscar"></div>
+                                                
+                                                <table id="tablaPedidos" class="table table-striped table-bordered table-hover" width="100%">
+                                                    <thead>
+                                                        <tr style="height:30px">
+                                                            <th style="text-align:left">Fecha</th>
+                                                            <th style="text-align:left">Numero Pedido En Firme<br /></th>
+                                                            <th style="text-align:left">Numero Pedido Proveedor<br /></th>
+                                                            <th style="text-align:left">Tipo Compra</th>
+                                                            <th style="text-align:left">Sede</th>
+                                                            <th style="text-align:left">archivo</th>
+                                                            <th style="text-align:left">Total Ref.</th>
+                                                            <th style="text-align:left">En solicitud</th>
+                                                            <th style="text-align:left">Recibiendo</th>
+                                                            <th style="text-align:left">Completas</th>
+                                                            <th style="text-align:left">Canceladas</th>
+                                                            <th style="text-align:left">Acciones</th>
+
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalNumeroGM" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Numero de Pedido Proveedor</h4>
+            </div>
+            <div class="modal-body">
+                <h4>Por favor introduzca el número de pedido generado por el Proveedor</h4>
+                <div class="row" style="text-align: center;">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <input type="hidden" id="idvpedrepuesto" />
+                            <label class="control-label col-md-4">N° Pedido:&nbsp;<i class="text-danger">*</i></label>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="numero_pedido_gm" name="numero_pedido_gm" novalidate />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-dismiss="modal" id="asignarNumero" onclick="asignarNumero()">Asignar</button>
+
+                @*<button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalNoStock">Cerrar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script type="text/javascript">
+        var seleccionados = @Html.Raw(Json.Encode(ViewBag.seleccionados));
+        $(document).ready(function () {
+
+            $('.fechas').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: `-${new Date()}`
+            });
+
+            $('#menu').val(@ViewBag.id_menu);
+            var ninguno = seleccionados.length == 0;
+            $('#tablaPaginada').dataTable().fnDestroy();
+            if (!ninguno) {
+                $('#DivGuardarPedidoFirme').html('<button class="btn btn-info" type="button" id="GuardarPedidoFirme" style="float:right"><i class="fa fa-download"></i>&nbsp;&nbsp;&nbsp;Generar Archivo</button>');
+                $('#GuardarPedidoFirme').click(validarEnvio);
+                 $.ajax({
+                url: '/compraRepuestos/GetDatosParaPFirme',
+                data: {
+                    seleccionados: seleccionados
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    //console.log(data);
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        var cantOrig = data[i].cantidad_pedida;
+                        var funcOrg = "editado(this, '" + cantOrig + "')";
+                        $('#tablaPaginada').find('tbody').append(
+                            '<tr>'
+                            + '<td align="left">' + data[i].CodeReferencia + ' <input type="hidden" id="solic' + i + '" value="' + data[i].idsolicitudes + '"> <input type="hidden" class="input-ref-code" id="refi' + i + '" value="' + data[i].CodeReferencia + '"></td>'
+                            + '<td align="left">' + data[i].DesReferencia + '</td>'
+                            + ((ninguno)? '<input type="hidden" id="cantidadmin' + i + '" value="' + data[i].cantOrig + '"><td align="right">' + cantOrig + '</td>': '<input type="hidden"  id="cantidadmin' + i + '" value="' + data[i].cantidad_pedida + '"><td align="center"><input type="text" id="canti' + i + '" style="width:100%;text-align:right;" class="form-control input-cant-total" autocomplete="off" onkeypress="return solonumeros(event)" onkeyup="'+ funcOrg +'" onchange="'+ funcOrg +'" value="' + data[i].cantidad_pedida + '" ></td>')
+                            + '<td align="left">' + data[i].tipo_compra + '</td>'
+                            @*+ '<td align="left">' + data[i].usuarioSolicitud + '</td>'*@
+                            + ((ninguno)? '<td align="right">' + data[i].npedido_gm + '</td>' : '<td align="center"><input type="text" readonly id="pedi'+ i +'" style="width:100%;" class="form-control input-nped-gm" autocomplete="off" onkeypress="return solonumeros(event)"></td>')
+                            + '<td align="left">' + ((ninguno) ? data[i].notas_pedido : '<textarea id="noti'+ i +'" rows="2" style="/*width:100%;*/" class="form-control input-text-nota"></textarea>') + '</td>'
+                            @*+ '<td align="center" style="vertical-align: middle;">' + ((data[i].fue_pedido === 1) ? '<button class="btn btn-xs btn-success">Sí</button>' : '<button class="btn btn-xs btn-warning">No</button>') + '</textarea></td>'*@
+                            + '<td align="left">' + data[i].archivo_generado + '</textarea></td>'
+                            + '</tr>');
+                    }
+                    $('#idtp_compra').val(data[0].idtp_compra);
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ],
+                        "paging": false,
+                        "info": false,
+                        "searching": false,
+                        "ordering": false,
+                        /*"order": [],
+                        "columnDefs": [{
+                            targets: 0,
+                            orderable: false
+                        }]*/
+                    });
+
+                    $('.input-cant-total').each(function () {
+                        if (this.value == '' || this.value == '0') {
+                            $(this).attr('title', "¿Ningún Repuesto?");
+                            $(this).css({
+                                cssText: "width:100%;text-align:right;border-color:#e74c3c !important"
+                            });
+                        }
+                    });
+                }
+            });
+            }
+           
+            $('.js-source-states').select2();
+        });
+
+        function editado(inpt, orig) {
+            //console.log(inpt.value);
+            //console.log(orig);
+            var cssText = "width:100%;text-align:right;";
+            var cssEditado = cssText + "border-color:#62cb31 !important";
+            var cssVacio = cssText + "border-color:#e74c3c !important";
+            if (inpt.value == 0) {
+                $(inpt).css({ 'cssText': cssVacio});
+                $(inpt).attr('title', "¿Ningún Repuesto?");
+            } else {
+                if (inpt.value != orig) {
+                    $(inpt).css({ 'cssText': cssEditado});
+                    $(inpt).attr('title', "Cantidad Original: "+orig);
+                } else {
+                    $(inpt).css({ 'cssText': cssText});
+                    $(inpt).attr('title', "Cantidad: "+orig);
+                }
+            }
+        }
+
+        function validarEnvio() {
+            if (this.id == 'GuardarPedidoFirme') {
+                $('#numero_siguiente').val('');
+                $(this).attr('disabled', true);
+                var htmlOrig = '<i class="fa fa-download"></i>&nbsp;&nbsp;&nbsp;Generar Archivo';
+                var htmlCarg = '<i class="fa fa-spin fa-spinner"></i> Cargando...';
+                var htmlDone = '<i class="fa fa-check-circle"></i> Hecho!';
+                $(this).html(htmlCarg);
+                var valido = validarValoresX('input-cant-total');
+                    // && validarValoresX('input-nped-gm') 
+                    // && validarValoresX('input-text-nota')
+                var tipo_compra = $('#idtp_compra').val();
+                var fpago = $("input[name='check_fpago']:checked").val();
+                var sede = $('#sedes').val();
+                if (valido && tipo_compra != undefined && tipo_compra != '' && fpago != undefined && fpago != '' && sede != undefined && sede != '') {
+                    var infoReferencias = getReferencias();
+                    if (!infoReferencias.algunaVacia && infoReferencias.listado.length > 0) {
+                        $.ajax({
+                            url: '/compraRepuestos/GenerarDocumento',
+                            data: {
+                                tipo_compra: parseInt(tipo_compra),
+                                fpago: fpago,
+                                sede: parseInt(sede),
+                                listRef: infoReferencias.listado,
+                                seleccionados: seleccionados
+                            },
+                            type: "post",
+                            cache: false,
+                            success: function (data) {
+                                if (data.valido === true && data.generado === true) {
+                                    $('#GuardarPedidoFirme').html(htmlDone);
+                                    $('#numero_siguiente').val(data.numero_archivo);
+                                    $('#GuardarPedidoFirme').attr('id','GuardadoPedidoFirme');
+                                    swal("Se ha generado el Pedido " + data.nbr_archivo, "Archivo: " + data.nbr_archivo + ".txt", "success");
+                                    var a = document.createElement("a");
+                                    a.setAttribute("id", "adown");
+                                    a.setAttribute("download", "");
+                                    a.href = data.path;
+                                    a.click();
+                                    setTimeout(function () {
+                                        a.remove();
+                                        $('.sweet-alert.showSweetAlert.visible').attr('tabindex', null);
+                                    }, 3000);
+                                } else {
+                                    $('#GuardarPedidoFirme').html(htmlOrig);
+                                    $('#GuardarPedidoFirme').attr('disabled', false);
+                                    if (data.valido === true && data.generado === false) {
+                                        swal("Error al generar el Pedido", "", "error");
+                                    } else {
+                                        swal("El Pedido a generar no cumple con el formato establecido", "", "warning");
+                                    }
+                                }
+                            },
+                            error: function () {
+                                $('#GuardarPedidoFirme').html(htmlOrig);
+                                $('#GuardarPedidoFirme').attr('disabled', false);
+                                swal("Error Interno!", "", "error");
+                            },
+                            complete: function () {
+                                if ($('#numero_siguiente').val() != "") {
+                                    //muestromodal
+                                    mostrarModalNumeroGM();
+                                }
+                            }
+                        });
+                    } else {
+                        $(this).html(htmlOrig);
+                        $(this).attr('disabled', false);
+                        swal("Error en las referencias seleccionadas!", "", "error");
+                    }
+                } else {
+                    $(this).html(htmlOrig);
+                    $(this).attr('disabled', false);
+                    swal("Por favor, ingrese todos los datos obligatorios", "", "warning");
+                }
+            }
+        }
+
+        function mostrarModalNumeroGM () {
+            $('#numero_pedido_gm').val('');
+            $('#modalNumeroGM').modal({ backdrop: 'static', keyboard: false }); 
+            $('#modalNumeroGM').modal('show');
+        }
+
+        function asignarNumero() {
+            var numeropedido = $('#numero_pedido_gm').val();
+            var numerointerno = $('#numero_siguiente').val();
+            if (numerointerno != "" && numeropedido != "") {
+                $.ajax({
+                    url: '/compraRepuestos/GuardarNumero',
+                    data: {
+                        numeropedido: numeropedido,
+                        numerointerno: numerointerno,
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data.valor > 0) {
+                            swal(data.respuesta, "", "success");
+                            $('#modalNumeroGM').modal('hide');
+                            mostrarPedido(numerointerno);
+                            buscarDisponibles();
+                        }
+                        else {
+                           swal(data.respuesta, "", "error");
+                        }
+                    },
+                });
+            }
+            else {
+                 swal("Debe ingresar un numero de pedido.", "", "error");
+            }
+        }
+
+        function mostrarPedido(indice) {
+            $.ajax({
+                url: '/compraRepuestos/GetDatosDesdePFirme',
+                data: {
+                    numeropedido: indice
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    //console.log(data);
+                    $("#tablaPedidos").dataTable().fnDestroy();
+
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        var cantOrig = data[i].cantidad_pedida;
+                        var funcOrg = "editado(this, '" + cantOrig + "')";
+                        $('#tablaPaginada').find('tbody').append(
+                            '<tr>'
+                            + '<td align="left">' + data[i].CodeReferencia + ' <input type="hidden" id="solic' + i + '" value="' + data[i].idsolicitudes + '"> <input type="hidden" class="input-ref-code" id="refi' + i + '" value="' + data[i].CodeReferencia + '"></td>'
+                            + '<td align="left">' + data[i].DesReferencia + '</td>'
+                            + '<input type="hidden" id="cantidadmin' + i + '" value="' + data[i].cantOrig + '"><td align="right">' + cantOrig + '</td>'
+                            + '<td align="left">' + data[i].tipo_compra + '</td>'
+                            @*+ '<td align="left">' + data[i].usuarioSolicitud + '</td>'*@
+                            + '<td align="right">' + data[i].npedido_gm + '</td>' 
+                            + '<td align="left">' +  data[i].notas_pedido + '</td>'
+                            @*+ '<td align="center" style="vertical-align: middle;">' + ((data[i].fue_pedido === 1) ? '<button class="btn btn-xs btn-success">Sí</button>' : '<button class="btn btn-xs btn-warning">No</button>') + '</textarea></td>'*@
+                            + '<td align="left">' + data[i].archivo_generado + '</textarea></td>'
+                            + '</tr>');
+                    }
+                    $('#idtp_compra').val(data[0].idtp_compra);
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ],
+                        "paging": false,
+                        "info": false,
+                        "searching": false,
+                        "ordering": false,
+                        /*"order": [],
+                        "columnDefs": [{
+                            targets: 0,
+                            orderable: false
+                        }]*/
+                    });
+
+                    $('.input-cant-total').each(function () {
+                        if (this.value == '' || this.value == '0') {
+                            $(this).attr('title', "¿Ningún Repuesto?");
+                            $(this).css({
+                                cssText: "width:100%;text-align:right;border-color:#e74c3c !important"
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        function validarValoresX(clase) {
+            var valido = true;
+            $('.' + clase).each(function () {
+                if (this.value.trim() == '') {
+                    valido = false;
+                    return;
+                }
+            });
+            return valido;
+        }
+
+        function getReferencias() {
+            var lista = [];
+            var falta = false;
+            $('.input-ref-code').each(function (i, x) {
+                if (x.value.trim() == '') {
+                    falta = true;
+                    return;
+                } else {
+                    debugger;
+                    var cantid = $('#canti' + i).val();
+                    var solicitudes = $('#solic'+i).val();
+                    //var pedid = $('#pedi' + i).val();
+                    var notid = $('#noti' + i).val().trim();
+                    lista.push({
+                        coderef: x.value.trim(),
+                        cantiTotal: cantid,
+                        //numpedido_gm: pedid,
+                        notas: notid,
+                        solicitudes:solicitudes
+                    });
+                }
+            });
+            var respuesta = { listado: lista, algunaVacia: falta };
+            return respuesta;
+        }
+
+        function solonumeros(e) {
+            var key = window.Event ? e.which : e.keyCode;
+            return ((key >= 48 && key <= 57) || (key == 8));
+            // 8 es retroceso
+        }
+
+        function buscarDisponibles() {
+            //debugger;
+            $("#tablaPedidos").dataTable().fnDestroy();
+
+            var tipoproceso = $('#tipos_proceso').val();
+            var general = $('#txtFiltroGeneral').val();
+
+            var table = $('#tablaPedidos').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "filter": true,
+                "orderMulti": false,
+                "searching": false,
+                dom: "<''<'col-sm-4'><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'li>p",
+                "lengthMenu": [[50, 100, 200, -1], [50, 100, 200, "All"]],
+                buttons: [
+                    //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm', text: 'Exportar a Excel' }
+                ],
+                "ajax": {
+                    "url": "/compraRepuestos/getFiltroPedidosEnFirme",
+                    "type": "POST",
+                    "datatype": "json",
+                    "data": {
+                        /* filtros: cadenaFiltro,
+                         valorFiltros: cadenaValoresFiltro,*/
+                        tipo_compra: $('#tipo_compra_buscar').val(),
+                        sede: $('#sedes_buscar').val(),
+                        desde: $('#buscardesde').val(),
+                        hasta: $('#buscarhasta').val()
+                    }
+                },
+                "columns": [
+                    { "data": "fecha2", "name": "fecha2", "autoWidth": true, className: "align-right" },
+                    { "data": "numero_compra2", "name": "numero_compra2", "autoWidth": true },
+                    { "data": "numero_gm", "name": "numero_gm", "autoWidth": true },
+                    { "data": "descripcion", "name": "descripcion", "autoWidth": true },
+                    { "data": "sede_nombre", "name": "sede_nombre", "autoWidth": true },
+                    {
+                        "mData": null,
+                        "bSortable": false,
+                        "mRender": function (o) {
+                            console.log(o);
+                            var boton = "";
+                            if (o.tienearchivo == 1) {
+                                boton += "<button type='button' class='btn btn-sm btn-info'>";
+                                boton += "<i class='fa fa-download'></i>&nbsp;DESCARGAR&nbsp;</button>";
+                            }
+                            console.log(boton);                          
+                            return boton;
+                        }
+                    },
+                    {
+                        "mData": null,
+                        "bSortable": false,
+                        "mRender": function (o) {
+                            var boton = "";
+                            boton = '<span class="text-info" style="text-align:center;font-weight:bold;font-size:16px">' + o.cantidad_pedido + '</span>';           
+                            return boton;
+                        }
+                    },
+                    {
+                        "mData": null,
+                        "bSortable": false,
+                        "mRender": function (o) {
+                            var boton = "";
+                            boton = '<span class="text-primary" style="text-align:center;font-weight:bold;font-size:16px">' + o.pedidas + '</span>';           
+                            return boton;
+                        }
+                    },
+                    {
+                        "mData": null,
+                        "bSortable": false,
+                        "mRender": function (o) {
+                            var boton = "";
+                            boton = '<span class="text-warning" style="text-align:center;font-weight:bold;font-size:16px">' + o.recibiendo + '</span>';           
+                            return boton;
+                        }
+                    },
+                    {
+                        "mData": null,
+                        "bSortable": false,
+                        "mRender": function (o) {
+                            var boton = "";
+                            boton = '<span class="text-success" style="text-align:center;font-weight:bold;font-size:16px">' + o.recibidos + '</span>';           
+                            return boton;
+                        }
+                    },
+                    {
+                        "mData": null,
+                        "bSortable": false,
+                        "mRender": function (o) {
+                            var boton = "";
+                            boton = '<span class="text-danger" style="text-align:center;font-weight:bold;font-size:16px">' + o.cancelados + '</span>';           
+                            return boton;
+                        }
+                    },
+                    {
+                        "mData": null,
+                        "bSortable": false,
+                        "mRender": function (o) {
+                            boton = '<button class="btn btn-info btn-xs" onclick="verDetalle('
+                                                 +  o.id_archivo_compra
+                                + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>';
+                            var numerogm = 0;
+                            if (o.numero_gm != "") {
+                                numerogm=o.numero_gm;
+                            }
+                                boton=boton+'<button class="btn btn-primary btn-xs" onclick="cambiarPedidoGM('
+                                                 +  o.numero_compra2
+                                    + ',' + o.numero_gm
+                                    + ')">&nbsp;&nbsp;Numero&nbsp;&nbsp;</button>';
+                            
+                            return boton;
+                        }
+                    },
+                ],
+                "order": [ [0, "desc"] ]
+            });
+
+            var data = table.buttons.exportData();
+            // Buscar filtros
+            $('#botonbuscar').prop('disabled', false);
+
+        }
+
+        $('#botonbuscar').click(function () {
+            $('#botonbuscar').prop('disabled', true);
+            buscarDisponibles();
+        });
+
+
+
+       
+
+
+         function verDetalle(id) {
+             mostrarPedido(id);
+                
+        }
+
+
+         function cambiarPedidoGM(id, numerogm) {
+           
+            $('#numero_siguiente').val(id);
+            if (numerogm != 0) {
+                $('#numero_pedido_gm').val(numerogm);
+            }
+            else {
+                 $('#numero_pedido_gm').val('');
+            }
+                $('#modalNumeroGM').modal({ backdrop: 'static', keyboard: false }); 
+                $('#modalNumeroGM').modal('show');
+           
+                          
+        }
+    </script>
+
+}

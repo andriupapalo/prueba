@@ -1,0 +1,1908 @@
+﻿@model Homer_MVC.IcebergModel.NotasContablesModel
+@using System.Globalization
+
+@{
+    ViewBag.Title = "Facturación de Varios y Micelaneos";
+    ViewBag.Icono = "fa fa-address-book-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    CultureInfo elGR = CultureInfo.CreateSpecificCulture("el-GR");
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/sweetalert/lib/sweet-alert.css" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+        
+        <div class="alert alert-danger alert-dismissible" id="mensaje" style="display: none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p><i class="fa fa-times fa-2x"></i> Por favor digite los campos obligatorios</p>
+        </div>
+
+        <div class="alert alert-warning alert-dismissible" id="aviso" style="display:none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p id="texto_aviso"></p>
+        </div>
+
+        <div class="alert alert-danger  alert-dismissible" id="bloqueado" style="display:none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p id="texto_bloqueo"></p>
+        </div>
+
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje">
+                        @if (TempData["total_debitos"] != null)
+                        {
+                            <label class="label label-danger" style="font-size: 13px">Total Debitos: $<span class="precio">@Convert.ToDecimal(TempData["total_debitos"])</span></label>
+                        }
+                        @if (TempData["total_creditos"] != null)
+                        {
+                            <label class="label label-danger" style="font-size: 13px">Total Creditos: $<span class="precio">@Convert.ToDecimal(TempData["total_creditos"])</span></label>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="principal active"><a data-toggle="tab" href="#crear"><i class="fa fa-hand-pointer-o"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="busqueda" onclick="irBrowser()"><a data-toggle="tab"><i class="fa fa-search"></i>&nbsp;&nbsp;Busqueda</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+                    @using (Html.BeginForm("Facturar", "FacturacionOtros", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+
+                        @Html.Hidden("menu")
+
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info col-md-offset-4" type="button" id="btnGuardarSimulacion" onclick="validarObligatorios()"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                            <button class="btn btn-info col-md-offset-4" type="submit" id="btnSave" style="display: none"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                <div class="panel-tools">
+                                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                </div>
+                                Facturación
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-horizontal">
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" id="selectTipoDocumento" name="tipo" required="required">
+                                                        <option></option>
+                                                        @foreach (var item in ViewBag.doc_registros)
+                                                        {
+                                                            <option value="@item.tpdoc_id">@item.tpdoc_nombre</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" id="selectBodegas" name="selectBodegas" required="required">
+                                                        <option></option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cliente:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" id="selectProveedor" name="nit" required="required">
+                                                        <option></option>
+                                                        @foreach (var item in ViewBag.cliente)
+                                                        {
+                                                            <option value="@item.Value">@item.Text</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Condición Pago:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <input class="form-control input-sm number" type="text" id="condicion" required="required" readonly="readonly" />
+                                                    <input class="form-control" type="text" id="fpago_id" name="fpago_id" required="required" readonly="readonly" style="visibility:hidden" />
+                                                    @*@Html.EditorFor(model => model.fpago_id, new { htmlAttributes = new { @class = "form-control", type = "hidden", @style="display:none"} })*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Moneda:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("moneda", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" id="div_tasa" style="display: none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tasa:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <input type="text" name="tasa" id="tasa" class="form-control" value="" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Perfil Contable:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select class="form-control js-source-states" id="perfil" name="perfilcontable" required="required">
+                                                        <option></option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Fletes:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input type="text" name="fletes" id="fletes" class="form-control" value="" onkeyUp="return miles(this.id)" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">% Iva Fletes:&nbsp;</label>
+                                                <div class="col-md-2">
+                                                    <input type="text" name="por_iva_fletes" id="por_iva_fletes" class="form-control" value="" />
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="text" name="iva_fletes" id="iva_fletes" class="form-control" value="" readonly="" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Vendedor:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("vendedor", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.vendedor, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Concepto 1:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.concepto, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.concepto, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Concepto 2:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownListFor(model => model.concepto2, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    @Html.ValidationMessageFor(model => model.concepto2, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Observaciones:<span class="text-danger"></span></label>
+                                                <div class="col-md-6">
+                                                    @Html.TextAreaFor(model => model.nota1, new RouteValueDictionary(new { @class = "someClass", style = "width: 100%; height:80px;" }))
+                                                    @Html.ValidationMessageFor(model => model.nota1, "", new { @class = "text-danger" })
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cargar Pedido:&nbsp;<span class="text-danger"></span></label>
+                                                <div class="col-md-4">
+                                                    <select class="form-control js-source-states" id="pedido" name="pedido">
+                                                        <option></option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button type="button" class="btn btn-info" onclick="buscarPedido()"><i class="fa fa-search" aria-hidden="true"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+                                </div>
+
+                                @*<div class="col-sm-12">
+                                    <div class="table-responsive">
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tablaPedido">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Codigo</th>
+                                                    <th style="text-align:center">Cantidad</th>
+                                                    <th style="text-align:center">Valor unitario</th>
+                                                    <th style="text-align:center">Valor antes de IVA</th>
+                                                    <th style="text-align:center">Descuento (%)</th>
+                                                    <th style="text-align:center">Total Descuento ($)</th>
+                                                    <th style="text-align:center">IVA(%)</th>
+                                                    <th style="text-align:center">Total IVA ($)</th>
+                                                    <th style="text-align:center">Valor Total</th>
+                                                    <th style="text-align:center">Seleccion</th>
+                                                    <th style="text-align:center">Cantidad a Facturar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                        <div class="panel-body-btns text-right">
+                                            <button class="btn btn-info" type="button" id="confirmaFactura" onclick="confirmaFacturacion()"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Confirmar</button>
+                                        </div>
+                                    </div>
+                                </div>*@
+
+                                <div class="col-sm-12">
+                                    <hr />
+
+                                    <div id="msjCMax" class="alert alert-warning  alert-dismissible" style="display:none">
+                                        <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                                        <p>La cantidad ingresada es mayor a la que se encuentra en stock para la referencia</p>
+                                    </div>
+
+                                </div>
+
+                                <input type="hidden" name="total_costo" id="total_costo" value="" />
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Código:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @*@Html.DropDownList("codigo", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", })*@
+                                            <select class="form-control js-source-states" id="codigo" name="codigo" placeholder="Seleccione">
+                                                <option value=""></option>
+                                                @foreach (var item in ViewBag.codigo)
+                                                {
+                                                    <option value="@item.ref_codigo">@item.ref_codigo - @item.ref_descripcion</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Valor:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            <input type="text" name="valor_uni" id="valor_uni" class="form-control" value="" onkeyUp="return miles(this.id)" />
+                                            <input type="hidden" name="costo" id="costo" class="form-control" value="" />
+                                            @*<p>Costo: $<i id="costo"></i></p>*@
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Cantidad:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            <input type="text" name="cantidad" id="cantidad" class="form-control" value="" onkeypress="return soloNumeros(event)" />
+                                            <input type="hidden" name="stock" id="stock" class="form-control" value="" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">% Iva:</label>
+                                        <div class="col-md-6">
+                                            <input type="text" name="porcentaje_iva" id="porcentaje_iva" class="form-control" value="" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <div id="msjDMax" class="alert alert-warning  alert-dismissible" style="display:none">
+                                            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                                            <p>El descuento ingresado es mayor al maximo de la referencia</p>
+                                        </div>
+                                        <label class="control-label col-md-4">Descuento %</label>
+
+                                        <div class="col-md-6">
+                                            <input type="hidden" class="form-control input-sm number" id="descuentoMax" min="0" max="100" step="any" } />
+                                            <input class="form-control input-sm number" id="porcentaje_descuento" min="0" max="100" step="any" onkeypress="return valida(event, this.id)" } />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">&nbsp;</label>
+                                        <div class="col-md-6">
+                                            <button type="button" id="btnAgregar" onclick="agregar()" class="btn btn-success">Agregar</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @*TABLA*@
+                                <div class="col-sm-12">
+                                    <div class="table-responsive">
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tablaFacturacion">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Codigo</th>
+                                                    <th style="text-align:center">Cantidad</th>
+                                                    <th style="text-align:center">Valor unitario</th>
+                                                    <th style="text-align:center">Valor antes de IVA</th>
+                                                    <th style="text-align:center">Descuento (%)</th>
+                                                    <th style="text-align:center">Total Descuento ($)</th>
+                                                    <th style="text-align:center">IVA(%)</th>
+                                                    <th style="text-align:center">Total IVA ($)</th>
+                                                    <th style="text-align:center">Valor Total</th>
+                                                    <th style="text-align:center">Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                            <tfoot>
+                                                <tr id="filaSubTotal">
+                                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                        <b>SUB TOTAL</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                                        <input class="form-control input-sm" id="valorSub" name="valorSub" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                                <tr id="filaTotalDescuento">
+                                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                        <b>DESCUENTO</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                                        <input class="form-control input-sm" id="valorDes" name="valorDes" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                                <tr id="filaTotalIVA">
+                                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                        <b>IVA</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD" style="border-bottom:hidden">
+                                                        <input class="form-control input-sm" id="valorIVA" name="valorIVA" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                                <tr id="filaTotal">
+                                                    <td align="center" colspan="8" style="text-align:right; border-bottom:hidden; border-left:hidden">
+                                                        <b>TOTAL</b>
+                                                    </td>
+                                                    <td align="center" id="valorFinalTD">
+                                                        <input class="form-control input-sm" id="valorFinal" name="valorFinal" readonly="readonly" type="text" value="" style="text-align:right" />
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+
+                                        <table class="table table-striped table-bordered table-hover" id="tablaRetenciones">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="6" style="text-align:center">Retenciones</th>
+                                                </tr>
+                                                <tr>
+                                                    <th style="text-align:center">Retefuente</th>
+                                                    <th style="text-align:center">Reteiva</th>
+                                                    <th style="text-align:center">Reteica</th>
+                                                    <th style="text-align:center">Autoretencion</th>
+                                                    <th style="text-align:center">Total Retenciones</th>
+                                                    <th style="text-align:center">Total Proveedor</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <input type="hidden" value="" name="lista_referencias" id="lista_referencias" />
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal modalSiStock*@
+<div id="modalSiStock" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Consulta stock de inventario</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar">
+                        <p>No se encontro stock disponible en esta bodega. Verifique en la(s) siguiente(s) bodega(s)</p>
+                    </div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaStock">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Referencia</th>
+                                <th style="text-align:center">Bodega</th>
+                                <th style="text-align:center">Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalSiStock">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal modalNoStock*@
+<div id="modalNoStock" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Consulta stock de inventario</h4>
+            </div>
+            <div class="modal-body">
+                <h4>Lo sentimos, no tenemos stock disponible en ninguna de nuestras bodegas para la referencia seleccionada</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalNoStock">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal Error Agregar*@
+<div id="modalErrorAgregar" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Referencia no agregada</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align:center;">
+                    <p>No puedes agregar una referencia sin haber completado todos los campos correspondientes, por favor valide!</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalError">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal modalNopodemosAgregarlo*@
+<div id="modalNoCapacidad" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">No hay stock en bodega</h4>
+            </div>
+            <div class="modal-body">
+                <h4>Lo sentimos, no tenemos stock suficiente en la bodega para la referencia seleccionada</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerramodalNoCapacidad">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* modal documento descuadrado *@
+<div id="modal_diferencia" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <div class="alert alert-danger  alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                    <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+                </div>
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Error, los valores no coinciden</h4>
+            </div>
+            @if (ViewBag.documentoDescuadrado != null)
+            {
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="table-responsive">
+                                <div id="div-mensaje-buscar"></div>
+                                <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:center">Cuenta</th>
+                                            <th style="text-align:center">Parametro</th>
+                                            <th style="text-align:center">Debito</th>
+                                            <th style="text-align:center">Credito</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in ViewBag.documentoDescuadrado)
+                                        {
+                                            <tr>
+                                                <th style="text-align:center">@item.NumeroCuenta</th>
+                                                <th style="text-align:center">@item.DescripcionParametro</th>
+                                                <th style="text-align:center">@item.ValorDebito.ToString("0,0", elGR)</th>
+                                                <th style="text-align:center">@item.ValorCredito.ToString("0,0", elGR) </th>
+                                            </tr>
+                                        }
+                                        <tr>
+                                            <th style="text-align:center">&nbsp;</th>
+                                            <th style="text-align:center">&nbsp;</th>
+                                            <th style="text-align:center">@ViewBag.calculoDebito.ToString("0,0", elGR)</th>
+                                            <th style="text-align:center">@ViewBag.calculoCredito.ToString("0,0", elGR)</th>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal Facturacion registrado*@
+<div id="modalFacturacion" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Factura registrada con éxito</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align:center;">
+                    <h4>Se registro la factura con el número</h4> <h3><span class="label label-default">@ViewBag.numFacturaCreada</span></h3>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalFactura">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal sin forma de pago*@
+<div class="modal fade" id="modalNOfPago" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h5 class="modal-title" id="exampleModalLabel">No hay forma de pago</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                El cliente seleccionado no tiene forma de pago configurado, por favor valide!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal cliente bloqueado*@
+<div class="modal fade" id="modalBloqueado" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h5 class="modal-title" id="exampleModalLabel">Cliente Bloqueado</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label id="msjBloqueado"></label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*modal cupo exedido*@
+<div class="modal fade" id="modalSinCupo" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h5 class="modal-title" id="exampleModalLabel">No se registro la factura</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h4>La factura no pudo ser registrada, debido a que supero su cupo disponible. El cupo disponible del cliente es </h4><h3><span class="label label-default" id="cupoDisponible"></span></h3>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/sweetalert/lib/sweet-alert.min.js"></script>
+
+    <script type="text/javascript">
+        var i = 0;
+        var r = 0;
+        var re = 0;
+        var cot = 0;
+        var cos = 0;
+        var costo = 0;
+        var total = 0;
+        var contadorReferencias = 0;
+        var contadorLista = 0;
+        var contadorLista2 = 0;
+        var contadorPedido = 0;
+
+        function irBrowser() {
+            window.location.href = '@Url.Action("Index", "FacturacionOtros")?menu=' + @ViewBag.id_menu;
+        }
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $(".js-source-states").select2();
+            $('#btnAgregar').hide();
+            $('#btnSave').prop('disabled', true);
+        });
+
+        $('#selectTipoDocumento').change(function () {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                data: {
+                    id: $('#selectTipoDocumento').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#selectBodegas').empty();
+                    $('#selectBodegas').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.buscarBodega.length; i++) {
+                        $('#selectBodegas').append($('<option>', {
+                            value: data.buscarBodega[i].id,
+                            text: data.buscarBodega[i].bodccs_nombre
+                        }));
+                    }
+                }
+            })//bodegas
+
+            $.ajax({
+                url: '/compraRepuestos/BuscarPerfilPorDocumento',
+                data: {
+                    tipo: $('#selectTipoDocumento').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#perfil').empty();
+                    $('#perfil').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#perfil').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].perfil
+                        }));
+                    }
+                }
+            })//perfil
+
+            $.ajax({
+                url: '/FacturacionOtros/BuscarConceptos',//'FacturacionRepuestos/BuscarConceptos',
+                data: {
+                    idTpDoc: $('#selectTipoDocumento').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $('#concepto').empty();
+                    $('#concepto').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.buscarConceptos.length; i++) {
+                        $('#concepto').append($('<option>', {
+                            value: data.buscarConceptos[i].id,
+                            text: data.buscarConceptos[i].Descripcion
+                        }));
+                    }
+                    $('#concepto').select2();
+
+                    $('#concepto2').empty();
+                    $('#concepto2').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.buscarConceptos2.length; i++) {
+                        $('#concepto2').append($('<option>', {
+                            value: data.buscarConceptos2[i].id,
+                            text: data.buscarConceptos2[i].Descripcion
+                        }));
+                    }
+                    $('#concepto2').select2();
+                }
+            });//conceptos
+        });
+
+        //Funcion usada para el cambio de nit o de tipo de cargue
+        function limpiarTodo(){
+            if ( $('#lista_referencias').val() >0) {
+
+                $('#tablaFacturacion').find('tbody').empty();
+
+                $('#valorSub').val('');
+                $('#valorDes').val('');
+                $('#valorIVA').val('');
+                $('#valorFinal').val('');
+
+                $('#tablaRetenciones').find('tbody').empty();
+            }
+        }
+
+        function validarSiExiste(){
+            console.log("validarSiExiste");
+            var cantidad = 0;
+            for (var i = 0; i <= contadorReferencias; i++) {
+                if($('#codigo').val() == $('#referencia'+i+'').val()){
+                    cantidad+= parseInt($('#cantidadReferencia'+i+'').val())
+                }
+            }
+            cantidad+= parseInt($('#cantidad').val());
+            if (cantidad <= parseInt($('#stock').val())) {
+                return true;
+            }else{
+                return false;
+            }
+        }
+
+        function agregar() {
+            console.log("agregar");
+            if ($('#codigo').val() == '' || $('#codigo').val() == null || $.trim($('#cantidad').val()) == '' || $.trim($('#cantidad').val()) == 0 || $.trim($('#valor_uni').val()) == '' || $.trim($('#valor_uni').val()) == 0) {
+                $('#modalErrorAgregar').show();
+            }
+            else
+            {
+                //var existe=validarSiExiste();
+                //if (existe == false) {
+                //    //modal informando que no se puede agregar la referencia por que no hay mas capacidad en stock
+                //    $('#modalNoCapacidad').show();
+                //}else
+
+                    if ($('#porcentaje_descuento').val() == '') {
+                        $('#porcentaje_descuento').val('0')
+                    }
+                    if ($('#porcentaje_iva').val() == '') {
+                        $('#porcentaje_iva').val('0')
+                    }
+
+                    var precio = 0;
+
+                    if ($("#moneda").val() != 1) {
+                        precio = parseInt(quitCommas($("#valor_uni").val())) * $("#tasa").val()
+                    }else {
+                        precio = parseInt(quitCommas($("#valor_uni").val()))
+                    }
+
+                    var descuento = 0;
+                    if ($.trim($('#porcentaje_descuento').val()) != '') {
+                        descuento = Math.round((parseFloat($('#porcentaje_descuento').val()) * parseInt(quitCommas($('#valor_uni').val())) / 100) * parseFloat($('#cantidad').val()));
+                    }
+                    var iva = 0;
+                    if ($.trim($('#porcentaje_iva').val()) != '') {
+                        iva = Math.round(((parseFloat($('#cantidad').val()) * parseInt(quitCommas($('#valor_uni').val())) - descuento) * parseFloat($('#porcentaje_iva').val()) / 100) );
+                    }
+                    var valorAntesIva = (parseFloat($('#cantidad').val()) * parseInt(quitCommas($('#valor_uni').val())));
+                    var valorTotal = (valorAntesIva + iva) - descuento;
+
+                    var codigo = $("#codigo").val();
+
+                    $('#tablaFacturacion').find('tbody').append('<tr id="filaReferencias' + contadorReferencias + '">'
+                            +'<td align="left">'//referencia
+                                +'<input type="text" style="display:none;" id="referencia'+ contadorReferencias + '" name="referencia' + contadorReferencias + '" value="' + $('#codigo').val() + '"/>'
+                                + $("#codigo option:selected").text()
+                            +'</td>'
+                            +'<td align="right">'//cantidad
+                                +'<input type="text" style="display:none;" id="cantidadReferencia'+ contadorReferencias + '" name="cantidadReferencia' + contadorReferencias + '" value="' + $('#cantidad').val() + '"/>'
+                                + $('#cantidad').val()
+                            +'</td>'
+                            +'<td align="right">'//valor unitario
+                                +'<input type="text" style="display:none;" id="valorUnitarioReferencia'+ contadorReferencias + '" name="valorUnitarioReferencia' + contadorReferencias + '" value="' + $('#valor_uni').val() + '"/>'
+                                + $('#valor_uni').val()
+                            +'</td>'
+                            +'<td align="right">'//valor antes de iva
+                                +'<input class="ai" type="text" style="display:none;" id="valorAntesIvaReferencia'+ contadorReferencias + '" name="valorAntesIvaReferencia' + contadorReferencias + '" value="' + valorAntesIva + '"/>'
+                                + addCommas(valorAntesIva)
+                            +'</td>'
+                            +'<td align="right">'//descuento(%)
+                                +'<input type="text" style="display:none;" id="descuentoReferencia'+ contadorReferencias + '" name="descuentoReferencia' + contadorReferencias + '" value="' + $('#porcentaje_descuento').val() + '"/>'
+                                + $('#porcentaje_descuento').val()
+                            +'</td>'
+                            +'<td align="right">'//total descuento($)
+                                +'<input class="sumaDescuento" type="text" style="display:none;" id="totalDescuentoReferencia'+ contadorReferencias + '" name="totalDescuentoReferencia' + contadorReferencias + '" value="' + descuento + '"/>'
+                                + addCommas(descuento)
+                            +'</td>'
+                            +'<td align="right">'//iva(%)
+                                +'<input type="text" style="display:none;" id="ivaReferencia'+ contadorReferencias + '" name="ivaReferencia' + contadorReferencias + '" value="' + $('#porcentaje_iva').val() + '"/>'
+                                + $('#porcentaje_iva').val()
+                            + '</td>'
+                            +'<td align="right">'//total iva($)
+                                +'<input class="sumaIVA" type="text" style="display:none;" id="ivaTotalReferencia'+ contadorReferencias + '" name="ivaTotalReferencia' + contadorReferencias + '" value="' + iva + '"/>'
+                                + addCommas(iva)
+                            +'</td>'
+                            +'<td align="right">'//valor total
+                                +'<input class="sumamos" type="text" style="display:none;" id="valorTotalReferencia'+ contadorReferencias + '" name="valorTotalReferencia' + contadorReferencias + '" value="' + valorTotal + '"/>'
+                                + addCommas(valorTotal)
+                            +'</td>'
+                            +'<td width="5%" align="center">'//acciones
+                                +'<button type="button" class="btn btn-danger btn-xs" onclick="eliminarReferencia('+ contadorReferencias + ')">&nbsp;&nbsp;<i class="fa fa-times" aria-hidden="true"></i>&nbsp;&nbsp;</button>'
+                            +'</td>'
+                        +'</tr>');
+                    //subtotal de la cotizacion
+                    var subTotal = 0;
+                    $( ".ai" ).each( function( index, element ){
+                        subTotal += parseInt($( this ).val());
+                        $('#valorSub').val(addCommas(subTotal));
+                    });
+                    //sumatoria de descuento
+                    var totalDes = 0;
+                    $( ".sumaDescuento" ).each( function( index, element ){
+                        totalDes += parseInt($( this ).val());
+                        $('#valorDes').val(addCommas(totalDes));
+                    });
+                    //sumatoria de IVA
+                    var totalIVA = 0;
+                    $( ".sumaIVA" ).each( function( index, element ){
+                        totalIVA += parseInt($( this ).val());
+                        $('#valorIVA').val(addCommas(totalIVA));
+                    });
+                    //sumatoria de total a pagar
+                    var totala = 0;
+                    $( ".sumamos" ).each( function( index, element ){
+                        totala += parseInt($( this ).val());
+                        $('#valorFinal').val(addCommas(totala));
+                    });
+
+                    calculoRetenciones(subTotal, totalDes, totalIVA);
+                    contadorReferencias++;
+
+                    if ($('#lista_referencias').val() == '') {
+                        contadorLista = contadorReferencias;
+                    }else {
+                        contadorLista = parseInt(contadorReferencias)
+                    }
+
+                    $('#cantidadesReferencias').val(contadorReferencias);
+
+                    $('#lista_referencias').val(contadorLista);
+
+                    if ($("#lista_referencias").val() > 0) {
+                        $('#moneda').select2("readonly", true);
+                        $('#selectBodegas').select2("readonly", true);
+                        $('#selectProveedor').select2("readonly", true);
+                    }
+
+                    $('#cantidad').val('');
+                    $('#valor_uni').val('');
+                    $('#porcentaje_iva').val('');
+                    $('#porcentaje_descuento').val('');
+                    $('#codigo').val('').select2();
+
+            }
+        }
+
+        function calculoRetenciones(subTotal, totalDes, totalIVA){
+            console.log("calculoRetenciones");
+            $("#tablaRetenciones").find("tbody").empty()
+            $.ajax({
+                url: '/FacturacionOtros/BuscarRetenciones',
+                data: {
+                    tipo_doc: parseInt($('#selectTipoDocumento').val()),
+                    nit: parseInt($('#selectProveedor').val()),
+                    bodega: parseInt($('#selectBodegas').val()),
+                    subTotal: subTotal,
+                    totalDes: totalDes,
+                    totalIVA: totalIVA,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $("#tablaRetenciones").find("tbody").empty()
+                    reteica = data.reteica;
+                    retefuente = data.retefuente;
+                    reteiva = data.reteiva;
+                    autoRetencion = data.autoRetencion;
+                    totalFletes = parseInt(quitCommas($('#iva_fletes').val())) + parseInt(quitCommas($('#fletes').val()))
+
+                    if (isNaN(totalFletes)) {
+                        totalFletes = 0;
+                    }else {
+                        totalFletes = totalFletes;
+                    }
+
+                    total_retenciones = reteica+retefuente+reteiva+autoRetencion;
+
+                    if (subTotal == 0 && totalDes == 0 && totalDes == 0) {
+                        valor_proveedor = 0;
+                    }else {
+                        valor_proveedor = parseInt((((subTotal-totalDes)+ totalIVA) - total_retenciones))+ totalFletes + autoRetencion
+                    }
+
+                    $("#tablaRetenciones").find("tbody").append(
+                      '<tr>'
+                        +'<td style="text-align:right">$' + addComas(retefuente) + '</td>'
+                        +'<td style="text-align:right">$'+ addComas(reteiva) +'</td>'
+                        +'<td style="text-align:right">$'+ addComas(reteica) +'</td>'
+                        +'<td style="text-align:right"><input type="text" style="display:none;" id="autoRete" name="autoRete" value="' + autoRetencion + '"/>$'+ addComas(autoRetencion) +'</td>'
+                        +'<td style="text-align:right">$' + addComas(total_retenciones) + '</td>'
+                        +'<td style="text-align:right">$'
+                             +'<input type="text" style="display:none;" name="valor_proveedor" id="valor_proveedor" value="' + valor_proveedor + '">'
+                             + addComas(valor_proveedor)
+                        + '</td>'
+                      +'</tr>')
+
+                }
+            })
+        }
+
+        $("#pedido").change(function () {
+            console.log("pedido");
+            $("#tablaPedido").find("tbody").empty()
+            i = 0;
+            $.ajax({
+                url: '/FacturacionOtros/BuscarPedido',
+                data: {
+                    id: $("#pedido").val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $("#tablaPedido").find("tbody").empty()
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i].descuento == '') {
+                            $('#porcentaje_descuento').val('0')
+                        }
+                        if (data[i].iva == '') {
+                            $('#porcentaje_iva').val('0')
+                        }
+
+                        var precio = 0;
+
+                        if ($("#moneda").val() != 1) {
+                            precio = parseInt(data[i].valor_unitario) * $("#tasa").val()
+                        }else {
+                            precio = parseInt(data[i].valor_unitario)
+                        }
+
+                        var descuento = 0;
+                        if ($.trim(data[i].descuento) != '') {
+                            descuento = Math.round((parseFloat(data[i].descuento) * parseInt(data[i].valor_unitario) / 100) * parseFloat(data[i].cantidad));
+                        }
+                        var iva = 0;
+                        if ($.trim(data[i].iva) != '') {
+                            iva = Math.round(((parseFloat(data[i].cantidad) * parseInt(data[i].valor_unitario) - descuento) * parseFloat(data[i].iva) / 100) );
+                        }
+                        var valorAntesIva = (data[i].cantidad) * parseInt(data[i].valor_unitario);
+                        var valorTotal = (valorAntesIva + iva) - descuento;
+
+                        var codigo = data[i].codigo;
+                        var valor_unitario = data[i].valor_unitario;
+                        var porcentaje_iva = data[i].iva;
+                        var porcentaje_descuento = data[i].descuento;
+                        var cantidad = data[i].cantidad;
+
+                        $('#tablaPedido').find('tbody').append('<tr id="item' + i + '">'
+                            +'<td align="left">'//referencia
+                                +'<input type="text" style="display:none;" id="referenciaP'+ i + '" name="referenciaP' + i + '" value="' + codigo + '"/>'
+                                + codigo
+                            +'</td>'
+                            +'<td align="right">'//cantidad
+                                +'<input type="text" style="display:none;" id="cantidadReferenciaP'+ i + '" name="cantidadReferenciaP' + i + '" value="' + cantidad + '"/>'
+                                + cantidad
+                            +'</td>'
+                            +'<td align="right">'//valor unitario
+                                +'<input type="text" style="display:none;" id="valorUnitarioReferenciaP'+ i + '" name="valorUnitarioReferenciaP' + i + '" value="' + valor_unitario + '"/>'
+                                + addCommas(valor_unitario)
+                            +'</td>'
+                            +'<td align="right">'//valor antes de iva
+                                +'<input type="text" style="display:none;" id="valorAntesIvaReferenciaP'+ i + '" name="valorAntesIvaReferenciaP' + i + '" value="' + valorAntesIva + '"/>'
+                                + addCommas(valorAntesIva)
+                            +'</td>'
+                            +'<td align="right">'//descuento(%)
+                                +'<input type="text" style="display:none;" id="descuentoReferenciaP'+ i + '" name="descuentoReferenciaP' + i + '" value="' + porcentaje_descuento + '"/>'
+                                + porcentaje_descuento
+                            +'</td>'
+                            +'<td align="right">'//total descuento($)
+                                +'<input type="text" style="display:none;" id="totalDescuentoReferenciaP'+ i + '" name="totalDescuentoReferenciaP' + i + '" value="' + descuento + '"/>'
+                                + addCommas(descuento)
+                            +'</td>'
+                            +'<td align="right">'//iva(%)
+                                +'<input type="text" style="display:none;" id="ivaReferenciaP'+ i + '" name="ivaReferenciaP' + i + '" value="' + porcentaje_iva + '"/>'
+                                + porcentaje_iva
+                            + '</td>'
+                            +'<td align="right">'//total iva($)
+                                +'<input type="text" style="display:none;" id="ivaTotalReferenciaP'+ i + '" name="ivaTotalReferenciaP' + i + '" value="' + iva + '"/>'
+                                + addCommas(iva)
+                            +'</td>'
+                            +'<td align="right">'//valor total
+                                +'<input type="text" style="display:none;" id="valorTotalReferenciaP'+ i + '" name="valorTotalReferenciaP' + i + '" value="' + valorTotal + '"/>'
+                                + addCommas(valorTotal)
+                            +'</td>'
+                            +'<td align="center">'
+                                +'<input type="checkbox" value="10" disabled="disabled" class="i-checks" name="seleccion' + i + '" id="seleccion' + i + '" />'
+                            +'</td>'
+                            +'<td align="left">'
+                                +'<input onchange="infoReferencia('+i+')"  type="text" class="form-control" name="cantidadFacturar' + i + '" id="cantidadFacturar' + i + '" value="0"/>'
+                            +'</td>'
+                        +'</tr>');
+                    }
+
+                    $("#lista").val(i);
+                },
+                complete: function (data) {
+                    $('.i-checks').iCheck({
+                        checkboxClass: 'icheckbox_square-green',
+                        radioClass: 'iradio_square-green'
+                    });
+                }
+            });
+        });
+
+        function chequeo(i) {
+            console.log("chequeo");
+
+            if (parseInt($('#cantidadFacturar' + i + '').val()) <= parseInt($('#cantidadReferenciaP' + i + '').val())) {
+                if ($('#cantidadFacturar' + i + '').val() != 0) {
+                    var stock = 0;
+                    if ($('#stock').val() == "") {
+                        stock = 0
+                    }else {
+                        stock = parseInt($('#stock').val());
+                    }
+                    if (parseInt($('#cantidadFacturar'+i+'').val()) > stock) {
+
+                        $('#msjCMax').show();
+                        $('#cantidadFacturar').val(stock)
+
+                        setTimeout(function () {
+                            $("#msjCMax").fadeOut(2500);
+                        }, 5000);
+
+                        if(stock == 0){
+                            $('#cantidadFacturar'+i+'').val('0')
+                            $('#seleccion' + i +'').iCheck('uncheck');
+
+                        }else{
+                            $('#seleccion' + i +'').iCheck('check');
+                        }
+                    }
+                    else {
+                        $('#cantidadFacturar'+i+'').val()
+                        $('#seleccion' + i +'').iCheck('check');
+                    }
+                }else {
+                    $('#seleccion' + i +'').iCheck('uncheck');
+                }
+            }
+            else {
+                $('#cantidadFacturar' + i + '').val('0');
+                $('#seleccion' + i +'').iCheck('uncheck');
+            }
+        }
+
+        function confirmaFacturacion() {
+            console.log("confirmaFacturacion");
+
+            $('#valorSub').val("");
+            $('#valorDes').val("");
+            $('#valorIVA').val("");
+            $('#valorFinal').val("");
+
+            $( ".i-checks" ).each(function(index) {
+                if  ($(this).prop('checked')) {
+                    k = index;
+
+                    precio = parseInt(quitCommas($('#valorUnitarioReferenciaP'+k+'').val()))
+                    /*********************************************************************************************************************************************/
+                    var descuento = 0;
+                    if ($.trim($('#descuentoReferenciaP'+k+'').val()) != '') {
+                        descuento = Math.round((parseFloat($('#descuentoReferenciaP'+k+'').val()) * precio / 100) * parseFloat($('#cantidadFacturar'+k+'').val()));
+                    }
+                    var iva = 0;
+                    if ($.trim($('#ivaReferenciaP'+k+'').val()) != '') {
+                        iva = Math.round(((parseFloat($('#cantidadFacturar'+k+'').val()) * precio - descuento) * parseFloat($('#ivaReferenciaP'+k+'').val()) / 100) );
+                    }
+                    var valorAntesIva = (parseFloat($('#cantidadFacturar'+k+'').val()) * precio);
+                    var valorTotal = (valorAntesIva + iva) - descuento;
+                    /*********************************************************************************************************************************************/
+
+                    var codigo = $("#referenciaP"+k+'').val();
+
+                    $("#tablaFacturacion").find("tbody").append('<tr id="filaReferencias' + contadorReferencias + '">'
+                            +'<td>'//referencia
+                                +'<input style="display:none;" name="pedidoID' + contadorReferencias + '" id="pedidoID' + contadorReferencias + '" class="form-control" type="text" value="' + $('#pedido').val() + '">'
+                                +'<input style="display:none;" name="referencia' + contadorReferencias + '" id="referencia' + contadorReferencias + '" class="form-control" type="text" value="' + codigo + '">'
+                                +codigo
+                            +'</td>'
+                            +'<td style="text-align:right">'//cantidad
+                                +'<input style="display:none;" name="cantidadReferencia' + contadorReferencias + '" id="cantidadReferencia' + contadorReferencias + '" class="form-control" type="hidden" value="' + $('#cantidadFacturar'+k+'').val() + '">'
+                                + $('#cantidadFacturar'+k+'').val()
+                            +'</td>'
+                            +'<td style="text-align:right">'//Valor unitario
+                                +'<input  style="text-align:right; display:none" name="valorUnitarioReferencia' + contadorReferencias + '" id="valorUnitarioReferencia' + contadorReferencias + '" class="form-control" type="hidden" value="' + precio + '">'
+                                + addCommas(precio)
+                            +'</td>'
+                            +'<td style="text-align:right">'//valor antes de iva
+                                +'<input class="ai"  id="valorAntesIvaReferencia' + contadorReferencias + '" name="valorAntesIvaReferencia' + contadorReferencias + '" type="text" style="display:none;" value="'+ valorAntesIva +'">'
+                                + addCommas(valorAntesIva)
+                            +'</td>'
+                            +'<td style="text-align:right">'//descuento (%)
+                                +'<input name="descuentoReferencia' + contadorReferencias + '" id="descuentoReferencia' + contadorReferencias + '" class="form-control" type="hidden" value="' + $('#descuentoReferenciaP'+k+'').val() + '" >'
+                                + $('#descuentoReferenciaP'+k+'').val()
+                            +'</td>'
+                            +'<td style="text-align:right">'//total descuento ($)
+                                +'<input class="sumaDescuento" id="totalDescuentoReferencia' + contadorReferencias + '" name="totalDescuentoReferencia' + contadorReferencias + '" type="text" style="display:none;" value="' +  descuento + '">'
+                                + addCommas(descuento)
+                            +'</td>'
+                            +'<td style="text-align:right">'//iva (%)
+                                +'<input type="text" style="display:none;" id="ivaReferencia' + contadorReferencias + '" name="ivaReferencia' + contadorReferencias + '"  value="' + $('#ivaReferenciaP'+k+'').val() + '">'
+                                + $('#ivaReferenciaP'+k+'').val()
+                            +'</td>'
+                            +'<td style="text-align:right">'//total IVA ($)
+                                +'<input class="sumaIVA" id="ivaTotalReferencia' + contadorReferencias + '" name="ivaTotalReferencia' + contadorReferencias + '" type="text" style="display:none;" value="' +  iva + '">'
+                                + addCommas(iva)
+                            +'</td>'
+                            +'<td style="text-align:right">'//valor total
+                                +'<input class="sumamos" type="text" style="display:none;" name="valorTotalReferencia' + contadorReferencias + '" id="valorTotalReferencia' + contadorReferencias + '" value="' + valorTotal + '">'
+                                + addCommas(valorTotal)
+                            +'</td>'
+                            +'<td width="5%" align="center">'//acciones
+                                +'<button type="button" class="btn btn-danger btn-xs" onclick="eliminarReferencia('+ contadorReferencias + ')">&nbsp;&nbsp;<i class="fa fa-times" aria-hidden="true"></i>&nbsp;&nbsp;</button>'
+                            +'</td>'
+                        +'</tr>');
+                    //subtotal de la cotizacion
+                    var subTotal = 0;
+                    $( ".ai" ).each( function( index, element ){
+                        subTotal += parseInt($( this ).val());
+                        $('#valorSub').val(addCommas(subTotal));
+                    });
+                    //sumatoria de descuento
+                    var totalDes = 0;
+                    $( ".sumaDescuento" ).each( function( index, element ){
+                        totalDes += parseInt($( this ).val());
+                        $('#valorDes').val(addCommas(totalDes));
+                    });
+                    //sumatoria de IVA
+                    var totalIVA = 0;
+                    $( ".sumaIVA" ).each( function( index, element ){
+                        totalIVA += parseInt($( this ).val());
+                        $('#valorIVA').val(addCommas(totalIVA));
+                    });
+                    //sumatoria de total a pagar
+                    var totala = 0;
+                    $( ".sumamos" ).each( function( index, element ){
+                        totala += parseInt($( this ).val());
+                        $('#valorFinal').val(addCommas(totala));
+                    });
+                    contadorReferencias++;
+
+                    if ($('#lista_referencias').val() == '') {
+                        contadorLista = contadorReferencias;
+                    }else {
+                        contadorLista = parseInt(contadorReferencias)
+                        //contadorLista += parseInt($('#lista_referencias').val())
+                    }
+                    $('#cantidadesReferencias').val(contadorReferencias);
+                    $('#lista_referencias').val(contadorLista);
+
+                    if ($("#lista_referencias").val() > 0) {
+                        $('#moneda').select2("readonly", true);
+                        $('#selectBodegas').select2("readonly", true);
+                        $('#selectProveedor').select2("readonly", true);
+                    }
+                }
+                calculoRetenciones(subTotal, totalDes, totalIVA);
+            });
+            $('#pedido').select2("readonly", true);
+            $('#confirmaFactura').prop("disabled", true);
+        }
+
+        function eliminarReferencia(id) {
+            console.log("eliminarReferencia");
+
+            event.preventDefault();
+            //resta del subtotal
+            var totalSub = $('#valorSub').val();
+            var restaT = 0;
+            restaT = parseInt(quitCommas(totalSub)) - parseInt($('#valorAntesIvaReferencia' + id + '').val());
+            $('#valorSub').val(addCommas(restaT));
+
+            //resta del descuento
+            var totalDes = $('#valorDes').val();
+            var restaD = 0;
+            restaD = parseInt(quitCommas(totalDes)) - parseInt($('#totalDescuentoReferencia' + id + '').val());
+            $('#valorDes').val(addCommas(restaD));
+
+            //resta del IVA
+            var totalIVA = $('#valorIVA').val();
+            var restaI = 0;
+            restaI = parseInt(quitCommas(totalIVA)) - parseInt($('#ivaTotalReferencia' + id + '').val());
+            $('#valorIVA').val(addCommas(restaI));
+
+            //resta del valor total
+            var totala = $('#valorFinal').val();
+            var resta = 0
+            resta = parseInt(quitCommas(totala)) - parseInt(quitCommas($('#valorTotalReferencia' + id + '').val()));
+            $('#valorFinal').val(addCommas(resta));
+
+            des = restaD;
+            iva = restaI;
+            sub = restaT;
+
+            calculoRetenciones(sub, des, iva);
+
+            $('#filaReferencias' + id + '').remove();
+            var rowCount = $('#tablaFacturacion tbody tr').length;
+
+            if (rowCount == 0) {
+                $('#moneda').select2("readonly", false);
+                $('#selectBodegas').select2("readonly", false);
+            }
+        }
+
+        $('#porcentaje_descuento').change( function(){
+
+            console.log("porcentaje_descuento");
+
+            if (parseInt($('#porcentaje_descuento').val()) > parseInt($('#descuentoMax').val())) {
+
+                $('#msjDMax').show();
+                $('#porcentaje_descuento').val($('#descuentoMax').val())
+
+                setTimeout(function () {
+                    $("#msjDMax").fadeOut(2500);
+                }, 5000);
+
+            }else {
+                $('#porcentaje_descuento').val()
+            }
+        });
+
+        $('#cantidad').change(function(){
+            console.log("cantidad");
+            if (parseInt($('#cantidad').val()) > parseInt($('#stock').val())) {
+                $('#msjCMax').show();
+                $('#cantidad').val($('#stock').val())
+                setTimeout(function () {
+                    $("#msjCMax").fadeOut(2500);
+                }, 5000);
+            }else {
+                $('#cantidad').val()
+            }
+        });
+
+        $('#selectBodegas').change(function(){
+
+            console.log("selectBodegas");
+
+            if ($('#codigo').val() == "") {
+
+            }else {
+                infoReferencia();
+            }
+        })
+
+        $("#codigo").change(function () {
+            debugger;
+            buscarDatosReferencia();
+           // infoReferencia();
+        });
+
+        function buscarDatosReferencia() {
+            $.ajax({
+                url: '/FacturacionOtros/BuscarCostoReferencia',
+                data: {
+                    codigo: $('#codigo').val(),
+                    id_cliente: $('#selectProveedor').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#valor_uni').val(addCommas(data.precio));
+                    $('#porcentaje_iva').val(data.iva);
+                    $('#porcentaje_descuento').val(data.descuento);
+                    descuentoMaximo();
+                    $('#btnAgregar').show();
+                }
+            })
+        }
+
+        //function infoReferencia(j=''){
+        //    $('#stock').val('');
+        //    $("#porcentaje_descuento").val(0)
+        //    $("#porcentaje_iva").val('')
+        //    $("#costo").val(0);
+        //    $.ajax({
+        //        url: '/FacturacionOtros/buscarStock',
+        //        data: {
+        //            codigo: $("#codigo").val(),
+        //            bodega: $("#selectBodegas").val(),
+        //            codigoPedido : $('#referenciaP'+j+'').val(),
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //        },
+        //        complete: function (data) {
+        //            if(data.responseJSON.puede == true){
+        //                //buscar el iva, el descuento y el precio  de acuerdo al cliente que ta esta seleccionado
+        //                buscarPrecios();
+        //                $('#stock').val(data.responseJSON.cantidad);
+        //                $('#btnAgregar').show();
+        //                if (j>=0) {
+        //                    chequeo(j);
+        //                }else{
+        //                }
+        //            }else if (data.responseJSON.puede == false && data.responseJSON.inven == true) {
+        //                //mostrar modal informando de que en que bodega si hay stock de esa referencia
+        //                $('#modalSiStock').show();
+        //                $('#tablaStock').find('tbody').empty();
+        //                for (var i = 0; i < data.responseJSON.info.length; i++) {
+        //                    $('#tablaStock').find('tbody').append('<tr><td align="left">'
+        //                                    + data.responseJSON.info[i].ref_codigo + " " + data.responseJSON.info[i].ref_descripcion + '</td><td align="left">'
+        //                                    + data.responseJSON.info[i].bodccs_nombre + '</td><td align="right">'
+        //                                    + data.responseJSON.info[i].stock + '</td></tr>');
+        //                }
+        //            }else if (data.responseJSON.puede == false && data.responseJSON.inven == false) {
+        //                //mostrar modal informando no hay stock en ninguna bodega para la referencia
+        //                $('#modalNoStock').show();
+        //                if (j>=0) {
+        //                    chequeo(j);
+        //                }else{
+        //                }
+        //            }
+        //        }
+        //    });
+        //}
+
+        function buscarPrecios() {
+            console.log("buscarPrecios");
+            $("#valor_uni").val('')
+            $("#porcentaje_descuento").val('')
+            $("#porcentaje_iva").val('')
+            $.ajax({
+                url: '/inventario_repuesto/BuscarCostoReferencia',
+                data: {
+                    codigo: $('#codigo').val(),
+                    id_cliente: $('#selectProveedor').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#valor_uni').val(addCommas(data.precio));
+                    $('#porcentaje_iva').val(data.iva);
+                    $('#porcentaje_descuento').val(data.descuento);
+                    descuentoMaximo();
+                }
+            })
+
+            $.ajax({
+                url: '/FacturacionRepuestos/BuscarCosto',
+                data: {
+                    codigo: $('#codigo').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        $('#costo').val(data[i].costo);
+                    }
+                }
+            })
+        }
+
+        function descuentoMaximo(){
+            console.log("descuentoMaximo");
+            $.ajax({
+                url: '/FacturacionOtros/buscarDescuento',
+                data: {
+                    cliente: $('#selectProveedor').val(),
+                    codigo: $('#codigo').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#descuentoMax').val(data);
+                }
+            })
+        }
+
+        function calcularFletes() {
+            console.log("calcularFletes");
+            var iva = $("#por_iva_fletes").val() / 100;
+            var result = parseInt(quitCommas($("#fletes").val())) * iva;
+            $("#iva_fletes").val(addCommas(result));
+        }
+
+        $('#fletes').change( function(){
+            calcularFletes();
+        });
+
+        $('#por_iva_fletes').change( function(){
+            calcularFletes();
+        });
+
+        $('#selectProveedor').change( function(){
+            limpiarTodo();
+            $.ajax({
+                url: '/FacturacionOtros/clienteDesbloqueado',
+                data: {
+                    cliente: $('#selectProveedor').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.bloqueado == true) {
+                        //no puede facturar
+                        $('#btnSave').prop('disabled', true);
+                        $('#btnGuardarSimulacion').prop('disabled', true);
+                        $('#msjBloqueado').text(data.mensaje);
+                        $('#modalBloqueado').modal();
+                    }else {
+                        $('#btnSave').prop('disabled', false);
+                        $('#btnGuardarSimulacion').prop('disabled', false);
+                    }
+                },
+                complete: function (data) {
+                }
+            })
+
+            $.ajax({
+                url: '/inventario_repuesto/buscarFormaPago',
+                data: {
+                    id: $('#selectProveedor').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    //if (data.info == true) {
+                    //    $('#btnSave').prop('disabled', false);
+                    //    $('#fpago_id').val(data.id);
+                    //    $('#condicion').val(data.fpago);
+                    //}else {
+                    //    $('#btnSave').prop('disabled', true);
+                    //    $('#modalNOfPago').modal();
+                    //    $('#fpago_id').val('');
+                    //    $('#condicion').val('');
+                    //}
+                    if (data != null) {
+                        $('#btnSave').prop('disabled', false);
+                        $('#fpago_id').val(data.id);
+                        $('#condicion').val(data.fpago);
+                    }else {
+                        $('#btnSave').prop('disabled', true);
+                        $('#modalNOfPago').modal();
+                        $('#fpago_id').val('');
+                        $('#condicion').val('');
+                    }
+                },
+                complete: function (data) {
+                }
+            })
+        })
+
+        $("#moneda").change(function () {
+            console.log("moneda");
+
+            if ($("#moneda").val() != 1) {
+                $("#div_tasa").show();
+            }
+            else {
+                $("#div_tasa").hide();
+            }
+        })
+
+        $("#valor_uni").change(function () {
+            console.log("valor_uni");
+            var a = parseInt(quitCommas($("#valor_uni").val()));
+            var b = parseFloat(quitCommas($("#costo").val()));
+            if (a < b) {
+                $.ajax({
+                    url: '/FacturacionOtros/BuscarAutorizacion',
+                    data: {
+                        codigo: $('#codigo').val(),
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data.length == 0) {
+                            swal({
+                                title: "El valor de venta es menor al costo",
+                                text: "Debe solicitar autorización, desea continuar?",
+                                type: "warning",
+                                showCancelButton: true,
+                                confirmButtonColor: "#DD6B55",
+                                confirmButtonText: "Si, enviar!",
+                                cancelButtonText: "No, cancelar!",
+                                closeOnConfirm: false,
+                                closeOnCancel: false
+                            },
+                            function (isConfirm) {
+                                if (isConfirm) {
+                                    $.ajax({
+                                        url: '/FacturacionOtros/SolicitarAutorizacion',
+                                        data: {
+                                            codigo: $('#codigo').val(),
+                                            bodega: $('#selectBodegas').val(),
+                                        },
+                                        type: "post",
+                                        cache: false,
+                                        success: function (data) {
+                                            if (data == -1) {
+                                                swal("", "Error al enviar la notificación", "error");
+                                            }
+                                            if (data == 0) {
+                                                swal("", "No existen usuarios parametrizados para enviar una notificación", "warning");
+
+                                            }
+                                            if (data == 1) {
+                                                swal("", "Notificación enviada correctamente", "success");
+                                            }
+                                            if (data == 2) {
+                                                swal("", "Ya se envió una notificación anteriormente de la referencia seleccionada, valide información", "warning");
+                                            }
+                                            if (data == 3) {
+                                                swal("", "No se autorizo la facturacion por debajo del costo para la referencia", "warning");
+                                                $('#btnAgregar').hide();
+                                                $('#btnSave').prop('disabled', true);
+                                            }
+                                            $("#codigo").val(' ').select2();
+                                            $("#porcentaje_descuento").val(' ');
+                                            $("#porcentaje_iva").val(' ');
+                                            $("#valor_uni").val('')
+                                            $("#cantidad").val('')
+                                        },
+                                    });
+                                } else {
+                                    swal("Cancelado", "", "error");
+                                    $("#codigo").val(' ').select2();
+                                    $("#porcentaje_descuento").val(' ');
+                                    $("#porcentaje_iva").val(' ');
+                                    $("#valor_uni").val('')
+                                    $("#cantidad").val('')
+                                }
+                            })
+                        }
+                    }
+                });
+            }
+        })
+
+        function validarObligatorios() {
+            console.log("validarObligatorios");
+            console.log("lista_referencias " + $('#lista_referencias').val());
+            if ($('#lista_referencias').val() == "") {
+                console.log("lista_referencias vacia ");
+                $('#modalVacio').show();
+                $('#lista_referencias').prop('required', true);
+                $('#btnSave').prop('disabled', true);
+                $('#btnSave').hide();
+            }else {
+                console.log("lista_referencias / FacturacionOtros/ValidarCupo ");
+                $.ajax({
+                    url: '/FacturacionOtros/ValidarCupo',
+                    data: {
+                        cliente: parseInt($('#selectProveedor').val()),
+                        valorFactura : $('#valor_proveedor').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data.permitir == false) {
+                            //no puede facturar
+                            $('#cupoDisponible').text("$"+addCommas(data.cupoDisponible));
+                            $('#modalSinCupo').modal()
+                        }
+                        else {
+                            $('#btnSave').prop('disabled', false);
+                            $('#btnSave').trigger('click');
+                        }
+                    }
+                })
+            }
+        }
+
+        function validarResolucion() {
+            console.log("validarResolucion");
+            $.ajax({
+                url: '/FacturacionComisiones/ValidarResolucion',
+                data: {
+                    //grup: $('#tipo').val(),
+                    tip: $('#selectTipoDocumento').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data == 1) {
+                        $('#texto_aviso').text('La fecha fin de vigencia de la resolución esta próxima a vencer, por favor valide');
+                        $('#aviso').show();
+                        //$('#modalFacturacion').modal('hide');
+                    }
+                    else if (data == 2) {
+                        $('#texto_aviso').text('El consecutivo de factura esta próximo a terminar, por favor valide');
+                        $('#aviso').show();
+                        //$('#modalFacturacion').modal('hide');
+                    }
+                    else if (data == 3) {
+                        $('#texto_bloqueo').text('La fecha de vigencia de resolución esta vencida, no puede facturar ');
+                        $('#bloqueado').show();
+                        $('#btnGuardar').hide();
+                        //$('#bntFacturar').hide();
+                        //$('#modalFacturacion').modal('hide');
+                    }
+                },
+                complete: function (data) {
+                }
+            })
+        }
+
+        var numero_miles = "";
+        function formatNumber (n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles (id) {
+            numero_miles = formatNumber($('#'+id+'').val());
+            $('#'+id+'').val(numero_miles);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        function valida(e, id)	//Solo numeros y SOLO 1 punto decimal
+        {
+            var key = (document.all) ? e.which : e.keyCode;
+            //cadena = $('#' + id + '').val();
+            if (cadena.indexOf('.') == -1) {
+                return (key <= 13 || (key >= 48 && key <= 57) || key == 46);
+            }
+            else {
+                return (key <= 13 || (key >= 48 && key <= 57));
+            }
+        }
+
+        //----Funcion que valida que el campo solo tenga permitido el ingreso de numeros
+        function soloNumeros(e){
+            key = e.keyCode || e.which;
+            tecla = String.fromCharCode(key).toLowerCase();
+            letras = "1234567890";
+            especiales = "8-37-39-46";
+
+            tecla_especial = false
+            for(var i in especiales){
+                if(key == especiales[i]){
+                    tecla_especial = true;
+                    break;
+                }
+            }
+            if(letras.indexOf(tecla)==-1 && !tecla_especial){
+                return false;
+            }
+        }
+
+        $('#cerrarModalNoStock').click(function () {
+            $('#modalNoStock').hide();
+        });
+
+        $('#cerrarModalSiStock').click(function () {
+            $('#modalSiStock').hide();
+        });
+
+        $('#cerrarModalError').click(function () {
+            $('#modalErrorAgregar').hide();
+        });
+
+        $('#cerramodalNoCapacidad').click(function () {
+            $('#modalNoCapacidad').hide();
+        });
+
+        $('#cerrarModalFactura').click(function () {
+            $('#modalFacturacion').hide();
+        });
+
+        function buscarPedido() {
+            console.log("buscarPedido");
+            $.ajax({
+                url: '/FacturacionOtros/buscarPedidoCliente',
+                data: {
+                    nit: $('#selectProveedor').val(),
+                    bodega: $('#selectBodegas').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#pedido').empty();
+                    $('#pedido').append($('<option>', {
+                        value: '',
+                        text: 'Seleccione'
+                    }));
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#pedido').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].descripcion
+                        }));
+                    }
+                }
+            })
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+    </script>
+
+    @if (TempData["mensaje"] != null)
+    {
+        <script type="text/javascript">
+            $('#btnGenerarFactura').show();
+            $('#modalFacturacion').modal('show');
+        </script>
+    }
+
+
+    @if (TempData["documento_descuadrado"] != null)
+    {
+        <script type="text/javascript">
+            $('#modal_diferencia').modal('show');
+        </script>
+    }
+
+}

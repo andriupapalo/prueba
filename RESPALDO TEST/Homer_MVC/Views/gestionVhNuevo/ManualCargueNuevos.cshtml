@@ -1,0 +1,1061 @@
+﻿@model Homer_MVC.IcebergModel.CargueManualVhModel
+
+@{
+    ViewBag.Title = "Cargue Pedido Y Compra de Vehículo";
+    ViewBag.Icono = "fa fa-book";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    @Styles.Render("~/bundles/datatables/css")
+    @* <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+        <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+        <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />*@
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Actualizar @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="hpanel">
+        <div id="tabs" class="tab-content">
+            <ul id="tabs-invVhNuevo" class="nav nav-tabs">
+                <li class=""><a data-toggle="tab" href="#PedidoEnFirme"><i class="fa fa-book"></i>&nbsp;&nbsp;Pedido en Firme</a></li>
+                <li class=""><a data-toggle="tab" href="#FacturacionGM" id="tabFacturacion"><i class="fa fa-money"></i>&nbsp;&nbsp;Compras GM</a></li>
+                <li class="" onclick="BuscarComprasIndivuduales();"><a data-toggle="tab" href="#ComprasIndividualesGM"><i class=""></i><i class="fa fa-contao"></i>&nbsp;&nbsp;Consecutivo de Compras</a></li>
+                @*<li class=""><a data-toggle="tab" href="#Inventario" id="tabInventario"><i class=""></i>&nbsp;&nbsp;Inventario</a></li>*@
+                <li class="active"><a data-toggle="tab" href="#CargueManual" id="tabCargueManual"><i class=""></i>&nbsp;&nbsp;Cargue Vehículo</a></li>
+            </ul>
+
+
+
+            <div id="CargueManual" class="tab-pane active">
+                <div class="panel-body">
+
+
+                    @*@if (TempData["mensaje"] != null)
+                        {
+                            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                                <p>@TempData["mensaje"]</p>
+                            </div>
+                        }*@
+
+                    @if (TempData["mensaje_error"] != null)
+                    {
+                        <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                            <p>@TempData["mensaje_error"]</p>
+                        </div>
+                    }
+
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-book"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.doc_registros, ViewBag.doc_registros.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.doc_registros, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <select id="id_bod" name="id_bod" class="form-control js-source-states" placeholder="Seleccione" required><option></option></select>
+                                                @*@Html.DropDownListFor(model => model.id_bod, ViewBag.cod_bod.Items as List<SelectListItem>, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })*@
+                                                @Html.ValidationMessageFor(model => model.id_bod, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Proveedor:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("proveedor_id", new SelectList(ViewBag.proveedor_id, "Value", "Text"), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.proveedor_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Condición Pago:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.condicion_pago, Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.condicion_pago, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Nit Pago:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("nit_pago_id", new SelectList(ViewBag.proveedor_id, "Value", "Text"), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.nit_pago_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número Factura:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.num_pedido, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite numero factura", @type = "number", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.num_pedido, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Perfil Contable:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <select id="perfilContable" name="perfilContable" class="form-control js-source-states" placeholder="Seleccione" required><option></option></select>
+                                                @Html.ValidationMessageFor(model => model.perfilContable, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Concepto 1:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <select id="concepto1_id" name="concepto1_id" class="form-control js-source-states" placeholder="Seleccione"><option></option></select>
+                                                @Html.ValidationMessageFor(model => model.concepto1_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Concepto 2:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <select id="concepto2_id" name="concepto2_id" class="form-control js-source-states" placeholder="Seleccione"><option></option></select>
+                                                @Html.ValidationMessageFor(model => model.concepto2_id, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+
+
+
+
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-car"></i>&nbsp;&nbsp;&nbsp;Datos Vehículo
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Vehículo:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.plan_mayor, new { htmlAttributes = new { @class = "form-control", @placeholder = "Vehículo o placa", @required = "required" } })
+                                                    @Html.ValidationMessageFor(model => model.plan_mayor, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button type="button" class="btn btn-default" id="btnBuscarPlanMayor"><i class="fa fa-search" aria-hidden="true"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" style="display:none;" id="AlertaPlanMayorNoCreado">
+                                            <div class="form-group">
+                                                <div class="col-md-10">
+                                                    <label>El vehículo o placa no se encuentra registrado <a href="#" onclick="redireccionarVehiculo();"><u>Crear Aqui</u></a></label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div id="campoValorOculto" style="display:none;">
+                                        @*<div class="col-lg-12">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-2">Descripcion:</label>
+                                                    <div class="col-md-9">
+                                                        @Html.EditorFor(model => model.descripcion, new { htmlAttributes = new { @class = "form-control" ,@placeholder = "Digite Valor",  @readonly = "readonly" } })
+                                                        @Html.ValidationMessageFor(model => model.descripcion, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>*@
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Código Modelo:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.codigo_modelo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Valor", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.codigo_modelo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Modelo:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.descripcion_modelo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Descripcion", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.descripcion_modelo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Año:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.anio_modelo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Año", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.anio_modelo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Color:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.color_modelo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Color", @readonly = "readonly" } })
+                                                    @Html.ValidationMessageFor(model => model.color_modelo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Costo:&nbsp;</label>
+                                                    <div class="col-md-6">
+                                                        @Html.EditorFor(model => model.costosiniva_vh, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Valor", @onkeyUp = "return miles(this.id)", @style = "text-align:right" } })
+                                                        @Html.ValidationMessageFor(model => model.costosiniva_vh, "", new { @class = "text-danger" })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Descuento Pie:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.valorDescuentoPie, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Descuento Pie ($)", @onkeyUp = "return miles(this.id)", @style = "text-align:right" } })
+                                                    @Html.ValidationMessageFor(model => model.valorDescuentoPie, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Retención:&nbsp;</label>
+                                                <div class="col-md-3">
+                                                    @Html.EditorFor(model => model.retencion, new { htmlAttributes = new { @class = "form-control", @placeholder = "%", @readonly = "readonly", @style = "text-align:right" } })
+                                                    @Html.ValidationMessageFor(model => model.retencion, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3">
+                                                    @Html.Editor("txtRetencion", new { htmlAttributes = new { @class = "form-control", @placeholder = "$", @readonly = "readonly", @style = "text-align:right" } })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Iva:&nbsp;</label>
+                                                <div class="col-md-3">
+                                                    @Html.EditorFor(model => model.iva_vh, new { htmlAttributes = new { @class = "form-control", @placeholder = "%", @onkeyUp = "return miles(this.id)", @style = "text-align:right" } })
+                                                    @Html.ValidationMessageFor(model => model.iva_vh, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3">
+                                                    @Html.Editor("txtIva_vh", new { htmlAttributes = new { @class = "form-control", @placeholder = "$", @readonly = "readonly", @style = "text-align:right" } })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Retención Iva:&nbsp;</label>
+                                                <div class="col-md-3">
+                                                    @Html.EditorFor(model => model.retencion_iva, new { htmlAttributes = new { @class = "form-control", @placeholder = "%", @readonly = "readonly", @style = "text-align:right" } })
+                                                    @Html.ValidationMessageFor(model => model.retencion_iva, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3">
+                                                    @Html.Editor("txtRetencion_iva", new { htmlAttributes = new { @class = "form-control", @placeholder = "$", @readonly = "readonly", @style = "text-align:right" } })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Fletes:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.valorFlete, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Valor Flete", @onkeyUp = "return miles(this.id)", @style = "text-align:right" } })
+                                                    @Html.ValidationMessageFor(model => model.valorFlete, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Retención Ica:&nbsp;</label>
+                                                <div class="col-md-3">
+                                                    @Html.EditorFor(model => model.retencion_ica, new { htmlAttributes = new { @class = "form-control", @placeholder = "%", @readonly = "readonly", @style = "text-align:right" } })
+                                                    @Html.ValidationMessageFor(model => model.retencion_ica, "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-3">
+                                                    @Html.Editor("txtRetencion_ica", new { htmlAttributes = new { @class = "form-control", @placeholder = "$", @readonly = "readonly", @style = "text-align:right" } })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4">Iva Flete (%):&nbsp;</label>
+                                                    <div class="col-md-3">
+                                                        @Html.EditorFor(model => model.porcentajeIvaFlete, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Iva Flete (%)", @onkeyUp = "return miles(this.id)", @style = "text-align:right" } })
+                                                        @Html.ValidationMessageFor(model => model.porcentajeIvaFlete, "", new { @class = "text-danger" })
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        @Html.Editor("txtIvaFlete", new { htmlAttributes = new { @class = "form-control", @placeholder = "$", @readonly = "readonly", @style = "text-align:right" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Costo Total:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.costototal_vh, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Costo Total", @readonly = "readonly", @onkeyUp = "return miles(this.id)", @style = "text-align:right" } })
+                                                    @Html.ValidationMessageFor(model => model.costototal_vh, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="row" id="CampoAlertaBuscarPlanMayor" style="display:none;">
+                                        <div class="alert alert-success  alert-dismissible">
+                                            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                                            <p id="mensajeBuscarPlanMayor"></p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalDocumentoDescuadrado" class="modal fade hmodal-danger" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Documento Descuadrado</h4>
+                <small>Valor de crédito y débito no coinciden</small>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="col-sm-12">
+                    <div class="table-responsive">
+                        <div id="div-mensaje-buscar"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Cuenta</th>
+                                    <th style="text-align:center">Parametro</th>
+                                    <th style="text-align:center">Débito</th>
+                                    <th style="text-align:center">Crédito</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.documentoDescuadrado != null)
+                                {
+                                    foreach (var item in ViewBag.documentoDescuadrado)
+                                    {
+                                        <tr>
+                                            <th style="text-align:center">@item.NumeroCuenta</th>
+                                            <th style="text-align:center">@item.DescripcionParametro</th>
+                                            <th style="text-align:center">@item.ValorDebito</th>
+                                            <th style="text-align:center">@item.ValorCredito</th>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <th style="text-align:center">&nbsp;</th>
+                                        <th style="text-align:center">&nbsp;</th>
+                                        <th style="text-align:center">@ViewBag.calculoDebito</th>
+                                        <th style="text-align:center">@ViewBag.calculoCredito</th>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <label></label>
+            </div>
+
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Aceptar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@*modal Compra registrada*@
+
+<div id="modalCompra" class="modal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                <h4 class="modal-title">Compra registrada con éxito</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align:center;">
+                    <h4 id="mensajeModal"></h4> @*<h3><span class="label label-default">@ViewBag.numCompraCreada</span></h3>*@
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $('.js-source-states').select2();
+            BuscarPorTipoDocumento();
+
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 9000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 9000);
+
+            $('.input-date').datepicker({
+                format: 'yyyy/mm/dd'
+            });
+            //validarModeloActivo();
+            //if ($.trim($('#plan_mayor').val()) != '') {
+            //    $('#btnBuscarPlanMayor').trigger('click');
+            //}
+
+
+            buscarFormasPago();
+            $('form select').each(function (i) {
+                this.addEventListener('invalid', function (e) {
+                    var _s2Id = 's2id_' + e.target.id; //s2 autosuggest html ul li element id
+                    var _posS2 = $('#' + _s2Id).position();
+                    //get the current position of respective select2
+                    $('#' + _s2Id + ' ul').addClass('_invalid'); //add this class with border:1px solid red;
+                    //this will reposition the hidden select2 just behind the actual select2 autosuggest field with z-index = -1
+                    $('#' + e.target.id).attr('style', 'display:block !important;position:absolute;z-index:-1;top:' + (0 - $('#' + _s2Id).outerHeight() + 30) + 'px;left:' + (15 - ($('#' + _s2Id).width() / 10)) + 'px;');
+                    /*
+                    //Adjust the left and top position accordingly
+                    */
+                    //remove invalid class after 3 seconds
+                    setTimeout(function () {
+                        $('#' + _s2Id + ' ul').removeClass('_invalid');
+                    }, 3000);
+                    return true;
+                }, false);
+            });
+        });
+
+
+
+        function redireccionarVehiculo(){
+            window.open('@Url.Action("Crear", "Vehiculo")?planMayor=' + $('#plan_mayor').val(),'_blank');
+        }
+
+
+
+        var numero_miles = "";
+        function formatNumber (n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles (id) {
+            numero_miles = formatNumber($('#'+id+'').val());
+            $('#'+id+'').val(numero_miles);
+            console.log($('#'+id+'').val);
+        }
+
+        //----Funcion que valida que el campo solo tenga permitido el ingreso de letras
+        function soloLetras(e){
+            key = e.keyCode || e.which;
+            tecla = String.fromCharCode(key).toLowerCase();
+            letras = " áéíóúabcdefghijklmnñopqrstuvwxyz";
+            especiales = "8-37-39-46";
+
+            tecla_especial = false
+            for(var i in especiales){
+                if(key == especiales[i]){
+                    tecla_especial = true;
+                    break;
+                }
+            }
+            if(letras.indexOf(tecla)==-1 && !tecla_especial){
+                return false;
+            }
+        }
+        //----Funcion que valida que el campo solo tenga permitido el ingreso de numeros
+        function soloNumeros(e){
+            key = e.keyCode || e.which;
+            tecla = String.fromCharCode(key).toLowerCase();
+            letras = "1234567890";
+            especiales = "8-37-39-46";
+
+            tecla_especial = false
+            for(var i in especiales){
+                if(key == especiales[i]){
+                    tecla_especial = true;
+                    break;
+                }
+            }
+            if(letras.indexOf(tecla)==-1 && !tecla_especial){
+                return false;
+            }
+        }
+
+        function buscarFormasPago(){
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarTipoPagoProveedor',
+                data: {
+                    id_tercero: $('#proveedor_id').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#condicion_pago').empty();
+                    //for (var i = 0; i < data.length; i++) {
+                    $('#condicion_pago').append($('<option>', {
+                        value: data.fpago_id,
+                        text: data.fpago_nombre
+                    }));
+                    //}
+                    $('#condicion_pago').val(data.fpago_id).select2();
+                    $('#condicion_pago').attr("style", "display:visible").select2();
+                }
+            });
+        }
+
+        $('#proveedor_id').change(function(){
+            buscarFormasPago();
+            //busca el perfil contable por bodega
+          //  BuscarPorBodega();
+        });
+
+
+        $('#cerrarModal').click(function () {
+            $('#modalCompra').hide();
+        });
+
+        $('#plan_mayor').keydown(function () {
+            $('#costosiniva_vh').val('');
+            $('#campoValorOculto').hide();
+        });
+
+
+
+        $('#valorFlete').keyup(function(){
+            var valorFlete = $('#valorFlete').val().replace(/\./g, '');
+            var porcentajeFlete = $('#porcentajeIvaFlete').val().replace(/\./g, "");
+            if(valorFlete == ''){
+                valorFlete = 0;
+            }
+            if(porcentajeFlete == ''){
+                porcentajeFlete = 0;
+            }
+            var calculaFlete = (parseFloat(valorFlete) * parseFloat(porcentajeFlete)) / 100;
+            $('#txtIvaFlete').val(addComas(Math.round(calculaFlete)));
+            CalcularTotal();
+        });
+
+
+        $('#porcentajeIvaFlete').keyup(function(){
+            var valorFlete = $('#valorFlete').val().replace(/\./g, "");
+            var porcentajeFlete = $('#porcentajeIvaFlete').val().replace(/\./g, "");
+            if(valorFlete == ''){
+                valorFlete = 0;
+            }
+            if(porcentajeFlete == ''){
+                porcentajeFlete = 0;
+            }
+            var calculaFlete = (parseFloat(valorFlete) * parseFloat(porcentajeFlete)) / 100;
+            $('#txtIvaFlete').val(addComas(Math.round(calculaFlete)));
+            CalcularTotal();
+        });
+
+
+
+        $('#btnBuscarPlanMayor').click(function () {
+
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarVehiculoPorPlanMayor',
+                data: {
+                    planMayor: $('#plan_mayor').val(),
+                    id_provedor: $('#proveedor_id').val(),
+                    id_tp_documento: $('#doc_registros').val(),
+                    id_bodega: $('#id_bod').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+
+                    if (data.CamposVacios == true) {
+
+
+                        $('#campoValorOculto').hide();
+                        $('#AlertaPlanMayorNoCreado').hide();
+                        $('#mensajeBuscarPlanMayor').text(data.mensaje);
+                        $('#CampoAlertaBuscarPlanMayor').show();
+                        $('#AlertaPlanMayorNoCreado').hide();
+                        setTimeout(function () {
+                            $("#CampoAlertaBuscarPlanMayor").fadeOut(1500);
+                        }, 10000);
+                    } else {
+                        if (data.NoEncontrado == true) {
+
+                            $('#campoValorOculto').hide();
+                            $('#AlertaPlanMayorNoCreado').show();
+                            $('#CampoAlertaBuscarPlanMayor').hide();
+
+                        } else if (data.NoAnulado == false) {
+                            $('#mensajeBuscarPlanMayor').text(data.mensaje);
+                            $('#CampoAlertaBuscarPlanMayor').show();
+                            $('#campoValorOculto').hide();
+                            $('#AlertaPlanMayorNoCreado').hide();
+                            setTimeout(function () {
+                                $("#CampoAlertaBuscarPlanMayor").fadeOut(1500);
+                            }, 10000);
+
+
+                        } else if (data.Encontrado == true) {
+                            $('#costosiniva_vh').val(addComas(data.costo));
+                            $('#iva_vh').val(addComas(data.iva));
+                            $('#costototal_vh').val(addComas(data.total));
+                            $('#retencion_ica').val(addComas(data.porcentajeRetIca));
+                            $('#txtRetencion_ica').val(addComas(data.valorReteica));
+                            $('#retencion').val(addComas(data.porcentajeRetencion));
+                            $('#txtRetencion').val(addComas(data.valorRetencion));
+                            $('#retencion_iva').val(addComas(data.porcentajeRetIva));
+                            $('#txtRetencion_iva').val(addComas(data.valorReteIva));
+
+                            $('#codigo_modelo').val(data.modvh_codigo);
+                            $('#descripcion_modelo').val(data.modvh_nombre);
+                            $('#anio_modelo').val(data.anio_vh);
+                            $('#color_modelo').val(data.colvh_nombre);
+                            $('#campoValorOculto').show();
+                            $('#AlertaPlanMayorNoCreado').hide();
+                            $('#CampoAlertaBuscarPlanMayor').hide();
+                        }
+                    }
+                },
+                complete: function () {
+                    CalcularTotal();
+                }
+            });
+        });
+
+
+        function CalcularTotal(){
+            if($('#costosiniva_vh').val() != ''){
+                var costo = $('#costosiniva_vh').val().replace(/\./g, '');
+                var iva = $('#iva_vh').val().replace(/\./g, '');
+                var descuento = $('#valorDescuentoPie').val().replace(/\./g, '');
+                var calculoPorcentajeFlete = $('#txtIvaFlete').val().replace(/\./g, '');
+                var valorFlete = $('#valorFlete').val().replace(/\./g, '');
+                var reteica = $('#retencion_ica').val();
+                var reteiva = $('#retencion_iva').val();
+                var retencion = $('#retencion').val();
+                if(costo == ''){
+                    costo = 0;
+                }
+                if(iva == ''){
+                    iva = 0;
+                }
+                if(descuento == ''){
+                    descuento = 0;
+                }
+                if(reteica == ''){
+                    reteica = 0;
+                }
+                if(reteiva == ''){
+                    reteiva = 0;
+                }
+                if(retencion == ''){
+                    retencion = 0;
+                }
+                if(calculoPorcentajeFlete == ''){
+                    calculoPorcentajeFlete = 0;
+                }
+                if(valorFlete == ''){
+                    valorFlete = 0;
+                }
+
+                var valorRetencion = Math.round((parseFloat(costo) * parseFloat(retencion)) / 100);
+                $('#txtRetencion').val(addComas(valorRetencion));
+
+                var valorReteIva = Math.round((parseFloat(Math.round((parseFloat(costo) * parseFloat(iva)) / 100)) * parseFloat(reteiva)) / 100);
+                $('#txtRetencion_iva').val(addComas(valorReteIva));
+
+                var valorReteIca = Math.round((parseFloat(costo) * parseFloat(reteica)) / 1000);
+                $('#txtRetencion_ica').val(addComas(valorReteIca));
+
+                var valorIva = Math.round(((parseFloat(costo) - parseFloat(descuento)) * parseFloat(iva)) / 100);
+                $('#txtIva_vh').val(addComas(valorIva));
+
+                var resultado =  Math.round(parseFloat(costo) + valorIva - parseFloat(descuento) + parseFloat(calculoPorcentajeFlete) + parseFloat(valorFlete));
+                //alert(parseFloat(costo)+' ---- '+parseFloat(iva)+ ' = ' + valorIva + ' ?? ' + resultado);
+                $('#costototal_vh').val(addComas(resultado));
+            }
+        }
+
+
+        $('#iva_vh').keyup(function(){
+            CalcularTotal();
+        });
+        $('#costosiniva_vh').keyup(function(){
+            CalcularTotal();
+        });
+        $('#valorDescuentoPie').keyup(function(){
+            CalcularTotal();
+        });
+
+
+        function BuscarPorBodega() {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarPerfilesDocumentoYBodega',
+                //                url: '/gestionVhNuevo/BuscarPerfilesDocumentoYBodegaProveedor',
+                data: {
+                    idBodega: $('#id_bod').val(),
+                    idTipoDoc: $('#doc_registros').val(),
+                    // idProveedor: $('#proveedor_id').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#perfilContable').empty();
+                    $('#perfilContable').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#perfilContable').append($('<option>', {
+                            value: data[i].id,
+                            text: '(' + data[i].codigo + ') ' + data[i].descripcion
+                        }));
+                    }
+                    $('#perfilContable').select2();
+                },
+                complete: function (data) {
+                    $('#perfilContable').val('@ViewBag.perfilSeleccionado').select2();
+                    $('#perfilContable').attr("style", "display:visible").select2();
+                    //if ($.trim($('#plan_mayor').val()) != '') {
+                    //    $('#campoValorOculto').show();
+                    //////}
+
+                }
+            });
+        }
+
+
+
+      $('#id_bod').change(function () {
+            BuscarPorBodega();
+        });
+
+
+
+        function BuscarPorTipoDocumento() {
+            $.ajax({
+                url: '/gestionVhNuevo/BuscarBodegasPorDocumento',
+                data: {
+                    id: $('#doc_registros').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#id_bod').empty();
+                    $('#id_bod').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.buscarBodega.length; i++) {
+                        $('#id_bod').append($('<option>', {
+                            value: data.buscarBodega[i].id,
+                            text: data.buscarBodega[i].bodccs_nombre
+                        }));
+                    }
+
+                    $('#concepto1_id').empty();
+                    $('#concepto1_id').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.buscarConceptos1.length; i++) {
+                        $('#concepto1_id').append($('<option>', {
+                            value: data.buscarConceptos1[i].id,
+                            text: data.buscarConceptos1[i].Descripcion
+                        }));
+                    }
+                    $('#concepto1_id').select2();
+
+                    $('#concepto2_id').empty();
+                    $('#concepto2_id').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.buscarConceptos2.length; i++) {
+                        $('#concepto2_id').append($('<option>', {
+                            value: data.buscarConceptos2[i].id,
+                            text: data.buscarConceptos2[i].Descripcion
+                        }));
+                    }
+                    $('#concepto2_id').select2();
+
+                    //$('#id_bod').select2();
+                    $('#perfilContable').empty();
+                    $('#perfilContable').append($('<option>', {
+                        value: '',
+                        text: ''
+                    })).select2();
+                },
+                complete: function (data) {
+                    $('#id_bod').val('@ViewBag.bodegaSeleccionada').select2();
+                    $('#id_bod').attr("style", "display:visible").select2();
+
+                    //                 BuscarPorBodega();
+                }
+            });
+        }
+
+
+
+        $('#doc_registros').change(function () {
+            BuscarPorTipoDocumento();
+        });
+
+
+
+        @*function validarModeloActivo() {
+            if ($('#modvh_id').val() != '') {
+                $.ajax({
+                    url: '/gestionVhNuevo/BuscarAniosModeloPorId',
+                    data: {
+                        modeloCodigo: $('#modvh_id').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        $('#anio_vh').empty();
+                        for (var i = 0; i < data.length; i++) {
+                            $('#anio_vh').append($('<option>', {
+                                value: data[i].anio,
+                                text: data[i].anio
+                            }));
+                        }
+                        $('#anio_vh').val('@ViewBag.anioSeleccionado');
+                        $('#anio_vh').select2();
+                    },
+                    complete: function (data) {
+
+                    }
+                })
+            }
+        }*@
+
+
+
+        //$('#modvh_id').change(function () {
+        //    $.ajax({
+        //        url: '/gestionVhNuevo/BuscarAniosModeloPorId',
+        //        data: {
+        //            modeloCodigo: $('#modvh_id').val()
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //            console.log(data);
+        //            $('#anio_vh').empty();
+        //            for(var i =0;i<data.length;i++){
+        //                $('#anio_vh').append($('<option>', {
+        //                    value: data[i].anio,
+        //                    text: data[i].anio
+        //                }));
+        //            }
+        //            $('#anio_vh').select2();
+        //        },
+        //        complete: function (data) {
+
+        //        }
+        //    })
+        //});
+
+
+        function verVehiculo(id){
+            window.location.href = '@Url.Action("Ver","gestionVhNuevo")?menu='+@ViewBag.id_menu+'&&id='+id;
+        }
+
+        function BuscarComprasIndivuduales() {
+            window.location.href = '@Url.Action("ComprasIndividuales", "gestionVhNuevo")?menu='+@ViewBag.id_menu;
+        }
+
+        // Accion del boton cancelar de la pestaña de vehiculo
+        $('#tabFacturacion').click(function () {
+                window.location.href = '@Url.Action("FacturacionGM","gestionVhNuevo")?menu='+@ViewBag.id_menu;
+            });
+
+            $('#tabInventario').click(function () {
+                window.location.href = '@Url.Action("Inventario","gestionVhNuevo")?menu='+@ViewBag.id_menu;
+            });
+
+
+        $('#tabPedidoFirme').click(function () {
+            window.location.href = '@Url.Action("PedidoEnFirme", "gestionVhNuevo")?menu='+@ViewBag.id_menu;
+        });
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+
+    @if (TempData["documento_descuadrado"] != null)
+    {
+        <script type="text/javascript">
+            $('#modalDocumentoDescuadrado').modal('show');
+        </script>
+    }
+
+}
+
+@if (TempData["mensaje"] != null)
+{
+    <script type="text/javascript">
+        var mensajeFinal = '@TempData["mensaje"]' + '<span class="label label-default">' + '@TempData["mensaje_valor_numerico"]' + '</span>';
+        $('#mensajeModal').html(mensajeFinal);
+        //$('#modalCompra').modal('show');
+        $('#modalCompra').show();
+    </script>
+}
+
+@if (TempData["mensaje_error_cero"] != null)
+{
+    <script type="text/javascript">
+        if ($.trim($('#plan_mayor').val()) != '') {
+            $('#campoValorOculto').show();
+        }
+    </script>
+}

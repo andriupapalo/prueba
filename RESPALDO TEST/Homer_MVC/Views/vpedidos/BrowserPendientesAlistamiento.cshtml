@@ -1,0 +1,793 @@
+﻿@{
+    ViewBag.Icono = "fa fa-file-text-o";
+    ViewBag.Title = "Browser Estado del negocio";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+}
+
+<style type="text/css">
+    .popover-content {
+        height: 100px;
+        width: 200px;
+    }
+</style>
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color: white; border: solid 1px; border-color: #e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top: 0px;">
+    <div class="hpanel">
+
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-check fa-2x"></i> @TempData["mensaje"]
+                </p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <p>
+                    <i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]
+                </p>
+            </div>
+        }
+        @Html.Hidden("menu")
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active">
+                    <a data-toggle="tab" href="#buscar"><i class="fa fa-refresh"></i>&nbsp;&nbsp;@ViewBag.Title</a>
+                </li>
+            </ul>
+
+            <div id="buscar" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="col-lg-12">
+                        <h5 style="text-align: center">Leyendas de Alistamientos:<br /><br /></h5>
+
+                        <div class="col-md-4">
+                            <h5 style="text-align: center">Alistamiento Embellecimiento</h5>
+                            <div class="col-sm-4">
+                                <small>
+                                    No realizado
+                                    <button type="button" class="btn btn-danger btn-sm">
+                                        <i class="fa fa-car"></i>
+                                    </button>&nbsp;&nbsp;&nbsp;
+                                </small>
+                            </div>
+                            <div class="col-sm-4">
+                                <small>
+                                    Iniciado
+                                    <button type="button" class="btn btn-warning btn-sm">
+                                        <i class="fa fa-car"></i>
+                                    </button>&nbsp;&nbsp;&nbsp;
+                                </small>
+                            </div>
+                            <div class="col-sm-4">
+                                <small>
+                                    Finalizado
+                                    <button type="button" class="btn btn-success btn-sm">
+                                        <i class="fa fa-car"></i>
+                                    </button>&nbsp;&nbsp;&nbsp;
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <h5 style="text-align: center">Alistamiento Mecánico</h5>
+                            <div class="col-sm-6">
+                                <small>
+                                    No realizado&nbsp;&nbsp;&nbsp;
+                                    <button type="button" class="btn btn-danger btn-sm">
+                                        <i class="fa fa-cogs"></i>
+                                    </button>&nbsp;&nbsp;&nbsp;
+                                </small>
+                            </div>
+                            <div class="col-sm-6">
+                                <small>
+                                    Realizado&nbsp;&nbsp;&nbsp;
+                                    <button type="button" class="btn btn-success btn-sm">
+                                        <i class="fa fa-cogs"></i>
+                                    </button>&nbsp;&nbsp;&nbsp;
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <h5 style="text-align: center">Alistamiento Accesorios</h5>
+                            <div class="col-sm-4">
+                                <small>
+                                    No realizado
+                                    <button type="button" class="btn btn-danger btn-sm">
+                                        <i class="fa fa-sliders"></i>
+                                    </button>&nbsp;&nbsp;&nbsp;
+                                </small>
+                            </div>
+                            <div class="col-sm-4">
+                                <small>
+                                    Iniciado
+                                    <button type="button" class="btn btn-warning btn-sm">
+                                        <i class="fa fa-sliders"></i>
+                                    </button>&nbsp;&nbsp;&nbsp;
+                                </small>
+                            </div>
+                            <div class="col-sm-4">
+                                <small>
+                                    Finalizado
+                                    <button type="button" class="btn btn-success btn-sm">
+                                        <i class="fa fa-sliders"></i>
+                                    </button>&nbsp;&nbsp;&nbsp;
+                                </small>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    @*inicio caso 2299*@
+                    <div class="col-md-12">
+                        <div class="col-xs-2">
+                            <input type="checkbox" class="check_box" name="vhFacturados" id="vhFacturados" />
+                            <strong>Ver Facturados</strong>
+                        </div>
+                        <div class="col-xs-2">
+                            <input type="checkbox" class="check_box" name="vhFacturadosDes" id="vhFacturadosDes" />
+                            <strong>Ver Facturados con Desembolso</strong>
+                        </div>
+                        <div class="col-xs-2">
+                            <input type="checkbox" class="check_box" name="vhFacturadosMat" id="vhFacturadosMat" />
+                            <strong>Ver Facturados con Matricula</strong>
+                        </div>
+                        <div class="col-xs-3">
+                            <input type="checkbox" class="check_box" name="vhFacturadosMatDes" id="vhFacturadosMatDes" />
+                            <strong>Ver Facturados con Desembolso y Matricula</strong>
+                        </div>
+                        <div class="col-xs-3">
+                            <input type="checkbox" class="check_box" name="vhEnExhibicion" id="vhEnExhibicion" />
+                            <strong>Ver En Exhibición</strong>
+                        </div>
+                    </div>
+                    @*fin caso 2299*@
+                    <div class="col-md-4" style="align-self: center">
+                        <button class="form-control btn btn-xl btn-success" onclick="traerDatosBusquedaFiltro()">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive" style="width: 100%;">
+                            <div id="div-mensaje-buscar"></div>
+                            <div id="div_mensaje"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaBusquedas_id">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: center"># Pedido</th>
+                                        <th class="vehiculo" style="text-align: center">Vehículo</th>
+                                        <th style="text-align: center">Año</th>
+                                        <th style="text-align: center">Modelo</th>
+                                        <th style="text-align: center">Color</th>
+                                        <th style="text-align: center">Vin</th>
+                                        <th style="text-align: center">Bodega</th>
+                                        <th style="text-align: center">Ubicación</th>
+                                        <th style="text-align: center">Cliente</th>
+                                        <th style="text-align: center">Asesor</th>
+                                        <th style="text-align: center">Fecha pedido</th>
+                                        <th style="text-align: center">Desembolso</th>
+                                        <th style="text-align: center">Facturación Vehículo</th>
+                                        <th style="text-align: center">Facturación Accesorios</th>
+                                        <th style="text-align: center">Matricula</th>
+                                        <th style="text-align: center">SOAT</th>
+                                        <th style="text-align: center">Alistamientos</th>
+                                        @*<th style="text-align:center">Fin Alistamiento</th>*@
+                                        <th style="text-align: center">Programación Entrega</th>
+                                        <th style="text-align: center">Entrega</th>
+                                        <th style="text-align: center">Paz y salvo</th>
+                                        <th style="text-align: center">Póliza</th>
+                                        @*<th style="text-align:center"> Alist. Mec. </th>
+                                            <th style="text-align:center"> Alist. Acc. </th>
+                                            <th style="text-align:center"> Alist. Emb. </th>*@
+                                        <th style="text-align: center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                            <input type="hidden" name="permiso" id="permiso" value="" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAlistamiento">
+    <div class="modal-dialog">
+        <div class="modal-content modal-lg">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Enviar a Alistamiento</h4>
+            </div>
+            <div class="modal-body" id="bodyModal">
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success btn-sm" id="btn_alist_guardar">Guardar</button>
+                <button class="btn btn-default btn-sm" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAlistamientoAccesorios">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Informacion Alistamiento</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <div id="div-mensaje-buscar"></div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaAlisAcc">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Responsable</th>
+                                <th style="text-align:center">Fecha</th>
+                                <th style="text-align:center">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default btn-sm" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+
+    <script type="text/javascript">
+        var planmayor = "";
+        $(document).ready(function() {
+            //buscarDatos();
+            traerVhExhibicion();
+            verificarPermiso();
+            planmayor = @ViewBag.planmayor;
+            $('[data-toggle="popover"]').popover();
+            $('.js-source-states').select2();
+        });
+
+        function verificarPermiso() {
+            $.ajax({
+                url: '/vpedidos/verificarPermisoPazysalvo',
+                data: {},
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#permiso').val(data);
+                }
+            });
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? `.${x[1]}` : '';
+            const rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        };
+
+        function EnviarAlistamiento(idn) {
+            url = `./modalAlistamiento?idn=${idn}`;
+            $('#bodyModal').load(url,
+                function(resp) {
+                    $('#modalAlistamiento').modal('show');
+                });
+            $('#btn_alist_guardar').prop('disabled', false);
+        }
+
+        function EnviarAlistamientoExh(idn) {
+            url = `./modalAlistamientoExhibicion?idn=${idn}`;
+            $('#bodyModal').load(url,
+                function(resp) {
+                    $('#modalAlistamiento').modal('show');
+                });
+            $('#btn_alist_guardar').prop('disabled', false);
+        }
+
+        var autorizado = false;
+
+        function pazysalvo(id, i) {
+            if ($(`#pazysalvo${i}`).prop('checked') == true) {
+                autorizado = true;
+            } else {
+                autorizado = false;
+            }
+
+            $.ajax({
+                url: '/vpedidos/pazysalvo',
+                data: {
+                    pedido: id,
+                    autorizado: autorizado
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    location.reload(true);
+                }
+            });
+        }
+
+        function agendar(id) {
+            window.open(`@Url.Action("Create", "agendaTallerServicio")?pedido=${id}`, '_blank');
+        }
+
+        function agendar_asesor(id, placa) {
+            if (placa !="") {
+                window.open(`../../AgendaAsesor?idped=${id}`, '_blank');
+            }
+            else {
+                 swal({
+                title: "No esta matriculado",
+                text: "Registrar matricula por favor",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Si, matricular!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                   function (isConfirm) {
+                       if (isConfirm) {
+                            window.open(`@Url.Action("BrowserPendientesMatricula", "vpedidos")`);
+
+
+                       } else {
+                           swal("Cancelado", "", "error");
+                       }
+                   });
+            }
+        }
+        @*function matricula() {
+             swal({
+                title: "No tiene placa",
+                text: "Registrar placa por favor",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Si, registrar!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                   function (isConfirm) {
+                       if (isConfirm) {
+                            window.open(`@Url.Action("BrowserPendientesMatricula", "vpedidos")`);
+;
+
+                       } else {
+                           swal("Cancelado", "", "error");
+                       }
+                   });
+        
+        }*@
+        function entregar(planmayor) {
+            window.open(`@Url.Action("Registrar", "EventoVehiculo")?planmayor=${planmayor}`, '_blank');
+        }
+
+        function boletoSalida(pedido, numero) {
+            $.ajax({
+                url: '/vpedidos/boletoSalida',
+                data: {
+                    pedido: pedido,
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    if (data.ok == true) {
+                        window.open(
+                            `@Url.Action("generaPdf_boleto", "boleto_salida")?tipodoc=${data.tipoDocumento}&&,numero=${
+                            numero}&&bodega=${data.bodega}&&nit=${data.nit}&&idencab=${data.idEncabezado}`,
+                            '_blank');
+                    } else {
+                        console.log('error');
+                    }
+                }
+            });
+        }
+
+        function traerVhExhibicion() {
+
+            $.ajax({
+                url: '/vpedidos/traerVhExhibicion',
+                data: {},
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    var tabla = "";
+                    console.log(data);
+                    const enunciadosAlist = {
+                        'info': 'Enviado Alistamiento',
+                        'warning': 'En proceso Alistamiento',
+                        'success': 'Finalizado Alistamiento'
+                    };
+                    for (let i = 0; i < data.length; i++) {
+                        const btn_alist =
+                            `<button class="btn btn-xs btn-primary" data-toggle="tooltip" data-placement="top" title="Alistamiento" onclick="EnviarAlistamientoExh(${
+                                data[i].planmayor})"><i class="fa fa-file"></i></button>`;
+
+                        tabla += `<tr><td align="right">0</td><td align="right">${data[i].planmayor
+                            }</td><td align="right">${data[i].anio}</td><td align="left">${data[i].modelo
+                            }</td><td align="left">${data[i].color}</td><td align="left">${data[i].vin
+                            }</td><td align="left">${data[i].bodega
+                            }</td><td align="left"></td><td align="left"></td><td align="left"></td><td align="center"></td><td align="center"></td><td align="center"></td><td align="center"></td><td align="center"></td><td align="center"></td><td align="justify">${
+                            data[i].botonalisembe}${data[i].botonalismec}${data[i].botonalisacce
+                            }</td><td align="center"></td><td align="center"></td><td align="center"></td><td align="center"></td><td align="center">${
+                            btn_alist}</td></tr>`;
+                    }
+                    if ($('#vhEnExhibicion').prop('checked') == false) {
+                        traerDatosBusqueda(tabla);
+                    } else {
+                        $('#tablaBusquedas_id').dataTable().fnDestroy();
+                        $('#tablaBusquedas_id').find('tbody').empty();
+                        $('#tablaBusquedas_id').find('tbody').append(tabla);
+
+                    }
+                },
+                complete: function () {
+                    if ($('#vhEnExhibicion').prop('checked') == true) {
+                        $('#tablaBusquedas_id').dataTable({
+                            "bDestroy": true,
+                            buttons: []
+                        });
+                    }
+                }
+            });
+        }
+
+        function traerDatosBusquedaFiltro() {
+            if ($('#vhFacturadosMatDes').prop('checked') == false && $('#vhFacturadosMat').prop('checked') == false
+                && $('#vhFacturadosDes').prop('checked') == false && $('#vhFacturados').prop('checked') == false) {
+                traerVhExhibicion();
+            }else {
+                traerDatosBusqueda();
+            }
+        }
+
+        $('#vhFacturados').change(function () {
+            $('#vhFacturadosDes').prop('checked', false);
+            $('#vhFacturadosMat').prop('checked', false);
+            $('#vhFacturadosMatDes').prop('checked', false);
+            $('#vhEnExhibicion').prop('checked', false);
+        });
+
+        $('#vhFacturadosDes').change(function () {
+            $('#vhFacturados').prop('checked', false);
+            $('#vhFacturadosMat').prop('checked', false);
+            $('#vhFacturadosMatDes').prop('checked', false);
+            $('#vhEnExhibicion').prop('checked', false);
+        });
+
+        $('#vhFacturadosMat').change(function () {
+            $('#vhFacturados').prop('checked', false);
+            $('#vhFacturadosDes').prop('checked', false);
+            $('#vhFacturadosMatDes').prop('checked', false);
+            $('#vhEnExhibicion').prop('checked', false);
+        });
+
+        $('#vhFacturadosMatDes').change(function () {
+            $('#vhFacturados').prop('checked', false);
+            $('#vhFacturadosMat').prop('checked', false);
+            $('#vhFacturadosDes').prop('checked', false);
+            $('#vhEnExhibicion').prop('checked', false);
+        });
+
+        $('#vhEnExhibicion').change(function () {
+            $('#vhFacturados').prop('checked', false);
+            $('#vhFacturadosMat').prop('checked', false);
+            $('#vhFacturadosMatDes').prop('checked', false);
+            $('#vhFacturadosDes').prop('checked', false);
+        });
+
+        function estadoOT(planmayor) {
+            debugger;
+            console.log(planmayor);
+            $.ajax({
+                url: '/vpedidos/buscarOTPedido',
+                data: { planmayor },
+                type: "POST",
+                success: function (data) {
+                    if (data.resultado == 1) {
+                        $('#tablaAlisAcc').find('tbody').empty();
+                        for (var i = 0; i < data.data.length; i++) {
+                            $('#tablaAlisAcc').find('tbody').append(
+                                '<tr>'
+                                + '<td align="left">' + data.data[i].responsable.nombre +'</td>'
+                                + '<td align="center">' + data.data[i].fecha +'</td>'
+                                + '<td align="right">' + data.data[i].estado +'</td>'
+                                + '</tr>'
+                            );
+                        }
+                    }
+                },
+                complete: function () {
+                    $('#modalAlistamientoAccesorios').modal('show');
+                }
+            });
+        }
+
+        //inicio caso 2299
+        function traerDatosBusqueda(tabla) {
+            
+            $('#tablaBusquedas_id').dataTable().fnDestroy();
+            $.ajax({
+                url: '/vpedidos/TraerDatosBusqueda',
+                data: {
+                    facturado: $('#vhFacturados').prop('checked'),
+                    facturadoDes: $('#vhFacturadosDes').prop('checked'),
+                    facturadoMat: $('#vhFacturadosMat').prop('checked'),
+                    facturadoMatDes: $('#vhFacturadosMatDes').prop('checked'),
+                },
+                type: "post",
+                cache: false,
+                success: function(data) {
+                    $('#tablaBusquedas_id').find('tbody').empty();
+                    console.log(data);
+                    var enunciadosAlist = {
+                        'info': 'Enviado Alistamiento',
+                        'warning': 'En proceso Alistamiento',
+                        'success': 'Finalizado Alistamiento'
+                    };
+                    $('#tablaBusquedas_id').find('tbody').append(tabla);
+                    var botonReciboCaja = "";
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i].desmbolsoFecha !== "" && data[i].facturaFecha !== "") {
+                            botonReciboCaja =
+                                `<button data-toggle="tooltip" data-placement="top" title="Recibo de Caja" type="button" id="btnReciboCaja${
+                                i
+                                }" class="btn btn-success btn-xs" onclick="reciboCaja(${data[i].planmayor
+                                })">&nbsp;&nbsp;<i class="fa fa-check"></i>&nbsp;&nbsp;</button>`;
+                        } else {
+                            botonReciboCaja = "";
+                        }
+                        
+                        var btn_alist =
+                                `<button class="btn btn-xs btn-primary" data-toggle="tooltip" data-placement="top" title="Alistamiento" onclick="EnviarAlistamiento(${
+                            data[i].id})"><i class="fa fa-file"></i></button>                       
+
+                            
+                            <button data-toggle="tooltip" data-placement="top" title="Agenda Asesores" type="button" id="btnAgendamiento${
+                            i}" class="btn btn-success btn-xs"i onclick="agendar_asesor('${data[i].id}','${data[i].placa}')">&nbsp;&nbsp;<i class="fa fa-calendar"></i>&nbsp;&nbsp;</button>`;
+                            
+
+                        $('#tablaBusquedas_id').find('tbody').append(
+                            `<tr><td align="right">${data[i].numero}</td><td align="right">${data[i].planmayor
+                            }</td><td align="right">${data[i].placa}</td><td align="right">${data[i].anio}</td><td align="left">${data[i].modelo
+                            }</td><td align="left">${data[i].color}</td><td align="left">${data[i].vin
+                            }</td><td align="left">${data[i].nombreBodega}</td><td align="left">${data[i].ubicacion
+                            }</td><td align="left">${data[i].cliente}</td><td align="left">${data[i].asesor
+                            }</td><td align="center"><input disabled type="checkbox" id="pedido${i}" name="pedido${i
+                            }" value="${data[i].pedidoFecha}"/><br/>${data[i].pedidoFecha
+                            }</td><td align="center"><input disabled type="checkbox" id="desembolso${i
+                            }" name="desembolso${i}" value="${data[i].desmbolsoFecha
+                            }"/><br/>${data[i].desmbolsoFecha
+                            }</td><td align="center"><input disabled type="checkbox" id="factura${i}" name="factura${i
+                            }" value="${data[i].facturaFecha
+                            }"/><br/>${data[i].facturaFecha
+                            }</td><td align="center"><input disabled type="checkbox" id="facturaAcc${i
+                            }" name="facturaAcc${i
+                            }" value="${data[i].facturaAcc}"/><br/>${data[i].facturaAcc
+                            }</td><td align="center"><input disabled type="checkbox" id="matricula${i
+                            }" name="matricula${i}" value="${data[i].matriculaFecha}"/><br/>Se registró el día: ${
+                            data[i].matriculaFecha
+                            }</td><td align="center"><input disabled type="checkbox" id="soat${i}" name="soat${i
+                            }" value="${data[i].soat}"/><br/>${data[i].soat
+                            }</td><td align="justify">${data[i].botonalisembe}${data[i].botonalismec}${
+                            data[i].botonalisacce
+                            }</td><td align="center"><input disabled type="checkbox" id="programacion${i
+                            }" name="programacion${i}" value="${data[i].programacionFecha}"/><br/>${data[i]
+                            .programacionFecha
+                            }</td><td align="center"><input disabled type="checkbox" id="entrega${i}" name="entrega${i
+                            }" value="${data[i].entregaFecha}"/><br/>${data[i].entregaFecha
+                            }</td><td align="center"><input disabled onchange="pazysalvo(${data[i].id},${i
+                            })" type="checkbox" id="pazysalvo${i
+                            }" name="pazysalvo${i}" value="${data[i].pazysalvo}"/><br/>${data[i].usupazysalvo
+                            }</td><td align="center"><input disabled onchange="poliza()" type="checkbox" id="poliza${i
+                            }" name="poliza${i
+                            }" value="${data[i].poliza}"/><br/>${data[i].poliza
+                            }</td><td align="center"><button data-toggle="tooltip" data-placement="top" title="Entregar" style="display:none;" type="button" id="btnEntregar${
+                            i}" class="btn btn-success btn-xs" onclick="entregar(${data[i].planmayor
+                            })">&nbsp;&nbsp;<i class="fa fa-check"></i>&nbsp;&nbsp;</button>${botonReciboCaja
+                            }<button data-toggle="tooltip" data-placement="top" title="Boleto salida" type="button" id="btnPDF${
+                            i
+                            }" class="btn btn-warning btn-xs" onclick="boletoSalida(${data[i].id},${data[i].numero
+                            })">&nbsp;&nbsp;<i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;</button>${btn_alist
+                            }</td></tr>`);
+                                               
+            
+                        if ($(`#pedido${i}`).val() !== "") {
+                            $(`#pedido${i}`).prop('checked', true);
+                        } else {
+                            $(`#pedido${i}`).prop('checked', false);
+                        }
+                        if ($(`#poliza${i}`).val() !== "") {
+                            $(`#poliza${i}`).prop('checked', true);
+                        } else {
+                            $(`#poliza${i}`).prop('checked', false);
+                        }
+                        if ($(`#desembolso${i}`).val() !== "") {
+                            $(`#desembolso${i}`).prop('checked', true);
+                        } else {
+                            $(`#desembolso${i}`).prop('checked', false);
+                        }
+                        if ($(`#factura${i}`).val() !== "") {
+                            $(`#factura${i}`).prop('checked', true);
+                        } else {
+                            $(`#factura${i}`).prop('checked', false);
+                        }
+                        if ($(`#facturaAcc${i}`).val() !== "") {
+                            $(`#facturaAcc${i}`).prop('checked', true);
+                        } else {
+                            $(`#facturaAcc${i}`).prop('checked', false);
+                        }
+
+                        if ($(`#matricula${i}`).val() !== "") {
+                            $(`#matricula${i}`).prop('checked', true);
+                        } else {
+                            $(`#matricula${i}`).prop('checked', false);
+                        }
+
+                        if ($(`#soat${i}`).val() !== "") {
+                            $(`#soat${i}`).prop('checked', true);
+                        } else {
+                            $(`#soat${i}`).prop('checked', false);
+                        }
+
+                        if ($(`#manifiesto${i}`).val() !== "") {
+                            $(`#manifiesto${i}`).prop('checked', true);
+                        } else {
+                            $(`#manifiesto${i}`).prop('checked', false);
+                        }
+
+                        if ($(`#inicio${i}`).val() !== "") {
+                            $(`#inicio${i}`).prop('checked', true);
+                        } else {
+                            $(`#inicio${i}`).prop('checked', false);
+                        }
+
+                        if ($(`#fin${i}`).val() !== "") {
+                            $(`#fin${i}`).prop('checked', true);
+                        } else {
+                            $(`#fin${i}`).prop('checked', false);
+                        }
+
+                        if ($(`#entrega${i}`).val() !== "") {
+                            $(`#entrega${i}`).prop('checked', true);
+                        } else {
+                            $(`#entrega${i}`).prop('checked', false);
+                        }
+
+                        if ($(`#programacion${i}`).val() !== "") {
+                            $(`#programacion${i}`).prop('checked', true);
+                        } else {
+                            $(`#programacion${i}`).prop('checked', false);
+                        }
+
+                        if ($(`#pazysalvo${i}`).val() == "true") {
+                            $(`#pazysalvo${i}`).prop('checked', true);
+                        } else {
+                            $(`#pazysalvo${i}`).prop('checked', false);
+                        }
+
+                        if ($(`#pedido${i}`).prop('checked') === true &&
+                            $(`#factura${i}`).prop('checked') === true &&
+                            $(`#matricula${i}`).prop('checked') === true &&
+                            $(`#soat${i}`).prop('checked') === true &&
+                            $(`#manifiesto${i}`).prop('checked') === true) {
+                            $(`#btnAgendamiento${i}`).show();
+                            if ($(`#fin${i}`).prop('checked') === true &&
+                                $(`#programacion${i}`).prop('checked') === true) {
+                                $(`#btnEntregar${i}`).show();
+                                if ($('#permiso').val() === "0") {
+                                    $(`#pazysalvo${i}`).attr('disabled', true);
+                                } else {
+                                    $(`#pazysalvo${i}`).attr('disabled', false);
+                                }
+                            }
+                        }
+                    }
+                },
+                complete: function (data) {
+                    debugger;
+                    var tabla = $('#tablaBusquedas_id').DataTable({
+                        "bDestroy": true,
+                        buttons: [],
+                    });
+                    if (planmayor != "-1") {
+                        buscarPedidoAveria(tabla);
+                    }
+                }
+            });
+        }
+
+        
+
+        function buscarPedidoAveria(tabla) {
+            tabla.column('.vehiculo').search(planmayor);
+            tabla.draw();
+        }
+
+        //fin  caso 2299
+        function reciboCaja(planmayor) {
+            debugger;
+            window.location.href = `@Url.Action("Create", "ReciboCaja")?menu=${@ViewBag.id_menu}&&id=${planmayor}`;
+        }
+    </script>
+}

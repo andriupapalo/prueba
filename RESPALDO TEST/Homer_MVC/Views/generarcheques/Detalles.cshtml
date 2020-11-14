@@ -1,0 +1,352 @@
+﻿@model Homer_MVC.IcebergModel.encab_documento
+
+@{
+    ViewBag.Title = "Comprobante ";
+    ViewBag.Icono = "fa fa-address-book-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/sweetalert/lib/sweet-alert.css" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+
+
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div class="alert alert-danger alert-dismissible" id="mensaje" style="display: none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p><i class="fa fa-times fa-2x"></i> Por favor digite los campos obligatorios</p>
+        </div>
+
+        <div class="alert alert-warning alert-dismissible" id="aviso" style="display:none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p id="texto_aviso"></p>
+        </div>
+
+        <div class="alert alert-danger  alert-dismissible" id="bloqueado" style="display:none">
+            <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+            <p id="texto_bloqueo"></p>
+        </div>
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje">
+                        @if (TempData["total_debitos"] != null)
+                        {
+                            <label class="label label-danger" style="font-size: 13px">Total Debitos: $<span class="precio">@Convert.ToDecimal(TempData["total_debitos"])</span></label>}
+                        @if (TempData["total_creditos"] != null)
+                        {
+                            <label class="label label-danger" style="font-size: 13px">Total Creditos: $<span class="precio">@Convert.ToDecimal(TempData["total_creditos"])</span></label>}
+                    </div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                @*<li class=""><a href="@Url.Action("Create","ReciboCaja", new { menu = @ViewBag.id_menu })"><i class="fa fa-list-alt"></i>&nbsp;&nbsp;Cajas</a></li>
+                    <li class=""><a href="@Url.Action("Browser","ReciboCaja", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+                    <li class="active"><a data-toggle="tab" href="#manual"><i class="fa fa-list-ol"></i>&nbsp;&nbsp;Detalles</a></li>*@
+                <li class=""><a href="@Url.Action("Create","generarcheques", new { menu = @ViewBag.id_menu })"><i class="fa fa-list-alt"></i>&nbsp;&nbsp;Comprobantes</a></li>
+                <li class=""><a href="@Url.Action("Browser","generarcheques", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+                <li class="active"><a data-toggle="tab" href="#manual"><i class="fa fa-list-ol"></i>&nbsp;&nbsp;Detalles</a></li>
+            </ul>
+
+            <div id="manual" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-btns text-right">
+                        <button class="btn btn-success" type="button" id="btnGenerarPDFPedido"><i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;&nbsp;Generar PDF</button>&nbsp;&nbsp;
+                    </div>
+
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                            </div>
+                            Datos generales
+                        </div>
+                        <div class="panel-body">
+                            @Html.HiddenFor(model => model.numero)
+                            @Html.HiddenFor(model => model.tipo)
+                            @*@Html.HiddenFor(model => model.pedido)*@
+                            @Html.Hidden("menu")
+
+                            <row>
+                                <h5><b>Cliente: </b>@ViewBag.cliente</h5>
+                                <h5><b>Comprobante número: </b>@ViewBag.numero</h5>
+                                @* poner tipo *@
+                                @*<h5><b>Valor total: $: </b>@Convert.ToInt32(ViewBag.valor_total)</h5>*@
+                                <h5><b>Valor total: $: </b>@Convert.ToInt32(ViewBag.valor_total).ToString("N2");</h5>
+                                <h5><b>Fecha:</b> @ViewBag.fecha</h5>
+
+                                @*@if (@ViewBag.pedido != null)
+                                    {
+                                        <h5><b>Pedido:</b> (@ViewBag.desP.numero)&nbsp;@ViewBag.desP.carro </h5><br />
+                                    }*@
+
+                                @*<label class="label label-primary" style="font-size: 16px"># Consecutivo: @ViewBag.numero</label>
+                                    <label class="label label-success" style="font-size: 16px">Valor total: $ <span class="precio"> @Convert.ToInt32(ViewBag.valor_total)</span></label>
+                                    <label class="label label-warning" style="font-size: 16px">Fecha: @ViewBag.fecha</label><br /><br />*@
+                            </row>
+                        </div>
+                    </div>
+
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                            </div>
+                            Documentos aplicados
+                        </div>
+                        <div class="panel-body">
+
+                            <div class="form-horizontal">
+                                <div class="col-sm-12">
+                                    <div class="table-responsive">
+                                        <input type="hidden" name="lista" id="lista" value="" />
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tablaPaginadaFacturas">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Tipo</th>
+                                                    <th style="text-align:center">Factura #</th>
+                                                    <th style="text-align:center">Valor Total</th>
+                                                    <th style="text-align:center">Fecha</th>
+                                                    <th style="text-align:center">Vencimiento</th>
+                                                    <th style="text-align:center">Total Aplicado</th>
+                                                    <th style="text-align:center">Saldo</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                            <div class="panel-tools">
+                                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                            </div>
+                            Formas de pago
+                        </div>
+                        <div class="panel-body">
+
+                            <div class="form-horizontal">
+                                <div class="col-sm-12">
+                                    <div class="table-responsive">
+                                        <input type="hidden" name="lista" id="lista" value="" />
+                                        <div id="div-mensaje-buscar"></div>
+                                        <table class="table table-striped table-bordered table-hover" id="tablaPagosR">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align:center">Forma de Pago</th>
+                                                    <th style="text-align:center">Cuenta Contable</th>
+                                                    <th style="text-align:center">Valor</th>
+                                                    <th style="text-align:center">No. Cheque</th>
+                                                    <th style="text-align:center">Fecha</th>
+                                                    <th style="text-align:center">Observaciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @*<input name="pedido" id="pedido" class="form-control" type="hidden" value="@ViewBag.pedido">*@
+                    <input name="encab" id="encab" class="form-control" type="hidden" value="@ViewBag.encab">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/sweetalert/lib/sweet-alert.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            pagosRecibidos();
+            $.ajax({
+                url: '/generarcheques/BuscarDatosDetalles',
+                data: {
+                    tipo: $("#tipo").val(),
+                    numero: $("#numero").val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginadaFacturas').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginadaFacturas').find('tbody').append('<tr><td align="left">'
+                                        + data[i].tipo + '</td><td align="right">'
+                                        + data[i].numero + '</td><td align="right">$'
+                                        + addComas(data[i].valor_total) + '</td><td align="right">'
+                                        + data[i].fecha + '</td><td align="right">'
+                                        + data[i].vencimiento + '</td><td align="right">$'
+                                        + addComas(data[i].valor_aplicado) + '</td><td align="right">$'
+                                        + addComas(data[i].saldo) + '</td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginadaFacturas').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        });
+
+        function pagosRecibidos() {
+            $.ajax({
+                url: '/generarcheques/BuscarPagosRecibidos',
+                data: {
+                    id: $("#encab").val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $("#tablaPagosR").dataTable().fnDestroy();
+                    $("#tablaPagosR").find('tbody').empty();
+                    for (var h = 0; h < data.length; h++) {
+                        $("#tablaPagosR").find("tbody").append('<tr align="center">'
+                                     + '<td style="text-align: left">' + data[h].fpago + '</td>'
+                                     + '<td style="text-align: left">' + data[h].perfil + '</td>'
+                                     + '<td style="text-align: right">' + addComas(data[h].valor) + '</td>'
+                                     + '<td style="text-align: left">' + data[h].cheque + '</td>'
+                                     + '<td style="text-align: left">' + data[h].fecha + '</td>'
+                                     + '<td style="text-align: left">' + data[h].observaciones + '</td>'
+                             + '</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPagosR').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        }
+        
+        var numero_miles = "";
+
+        function formatNumber(n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+        
+        function miles(id) {
+            numero_miles = formatNumber($('#' + id + '').val());
+            $('#' + id + '').val(numero_miles);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+        $('#btnGenerarPDFPedido').click(function () {
+            window.open('@Url.Action("comprobante", "generarcheques")?id=' + $('#encab').val(), '_blank');
+        });
+
+    </script>
+
+}

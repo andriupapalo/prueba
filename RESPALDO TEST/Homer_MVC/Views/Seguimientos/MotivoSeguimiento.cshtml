@@ -1,0 +1,281 @@
+﻿@model Homer_MVC.Models.SeguimientoModel.SeguimientoAnulacion
+@{
+    ViewBag.Title = "Seguimiento";
+    ViewBag.Icono = "fa fa-eye";
+    Layout = null;
+}
+@*<div id="CreateSeguimiento" class="tab-pane active">
+    <div class="panel-body">*@
+<div class="panel-body col-md-12"@*style="margin-top:-20px;"*@>
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>Seguimientos Motivo Anulacion </h4>
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="col-sm-6">
+            <div class="form-group">
+
+                <label class="control-label col-md-5">Modulo:&nbsp;<span class="text-danger">*</span></label>
+                <div class="col-md-7">                  
+                    @Html.DropDownList("ModuloSSeguimiento", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="form-group">
+
+                <label class="control-label col-md-5">Seguimiento:&nbsp;<span class="text-danger">*</span></label>
+                <div class="col-md-7">
+                    @Html.DropDownListFor(model => model.CodigoSeguimiento, null, htmlAttributes: new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.CodigoSeguimiento, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="control-label col-md-5">Anulacion:&nbsp;<span class="text-danger">*</span></label>
+                    <div class="col-md-7">
+                        @Html.DropDownListFor(model => model.IdMotivoAnulacion, null, htmlAttributes: new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.IdMotivoAnulacion, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="form-group">
+
+                    <label class="control-label col-md-8">Estado:&nbsp;<span class="text-danger">*</span></label>
+                    <div class="col-md-4">
+                        <div class="checkbox">
+                            @Html.CheckBoxFor(model => model.EstadoAnulacion)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="button" id="btnMotivoAnulacionSeguimiento" value="Create" class="btn btn-default" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+
+</div>
+<script>
+     $(document).ready(function () {
+            LisMotivoAnulacionSeguimiento()
+     });
+
+    $("#btnMotivoAnulacionSeguimiento").click(function(){
+
+        //toastr.warning("Modulo en Costruccion");
+            var IdSeguimiento = $("#CodigoSeguimiento").val();
+            var IdMotivoAnulacion = $("#IdMotivoAnulacion").val();
+            var EstadoAnulacion = $("#EstadoAnulacion").val();
+
+            //var Modulo = $("#ModuloSeguimientoAnulacion").val();
+
+            if (EstadoAnulacion == "") {
+                EstadoAnulacion = false;
+            }
+    
+        var SeguimientoAnulacion = { CodigoSeguimiento:IdSeguimiento, IdMotivoAnulacion, EstadoAnulacion};
+            debugger
+            //event.preventDefault();
+            if (Codigo!="" && Modulo!="" && Evento!="") {
+                $.ajax({
+                    url: '/Seguimientos/GuardarSeguimientoAnulacion',
+                    data: { seguimientoAnulacion: SeguimientoAnulacion },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        //LisSeguimiento();
+                        LisMotivoAnulacionSeguimiento();
+                        if (data.OK == true) {
+                            toastr.success(data.mensaje);
+                        } else {
+                            toastr.error(data.mensaje);
+                        }
+
+                    },
+                    error: function (data) {
+                        debugger
+                        toastr.error("error", data.mensaje);
+                    }
+                });
+
+            } else {
+                toastr.error("error", "Faltan campos esenciales");
+            }
+    })
+
+    $("#ModuloSSeguimiento").change(function () {
+        var Codigo = parseInt($('#ModuloSSeguimiento').val());
+        debugger
+        $.ajax({
+                url: '/Seguimientos/DropListSeguimientosModulo',
+            data: {
+                Codigo
+                },
+                type: "post",
+                cache: false,
+            success: function (data) {
+                    debugger
+                    console.log(data)
+                    $('#CodigoSeguimiento').empty();
+                    $('#CodigoSeguimiento').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#CodigoSeguimiento').append($('<option>', {
+                            value: data[i].Id,
+                            text: data[i].Evento
+                        }));
+                    }
+            },
+            error: function () {
+                debugger
+                toastr.error("error");
+            }
+            });
+
+    })
+
+    function LisMotivoAnulacionSeguimiento() {
+         $.ajax({
+            url: '/Seguimientos/LisMotivoAnulacionSeguimiento',
+            data: {
+            },
+            type: "GET",
+            cache: false,
+             success: function (data)
+             {  
+                $('#tablaSeguimientoMotivoAnulacionModulo').dataTable().fnDestroy();
+                $('#tablaSeguimientoMotivoAnulacionModulo').find('tbody').empty();
+                 $.each(data, function (index, value) {
+
+                     var clase = "";
+                     var clase2 = "";
+                     var frase = "";
+                     if (value.Estado == true) {
+                         clase = "fa fa-eye-slash";
+                         clase2 = "danger2 btn-xs";
+                         frase = "Inactivar";
+                     } else {
+                                                  clase2 = "success btn-xs";
+                         clase = "fa fa-eye";
+                         frase = "Activar";
+                            }
+                            var row =
+                                $('<tr><td>'
+                                    + value.CodigoSeguimiento + '</td><td>'
+                                    + value.IdMotivoAnulacion + '</td>'
+                                          +'<td >&nbsp;&nbsp;<button type="button" class="btn btn-sm btn-'+clase2+'" onclick="EstadoSeguimientoMotivoAnulacion('
+                                    + value.Id +')"><i id="btEstado'+value.Id+'"  class="'+clase+'"></i>&nbsp;'+frase+'&nbsp;&nbsp;</button></td> '
+                                    +'<td>&nbsp;&nbsp;<button type="button" class="btn btn-danger btn-xs" onclick="EliminarSeguimientoMotivoAnulacion('
+                                    + value.Id +')"><i class="fa fa-trash"></i>&nbsp;Borrar&nbsp;&nbsp;</button></td> '
+                                    + '</tr>'
+                                );            
+
+                            $('#tablaSeguimientoMotivoAnulacionModulo').append(row);
+                        });
+                 debugger
+             },
+             complete: function () {
+                        $('#tablaSeguimientoMotivoAnulacionModulo').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[3,5,10, 25, 50, -1], [3,5,10, 25, 50, "All"]],
+                        buttons: []
+                    });
+             }
+        });  
+
+    }
+
+    function EliminarSeguimientoMotivoAnulacion(id)
+    {
+                swal({
+                title: "¿Esta Seguro de Borrar el registro?",
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Si, finalizar!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: true,
+                closeOnCancel: false
+            },
+            function (isConfirm) {
+                if (isConfirm)
+                {
+                    debugger
+                    $.ajax({
+                        url: '/Seguimientos/EliminarSeguimientoMotivoAnulacion',
+                        data: {
+                            Id: id,
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            debugger
+                            if (data == true) {
+                                LisMotivoAnulacionSeguimiento();
+                            }
+                        }, error: function () {
+                            toastr.error("error");
+                        } 
+                    });               
+                } else {
+                    swal("Cancelado", "El registro no modificada", "error");
+                }
+            });  
+    }
+
+    function EstadoSeguimientoMotivoAnulacion(Id)
+    {
+                         swal({
+                title: "¿Esta Seguro de Cambiar el Estado?",
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Si, Actualizar!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: true,
+                closeOnCancel: true
+            },
+            function (isConfirm) {
+                if (isConfirm)
+                {
+                    debugger
+                    $.ajax({
+                        url: '/Seguimientos/EstadoSeguimientoMotivoAnulacion',
+                        data: {
+                            Id:Id
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (data) {
+                            debugger
+                            if (data == true) {
+                               LisMotivoAnulacionSeguimiento();
+                            }
+                        }, error: function () {
+                            toastr.error("error");
+                        } 
+                    });               
+                } else {
+                    swal("Cancelado", "Acción No Realizada", "error");
+                }
+            });     
+    }
+
+</script>
+
+

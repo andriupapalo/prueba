@@ -1,0 +1,648 @@
+﻿@model Homer_MVC.IcebergModel.tencabezaorden
+
+@{
+    ViewBag.Icono = "fa fa-gears";
+    ViewBag.Title = "Suministros de Operaciones por Modelo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+    <style type="text/css">
+        body.modal-open {
+            overflow: visible !important;
+        }
+    </style>
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Gestión de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+        <div id="tabs" class="tab-content">
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="row">
+                            <div class="col-lg-10">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Modelo General:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("modelo", null, "TODOS", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Operación:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("tempario", null, "TODAS", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Referencias:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("repuesto", null, "TODAS", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-2">
+                                <button id="botonbuscar" class="btn btn-sm btn-primary2"><i class="fa fa-search">&nbsp;Buscar</i></button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <button id="botonCrear" class="btn btn-sm btn-primary"><i class="fa fa-plus-circle">&nbsp;Agregar</i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Modelo General</th>
+                                        <th style="text-align:center">Operacion</th>
+                                        <th style="text-align:center">Referencia</th>
+                                        <th style="text-align:center">Cantidad</th>
+                                        <th style="text-align:center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="text-align:center" colspan="5">Ingrese los parámetros para iniciar búsqueda</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade hmodal-info" id="modalCrear" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Items Adicionales</h4>
+                <small>Agregar Referencias a Operación</small>
+            </div>
+            <div class="modal-body">
+
+                @*<input type="hidden" id="idRepuestoCotizado" />*@
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Modelo General:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            @Html.DropDownList("modalModelo", null, "Seleccione", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Operación:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select class="form-control" id="modalOperacion"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Referencia:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select class="form-control" id="modalReferencia"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Cantidad:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="modalCantidad" onkeyup="return miles(this.id)" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <div class="row" style="display:none" id="alertAgregarRepuesto">
+                            <div class="alert alert-info">
+                                <strong>Informaci&oacute;n!&nbsp;&nbsp;<p id="mensajeAgregarRepuesto"></p></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label></label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarRepuesto">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade hmodal-info" id="modalEditar" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Items Adicionales</h4>
+                <small>Agregar Referencias a Operación</small>
+            </div>
+            <div class="modal-body">
+
+                <input type="hidden" id="idRepuestoE" />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Modelo General:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select class="form-control" id="modalModeloE"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Operación:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select class="form-control" id="modalOperacionE"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Referencia:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <select class="form-control" id="modalReferenciaE"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Cantidad:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="modalCantidadE" onkeyup="return miles(this.id)" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <div class="row" style="display:none" id="alertAgregarRepuestoE">
+                            <div class="alert alert-info">
+                                <strong>Informaci&oacute;n!&nbsp;&nbsp;<p id="mensajeAgregarRepuestoE"></p></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label></label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarRepuestoE">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script src="~/Vendor/moment/moment.js"></script>
+    <script type="text/javascript">
+
+        numeroSolicitud = 0;
+        numeroTareas = 0;
+        numeroOperacion = 0;
+        numeroRepuesto = 0;
+
+
+        $(document).ready(function () {
+            $('.js-source-states').select2();
+        });
+
+        $('#botonCrear').click(function () {
+            $('#modalOperacion').empty();
+            $('#modalModelo').val("").trigger('change');
+
+            $('#modalOperacion').val("").trigger('change');
+            $('#modalReferencia').empty();
+            $('#modalOperacion').empty();
+            var ope = ' <option value="">Seleccione</option>'
+            $('#modalOperacion').append(ope);
+            $('#modalReferencia').append(ope);
+            $('#modalOperacion').select2();
+
+            $('#modalReferencia').select2();
+
+            $('#modalCantidad').val('');
+            $('#modalCrear').modal('show');
+        });
+
+        $('#modalModelo').change(function () {
+            var modelo = $('#modalModelo').val();
+            $.ajax({
+                url: '/SuministrosOperacion/operacionesModelo',
+                data: {
+                    modelo: modelo,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#modalOperacion').empty();
+                    if (data != 0) {
+                        if (data.length > 0) {
+                            var ope = "";
+                            ope += ' <option value="">Seleccione</option>'
+
+                            for (var j = 0; j < data.length; j++) {
+                                ope += ' <option value="' + data[j].id + '">' + data[j].nombre + '</option>'
+                            }
+                            $('#modalOperacion').append(ope);
+                        }
+                        $('#modalOperacion').select2();
+                        $('#modalOperacion').val("").trigger('change');
+                    }
+                },
+            });
+        });
+
+        $('#modalOperacion').change(function () {
+            var modelo = $('#modalModelo').val();
+            var operacion = $('#modalOperacion').val();
+
+            $.ajax({
+                url: '/SuministrosOperacion/ReferenciasModelo',
+                data: {
+                    modelo: modelo,
+                    operacion: operacion,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#modalReferencia').empty();
+                    if (data != 0) {
+                        if (data.length > 0) {
+                            var ope = "";
+                            ope += ' <option value="">Seleccione</option>'
+                            for (var j = 0; j < data.length; j++) {
+                                ope += ' <option value="' + data[j].id + '">' + data[j].nombre + '</option>'
+                            }
+                            $('#modalReferencia').append(ope);
+                        }
+                        $('#modalReferencia').select2();
+                        $('#modalReferencia').val("").trigger('change');
+                    }
+
+                }
+            });
+        });
+
+        $('#btnGuardarRepuesto').click(function () {
+            debugger;
+            var modelo = $('#modalModelo').val();
+            var operacion = $('#modalOperacion').val();
+            var repuesto = $('#modalReferencia').val();
+            var cantidad = $('#modalCantidad').val();
+            if (modelo != "" && operacion != "" && repuesto != "" && cantidad != "") {
+                $.ajax({
+                    url: '/SuministrosOperacion/nuevo',
+                    data: {
+                        modelo: modelo,
+                        operacion: operacion,
+                        referencia: repuesto,
+                        cantidad: cantidad,
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        $('#modalReferencia').empty();
+                        if (data.resultado == "exito") {
+                            $('#modalCrear').modal('hide');
+                            swal("Éxito!", "Referencia guardada Exitosamente", "success");
+                        }
+                        else {
+                            $('#mensajeAgregarRepuesto').html(data.resultado);
+                            $('#mensajeAgregarRepuesto').show();
+                            setTimeout(function () {
+                                $("#mensajeAgregarRepuesto").fadeOut(1500);
+                            }, 3000);
+                        }
+
+                    }
+                });
+            }
+            else {
+                $('#mensajeAgregarRepuesto').html("Debe llenar todos los campos para poder guardar");
+                $('#alertAgregarRepuesto').show();
+                setTimeout(function () {
+                    $("#mensajeAgregarRepuesto").fadeOut(1500);
+                }, 3000);
+            }
+        });
+
+        $('#btnGuardarRepuestoE').click(function () {
+            var modelo = $('#modalModeloE').val();
+            var operacion = $('#modalOperacionE').val();
+            var repuesto = $('#modalReferenciaE').val();
+            var cantidad = $('#modalCantidadE').val();
+            var id = $('#idRepuestoE').val();
+
+            if (modelo != "" && operacion != "" && repuesto != "" && cantidad != "") {
+                $.ajax({
+                    url: '/SuministrosOperacion/actualizarGuardar',
+                    data: {
+                        id: id,
+                        modelo: modelo,
+                        operacion: operacion,
+                        referencia: repuesto,
+                        cantidad: cantidad,
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data.resultado == "exito") {
+                            $('#modalEditar').modal('hide');
+                            swal("Éxito!", "Referencia guardada Exitosamente", "success");
+                        }
+                        else {
+                            $('#mensajeAgregarRepuestoE').html(data.resultado);
+                            $('#alertAgregarRepuestoE').show();
+                            setTimeout(function () {
+                                $("#mensajeAgregarRepuestoE").fadeOut(1500);
+                            }, 3000);
+                        }
+
+                    },
+                });
+            }
+            else {
+                $('#mensajeAgregarRepuesto').html("Debe llenar todos los campos para poder guardar");
+                $('#mensajeAgregarRepuesto').show();
+                setTimeout(function () {
+                    $("#mensajeAgregarRepuesto").fadeOut(1500);
+                }, 3000);
+            }
+        });
+
+
+        $('#botonbuscar').click(function () {
+            $('#botonbuscar').prop('disabled', true);
+            $('#botonCrear').prop('disabled', true);
+            var modelo = $('#modelo').val();
+            var operacion = $('#operacion').val();
+            var repuesto = $('#repuesto').val();
+            $.ajax({
+                url: '/SuministrosOperacion/buscar',
+                data: {
+                    modelo: modelo,
+                    operacion: operacion,
+                    referencia: repuesto,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#botonbuscar').prop('disabled', false);
+                    $('#botonCrear').prop('disabled', false);
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr>'
+                            + '<td align="left">' + data[i].modelo_general + '</td>'
+                            + '<td align="left">' + data[i].operacion + '</td>'
+                            + '<td align="left">' + data[i].referencia + '</td>'
+                            + '<td align="right">' + data[i].cantidad + '</td>'
+                            + '<td width="5%" align="center">'
+                            + '<button class="btn btn-info btn-xs" onclick="Editar(' + data[i].id + ')"><i class="fa fa-search"></i></button>'
+                            + '<button class="btn btn-danger btn-xs" onclick="Eliminar(event,' + data[i].id + ')"><i class="fa fa-times"></i></button>'
+                            + '</td>'
+                            + '</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6 text-right'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            //{ extend: 'excel', className: 'btn-sm', text: 'Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ],
+                        "columnDefs": [{
+                            "targets": '_all',
+                            "createdCell": function (td, cellData, rowData, row, col) {
+                                $(td).css('padding', '10px')
+                            }
+                        }],
+                        "language": {
+                            "decimal": "",
+                            "emptyTable": "No hay datos",
+                            //"info":           "Showing _START_ to _END_ of _TOTAL_ entries",
+                            //"infoEmpty":      "Showing 0 to 0 of 0 entries",
+                            "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+                            "infoPostFix": "",
+                            "thousands": ".",
+                            "lengthMenu": "Mostrar _MENU_ registros",
+                            "loadingRecords": "Cargando...",
+                            "processing": "Procesando...",
+                            "search": "Buscar:",
+                            "zeroRecords": "No se encontraron registros",
+                            "paginate": {
+                                "first": "Primero",
+                                "last": "Último",
+                                "next": "Siguiente",
+                                "previous": "Anterior"
+                            },
+                            "aria": {
+                                "sortAscending": ": activate to sort column ascending",
+                                "sortDescending": ": activate to sort column descending"
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        function Editar(id) {
+            $.ajax({
+                url: '/SuministrosOperacion/actualizar',
+                data: {
+                    id: id,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#modalOperacion').empty();
+                    if (data != 0) {
+                        $('#idRepuestoE').val(data.id);
+                        $('#modalCantidadE').val(data.cantidad);
+
+                        $('#modalModeloE').empty();
+                        $('#modalOperacionE').empty();
+                        $('#modalReferenciaE').empty();
+
+                        var ope = "";
+                        var ope2 = "";
+                        var ope3 = "";
+                        ope += ' <option value="">Seleccione</option>'
+
+                        for (var j = 0; j < data.modelos.length; j++) {
+                            ope += ' <option value="' + data.modelos[j].id + '">' + data.modelos[j].nombre + '</option>'
+                        }
+                        $('#modalModeloE').append(ope);
+                        $('#modalModeloE').val(data.modelo).trigger('change');
+
+                        ope2 += ' <option value="">Seleccione</option>'
+
+                        for (var j = 0; j < data.temparios.length; j++) {
+                            ope2 += ' <option value="' + data.temparios[j].id + '">' + data.temparios[j].nombre + '</option>'
+                        }
+                        $('#modalOperacionE').append(ope2);
+                        $('#modalOperacionE').val(data.operacion).trigger('change');
+
+                        ope3 += ' <option value="">Seleccione</option>'
+
+                        for (var j = 0; j < data.repuestos.length; j++) {
+                            ope3 += ' <option value="' + data.repuestos[j].id + '">' + data.repuestos[j].nombre + '</option>'
+                        }
+                        $('#modalReferenciaE').append(ope3);
+                        $('#modalReferenciaE').val(data.referencia).trigger('change');
+                        $('#modalEditar').modal('show');
+                    }
+                    else {
+                        swal("Error!", "Referencia no puede ser editada", "error");
+                    }
+                },
+            });
+        }
+
+        function Eliminar(event, id) {
+            event.preventDefault();
+            debugger;
+            swal({
+                title: "¿Esta Seguro?",
+                text: "Sólo debe eliminar la referencia si está seguro(a)",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Si, Eliminar!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: true,
+                closeOnCancel: false
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        setTimeout(function () {
+                            ConfirmarEliminar(id)
+                        }, 100);
+                    } else {
+                        swal("Cancelado", "Acción No Realizada", "error");
+                    }
+                });
+        }
+
+        function ConfirmarEliminar(id) {
+            $.ajax({
+                url: '/SuministrosOperacion/eliminar',
+                data: {
+                    id: id,
+
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#modalOperacion').empty();
+                    if (data != 0) {
+                        swal("Éxito!", "Referencia eliminada Exitosamente", "success")
+                    }
+                    else {
+                        swal("Error!", "Referencia no pudo ser elimiada", "error");
+                    }
+                },
+            });
+        }
+
+        var numero_miles = "";
+        function formatNumber(n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : Number(n).toString();
+
+            //return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles(id) {
+            numero_miles = formatNumber($('#' + id + '').val());
+            $('#' + id + '').val(numero_miles);
+        }
+    </script>
+
+}

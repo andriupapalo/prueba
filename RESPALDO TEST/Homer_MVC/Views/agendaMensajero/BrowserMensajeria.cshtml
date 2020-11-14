@@ -1,0 +1,1352 @@
+﻿@using System.Globalization,
+@model Homer_MVC.IcebergModel.agenda_mensajero
+@{
+    ViewBag.Title = "Browser Mensajeria";
+    ViewBag.Icono = "fa fa-mail-bulk";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select6/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/sweetalert/lib/sweet-alert.css" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.6.5/easy-autocomplete.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.6.5/easy-autocomplete.themes.min.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/fullcalendar/dist/fullcalendar.print.css" rel="stylesheet" media="print" />
+    <link href="~/Vendor/fullcalendar/dist/fullcalendar.min.css" rel="stylesheet" />
+}
+
+<style>
+
+    #MensajeriaModal, #NotasModal, #DisponiblesModal {
+        width: 83% !important;
+    }
+
+    #calendar {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+</style>
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color: white; border: solid 1px; border-color: #e6e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 65px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 65px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 6</a></ul> <ul></i><a href=''>Documento 6</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius: 65px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h6 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h6>
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="principal active" onclick="buscarDatos()"><a data-toggle="tab"><i class="fa fa-arrow-circle-o-right"></i>&nbsp;&nbsp;Por Gestionar </a></li>
+                <li class="" onclick="buscarDatosMensajeros()"><a data-toggle="tab" href=""><i class="fa fa-arrow-circle-o-right"></i>&nbsp;&nbsp;Mensajeros </a></li>
+                <li class="" onclick="buscarDatosMensajeria()"><a data-toggle="tab" href=""><i class="fa fa-arrow-circle-o-right"></i>&nbsp;&nbsp;Mensajería </a></li>
+            </ul>
+        </div>
+
+        <div id="buscar" class="tab-pane fade in active">
+            <div class="panel-body">
+                <div class="panel-body-busqueda">
+                    <div class="table-responsive" style="width: 100%;">
+                        <div class="col-sm-12">
+                            @*<hr />*@
+                            <div class="panel-body-btns text-left">
+                                <button id="bntAgendar" class="btn btn-primary btn-sm" onclick="modalMensajeria()" type="button"><i class="fa fa-file-text-o"></i>&nbsp;&nbsp;&nbsp;Agendar Selección</button>
+                                @*onclick="modalMensajeria(' + data[i].numero + ')"*@
+                            </div>
+                        </div>
+                        <div id="div-mensaje-buscar"></div>
+                        <div id="div_message"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaBusquedas">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center">Numero</th>
+                                    <th style="text-align: center">Referencia</th>
+                                    <th style="text-align: center">Cantidad Enviada</th>
+                                    <th style="text-align: center">Cantidad Pendiente</th>
+                                    <th style="text-align: center">Fecha</th>
+                                    <th style="text-align: center">Costo Pendiente</th>
+                                    <th style="text-align: center">Origen</th>
+                                    <th style="text-align: center">Destino</th>
+                                    <th style="text-align: center">Destinatario</th>
+                                    <th style="text-align: center">Agendar</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="buscarMensajeros" class="">
+            <div class="panel-body">
+                <div class="panel-body-busqueda">
+                    <div class="col-lg-12">
+                        <h5>
+                            @foreach (var infoTipoCita in ViewBag.ttiposcitas)
+                            {
+                                <span>@infoTipoCita.descripcion</span>
+                                <span><label style="background-color: #@infoTipoCita.colorhx">&nbsp;&nbsp;&nbsp;&nbsp;</label>&nbsp;&nbsp;</span>
+                            }
+                        </h5>
+                    </div>
+                    <div class="table-responsive" style="width: 100%;">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Mensajero:&nbsp;<span class="text-danger">*</span></label>
+                                <div class="col-md-6">
+                                    @Html.DropDownList("Mensajero", null, "", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", id = "mensajero1" })
+                                    @*@Html.ValidationMessageFor(model => model.perito_id, "", new { @class = "text-danger" })*@
+                                </div>
+                            </div>
+                        </div>
+                        <div id="div-mensaje-buscar"></div>
+                        <div id="div_message"></div>
+
+                        <div class="col-lg-12">
+                            <div id="calendar"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="buscarMensajes" class="" style="display:none">
+            <div class="panel-body">
+                <div class="panel-body-busqueda">
+                    <div class="table-responsive" style="width: 100%;">
+
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Desde:&nbsp;</label>
+                                <div class="col-md-6">
+                                    <input data-provide="datepicker" required id="desde" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Hasta:&nbsp;</label>
+                                <div class="col-md-6">
+                                    <input data-provide="datepicker" required id="hasta" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Estado:&nbsp;</label>
+                                <div class="col-md-6">
+                                    @Html.DropDownList("Estado", null, "", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", id = "estado" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <button class="btn btn-info" type="button" onclick="buscarDatos_Mensajeria();"><i class="fa fa-filter"></i>&nbsp;Filtrar</button>
+                            </div>
+                        </div>
+
+                        <div class="panel-body-btns text-left">
+                            <button id="bntEstado" class="btn btn-primary btn-sm" onclick="cambiarEstado()" type="button"><i class="fa fa-file-text-o"></i>&nbsp;&nbsp;&nbsp;Cambiar Estado</button>
+                            @*onclick="modalMensajeria(' + data[i].numero + ')"*@
+                        </div>
+
+                        <div id="div-mensaje-buscar"></div>
+                        <div id="div_message"></div>
+                        <table class="table table-striped table-bordered table-hover" id="tablaMensajeria">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center">Mensajeria</th>
+                                    <th style="text-align: center">Prioridad</th>
+                                    <th style="text-align: center">Transporte</th>
+                                    <th style="text-align: center">Bodega Destino</th>
+                                    <th style="text-align: center">Descripcion</th>
+                                    <th style="text-align: center">Estado</th>
+                                    <th style="text-align: center">Mensajero</th>
+                                    <th style="text-align: center">Solicitante</th>
+                                    <th style="text-align: center">Fecha de Solicitud</th>
+                                    <th style="text-align: center">Fecha de Agendamiento</th>
+                                    <th style="text-align: center">Traslado</th>
+                                    <th style="text-align: center"></th>
+                                    <th style="text-align: center"></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+@*modal mensajeria*@
+<div class="col-xs-16">
+    <div class="center-block">
+        <div class="modal fade" id="MensajeriaModal">
+            <div class="modal-dialog">
+                <div class="modal-content modal-lg">
+                    <div class="color-line"></div>
+                    <div class="modal-header text-center">
+                        <h6 class="modal-title">Registro Mensajería</h6>
+                    </div>
+                    <div class="modal-body" id="bodyModal">
+                        <div class="container-fluid">
+                            @*formulario*@
+                            @using (Html.BeginForm())
+                            {
+                                <div class="row" style="display:none;">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Traslado:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @Html.Editor("idEncabezados", new { htmlAttributes = new { @class = "form-control", required = "required", id = "idEncabezados" } })
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Desde:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <input required id="desde1" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Hasta:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <input required id="hasta1" class="form-control">
+                                    </div>
+                                </div>
+                                @*<div class="row">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Estado:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @Html.DropDownList("Estado", null, "", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", id = "estado1" })
+                                        @Html.ValidationMessageFor(x => x.idestado, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Prioridad:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @Html.DropDownList("Prioridad", null, "", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", id = "prioridad" })
+                                        @Html.ValidationMessageFor(x => x.idPrioridad, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Tipo Transporte:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @Html.DropDownList("Transporte", null, "", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", id = "transporte" })
+                                        @Html.ValidationMessageFor(x => x.idTransporte, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Mensajero:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @Html.DropDownList("Mensajero", null, "", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", id = "mensajero" })
+                                        @Html.ValidationMessageFor(x => x.idmensajero, null, new { @class = "text-danger" })
+
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Descripcion:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @Html.TextArea("descripcion", null, new { @class = "form-control", required = "required", id = "descripcion" })
+                                        @Html.ValidationMessageFor(x => x.descripcion, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Bodega Destino:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @Html.DropDownList("BodegaDestino", null, "", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", id = "bodega_destino" })
+                                        @Html.ValidationMessageFor(x => x.destino_bodega, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                            }
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-success" onclick="CrearMensajeria()"><i class="fa fa-save"></i> Guardar</button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@*modal notas*@
+<div class="col-xs-16">
+    <div class="center-block">
+        <div class="modal fade" id="NotasModal">
+            <div class="modal-dialog">
+                <div class="modal-content modal-lg">
+                    <div class="color-line"></div>
+                    <div class="modal-header text-center">
+                        <h6 class="modal-title">Notas de inconformidad</h6>
+                    </div>
+                    <div class="modal-body" id="bodyModal">
+
+                        <div class="container-fluid">
+                            @*formulario*@
+                            @using (Html.BeginForm())
+                            {
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Mensajeria:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @Html.Editor("id", new { htmlAttributes = new { @class = "form-control", required = "required", id = "id" } })
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Notas:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @Html.TextArea("notas_inconformidad", null, new { @class = "form-control", required = "required", id = "notas_inconformidad" })
+                                    </div>
+                                </div>
+
+
+                            }
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-success" onclick="CrearNotas($('#id').val(), $('#notas_inconformidad').val());"><i class="fa fa-save"></i> Guardar</button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@*modal disponibles*@
+<div class="col-xs-16">
+    <div class="center-block">
+        <div class="modal fade" id="Disponibles">
+            <div class="modal-dialog">
+                <div class="modal-content modal-lg">
+                    <div class="color-line"></div>
+                    <div class="modal-header text-center">
+                        <h6 class="modal-title">Agenda</h6>
+                    </div>
+                    <div class="modal-body" id="bodyModal">
+                        <div class="container-fluid">
+
+                            <table class="table table-striped table-bordered table-hover" id="tablaDisponible">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: center">Mensajero</th>
+                                        <th style="text-align: center">Citas</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@*modal detalle*@
+<div class="col-xs-16">
+    <div class="center-block">
+        <div class="modal fade" id="agendaModal">
+            <div class="modal-dialog">
+                <div class="modal-content modal-lg">
+                    <div class="color-line"></div>
+                    <div class="modal-header text-center">
+                        <h6 class="modal-title">Detalles de pedido</h6>
+                    </div>
+                    <div class="modal-body" id="bodyModal">
+
+                        <div class="container-fluid">
+                            <table class="table table-striped table-bordered table-hover" id="tabla_detalle">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: center">Agenda</th>
+                                        <th style="text-align: center">Pedido</th>
+                                        <th style="text-align: center">Referencia</th>
+                                        <th style="text-align: center">Notas</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@*modal mensajeros*@
+<div class="col-xs-16">
+    <div class="center-block">
+        <div class="modal fade" id="MensajerosModal">
+            <div class="modal-dialog">
+                <div class="modal-content modal-lg">
+                    <div class="color-line"></div>
+                    <div class="modal-header text-center">
+                        <h6 class="modal-title">Registro Mensajería</h6>
+                    </div>
+                    <div class="modal-body" id="bodyModal">
+
+                        <div class="container-fluid">
+                            @using (Html.BeginForm())
+                            {
+                                <div class="row" style="">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Fecha Agendamiento:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @*@Html.Editor("fecha", new { htmlAttributes = new { @class = "form-control", required = "required", id = "fecha" } })*@
+                                        <input type="text" id="fecha" name="fecha" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="row" style="">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Destinatario:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @*@Html.Editor("destinatario", new { htmlAttributes = new { @class = "form-control", required = "required", id = "destinatario" } })*@
+                                        <input type="text" id="destinatario" name="destinatario" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="row" style="">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Agenda:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @*@Html.Editor("nAgenda", new { htmlAttributes = new { @class = "form-control", required = "required", id = "nAgenda" } })*@
+                                        <input type="text" id="nAgenda" name="nAgenda" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="row" style="">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Nota:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @Html.TextArea("notas", new { htmlAttributes = new { @class = "form-control", required = "required", id = "notas" } })
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label class="control-label col-md-6">Estado:<span class="text-danger">&nbsp;&nbsp;*</span></label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        @Html.DropDownList("Estado", null, "", htmlAttributes: new { @class = "form-control", @placeholder = "Seleccione", id = "tipoEstado" })
+                                        @Html.ValidationMessageFor(x => x.idestado, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            }
+                            <hr />
+                            <div class="row" style="">
+                                <div class="col-sm-12 col-md-12 col-lg-12">
+                                    <table class="table table-striped table-bordered table-hover" id="tabla_referencias">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align: center">Referencias</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" id="btnCerrar" data-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-success" onclick="AgregarEstadoNota()"><i class="fa fa-save"></i> Guardar</button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="~/Vendor/moment/min/moment.min.js"></script>
+<script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+<script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+<script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+<script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+<script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+<script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+<script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+<script src="~/Vendor/fullcalendar/dist/fullcalendar.min.js"></script>
+<script src="~/Vendor/fullcalendar/dist/lang-all.js"></script>
+
+<script type="text/javascript">
+            var pedidos = [];
+    $(document).ready(function () {
+
+
+
+        buscarDatos();
+
+      
+        $("#desde1").datetimepicker({
+            format: 'YYYY-MM-DD HH:mm'
+        });
+        $("#hasta1").datetimepicker({
+            format: 'YYYY-MM-DD HH:mm'
+        });
+
+    })
+
+    function buscarDatos() {
+
+        $("#buscar").show();
+        $("#buscarMensajes").hide();
+        $("#form_Mensajeria").hide();
+        $("#buscarMensajeros").hide();
+
+        $("#tablaBusquedas").dataTable().fnDestroy();
+
+        $.ajax({
+            url: '/agendaMensajero/cargarTrasladosDestino',
+            data: {},
+            type: "post",
+            cache: false,
+            success: function (data) {
+                $("#tablaBusquedas").dataTable().fnDestroy();
+
+                $('#tablaBusquedas').find('tbody').empty();
+                for (var i = 0; i < data.length; i++) {
+                    var estilo = "";
+                    if (data[i].esfaltante == 1) {
+                        estilo = "class='danger'";
+                    }
+                    $('#tablaBusquedas').find('tbody').append(
+                        '<tr ' + estilo + '>'
+                        + '<td align="right"><input type="hidden" id="oculto' + i + '" name="oculto' + i + '" onchange="validacion(' + i + ')' + i + '" value="' + data[i].id + '" />' + data[i].numero + '</td>'
+                        + '<td align="left">' + data[i].referencia + '</td>'
+                        + '<td align="right">' + data[i].cantidad + '</td>'
+                        + '<td align="right">' + data[i].cantidad_pendiente + '</td>'
+                        + '<td align="right">' + data[i].fechatraslado + '</td>'
+                        + '<td align="right">' + data[i].costo + '</td>'
+                        + '<td align="left">' + data[i].origen + '</td>'
+                        + '<td align="left">' + data[i].destino + '</td>'
+                        + '<td align="left">' + data[i].destinatario + '</td>'
+                        + '<td align="center">' + '<input type="checkbox" required id="' + data[i].id + '" class="" value="' + data[i].id + '">' + '</td>'
+                        //+ '<td align="center">' + '<button type="button" class="btn btn-primary" onclick="modalMensajeria(' + data[i].numero + ')">Gestionar</button>' + '</td>'
+                        + '</tr>');
+                    $('#listaReferencias').val(i)
+                }
+            }, complete: function (data) {
+                $('#tablaBusquedas').DataTable({
+                    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: [
+                        //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        //{ extend: 'copy', className: 'btn-sm' },
+                        //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                        //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                        //{ extend: 'print', className: 'btn-sm' }
+                    ]
+                });
+            }
+        })
+    }
+
+    function buscarDatosMensajeros() {
+        $("#tablaMensajeros").dataTable().fnDestroy();
+        $("#buscar").hide();
+        $("#form_Mensajeria").hide();
+        $("#buscarMensajes").hide();
+        $("#buscarMensajeros").show();
+    }
+
+    $('#mensajero1').change(function () {
+
+        $('#calendar').fullCalendar('destroy');
+        BuscarCitas($('#mensajero1').val());
+
+    });
+    function BuscarCitas(mensajero) {
+
+        $.ajax({
+            url: '/agendaMensajero/BuscarCitas',
+            data: {
+                idmensajero: mensajero
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+
+            },
+            complete: function (data) {
+                console.log(data);
+                var citas = new Array();
+                for (var i = 0; i < data.responseJSON.length; i++) {
+                    var object = {
+                        id: data.responseJSON[i].id,
+                        title: data.responseJSON[i].title,
+                        start: new Date(data.responseJSON[i].start),
+                        end: new Date(data.responseJSON[i].end),
+                        agenda: data.responseJSON[i].agenda,
+                        estado: data.responseJSON[i].estado,
+                        backgroundColor: '#'+data.responseJSON[i].colorCita,
+                        borderColor: '#'+data.responseJSON[i].colorCita,
+                    };
+                    citas.push(object);
+                }
+             
+                /* initialize the external events
+  -----------------------------------------------------------------*/
+                    $('#external-events div.external-event').each(function() {
+                        // store data so the calendar knows to render an event upon drop
+                        $(this).data('event',
+                            {
+                                title: $.trim($(this).text()), // use the element's text as the event title
+                                stick: true // maintain when user navigates (see docs on the renderEvent method)
+                            });
+
+                        // make the event draggable using jQuery UI
+                        $(this).draggable({
+                            zIndex: 1111999,
+                            revert: true, // will cause the event to go back to its
+                            revertDuration: 0 //  original position after the drag
+                        });
+                    });
+          
+                /* initialize the calendar
+                 -----------------------------------------------------------------*/
+                const date = new Date();
+                const d = date.getDate();
+                const m = date.getMonth();
+                const y = date.getFullYear();
+
+                $('#calendar').fullCalendar({
+                    lang: 'es',
+                    header: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'month,agendaWeek,agendaDay'
+                    },
+                    editable: false,
+                    droppable: false,
+                    drop: function () {
+                        if ($('#drop-remove').is(':checked')) {
+                            $(this).remove();
+                        }
+                    },
+                    events: citas,//data.responseJSON,
+
+                    eventDrop: function (event, delta, revertFunc, jsEvent, ui, view) {
+
+                    },
+                    eventMouseover: function (calEvent, jsEvent) {
+                        const tooltip =
+                            `<div class="tooltipevent" style="background:#FFF;color:#000;position:absolute;z-index:10001;">${
+                            calEvent.title}<br> Comienza: ${moment(calEvent.start).format("YYYY-MM-DD HH:mm")}<br> Termina: ${moment(calEvent.end).format("YYYY-MM-DD HH:mm")}</div>`;
+                            
+                        var $tooltip = $(tooltip).appendTo('body');
+
+                            $(this).mouseover(function(e) {
+                                $(this).css('z-index', 10000);
+                                $tooltip.fadeIn('500');
+                                $tooltip.fadeTo('10', 1.9);
+                            }).mousemove(function(e) {
+                                $tooltip.css('top', e.pageY + 10);
+                                $tooltip.css('left', e.pageX + 20);
+                            });
+                    },
+
+                    eventMouseout: function(calEvent, jsEvent) {
+                        $(this).css('z-index', 8);
+                        $('.tooltipevent').remove();
+                    },
+                    eventClick: function (calEvent, jsEvent, view) {
+                        console.log(calEvent.agenda);
+                     
+
+                        var permiso='@ViewBag.Permiso1';
+
+                        if (permiso == 'Si') {
+                            buscarReferencias(calEvent.agenda)
+                        }
+
+                        //$('#modalOpcionesCita').modal('show');
+                        $(this).css('border-color', 'red');
+                    },
+
+                        eventRender: function(event, element, view) {
+                            var fa = '';
+                            //console.log(event);
+                            el = $(element);
+                            el.find('.fc-time').remove();
+                            el.find('.fc-title').remove();
+
+                            const states = {
+                                Agendada: {btn: 'btn-warning', i: 'fa fa-refresh'},
+                                Despachado: {btn: 'btn-primary', i: 'fa fa-close'},
+                                Entregado: {btn: 'btn-success', i: 'fa fa-check'},
+
+                            };
+
+                            if (event.estado == 1) {
+                                fa = states.Agendada
+                            } else if (event.estado == 2) {
+                                fa = states.Despachado
+                            } else if (event.estado == 3) {
+                                fa = states.Entregado
+                            }
+
+                            el.append(
+                            `<div class="fc-content"><span class="${fa.btn}" style="padding: 0px 2px; border-radius:2px;"><i class="${fa.i}"></i></span>&nbsp; <span class="fc-time">${event.start.format('HH:mm')}</span></div>`);
+
+                            const lnk = $(element.context);
+                            lnk.attr('id', `a${event.id}`);
+                            lnk.addClass('lnk');
+                            lnk.css('padding', '0 1px');
+                            lnk.css('box-shadow', '0 0 0 1px #fff');
+                            lnk.css('border', `1px solid ${event.backgroundColor}`);
+                            lnk.css('overflow', 'unset');
+
+                        }
+                });
+            }
+        });
+    }
+
+    //function buscarAccesos() {
+    //        $.ajax({
+    //            url: '/Inicio/buscarAccesos',
+    //            data: {
+    //            },
+    //            type: "post",
+    //            cache: false,
+    //            success: function (data) {
+    //                for (var i = 0; i < data.length; i++) {
+
+    //                    if (data[i].codigo == "") {
+    //                    }
+    //                }
+    //            }
+    //        });
+    // }
+
+    function buscarReferencias(mensajeria) {
+
+        //var mensajeria = $('#nAgenda').val();
+        $("#tabla_referencias").dataTable().fnDestroy();
+        $.ajax({
+            url: '/agendaMensajero/cargarReferencias',
+            data: { mensajeria: mensajeria },
+            type: "post",
+            cache: false,
+            success: function (data) {
+
+                console.log(data)
+        
+
+                $('#tabla_referencias').find('tbody').empty();
+                for (var i = 0; i < data.length; i++) {
+
+
+                    var f = JSON.stringify(data[i].fecha_agendamiento)
+                    var d = JSON.stringify(data[i].destino)
+                    var n = JSON.stringify(data[i].agenda)
+
+                    $('#fecha').val(f.replace(/['"]+/g, ''))
+                    $('#destinatario').val(d.replace(/['"]+/g, ''))
+                    $('#nAgenda').val(n.replace(/['"]+/g, ''));
+
+
+
+                    $('#tabla_referencias').find('tbody').append(
+                        '<tr>'
+                        + '<td align="center">' + (data[i].referencia != null ? data[i].referencia : "No hay referencias") + '</td>'
+                        + '</tr>');
+                }
+            }, complete: function (data) {
+                $('#tabla_referencias').DataTable({
+                    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: [
+                        //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        //{ extend: 'copy', className: 'btn-sm' },
+                        //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                        //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                        //{ extend: 'print', className: 'btn-sm' }
+                    ]
+                });
+                $('#MensajerosModal').modal('show');
+            }
+        })
+    }
+
+    function AgregarEstadoNota() {
+
+        var mensajeria = $('#nAgenda').val();
+        var nota = $('#notas').val();
+        var estado = $('#tipoEstado').val();
+
+
+
+        $.ajax({
+            url: '/agendaMensajero/AgregarEstadoNota',
+            data: {
+                mensajeria: mensajeria,
+                nota: nota,
+                estado: estado,
+            },
+            type: "post",
+            cache: false,
+            success: function (result) {
+
+                if (result == 1) {
+                    console.log(result)
+                    swal("Exito", "Se registro correctamente", "success");
+                    $('#MensajerosModal').click();
+                } else {
+                    console.log(result)
+                    swal("Error", "Error al registrar", "error");
+                }
+
+            }
+        })
+    }
+
+    function buscarDatosMensajeria() {
+
+        $("#buscar").hide();
+        $("#form_Mensajeria").hide();
+        $("#buscarMensajeros").hide();
+        $("#buscarMensajes").show();
+
+        //$("#tablaMensajeria").DataTable().fnDestroy();
+        $.ajax({
+            url: '/agendaMensajero/cargarMensajeria',
+            data: {},
+            type: "post",
+            cache: false,
+            success: function (data) {
+
+                //$("#tablaBusquedas").dataTable().fnDestroy();
+
+                $("#tablaMensajeria").dataTable().fnDestroy();
+
+                $('#tablaMensajeria').find('tbody').empty();
+                for (var i = 0; i < data.length; i++) {
+                    var estilo = "";
+                    if (data[i].esfaltante == 1) {
+                        estilo = "class='danger'";
+                    }
+                    var prop = "";
+                    if (data[i].tipo_estado != 3) {
+                        prop = "disabled";
+                    }
+                    $('#tablaMensajeria').find('tbody').append(
+                        '<tr ' + estilo + '>'
+                        //+ '<td align="right">' + data[i].referencia + '</td>'
+                        + '<td id="id' + i + '" align="left"><input type="hidden" id="oculto' + i + '" name="oculto' + i + '" onchange="validacion(' + i + ')' + i + '" value="' + data[i].id + '" />' + data[i].id + '</td>'
+                        //+ '<td align="right">' + data[i].numero + '</td>'
+                        + '<td align="left">' + data[i].tipo_prioridad + '</td>'
+                        + '<td align="left">' + data[i].tipo_transporte + '</td>'
+                        + '<td align="left">' + data[i].bodccs_nombre + '</td>'
+                        + '<td align="right">' + data[i].descripcion + '</td>'
+                        + '<td align="right">' + data[i].estado + '</td>'
+                        + '<td align="left">' + data[i].mensajero + '</td>'
+                        + '<td align="left">' + data[i].usuario + '</td>'
+                        + '<td align="left">' + data[i].fec_creacion + '</td>'
+                        + '<td align="left">' + data[i].fecha_agendamiento + '</td>'
+                        + '<td align="left">' + data[i].numero + '</td>'
+                        + '<td align="center">'
+                        + '<button type="button" class="btn btn-primary" title="detalles" onclick="detalles(' + data[i].id + ')" data-title="detalles">'
+                        + '<i  class="fa fa-sticky-note"></i>'
+                        + '</button>'
+                        + '<button type="button" class="btn btn-primary" title="notas" onclick="modalNotas(' + data[i].id + ')" data-title="notas">'
+                        + '<i  class="fa fa-book"></i>'
+                        + '</button>'
+                        + '</td>'
+                        + '<td align="left">'
+                        + '<input type="checkbox" id="' + data[i].id + '" class="" '+prop+' value="' + data[i].id + '">'
+                        + '</td>'
+                        + '</tr>');
+                    $('#listaReferencias').val(i)
+                }
+            }, complete: function (data) {
+                $('#tablaMensajeria').DataTable({
+                    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: [
+                        //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        //{ extend: 'copy', className: 'btn-sm' },
+                        //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                        //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                        //{ extend: 'print', className: 'btn-sm' }
+                    ]
+                });
+            }
+
+        })
+
+    }
+
+    function buscarDatos_Mensajeria() {
+
+        $("#buscar").hide();
+        $("#form_Mensajeria").hide();
+        $("#buscarMensajeros").hide();
+        $("#buscarMensajes").show();
+
+
+        $.ajax({
+            url: '/agendaMensajero/cargarMensajeriaFiltro',
+            data: {
+                desde: $('#fecha_desde').val(),
+                hasta: $('#fecha_hasta').val(),
+                estado: $('#estado').val()
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+
+                //$("#tablaBusquedas").dataTable().fnDestroy();
+                //$("#tablaMensajeria").DataTable().fnDestroy();
+                //$("#tablaMensajeros").dataTable().fnDestroy();
+                 $("#tablaMensajeria").dataTable().fnDestroy();
+
+                $('#tablaMensajeria').find('tbody').empty();
+                for (var i = 0; i < data.length; i++) {
+                    var estilo = "";
+                    if (data[i].esfaltante == 1) {
+                        estilo = "class='danger'";
+                    }
+                    var prop = "";
+                    if (data[i].tipo_estado != 3) {
+                        prop = "disabled";
+                    }
+                    $('#tablaMensajeria').find('tbody').append(
+                        '<tr ' + estilo + '>'
+                        + '<td id="id' + i + '" align="left"><input type="hidden" id="oculto' + i + '" name="oculto' + i + '" onchange="validacion(' + i + ')' + i + '" value="' + data[i].id + '" />' + data[i].id + '</td>'
+                        + '<td align="left">' + data[i].tipo_prioridad + '</td>'
+                        + '<td align="left">' + data[i].tipo_transporte + '</td>'
+                        + '<td align="left">' + data[i].bodccs_nombre + '</td>'
+                        + '<td align="right">' + data[i].descripcion + '</td>'
+                        + '<td align="right">' + data[i].estado + '</td>'
+                        + '<td align="left">' + data[i].mensajero + '</td>'
+                        + '<td align="left">' + data[i].usuario + '</td>'
+                        + '<td align="left">' + data[i].fec_creacion + '</td>'
+                        + '<td align="left">' + data[i].fecha_agendamiento + '</td>'
+                        + '<td align="left">' + data[i].numero + '</td>'
+                        + '<td align="center">'
+                        + '<button type="button" class="btn btn-primary" title="detalles" onclick="detalles(' + data[i].id + ')" data-title="detalles">'
+                        + '<i  class="fa fa-sticky-note"></i>'
+                        + '</button>'
+                        + '<button type="button" class="btn btn-primary" title="notas" onclick="modalNotas(' + data[i].id + ')" data-title="notas">'
+                        + '<i  class="fa fa-book"></i>'
+                        + '</button>'
+                        + '</td>'
+                        + '<td align="left">'
+                        + '<input type="checkbox"  id="' + data[i].id + '" class="" '+prop+' value="' + data[i].id + '">'
+                        + '</td>'
+                        + '</tr>');
+                    $('#listaReferencias').val(i)
+                }
+            }, complete: function (data) {
+                $('#tablaMensajeria').DataTable({
+                    dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: [
+                        //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                        //{ extend: 'copy', className: 'btn-sm' },
+                        //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                        //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                        //{ extend: 'print', className: 'btn-sm' }
+                    ]
+                });
+            }
+
+        })
+    }
+
+    function detalles(id) {
+
+        $("#tabla_detalle").dataTable().fnDestroy();
+        $("#agendaModal").modal("show");
+        var parametros = {
+            "id": id
+        }
+
+        $.ajax({
+            url: '/agendaMensajero/detalleMensajeria',
+            data: parametros,
+            type: "post",
+            cache: false,
+            success: function (data) {
+                $('#tabla_detalle').find('tbody').empty();
+                for (var i = 0; i < data.length; i++) {
+                    var estilo = "";
+                    if (data[i].esfaltante == 1) {
+                        estilo = "class='danger'";
+                    }
+                    $('#tabla_detalle').find('tbody').append(
+                        '<tr ' + estilo + '>'
+                        + '<td align="right">' + data[i].id + '</td>'
+                        + '<td align="right">' + data[i].numero + '</td>'
+                        + '<td align="right">' + data[i].referencia + '</td>'
+                        + '<td align="right">' + (data[i].notas_inconformidad != null ? data[i].notas_inconformidad : 'No asignada') + '</td>'
+                        + '</tr>');
+                    $('#listaReferencias').val(i)
+                }
+            }, complete: function (data) {
+                $('#tabla_detalle').DataTable({
+                    //dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                    //    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    //    buttons: [
+                    //        //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                    //        //{ extend: 'copy', className: 'btn-sm' },
+                    //        //{ extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+                    //        //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm' },
+                    //        //{ extend: 'print', className: 'btn-sm' }
+                    //    ]
+                });
+            }
+        })
+    }
+
+    function disponibles(emp_tercero_id) {
+
+        $("#Disponibles").modal("show");
+        var parametros = {
+            "emp_tercero_id": emp_tercero_id
+        }
+
+        $.ajax({
+            url: '/agendaMensajero/cargarMensajerosDisponibles',
+            data: parametros,
+            type: "post",
+            cache: false,
+            success: function (data) {
+                $('#tablaDisponible').find('tbody').empty();
+                for (var i = 0; i < data.length; i++) {
+                    var estilo = "";
+                    if (data[i].esfaltante == 1) {
+                        estilo = "class='danger'";
+                    }
+                    $('#tablaDisponible').find('tbody').append(
+                        '<tr ' + estilo + '>'
+                        + '<td align="right">' + data[i].mensajero + '</td>'
+                        + '<td align="right">' + data[i].cita + '</td>'
+                        + '</tr>');
+                    $('#listaReferencias').val(i)
+                }
+            }, complete: function (data) {
+                //$('#tablaDisponible').DataTable();
+            }
+        })
+    }
+
+    function CrearNotas(id, notas_inconformidad) {
+
+        var parametros = {
+            "id": id,
+            "notas_inconformidad": notas_inconformidad,
+        }
+
+        $.ajax({
+
+            url: '/agendaMensajero/AgregarNota',
+            data: parametros,
+            type: "post",
+            cache: false,
+            success: function (response) {
+         
+                swal("Exito", "Se registro correctamente", "exito");
+            },
+            error: function () {
+  
+                swal("Error", "Error al registrar", "error");
+            }
+
+
+        });
+  
+        $("#MensajeriaModal").modal("hide");
+  
+        buscarDatos();
+
+    }
+
+    function modalMensajeria(/*numero*/) {
+
+        $("#MensajeriaModal").modal("show");
+       
+        //$("input:checkbox:checked").each(function (pedido) {
+        //    pedido = $(this).val();
+        //    pedidos.push(pedido);
+        //});
+      
+
+       
+    }
+
+    function CrearMensajeria() {
+
+
+         pedidos = [];
+          $('input[type=checkbox]:checked').each(function (pedido) {
+            pedido = $(this).val();
+            pedidos.push(pedido);
+        });
+
+   
+        console.log('pedidos'+pedidos)
+       var idEncabezados = pedidos;
+   
+        if (validarCampos()) {
+            var desde = $('#desde1').val();
+            var hasta = $('#hasta1').val();
+            var idestado = $('#estado1').val();
+            var idPrioridad = $('#prioridad').val();
+            var idTransporte = $('#transporte').val();
+            var idmensajero = $('#mensajero').val(); 
+            var descripcion = $('#descripcion').val(); 
+            var destino_bodega = $('#bodega_destino').val();
+
+
+        var parametros = {
+            "idEncabezados": idEncabezados,
+            "desde": desde,
+            "hasta": hasta,
+            "idestado": idestado,
+            "idPrioridad": idPrioridad,
+            "idTransporte": idTransporte,
+            "idmensajero": idmensajero,
+            "descripcion": descripcion,
+            "destino_bodega": destino_bodega,
+        }
+        $.ajax({
+
+            url: '/agendaMensajero/CrearMensajeria',
+            data: parametros,
+            type: "post",
+            cache: false,
+            success: function (dataResult) {
+ 
+                console.log(dataResult);
+        
+                if (dataResult == 0) {
+                    swal("Error", "Error al crear la Agenda, por favor valide los datos", "error");
+                } else if (dataResult == 1) {
+                    swal("Exito", "Se registro correctamente", "exito");
+                }
+                else if (dataResult == 2) {
+                    swal("Error", "La fecha final de la agenda debe ser mayor a la inicial, por favor valide", "error");
+                }
+                else if (dataResult == 3) {
+                    swal("Error", "Ya tiene una agenda para el día y hora ingresados, por favor valide", "error");
+                }
+         
+            },
+            error: function (xhr, status) {
+             
+                swal("Error", "Error al registrar", "error");
+            }
+
+
+        });
+     
+        $("#MensajeriaModal").modal("hide");
+
+        buscarDatos();
+
+       }
+
+
+
+    }
+
+
+    function validarCampos() {
+ 
+        desde = $('#desde1').val();
+        hasta = $('#hasta1').val();
+        idestado = $('#estado1').val();
+        idPrioridad = $('#prioridad').val();
+        idTransporte = $('#transporte').val();
+        idmensajero = $('#mensajero').val(); 
+        descripcion = $('#descripcion').val(); 
+        destino_bodega = $('#bodega_destino').val();
+
+        var error = 0;
+        if (desde=="") {
+            error++;
+        }
+         if (hasta=="") {
+            error++;
+        }
+        if (idestado=="") {
+            error++;
+        }
+        if (idPrioridad=="") {
+            error++;
+        }
+         if (idTransporte=="") {
+            error++;
+        }
+         if (idmensajero=="") {
+            error++;
+        }
+         if (descripcion=="") {
+            error++;
+        }
+         if (destino_bodega=="") {
+            error++;
+        }
+
+        if (error>0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function modalNotas(id) {
+   
+        $("#NotasModal").modal("show");
+
+        $("#id").val(id);
+     
+        $("#id").attr("readonly", "readonly");
+    }
+
+    function cambiarEstado() {
+
+        var mensajerias = [];
+
+        $("input:checkbox:checked").each(function (agenda) {
+            agenda = $(this).val();
+            mensajerias.push(agenda);
+        });
+        console.log(mensajerias);
+
+
+        var parametros = {
+            "mensajerias": mensajerias
+        }
+
+        $.ajax({
+
+            url: '/agendaMensajero/cambiarEstado',
+            data: parametros,
+            type: "post",
+            cache: false,
+            success: function (dataResult) {
+         
+                if (dataResult == 1) {
+                    swal("Exito", "Se registro correctamente", "success");
+                } else if (dataResult == 0) {
+                    swal("Error", "Error al registrar", "error");
+                }
+
+            },
+            error: function () {
+              
+                swal("Error", "Error al registrar", "error");
+            }
+
+
+        });
+    }
+
+
+</script>

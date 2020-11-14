@@ -1,0 +1,677 @@
+﻿@{
+    ViewBag.Title = "Prospectos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="panel-body">
+    <div class="hpanel">
+        <div class="panel-body">
+            <a class="small-header-action" href="">
+                <div class="clip-header">
+                    <i class="fa fa-arrow-up"></i>
+                </div>
+            </a>
+
+            <div id="hbreadcrumb" class="pull-right m-t-lg">
+                <ol class="hbreadcrumb breadcrumb">
+                    <li><a href="#">Inicio</a></li>
+                    <li>
+                        <span>Sistema</span>
+                    </li>
+                    <li class="active">
+                        <span>@ViewBag.Title</span>
+                    </li>
+                </ol>
+            </div>
+            <h2 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h2>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+        @if (TempData["mensajeExiste"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensajeExiste"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                    <br />
+
+                    <div class="col-sm-2 pull-right">
+                        <div class="input-group">
+                            <input id="txBusqueda" type="text" runnat="server" class="form-control" placeholder="Buscar.."> <span class="input-group-btn">
+                                <button class="btn btn-sm btn-info" id="activaTab-create" onclick="buscarAjaxTercerosAux()" type="button">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-sm btn-default" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul> <li><a href='../Rols/CrearRol'>Roles</a></li> <li><a href='../Tipo_Documento/CrearTipoDocumento'>Tipo documento</a></li> <li><a href='../Ciudads/CrearCiudad'>Ciudad</a></li> </ul>" data-html="true">
+                        <i class="text-info fa fa-tags"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-default" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                        <i class="text-primary fa fa-files-o"></i>
+                    </button>
+                    <button class="btn btn-sm btn-default">
+                        <i class="text-warning fa fa-star"></i>
+                    </button>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#tercero"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                @*<li class="" id="clienteT"><a data-toggle="tab" href="#cliente"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Cliente</a></li>
+                    <li class="" id="proveedorT"><a data-toggle="tab" href="#proveedor"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Proveedor</a></li>
+                    <li class="" id="empleadoT"><a data-toggle="tab" href="#empleado"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Empleado</a></li>*@
+                <li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="tercero" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm("icb_tercero2Create", "icb_terceros2", FormMethod.Post))
+                    {
+                        <div class="panel-body-btns text-right">
+
+                            @if (TempData["mensaje"] != null)
+                            {
+
+                                @*<button class="btn btn-info" type="button" id="botonPerfil" data-toggle="modal" data-target="#Modalperfil">Perfil</button>*@
+                                <button class="btn btn-info" type="submit" id="btnAgregar"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+
+                            }
+                            else
+                            {
+                                <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                            }
+
+                        </div>
+
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="panel-body">
+                                <h3 class="panel-body-title">
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Información general
+                                </h3>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Primer Nombre:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.prinom_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Primer nombre" } })
+                                            @Html.ValidationMessageFor(model => model.prinom_tercero, "", new { @class = "text-danger" })
+                                            <span class="text-danger">@ViewBag.error</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @*<div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Número Documento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-4">
+                                                @Html.EditorFor(model => model.icb_terceros.doc_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese número documento" } })
+                                                @Html.ValidationMessageFor(model => model.icb_terceros.doc_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                            <span class="text-danger" id="ocultarC">*</span>
+                                            <div class="col-md-2">
+                                                @Html.EditorFor(model => model.icb_terceros.digito_verificacion, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "D. V.", id = "ocultar" } })
+                                                @Html.ValidationMessageFor(model => model.icb_terceros.digito_verificacion, "", new { @class = "text-danger", id = "ocultarV" })
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+                                <div id="panel_persona">
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Segundo Nombre:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.segnom_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Segundo nombre" } })
+                                                @Html.ValidationMessageFor(model => model.segnom_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Primer Apellido:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.apellido_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Primer Apellido" } })
+                                                @Html.ValidationMessageFor(model => model.apellido_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Segundo Apellidos:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.segapellido_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Segundo Apellido" } })
+                                                @Html.ValidationMessageFor(model => model.segapellido_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+
+                                @*<div id="panel_razonsocial">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Razon Social:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.icb_terceros.razon_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese razon social" } })
+                                                    @Html.ValidationMessageFor(model => model.icb_terceros.razon_tercero, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+                                @*<div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Teléfono:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.icb_terceros.telf_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese teléfono" } })
+                                                @Html.ValidationMessageFor(model => model.icb_terceros.telf_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+                                @*<div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Celular:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.icb_terceros.celular_tercero, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese celular" } })
+                                                @Html.ValidationMessageFor(model => model.icb_terceros.celular_tercero, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">E-mail:&nbsp;<span class="text-danger"></span></label>
+                                        <div class="col-md-6">
+                                            @Html.EditorFor(model => model.email_tercero, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese correo electrónico" } })
+                                            @Html.ValidationMessageFor(model => model.email_tercero, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Medio Comunicacion:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("medcomun_id", null, "Seleccione...", htmlAttributes: new { @class = "form-control js-source-states", @id = "medcomun_id", @placeholder = "Seleccione" })
+                                            @Html.ValidationMessageFor(model => model.medcomun_id, "", new { @class = "text-danger" })
+                                            <span class="text-danger">@ViewBag.error</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <br />
+
+
+                            <div class="panel-body">
+                                <h3 class="panel-body-title">
+                                    <i class="fa fa-automobile"></i>&nbsp;&nbsp;&nbsp;Vehículo de Interes
+                                </h3>
+
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-2">Seleccione:&nbsp;&nbsp;<span class="text-danger">*</span></label>
+                                        <br /><br /><br />
+                                        <div class="col-md-10">
+                                            @*@foreach (var item in (IEnumerable<Homer_MVC.ModeloVehiculos.icb_tptramite_prospecto>)ViewBag.Categories)
+                                                {<label>
+                                                    &nbsp;&nbsp;&nbsp;
+                                                    @item.tptrapros_descripcion&nbsp;&nbsp;&nbsp;
+                                                </label>
+                                                    @Html.RadioButtonFor(rbtn => rbtn.tptrapros_id, item.tptrapros_id.ToString(), htmlAttributes: new { @id = "clie" })
+
+                                                }
+                                                @Html.ValidationMessageFor(model => model.tptrapros_id, "", new { @class = "text-danger" })*@
+                                            <span class="text-danger">@ViewBag.error</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br /><br /><br />
+                                @*<div class="col-sm-6" id="config">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Vehículo Nuevo:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <label class="control-label col-md-8">
+                                                    <span class="text-danger">*&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    @Html.CheckBox("cl", new { @class = "i-checks",id="clie" })
+
+                                                    <input type="radio" name="optradio" id="clie" />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+                                @*<div class="col-sm-6" id="config">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Vehículo Usado:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <label class="control-label col-md-8">
+                                                    <span class="text-danger">*&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    @Html.CheckBox("cl", new { @class = "i-checks",id="clie" })
+                                                    <input type="radio" name="optradio" id="prov" />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+                                @*<div class="col-sm-6" id="config">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Chevy Plan:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <label class="control-label col-md-8">
+                                                    <span class="text-danger">*&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    @Html.CheckBox("cl", new { @class = "i-checks",id="clie" })
+                                                    <input type="radio" name="optradio" id="emple" />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+                                @*<div class="col-sm-6" id="config">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Administración:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <label class="control-label col-md-8">
+                                                    <span class="text-danger">*&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    @Html.CheckBox("cl", new { @class = "i-checks",id="clie" })
+                                                    <input type="radio" name="optradio" id="admin" />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+                                @*<div class="col-sm-6" id="config">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Negocio en Tramite:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                <label class="control-label col-md-8">
+                                                    <span class="text-danger">*&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    @Html.CheckBox("cl", new { @class = "i-checks",id="clie" })
+                                                    <input type="radio" name="optradio" id="negocio" />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+
+
+
+
+
+                                @*<div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo de Trámite:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("tptrapros_id", null, "Seleccione...", htmlAttributes: new { @class = "form-control", @id = "clie", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.tptrapros_id, "", new { @class = "text-danger" })
+                                                <span class="text-danger">@ViewBag.error</span>
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4" id="ocultarL">Vehículo Interesado:&nbsp;<span class="text-danger" id="ocultarJ">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("modvh_id", null, "Seleccione...", htmlAttributes: new { @class = "form-control", @id = "ocultarV", @placeholder = "Seleccione" })
+                                            @Html.ValidationMessageFor(model => model.modvh_id, "", new { @class = "text-danger", @id = "ocultarF" })
+                                            <span class="text-danger">@ViewBag.error</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+
+
+
+                        <div class="panel-body">
+                            <h3 class="panel-body-title">
+                                <i class="fa fa-cubes"></i>&nbsp;&nbsp;&nbsp;Acompañantes
+                            </h3>
+
+                            @*<div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Vehículo Interesado:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("medcomun_id", null, "Seleccione...", htmlAttributes: new { @class = "form-control", @id = "", @placeholder = "Seleccione" })
+                                            @Html.ValidationMessageFor(model => model.medcomun_id, "", new { @class = "text-danger" })
+                                            <span class="text-danger">@ViewBag.error</span>
+                                        </div>
+                                    </div>
+                                </div>*@
+
+
+                            <div class="col-sm-6" id="config">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Hombre:&nbsp;</label>
+                                    <div class="col-md-6">
+                                        <label class="control-label col-md-8">
+                                            <span class="text-danger">*&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                            @*@Html.CheckBox("cl", new { @class = "i-checks",id="clie" })*@
+                                            @Html.RadioButtonFor(model => model.genero_tercero, "false")
+                                            @*<input type="radio" name="optradio" id="clie" />*@
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6" id="config">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Mujer:&nbsp;</label>
+                                    <div class="col-md-6">
+                                        <label class="control-label col-md-8">
+                                            <span class="text-danger">*&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                            @*@Html.CheckBox("cl", new { @class = "i-checks",id="clie" })*@
+                                            @Html.RadioButtonFor(model => model.genero_tercero, "true")
+                                            @*<input type="radio" name="optradio" id="prov" />*@
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+
+
+
+
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+
+                                    <label class="control-label col-md-4">Familiar:&nbsp;<img src="~/Content/Images/familia.png" class="img-circle" alt="Familia" width="80" height="80"> &nbsp;<span class="text-danger"></span></label>
+
+                                    <div class="col-md-6">
+                                        @Html.EditorFor(model => model.hist_prospecto_nrofamilia, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Numero de Familiares" } })
+                                        @Html.ValidationMessageFor(model => model.hist_prospecto_nrofamilia, "", new { @class = "text-danger" })
+                                        <span class="text-danger">@ViewBag.error</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Amigos:&nbsp;<img src="~/Content/Images/amigos.png" class="img-circle" alt="Amigos" width="80" height="80"> &nbsp;<span class="text-danger"></span></label>
+                                    <div class="col-md-6">
+                                        @Html.EditorFor(model => model.hist_prospecto_nroacompanante, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Ingrese Numero de Acompañantes" } })
+                                        @Html.ValidationMessageFor(model => model.hist_prospecto_nroacompanante, "", new { @class = "text-danger" })
+                                        <span class="text-danger">@ViewBag.error</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @*<div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Ciudad:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("ciu_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            <span class="text-danger">@ViewBag.error</span>
+                                        </div>
+                                    </div>
+                                </div>*@
+
+
+
+                            @*<div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Sector:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("sec_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            <span class="text-danger">@ViewBag.error</span>
+                                        </div>
+                                    </div>
+                                </div>*@
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+
+                                        <th>Nombre Prospecto</th>
+                                        <th>Fecha Visita</th>
+                                        <th>Trámite</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contenido"></tbody>
+                            </table>
+                        </div>
+                        <div class="row col-md-4 col-md-offset-4">
+                            <div id="page-selection"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <br />
+
+            @section Styles {
+                @Styles.Render("~/bundles/select2/css")
+                @Styles.Render("~/bundles/datatables/css")
+
+            }
+
+            @section Scripts {
+                @Scripts.Render("~/bundles/jqueryval")
+                @Scripts.Render("~/bundles/jqueryui")
+                @Styles.Render("~/Content/cssjqryUi")
+                @Scripts.Render("~/bundles/select2/js")
+                @Scripts.Render("~/bundles/datatables/js")
+                @Scripts.Render("~/bundles/datatablesBootstrap/js")
+                @Scripts.Render("~/bundles/datatablesPlugins/js")
+
+                <script src="~/Scripts/Select2.js"></script>
+                <script src="~/Scripts/Tablas.js"></script>
+                <script src="~/Scripts/FormUsuario.js"></script>
+                <script type="text/javascript">
+
+                    $(document).ready(function () {
+
+                        buscarAjaxTercerosAux();
+
+                    });
+                    var arlene2 = new Array(1,2,3,4,5);
+
+                    $(function () {
+                        $('#clie').show();
+                        $('#ocultar').hide();
+                        $('#ocultarV').show();
+                        $('#ocultarL').hide();
+                        $('#panel_razonsocial').hide();
+                        $('#clienteT').hide();
+                        $('#proveedorT').hide();
+                        $('#empleadoT').hide();
+
+                        $('#clie').change(function () {
+                            valor = parseInt($('#clie').val())
+                            if (valor === 1) {
+
+                                $('#ocultarL').show();
+                                $('#ocultarV').show();
+                                $('#ocultarF').show();
+                                $('#ocultarJ').show();
+                            } else {
+                                $('#ocultarL').hide();
+                                $('#ocultarV').hide();
+                                $('#ocultarF').hide();
+                                $('#ocultarJ').hide();
+                            }
+                        });
+                    });
+                //$(function () {
+                //    $('#clie').show()
+
+                //    $('#ocultarV').hide()
+                //    $('#ocultarC').hide()
+                //    $('#panel_razonsocial').hide()
+                //    $('#clienteT').hide()
+                //    $('#proveedorT').hide()
+                //    $('#empleadoT').hide()
+
+                //    $('#clie').click(function () {
+
+                //        $('#ocultarV').show();
+                //        $('#ocultarC').hide();
+                //        //var valor = parseInt($('#clie').val())
+                //        //if (valor === 1) {
+                //        //    $('#ocultarV').show()
+
+                //        //} else {
+
+
+                //        //    $('#ocultarV').hide()
+
+
+
+                //        //}
+                //    })
+
+                //    $('#prov').click(function () {
+
+                //        $('#ocultarC').show();
+                //        $('#ocultarV').hide();
+                //        //var valor = parseInt($('#clie').val())
+                //        //if (valor === 1) {
+                //        //    $('#ocultarV').show()
+
+                //        //} else {
+
+
+                //        //    $('#ocultarV').hide()
+
+
+
+                //        //}
+                //    })
+
+
+
+                    //})
+                ////////  Paginacion con busqueda
+
+                function valida(id) {
+                    window.location.href = '@Url.Action("icb_tercero2Update", "icb_terceros2")?id=' + id;
+                }
+
+                function buscarAjaxTercerosAux() {
+                    $.ajax({
+                        url: '/icb_terceros2/BuscarTercerosCant',
+                        data: {
+                            texto: $("#txBusqueda").val(),
+                            pagina: 1
+                        },
+                        type: "post",
+                        cache: false,
+                        success: function (retorno) {
+                            console.log(retorno);
+                            //cantBuscada=retorno;
+                        },
+                        complete: function (data) {
+                            $('#tablaPaginada').find('tbody').empty();
+                            for (var i = 0; i < data.responseJSON.result2.length; i++) {
+                                $('#tablaPaginada').find('tbody').append('<tr><td align="center">' + data.responseJSON.result2[i].terceroNombre + '</td><td>'
+                                    + data.responseJSON.result2[i].terceroFechaCreacion + '</td><td>' + data.responseJSON.result2[i].prospectoTramite
+                                    + '</td><td width="5%"><button class="btn btn-info" onclick="valida(' + '\'' + data.responseJSON.result2[i].terceroId
+                                    + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                            }
+
+
+                            $('#page-selection').bootpag({
+                                page: 1,
+                                total: parseInt((data.responseJSON.result + 4) / 5),
+                                maxVisible: 10
+                            });
+                            //$('#div-mensaje-buscar').html('<div class="alert alert-danger" style="text-align: left;"><button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button><p><i style="font-size: 15pt;" class="fa fa-warning"></i>  Se ha producido un error, intente mas tarde</p></div>')
+                        }
+                    });
+
+                    $('#page-selection').on("page", function (event, /* page number here */ num) {
+                        $.ajax({
+                            url: '/icb_terceros2/BuscarTercerosCant',
+                            data: {
+                                texto: $("#txBusqueda").val(),
+                                pagina: num
+                            },
+                            type: "post",
+                            cache: false,
+                            success: function (data) {
+                            },
+                            complete: function (data) {
+                                $('#tablaPaginada').find('tbody').empty();
+                                for (var i = 0; i < data.responseJSON.result2.length; i++) {
+                                    $('#tablaPaginada').find('tbody').append('<tr><td align="center">' + data.responseJSON.result2[i].terceroNombre + '</td><td>'
+                                        + data.responseJSON.result2[i].terceroFechaCreacion + '</td><td>' + data.responseJSON.result2[i].prospectoTramite
+                                        + '</td><td width="5%"><button class="btn btn-info" onclick="valida('
+                                        + data.responseJSON.result2[i].terceroId + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                                }
+                            }
+                        });
+                    });
+
+                }
+
+                //////////////////// Fin del paginacion
+                </script>
+            }
+
+

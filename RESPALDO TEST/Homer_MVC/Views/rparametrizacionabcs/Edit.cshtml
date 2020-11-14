@@ -1,0 +1,317 @@
+﻿@model Homer_MVC.IcebergModel.rparametrizacionabc
+
+@{
+    ViewBag.Title = "Clasificación ABC";
+    ViewBag.Icono = "fa fa-address-book-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a href="@Url.Action("Create", "rparametrizacionabcs", new { menu = @ViewBag.id_menu })"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Clasificación ABC</a></li>
+                <li class=""><a href="@Url.Action("Browser","rparametrizacionabcs", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+
+                        <div class="panel-body-btns text-right">
+                            <a href="@Url.Action("Create","rparametrizacionabcs", new { menu = @ViewBag.id_menu })" class="btn btn-info"><i class="fa fa-folder-open-o"></i>&nbsp;&nbsp;&nbsp;Crear Nuevo</a>
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Clasificación:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <input name="clasificacion" id="clasificacion" maxlength="1" class="form-control" placeholder="" required value="@ViewBag.clasificacion" style="text-transform:uppercase" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">% Reserva:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <input name="porcentaje_reserva" type="number" min="1" max="100" id="porcentaje_reserva" class="form-control" placeholder="" required value="@ViewBag.reserva" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Rango Meses:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @*<input name="rangomes" id="rangomes" class="form-control" required=""/>*@
+                                                <select name="rangomes" id="rangomes" class="form-control" placeholder="Seleccione" required>
+                                                    <option></option>
+                                                    <option value="6">6</option>
+                                                    <option value="12">12</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cantidad meses a validar:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <select name="cantidadmes" id="cantidadmes" class="form-control" placeholder="Seleccione" required></select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cant. de movimientos:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <input name="cantidadmov_desde" value="@ViewBag.cantidadmov" id="cantidadmov_desde" placeholder="Mínimos" class="form-control" required />
+                                            </div>
+                                            @*<div class="col-md-2">
+                                                    <input name="cantidadmov_hasta" value="" id="cantidadmov_hasta" placeholder="hasta" class="form-control" required="" />
+                                                </div>*@
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6" id="divPeriodos" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Periodo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <input type="text" readonly id="periodo" value="Primer Semestre" class="form-control" />
+                                                <input type="hidden" readonly name="periodoHidden" id="periodoHidden" value="" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Valida Fecha Creación:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <input type="checkbox" name="valida_fecha" id="validafecha" value="true" data-toggle="toggle" data-size="mini" }) />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12"></div>
+
+                                        <div class="col-sm-12 val_fecha" style="display: none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-2">Fecha:&nbsp;</label>
+                                                <div class="col-md-2">
+                                                    <select name="tipoval_fecha" id="tipoval_fecha" class="form-control" placeholder="Seleccione">
+                                                        <option value=""></option>
+                                                        <option value="mayor">Mayor</option>
+                                                        <option value="mayor_igual">Mayor igual</option>
+                                                        <option value="menor">Menor</option>
+                                                        <option value="menor_igual">Menor Igual</option>
+                                                        <option value="igual">Igual</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <input class="form-control" name="mes_fecha" id="mes_fecha" value="" type="number" />
+                                                </div>
+                                                <div class="col-md-1">
+                                                    <span>meses</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+
+
+                                        <div class="col-sm-6" id="div_tipo" style="display: none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tipo Validación:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select name="tipo" id="tipo" class="form-control" placeholder="Seleccione">
+                                                        <option></option>
+                                                        <option value="Aleatoria">Aleatoria</option>
+                                                        <option value="Fija">Fija</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" id="div_meses" style="display: none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Meses:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select name="meses" id="meses" class="form-control" placeholder="Seleccione" multiple></select>
+                                                </div>
+                                            </div>
+                                        </div>*@
+                                </div>
+                            </div>
+
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#rangomes').select2();
+            $('#cantidadmes').select2();
+            debugger
+            $('#rangomes').val(@ViewBag.rangomeses).trigger('change')
+            $('#cantidadmes').val(@ViewBag.cantidadmeses).trigger('change')
+        });
+
+        $('#rangomes').change(function () {
+            $('#cantidadmes').empty()
+            if ($('#rangomes').val() == 6) {
+                $('#cantidadmes').append(
+                    '<option value="1">Mensual</option>'
+                    + '<option value="2">Bimestral</option>'
+                    + '<option value="3">Trimestral</option>'
+                    + '<option value="6">Semestral</option>'
+                    + '<option value="12">Anual</option>'
+                );
+            }
+            if ($('#rangomes').val() == 12) {
+                $('#cantidadmes').append(
+                    '<option value="1">Mensual</option>'
+                    + '<option value="2">Bimestral</option>'
+                    + '<option value="3">Trimestral</option>'
+                    + '<option value="6">Semestral</option>'
+                    + '<option value="12">Anual</option>'
+                );
+            }
+            if ($('#rangomes').val() == 12 && $("#cantidadmes").val() == 6) {
+                $('#divPeriodos').show();
+                $('#periodoHidden').val(1);
+            } else {;
+                $('#divPeriodos').hide();
+                $('#periodoHidden').val(0);
+            }
+        });
+
+        $("#cantidadmes").change(function () {
+            if ($('#rangomes').val() == 12 && $("#cantidadmes").val() == 6) {
+                $('#divPeriodos').show();
+                $('#periodoHidden').val(1);
+            } else {
+                $('#divPeriodos').hide();
+                $('#periodoHidden').val(0);
+            }
+        });
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.esFavorito == true) {
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    } else {
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            });
+        }
+
+    </script>
+}
+

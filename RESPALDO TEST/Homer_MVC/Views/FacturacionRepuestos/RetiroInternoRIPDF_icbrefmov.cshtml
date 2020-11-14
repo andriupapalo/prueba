@@ -1,0 +1,160 @@
+﻿@model Homer_MVC.Models.PDFRetiroInterno_icbrefmov 
+@using System.Globalization;
+
+
+@{
+    Layout = null;
+    CultureInfo elGR = CultureInfo.CreateSpecificCulture("es-CO");
+    decimal ivatotal = 0;
+    decimal totalope = 0;
+    decimal totalgen = 0;
+
+}
+
+<html>
+<head>
+    <style>
+        table {
+            border-collapse: collapse;
+            border: 1px solid #000000;
+            padding-left: 6px;
+        }
+
+        .bordes {
+            border-collapse: collapse;
+            border-left: 1px solid #000000;
+            border-right: 1px solid #000000;
+            padding-left: 6px;
+        }
+    </style>
+</head>
+<body>
+    <table style="width:100%">
+        <tbody>
+            <tr>
+                <td><strong>ASEGURADO A:</strong></td>
+                <td> @Model.Aseguradoa</td>
+                <td><strong>PLACA:</strong></td>
+                <td> @Model.Placa</td>
+                <td><strong>K.M.T:</strong></td>
+                <td> @Model.Kilometraje</td>
+            </tr>
+            <tr>
+                <td><strong>CEDULA/NIT:</strong></td>
+                <td> @Model.Documentocliente</td>
+                <td><strong>VEHICULO:</strong></td>
+                <td> @Model.Vehiculo</td>
+                <td><strong>PEDIDO No:</strong></td>
+                <td> @Model.OrdenT</td>
+            </tr>
+            <tr>
+                <td><strong>DIRECCION:</strong></td>
+                <td> @Model.Direccion</td>
+                <td><strong>SERIE:</strong></td>
+                <td> @Model.Serie</td>
+                <td><strong>Facturado Por:</strong></td>
+                <td> @Model.Facturadopor</td>
+            </tr>
+            <tr>
+                <td><strong>TELEFONO:</strong></td>
+                <td> @Model.Telefono</td>
+                <td><strong>MODELO:</strong></td>
+                <td> @Model.Modelo</td>
+                <td><strong>ASESOR:</strong></td>
+                <td> @Model.Asesor</td>
+            </tr>
+            <tr>
+                <td><strong>CIUDAD:</strong></td>
+                <td> @Model.Ciudad</td>
+                <td><strong>&ensp;&ensp;&ensp;</td>
+                <td><strong>&ensp;&ensp;&ensp;</td>
+                <td><strong>@Model.Bodega</strong></td>
+            </tr>
+        </tbody>
+    </table>
+    <table style="width:100%">
+        <thead>
+            <tr style="border-bottom: 1px solid #000000;">
+                <th class="bordes">REFERENCIA</th>
+                <th class="bordes">DESCRIPCION DEL REFERENCIA</th>
+                <th class="bordes">IVA</th>
+                <th class="bordes">CAN</th>
+                <th class="bordes">VR. UNITARIO</th>
+                <th class="bordes">VALOR</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Repuestosr)
+                {
+                <tr style="width: 100%">
+                    <td class="bordes" style="text-align: center;">@item.codigo</td>
+                    <td class="bordes">@item.icb_referencia.ref_descripcion </td>
+                    @{decimal ivap = item.porcentaje_iva != null ? Convert.ToDecimal(item.porcentaje_iva) : 0; }
+                    @if (@item.porcentaje_iva != null)
+                        {
+                        <td class="bordes" style="text-align: right;">@ivap</td>
+                        }
+                    else
+                        {
+                        <td class="bordes">0</td>
+                        }
+                    <td class="bordes">@item.cantidad </td>
+                    <td class="bordes">@item.valor_unitario</td>
+                    @if (ivap > 0 || ivap != null)
+                        {
+                        decimal valor = Convert.ToDecimal(item.valor_unitario * item.cantidad, elGR);
+                        decimal subiva = Convert.ToDecimal((valor * ivap) / 100, elGR);
+                        decimal total = valor + subiva;
+                        ivatotal = ivatotal + subiva;
+                        totalope = totalope + valor;
+                        <td class="bordes" style="text-align: right;">@total</td>
+                        }
+                    else
+                        {
+                        decimal valor = Convert.ToDecimal(item.valor_unitario * item.cantidad, elGR);
+                        totalope = totalope + valor;
+                        <td class="bordes" style="text-align: right;">@valor</td>
+                        }
+
+
+                </tr>
+                }
+
+        </tbody>
+    </table>
+
+    <table style="width:100%">
+
+        <tr>
+            <td><strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td><strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td><strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="text-align: right;"><strong>TOTAL REPUESTOS:</strong></td>
+            <td style="text-align: right;">@totalope</td>
+        </tr>
+    </table>
+    <table style="width:100%">
+        <tr>
+            <td class="bordes" style="text-align: center; width:50%">@Model.Aseguradoa</td>
+            <td class="bordes">
+                <table style="width:100%">
+                    <tr><td>VALOR REPUESTOS:</td><td style="text-align: right;">@totalope</td></tr>
+                    <tr><td>VALOR IVA:</td><td style="text-align: right;">@ivatotal</td></tr>
+                    @{
+                        totalgen = totalope + ivatotal;
+                    }
+                    <tr><td><strong>VALOR RETIRO INTERNO:</strong></td><td style="text-align: right;">@totalgen</td></tr>
+                </table>
+
+            </td>
+        </tr>
+    </table>
+    <table style="width:100%">
+        <tr>
+            <td class="bordes" style="text-align: center;  width:50% "><br /><br /><br /> <br />CLIENTE/CC</td>
+            <td class="bordes" style="text-align: center;"><br /><br /><br /><br />FIRMA AUTORIZADA   </td>
+        </tr>
+    </table>
+</body>
+</html>
+

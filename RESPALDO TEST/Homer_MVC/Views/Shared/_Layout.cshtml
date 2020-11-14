@@ -1,0 +1,669 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>EXIWARE | @ViewBag.Title</title>
+    <!--Permite que la navegacion sea nula cuando no se ha iniciado sesion-->
+    @*<script language="javascript" type="text/javascript">
+              javascript:window.history.forward();
+        </script>*@
+
+    <script>
+
+    </script>
+
+    @*<link href='htt://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700' rel='stylesheet' type='text/css'>*@
+
+    <!-- Primary vendor style -->
+    @Styles.Render("~/bundles/font-awesome/css")
+    @Styles.Render("~/bundles/animate/css")
+    @Styles.Render("~/bundles/bootstrap/css")
+    @Styles.Render("~/bundles/peicon7stroke/css")
+    @Styles.Render("~/bundles/sweetAlert/css")
+    @*<link href="~/Vendor/sweetalert/lib/sweet-alert.css" rel="stylesheet" />*@
+
+    <!-- Add local styles, mostly for plugins css file -->
+    @if (IsSectionDefined("Styles"))
+    {@RenderSection("Styles", required: false)}
+
+    <!-- Primary HOMER style -->
+    @Styles.Render("~/bundles/homer/css")
+</head>
+<body class="@Html.PageClass()">
+    <!--Permite que el usuario no pueda ingresar por la url-->
+    @if (Session["user_usuario"] == null)
+    {
+        <script>
+            location.href = "/login"
+        </script>
+    }
+    <!-- Simple splash screen-->
+    @*<div class="splash"> <div class="color-line"></div><div class="splash-title"><h1>Exiware - ERP</h1><p>Sistema de información. </p><div class="spinner"> <div class="rect1"></div> <div class="rect2"></div> <div class="rect3"></div> <div class="rect4"></div> <div class="rect5"></div> </div> </div> </div>*@
+
+    <!--[if lt IE 7]>
+    <p class="alert alert-danger">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+    <!-- Header -->
+
+    @Scripts.Render("~/bundles/jquery/js")
+    @Scripts.Render("~/bundles/sweetAlert/js")
+
+    <div id="header">
+        @Html.Partial("_Header")
+    </div>
+
+    <!-- Navigation -->
+
+    <aside id="menu">
+        @Html.Action("_Menu", "Menu")
+    </aside>
+
+    <!-- Main view  -->
+    <div id="wrapper">
+        @RenderBody()
+
+        <!-- Right Sidebar -->
+        @Html.Partial("_Right_Sidebar")
+
+        <!-- Footer-->
+        @Html.Partial("_Footer")
+    </div>
+
+    <!-- Section for main scripts render -->
+
+    @Scripts.Render("~/bundles/bootstrap/js")
+    @Scripts.Render("~/bundles/homer/js")
+
+    <!-- Handler for local scripts -->
+    @RenderSection("scripts", required: false)
+
+
+
+</body>
+</html>
+
+<div class="modal fade hmodal-success in" id="modalReasignacionAnfitrion" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header">
+                <h4 class="modal-title">Reasignar Prospecto</h4>
+                <small class="font-bold">Seleccione el asesor disponible para la atenci&oacute;n al usuario</small>
+            </div>
+
+            @Html.AntiForgeryToken()
+
+            <div class="modal-body">
+
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <input type="hidden" name="tercero_idReasignadoDevuelto" id="tercero_idReasignadoDevuelto" value="" />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-12" id="alertaClienteNoAsignado"></label>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Tipo De Tramite:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            @*@Html.DropDownList("tptrapros_idReasignadoDevuelto", Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })*@
+                            <input type="hidden" class="form-control" readonly="readonly" id="tpTramiteVal" name="tpTramiteVal" />
+                            <input type="text" class="form-control" readonly="readonly" id="tpTramiteText" name="tpTramiteText" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Asesores Disponibles:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-5">
+
+                            <select class="form-control js-source-states" id="asesor_idReasignadoDevuelto" name="asesor_idReasignadoDevuelto" required="required">
+                                <option></option>
+                            </select>
+                            
+                            @*@Html.DropDownList("asesor_idReasignadoDevuelto", Enumerable.Empty<SelectListItem>(), "", htmlAttributes: new
+                                {
+                                    @class = "form-control js-source-states multiselect multiselect-icon",
+                                    @placeholder = "Seleccione"@*, @role = "multiselect" })*@
+                        </div>
+                        <div class="col-md-1">
+                            <a class="btn btn-default" onclick="buscarAsesores()">
+                                <i class="fa fa-refresh"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12" id="areaAlertaReasignacionDevuelto" style="display:none;">
+                    <div class="alert alert-warning">
+                        <strong><p id="respuestaReasignacionDevuelto"></p></strong>
+                    </div>
+                </div>
+
+                <label></label>
+
+            </div>
+            <div class="modal-footer">
+                @*<button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>*@
+                <button type="button" class="btn btn-default" id="btnCerrarModal" onclick="confirmarNoAsignar()">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btnReasignarAsesorDevuelto">Reasignar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" val="" id="alertaAsesor" name="alertaAsesor" class="form-control" />
+<input type="hidden" val="" id="tiempo" name="tiempo" class="form-control" />
+<input type="hidden" val="" id="alertaId" name="alertaId" class="form-control" />
+
+@*<script src="~/Vendor/sweetalert/lib/sweet-alert.min.js"></script>*@
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        
+    });
+    window.onload = function () {
+        buscarAperturaMes();
+    };
+
+    function buscarAperturaMes() {
+        var url = window.location.href;
+
+        $.ajax({
+            url: '/Inicio/buscarAperturaMes',
+            data: {
+                url: url
+            },
+            type: "post",
+            cache: false,
+            success: function (data) {
+                if (data.bloqueado == true) {
+                    swal({
+                        title: "Mes Cerrado",
+                        text: "El mes se encuentra cerrado para trabajar",
+                        type: "error",
+                        showCancelButton: false,
+                        confirmButtonColor: "#62cb31",
+                        confirmButtonText: "Aceptar!",
+                        cancelButtonText: "Cancelar!",
+                        closeOnConfirm: true,
+                        closeOnCancel: false
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                window.location.href = '@Url.Action("Inicio", "Inicio")';
+                            }
+                        }
+                    );
+                }
+                if (data.restringido == true) {
+                    swal({
+                        title: "Mes Cerrado",
+                        text: "El mes se encuentra cerrado para trabajar",
+                        type: "error",
+                        showCancelButton: false,
+                        confirmButtonColor: "#62cb31",
+                        confirmButtonText: "Aceptar!",
+                        cancelButtonText: "Cancelar!",
+                        closeOnConfirm: true,
+                        closeOnCancel: false
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                $('.busqueda').trigger("click");
+                                $('.principal').removeClass('active');
+                                $('.principal').hide();
+                                $('#crear').removeClass('active');
+                                $('#crear').hide();
+                                $('.busqueda').addClass('active');
+                                $('#buscar').addClass('active');
+                            }
+                        }
+                    );
+                }
+            }
+        })
+    }
+
+</script>
+
+@if (Session["user_rolid"] != null && (Session["user_rolid"].ToString() == "4" || Session["user_rolid"].ToString() == "2030"))
+{
+    // Se valida que si el usuario tiene rol de asesor, valide las notificaciones de prospectos que se le asignan
+    <script type="text/javascript">
+
+        var validaAlerta = 0;
+        $(document).ready(function () {
+            buscarAjaxNotificacion();
+            setInterval(buscarAjaxNotificacion, 10000);
+        });
+
+        function buscarAjaxNotificacion() {
+            if (validaAlerta == 0) {
+                $.ajax({
+                    url: '/asesor/BuscarNotificacionPropspecto',
+                    data: {
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data.notificacion == true) {
+                            validaAlerta = 1;
+                            tiempoAlerta();
+                            setTimeout(function () {
+                                swalAceptar(data.alerta, data.tercero_id, data.alertaId);
+                                $('#alertaAsesor').val(data.alertaId)
+                            }, 1000);
+                        }
+                    }
+                })
+            }
+        }
+
+        function tiempoAlerta() {
+            $.ajax({
+                url: '/asesor/tiempoAlerta',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tiempo').val(data);
+                }
+            })
+        }
+
+        function atenderUsuario(id, atendido, idAlerta) {
+            $.ajax({
+                url: '/asesor/AtenderUsuario',
+                data: {
+                    id: id,
+                    atendido: atendido,
+                    idAlerta: idAlerta
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if (data.success == true) {
+                        validaAlerta = 1;
+                        //swalAceptar(data.alerta, data.tercero_id, data.);
+                    }
+                },
+                complete: function (data) {
+                    if (data.responseJSON.success == true) {
+                        swal("Aceptado!", "", "success");
+                        setTimeout(function () { }, 10000);
+                        window.location.href = '@Url.Action("Create", "cotizacion")?id=' + id;
+                    } else {
+                        swal("Aceptado!", data.responseJSON.error_message, "error");
+                    }
+
+                }
+            })
+        }
+
+        function swalAceptar(mensaje, id, idAlerta) {
+            swal({
+                title: "Notificación De Prospecto",
+                text: mensaje + " desea atenderlo?",
+                type: "success",
+                showCancelButton: true,
+                confirmButtonColor: "#62cb31",
+                confirmButtonText: "Aceptar!",
+                cancelButtonText: "Cancelar!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        atenderUsuario(id, true, idAlerta);
+                    } else {
+                        swalCancelar(mensaje, id, idAlerta);
+                    }
+                });
+
+            var tiempo = $('#tiempo').val();
+            console.log(tiempo);
+            tiempo = tiempo * 1000;
+            console.log(tiempo);
+            //console.log("TIEMPO:" + tiempo);
+            setTimeout(function () {
+                cancelarProspecto();
+            }, tiempo);
+
+        }
+
+        function cancelarProspecto() {
+            $.ajax({
+                url: '/asesor/cancelarProspecto',
+                data: {
+                    //id: $('#tercero_id').val(),
+                    atendido: false,
+                    idAlerta: $('#alertaAsesor').val(),
+                    recibioNoti: true,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    //buscarAsesoresReasignamiento();
+                    //$('#modalNoAceptado').modal('show');
+                    //setTimeout(function () {
+                    //    $('#modalNoAceptado').modal('hide');
+                    //}, 3000);
+
+                    swal("No atendido!", "El prospecto sera atendido por otro asesor", "success");
+                }, complete: function (data) {
+                    setTimeout(function () {
+                        location.reload();
+                        buscarAjaxNotificacionAnfitriona();
+                    }, 3000);
+                }
+            })
+        }
+
+        function swalCancelar(mensaje, id, idAlerta) {
+            swal({
+                id: 'asdasd',
+                title: "Confirmar Cancelacion",
+                text: "Seguro que desea cancelar?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Aceptar!",
+                cancelButtonText: "Cancelar!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        //atenderUsuario(id, false, idAlerta);
+                        cancelarProspecto();
+                        validaAlerta = 0;
+                        swal("Aceptado!", "El cliente sera atendido por otro asesor", "success");
+                    } else {
+                        swalAceptar(mensaje, id, idAlerta);
+                    }
+                });
+        }
+
+    </script>
+}
+
+@if (Session["user_rolid"] != null && Session["user_rolid"].ToString() == "7")
+{
+    <script type="text/javascript">
+        //var validaAlertaAnfi = 0;
+        $(document).ready(function () {
+            buscarAjaxNotificacionAnfi();
+            $('#modalReasignacionAnfitrion').on('hidden.bs.modal', function () {
+                setInterval(buscarAjaxNotificacionAnfi, 10000);
+            });
+
+        });
+
+        $('#modalReasignacionAnfitrion').on('shown.bs.modal', function () {
+            buscarAsesores();
+        })
+
+        $('#btnReasignarAsesorDevuelto').click(function () {
+            $.ajax({
+                url: '/prospectos/ReasignarProspecto',
+                data: {
+                    id_Tercero: $('#tercero_idReasignadoDevuelto').val(),
+                    id_tipo_tramite: $('#tpTramiteVal').val(),
+                    id_asesor: $('#asesor_idReasignadoDevuelto').val(),
+                    id_alerta: $('#alertaId').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#btnReasignarAsesorDevuelto').prop('disabled', true);
+                },
+                complete: function (data) {
+                   // console.log(data);
+                    $('#respuestaReasignacionDevuelto').text(data.responseJSON.respuesta);
+                    $('#areaAlertaReasignacionDevuelto').show();
+                    $('#asesor_idReasignadoDevuelto').empty();
+                    $('#asesor_idReasignadoDevuelto').append($('<option>', {
+                        value: '',
+                        text: ''
+                    }));
+                    $('#asesor_idReasignadoDevuelto').val('').prop('style', 'visible:visible').select2();
+                    $('#tpTramiteVal').val('').prop('style', 'visible:visible');
+                    $('#btnReasignarAsesorDevuelto').prop('disabled', false);
+
+                    setTimeout(function () {
+                        $('#modalReasignacionAnfitrion').modal('hide');
+                        $('#modalReasignacionAnfitrion').hide();
+                    }, 1000)
+                }
+            })
+        });
+
+        function buscarAsesores() {
+            if ($('#tpTramiteVal').val() == 1 || $('#tpTramiteVal').val() == 2) {
+                $.ajax({
+                    url: '/prospectos/BuscarAsesoresDisponibles',
+                    data: {
+                        id_tramite: $('#tpTramiteVal').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        //console.log(conectados + ' - ' + data.length);
+                        //if (conectados != data.length) {
+                        //conectados = data.length;
+                        $('#asesor_idReasignadoDevuelto').empty();
+                        for (var i = 0 ; i < data.length ; i++) {
+                            $('#asesor_idReasignadoDevuelto').append($('<option>', {
+                                value: data[i].Value,
+                                text: data[i].Text
+                            }));
+                        }
+                        $('#asesor_idReasignadoDevuelto').select2();
+                    }
+                })
+            }
+        }
+
+        //function buscarAsesoresReasignamiento() {
+        //    $.ajax({
+        //        url: '/prospectos/BuscarAsesoresDisponibles',
+        //        data: {
+        //            id_tramite: $('#tpTramiteVal').val()
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //            console.log('asd')
+        //            console.log(data);
+        //            $('#asesor_idReasignadoDevuelto').empty();
+        //            $('#asesor_idReasignadoDevuelto').append($('<option>', {
+        //                value: '',
+        //                text: ''
+        //            }));
+        //            for (var i = 0; i < data.length; i++) {
+        //                $('#asesor_idReasignadoDevuelto').append($('<option>', {
+        //                    value: data[i].Value,
+        //                    text: data[i].Text
+        //                }));
+        //            }
+        //            $('#asesor_idReasignadoDevuelto').select2();
+        //        }
+        //    })
+        //}
+
+        function buscarAjaxNotificacionAnfi() {
+            //if (validaAlertaAnfi == 0) {
+                $.ajax({
+                    url: '/anfitrion/BuscarNotificacionAnfitrion',
+                    data: {
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+
+                    },
+                    complete: function (data) {
+                        if (data.responseJSON.notificacion == true) {
+                            ultimaAlerta();
+                            //validaAlertaAnfi = 1;
+                            $('#tercero_idReasignadoDevuelto').val(data.responseJSON.tercero_id);
+                            $('#alertaClienteNoAsignado').text(data.responseJSON.alerta);
+                            setTimeout(function () {
+                                llenarTipoTramite();
+                            }, 1000);
+                        }
+                    }
+                })
+            //}
+        }
+
+        function llenarTipoTramite() {
+            $.ajax({
+                url: '/anfitrion/tramiteAsesorProspecto',
+                data: {
+                    id: $('#tercero_idReasignadoDevuelto').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    //$('#tptrapros_idReasignadoDevuelto').empty();
+                    //$('#tptrapros_idReasignadoDevuelto').append($('<option>', {
+                    //    value: '',
+                    //    text: ''
+                    //}));
+                    //$('#tptrapros_idReasignadoDevuelto').hide();
+                    //$('#s2id_tptrapros_idReasignadoDevuelto').hide();
+                    $('#tpTramiteVal').val(data.tptramite);
+                    $('#tpTramiteText').val(data.tptrapros_descripcion);
+                },
+                complete: function (data) {
+                    //$('#tptrapros_idReasignadoDevuelto').hide();
+                    //$('#s2id_tptrapros_idReasignadoDevuelto').hide();
+                    //$('#modalReasignacionAnfitrion').modal({ backdrop: 'static', keyboard: false })
+                    //$('#modalReasignacionAnfitrion').modal('show');;
+                }
+            })
+        }
+
+        function ultimaAlerta() {
+            $.ajax({
+                url: '/asesor/ultimaAlerta',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    //console.log(data)
+                    $('#alertaId').val(data)
+                    cancelarProspecto();
+                }
+            })
+        }
+
+        function cancelarProspecto() {
+            $.ajax({
+                url: '/asesor/cancelarProspecto',
+                data: {
+                    //id: $('#tercero_id').val(),
+                    atendido: false,
+                    idAlerta: $('#alertaId').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    llenarTipoTramite();
+                    buscarAsesores();
+                    setTimeout(function () {
+                        $('#modalReasignacionAnfitrion').modal('show');
+                    }, 10000);
+                    //swal("No atendido!", "El usuario sera atendido por otro asesor", "success");
+                }
+            })
+        }
+
+        $('#modalReasignacionAnfitrion').on('shown.bs.modal', function () {
+            //setInterval(function () { buscarAsesores(); }, 3000);
+        })
+
+        function cancelarProspectoAnfitrion() {
+            $.ajax({
+                url: '/anfitrion/cancelarProspectoAnfitrion',
+                data: {
+                    atendido: false,
+                    idAlerta: $('#alertaId').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                }
+            })
+        }
+
+        function confirmarNoAsignar() {
+            swal({
+                title: "Prospecto sin asignar",
+                text: "Desea salir sin atenderlo?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#62cb31",
+                confirmButtonText: "Aceptar!",
+                cancelButtonText: "Cancelar!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+            function (isConfirm) {
+                if (isConfirm) {
+                    $('#modalReasignacionAnfitrion').modal('hide');
+                    cancelarProspectoAnfitrion();
+                    swal("Prospecto no asignado!", "", "warning");
+                } else {
+                    swal("Volver a reasignar!", "", "success");
+                }
+            });
+        }
+
+        //function reasignarAsesor(alerta, id) {
+        //    $.ajax({
+        //        url: '/anfitrion/ReasignarAsesor',
+        //        data: {
+        //            id: alerta,
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //            if (data == true) {
+        //                window.location.href = '@*@Url.Action("Update", "prospectos")?id=' + id;*@
+        //            }
+        //        }
+        //    })
+        //}
+
+        //function swalReasignar(alerta,alerta_id, id) {
+        //        swal({
+        //            title: "Alerta",
+        //            text: alerta,
+        //            type: "warning",
+        //            confirmButtonColor: "#DD6B55",
+        //            confirmButtonText: "Reasignar!",
+        //            closeOnConfirm: false,
+        //            closeOnCancel: false
+        //        },
+        //            function (isConfirm) {
+        //                if (isConfirm) {
+        //                    reasignarAsesor(alerta_id, id);
+        //                }
+        //            });
+        //        }
+
+    </script>
+}

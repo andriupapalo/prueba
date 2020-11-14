@@ -1,0 +1,754 @@
+﻿@{
+    ViewBag.Title = "Cartera General";
+    ViewBag.Icono = "fa fa-briefcase";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/select2/css")
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+<div class="panel-body" style="padding-top:10px;">
+    <div class="hpanel">
+        <div id="tabs" class="tab-content">
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    <div class="col-md-3" id="zona1">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    <label class="col-md-3 control-label">Cartera:</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" id="tipo_cartera" name="tipo_cartera" multiple></select>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    @*<div class="row">
+                                            <div class="col-md-6">
+                                                <select class="form-control js-source-states" id="select_tipo_documento" name="select_tipo_documento"></select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" name="indicador_tp_doc" id="indicador_tp_doc" value="" />
+                                            </div>
+                                        </div>*@
+                                </div>
+                                <div class="col-md-12" style="border-radius:10px">
+                                    <div class="form-group">
+                                        <div class="row">
+                                            <input type="checkbox" name="soloVhEntregados" id="soloVhEntregados" value="" />
+                                            <a>Solo Veh. Entregados</a>
+                                        </div>
+                                        <div class="row">
+                                            <input type="checkbox" name="SyS" id="SyS" value="" />
+                                            <a>Incluye Cartera SyS</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <button class="form-control btn btn-xl btn-success" onclick="traerDatosBusqueda()"><i class="fa fa-search"></i></button>
+                                </div>
+                                <div class="col-md-5">
+                                    <button class="form-control btn btn-xl btn-success" onclick="irMovCliente(id_cliente)"><i class="fa fa-rocket"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6" id="zona2">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    <label class="control-label col-md-2">Cliente:</label>
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control" name="cedula" id="cedula" value="" />
+                                        @*@Html.DropDownList("nit", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })*@
+
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" readonly name="nombreCliente" id="nombreCliente" value="" />
+                                        <input type="hidden" name="id_cliente" id="id_cliente" value="" />
+                                    </div>
+                                    <div class="col-md-1">
+                                        @*<button type="button" class="btn btn-info btn-sm" onclick="buscarTercero()"><i class="fa fa-binoculars"></i></button>*@
+                                        <button type="button" class="btn btn-info btn-sm" onclick="buscarCuantos()"><i class="fa fa-binoculars"></i></button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @*<div class="col-md-12">
+                                <div class="form-group">
+                                    <div class="col-md-12">
+                                        <label class="control-label col-md-4">Cédula / Nit:&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-md-6">
+                                            @Html.DropDownList("nit", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            @Html.ValidationMessageFor(model => model.nit, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <label id="mns_clienteNoExiste" style="display: none" class="control-label col-md-12 text-warning"></label>
+                                </div>
+                            </div>*@
+
+
+
+                        <div class="col-md-12">
+                            @*<div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Clasificación:</label>
+                                        <div class="col-md-8">
+                                            <select class="form-control js-source-states" id="clasificacion_tp_cliente" name="clasificacion_tp_cliente"></select>
+                                        </div>
+                                    </div>
+                                </div>*@
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Saldo Facturas:</label>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" readonly name="saldoFacturas" id="saldoFacturas" value="" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Bodega:</label>
+                                    <div class="col-md-8">
+                                        <select class="form-control" id="bodegas" name="bodegas" multiple></select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-2"></div>
+                                    <div class="col-md-3" style="padding-right:0">
+                                        <input type="text" class="input-sm form-control col-md-4 fechas" name="fechaDesde" id="fechaDesde" value="" placeholder="Fecha Inicio" required="required" autocomplete="off" />
+                                    </div>
+                                    <div class="col-md-2" style="padding-right:0; padding-left:0">
+                                        <span class="input-group-addon">Hasta</span>
+                                    </div>
+                                    <div class="col-md-3" style="padding-left:0">
+                                        <input type="text" class="input-sm form-control col-md-4 fechas" name="fechaHasta" id="fechaHasta" value="" placeholder="Fecha Fin" required="required" autocomplete="off" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3" id="zona3">
+                        <div class="col-md-12" style="border:solid 1px; border-radius:10px">
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    <i>Cupo</i>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="control-label col-md-4">Fecha V/ento:</label>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" name="fec_vencimiento" id="fec_vencimiento" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="control-label col-md-4">Días cupo:</label>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" name="dias_cupo" id="dias_cupo" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="control-label col-md-4">Cupo:</label>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" name="valor_cupo" id="valor_cupo" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="control-label col-md-4 ">Saldo:</label>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" name="saldo_cupo" id="saldo_cupo" value="" style="background-color:aquamarine" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12" id="zona_4">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Mora</th>
+                                        <th style="text-align:center">Pre</th>
+                                        <th style="text-align:center">Nro. Docto</th>
+                                        <th style="text-align:center">Placa</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Cliente</th>
+                                        <th style="text-align:center">Vr. Factura</th>
+                                        <th style="text-align:center">Vr. Abonado</th>
+                                        <th style="text-align:center">Saldo</th>
+                                        <th style="text-align:center">F. Vence</th>
+                                        <th style="text-align:center">Pedido</th>
+                                        <th style="text-align:center">Observaciones</th>
+                                        <th style="text-align:center">Vendedor</th>
+                                        <th style="text-align:center">Vehículo</th>
+                                        <th style="text-align:center">Cartera</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*--------modal muchos clientes ------------------*@
+<div class="modal fade db-example-modal-lg" id="modal_muchos" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    <font><font>Posibles Cliente a Consultar</font></font>
+                </h4>
+            </div>
+
+            <div class="modal-body" id="datosModal">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                        <i class="fa fa-car  text-primary font-lg"></i>&nbsp;&nbsp;Clientes
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-striped table-bordered table-hover" id="tabla_clientes">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">id</th>
+                                    <th style="text-align:center">Documento</th>
+                                    <th style="text-align:center">Nombre</th>
+                                    <th style="text-align:center">Telefono</th>
+                                    <th style="text-align:center">Celular</th>
+                                    <th style="text-align:center">Email</th>
+                                    <th style="text-align:center">Accion</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><font><font>Cerrar</font></font></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modalAgregarSeguimiento" tabindex="-1" aria-hidden="true" role="dialog" style="overflow:auto">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Seguimiento</h4>
+                <small class="font-bold">Registro de eventos que realiza el cliente.</small>
+            </div>
+            <div class="modal-body">
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Tipo Seguimiento:&nbsp;</label>
+                        <div class="col-md-6">
+                            <input type="hidden" value="6" id="tipo_seguimiento" />
+                            <input type="text" class="form-control" value="Cartera" id="tipo_seguimiento" readonly />
+                            @*@Html.Editor("tipo_seguimiento", new { htmlAttributes = new { @class = "form-control js-source-states", @placeholder = "Cartera", @required = "required", @readonly="readonly"} } )*@
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Observaciones:<span class="text-danger"></span></label>
+                        <div class="col-md-6">
+                            @Html.TextArea("nota", new { htmlAttributes = new { @class = "someClass", style = "width: 100%; height:100px;", @required = "required", @id = "nota" } })
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btnAgregarSeguimiento">Agregar</button>
+                    </div>
+                </div>
+                <table class="table table-striped table-bordered table-hover" id="tablaPaginadaSeguimiento">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center">Tipo Seguimiento</th>
+                            <th style="text-align:center">Nota</th>
+                            <th style="text-align:center">Fecha</th>
+                            <th style="text-align:center">Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            var tercero;
+            var encabezado;
+            $('.js-source-states').select2()
+            buscarTiposCartera();
+            buscarBodegas()
+            buscarClasificacion()
+            $('.fechas').datetimepicker({
+                format: 'DD/MM/YYYY',
+                maxDate: '-' + new Date() + '',
+            });
+            //traerDatosBusqueda()
+        });
+
+        $('#nit').change(function () {
+            debugger;
+            buscarTerceroNew();
+        });
+
+        function irMovCliente(id_cliente) {
+            //var idCliente = id_cliente.value;
+            var idCliente = $('#id_cliente').val();
+            var cedula = $('#cedula').val();
+            //alert(cedula);
+            if (idCliente != null && idCliente != "") {
+                window.open('@Url.Action("CarteraFacturacion", "CarteraPorEdades")?id_cliente=' + idCliente+'&cedula='+cedula, '_blank');
+            } else {
+                swal({
+                    title: "Seleccione cliente",
+                    text: "para consultar cartera cliente, usted debe selccionar un cliente",
+                    type: "warning",
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "OK",
+                    closeOnConfirm: false,
+                    showCancelButton: false,
+                    showConfirmButton: false,
+
+                });
+            }
+            @*window.open('@Url.Action("update", "icb_terceros")?menu='+@ViewBag.id_menu+'&&id=' + data, '_blank');*@
+            @*window.open('@Url.Action("crearPDFfacturacionrepuestos", "FacturacionRepuestos")?id=' + X, '_blank');*@
+        }
+
+        function buscarTiposCartera() {
+            $.ajax({
+                url: '/carteraCliente/buscarTiposCartera',
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    $('#tipo_cartera').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tipo_cartera').append($('<option>', {
+                            value: data[i].value,
+                            text: data[i].text
+                        }));
+                    }
+
+                    $('#tipo_cartera').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 800,
+                    });
+                    $('#tipo_cartera').multiselect('refresh');
+                }
+            });
+        }
+
+        function buscarBodegas() {
+            $.ajax({
+                url: '/carteraCliente/buscarBodegas',
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    $('#bodegas').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#bodegas').append($('<option>', {
+                            value: data[i].value,
+                            text: data[i].text
+                        }));
+                    }
+
+                    $('#bodegas').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 800,
+                    });
+                    $('#bodegas').multiselect('refresh');
+                }
+            });
+        }
+
+        function buscarClasificacion() {
+            $.ajax({
+                url: '/carteraCliente/buscarClasificaccion',
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    $('#clasificacion_tp_cliente').empty();
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#clasificacion_tp_cliente').append($('<option>', {
+                            value: data[i].value,
+                            text: data[i].text
+                        }));
+                    }
+                }
+            });
+        }
+
+        function buscarCuantos() {
+            debugger;
+            if ($('#cedula').val() == "") {
+                swal("Error", "Digite el campo para poder buscar", "danger")
+            } else {
+                $.ajax({
+                    url: '/carteraCliente/buscarCuantos',
+                    data: {
+                        doc_tercero: $('#cedula').val()
+                    },
+                    type: 'post',
+                    cache: false,
+                    success: function (data) {
+                        if (data != 0) {
+                            console.log('el valor de data es:')
+                            console.log(data)
+                            if (data.Cuantos === 0) {
+                                swal("Error", "No hay Registros", "danger")
+                            } else {
+                                if (data.Cuantos === 1) {
+                                    var tercero = data.terceros[0].id;
+                                    buscarTerceroNew(tercero);
+                                } else {
+                                    buscarTercerosMuchos();
+                                }
+                            }
+                        }
+                        else {
+                            //colocar mensaje de error aqui
+                        }
+                    }
+                });
+            }
+        }
+
+
+        function buscarTercero(tercero) {
+            alert('nu');
+            if ($('#cedula').val() == "") {
+                swal("Error", "Digite el campo de Cédula/Nit para poder buscar", "danger")
+            } else {
+                $.ajax({
+                    url: '/carteraCliente/buscarTercero',
+                    data: {
+                        id_tercero: tercero
+                    },
+                    type: 'post',
+                    cache: false,
+                    success: function (data) {
+                        console.log(data)
+                        if (data == 0) {
+                            swal("Error", "El documento del tercero no existe", "danger")
+                        } else {
+                            $('#nombreCliente').val(data.buscar.nombre)
+                            $('#id_cliente').val(data.buscar.id)
+                            if (data.cupo != "") {
+                                for (var i = 0; i < data.cupo.length; i++) {
+                                    $('#fec_vencimiento').val(data.cupo[i].fecha_vence)
+                                    $('#dias_cupo').val(data.cupo[i].dias)
+                                    $('#valor_cupo').val(data.cupo[i].cupo)
+                                    $('#saldo_cupo').val(data.cupo[i].saldo)
+                                }
+                            } else {
+                                $('#fec_vencimiento').val("Sin datos")
+                                $('#dias_cupo').val("Sin datos")
+                                $('#valor_cupo').val("Sin datos")
+                                $('#saldo_cupo').val("Sin datos")
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function buscarTerceroNew(tercero) {
+
+            console.log('aca')
+            if ($('#nit').val() == "") {
+                swal("Error", "Digite el campo de Cédula/Nit para poder buscar", "danger")
+            } else {
+                $.ajax({
+                    url: '/carteraCliente/BuscarCliente2',
+                    data: {
+                        cliente: tercero
+                    },
+                    type: 'post',
+                    cache: false,
+                    success: function (data) {
+                        debugger;
+                        if (data == 0) {
+                            swal("Error", "El documento del tercero no existe", "danger")
+                        } else {
+                            $('#nombreCliente').val(data.buscarCliente.nombre)
+                            $('#id_cliente').val(data.buscarCliente.id)
+                            $('#cedula').val(data.buscarCliente.doc_tercero)
+                            if (data.cupo != "") {
+                                debugger;
+                                //for (var i = 0; i < data.cupo.length; i++) {
+                                $('#fec_vencimiento').val(data.cupo.fecha_vence)
+                                $('#dias_cupo').val(data.cupo.dias)
+                                $('#valor_cupo').val(data.cupo.cupo)
+                                $('#saldo_cupo').val(data.cupo.saldo)
+                                //}
+                            } else {
+                                $('#fec_vencimiento').val("Sin datos")
+                                $('#dias_cupo').val("Sin datos")
+                                $('#valor_cupo').val("Sin datos")
+                                $('#saldo_cupo').val("Sin datos")
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function buscarTercerosMuchos() {
+            $('#tabla_clientes').dataTable().fnDestroy();
+            if ($('#cedula').val() == "") {
+                swal("Error", "Digite el campo para poder buscar", "danger")
+            } else {
+                $.ajax({
+                    url: '/carteraCliente/BuscarMuchosClientes',
+                    data: {
+                        campo: $('#cedula').val()
+                    },
+                    type: 'post',
+                    cache: false,
+                    success: function (muchosclientes) {
+                        $('#tabla_clientes').find('tbody').empty()
+                        for (var i = 0; i < muchosclientes.length; i++) {
+                            $('#tabla_clientes').find('tbody').append(
+                                '<tr>'
+                                + '<td>' + muchosclientes[i].id + '</td>'
+                                + '<td>' + muchosclientes[i].docu + '</td>'
+                                + '<td>' + muchosclientes[i].nombre + '</td>'
+                                + '<td>' + muchosclientes[i].tel + '</td>'
+                                + '<td>' + muchosclientes[i].cel + '</td>'
+                                + '<td>' + muchosclientes[i].email + '</td>'
+                                + '<td align="center"><button class="btn btn-info btn-xs" onclick="buscarTerceroNew('
+                                + muchosclientes[i].id + ' )">Seleccionar</button>&nbsp;</td></tr>'
+                            );
+                        }
+                    },
+                    complete: function () {
+                        $('#tabla_clientes').dataTable({
+                            //"ajax": 'api/datatables.json',
+                            dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                            buttons: [
+                                { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                                //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                                //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                            ],
+                            order: [[2, "desc"]]
+                        });
+                    }
+                });
+
+                $('#modal_muchos').modal('show');
+            }
+        }
+        function valida(cabeza, nro_doc, td, bodega_id) {
+            if (td == 21)
+            {
+                window.open('@Url.Action("notaDebito", "notaDebito")?id=' + cabeza, '_blank');
+            } else if (td == 2 || td == 4)
+            {
+                window.open('@Url.Action("GenerarFactura", "facturacionNuevos")?cabeza='+cabeza+'&&numero=' + nro_doc + '&&tpDoc=' + td + '&&bodega=' + bodega_id, '_blank');
+            }
+        }
+
+     //   $('#btnGenerarPDFPedido').click(function () {
+       //     window.open('@*@Url.Action("notaDebito", "notaDebito")*@?id=' + $('#encabezado').val(), '_blank');
+            //});
+
+        function traerDatosBusqueda() {
+            var saldoFacturas = 0;
+                $('#tablaPaginada').dataTable().fnDestroy();
+            $.ajax({
+                url: '/carteraCliente/traerDatosBusqueda',
+                data: {
+                    tipo_cartera: $('#tipo_cartera').val(),
+                    id_cliente: $('#id_cliente').val(),
+                    cedula_cliente: $('#cedula').val(),
+                    //tipo_documento: $('#select_tipo_documento').val(),
+                    indicador_documento: $('#indicador_tp_doc').val(),
+                    clasificacion: $('#clasificacion_tp_cliente').val(),
+                    bodega: $('#bodegas').val(),
+                    vehiculosEntregados: $('#soloVhEntregados').prop('checked'),
+                    sys: $('#SyS').prop('checked'),
+                    fechaDesde: $('#fechaDesde').val(),
+                    fechaHasta: $('#fechaHasta').val()
+                },
+                type: 'post',
+                cache: false,
+                success: function (datos) {
+                    $('#tablaPaginada').find('tbody').empty()
+                    for (var i = 0; i < datos.length; i++) {
+                        $('#tablaPaginada').find('tbody').append(
+                            '<tr>'
+                            + '<td>' + datos[i].mora + '</td>'
+                            + '<td>' + datos[i].pre + '</td>'
+                            + '<td>' + datos[i].nro_doc + '</td>'
+                            + '<td>' + datos[i].placa + '</td>'
+                            + '<td>' + datos[i].fecha + '</td>'
+                            + '<td>' + datos[i].cliente + '</td>'
+                            + '<td>$' + datos[i].vr_factura + '</td>'
+                            + '<td>' + datos[i].vr_aplicado + '</td>'
+                            + '<td>$' + addCommas(datos[i].saldo) + '</td>'
+                            + '<td>' + datos[i].f_vence + '</td>'
+                            + '<td>' + datos[i].pedido + '</td>'
+                            + '<td>' + datos[i].observaciones + '</td>'
+                            + '<td>' + datos[i].vendedor + '</td>'
+                            + '<td>' + datos[i].vehiculo + '</td>'
+                            + '<td>' + datos[i].cartera + '</td>'
+                            + '<td align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                            + datos[i].cabeza + ',' + datos[i].nro_doc + ',' + datos[i].td + ',' + datos[i].bodega_id + ' )">Ver</button>&nbsp;'
+                            + '<button class = "btn btn-info btn-xs" onclick="abrirModalSeguimiento(' + datos[i].cabeza + ',' + datos[i].idcliente + ')">Seguimiento</button></td></tr>'
+                        );
+                        saldoFacturas += (datos[i].saldo2);
+                    }
+                },
+                complete: function () {
+                    $('#saldoFacturas').val('$' + addCommas(saldoFacturas));
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+
+                        ],
+                        order: [[0, "desc"]]
+                    });
+                }
+            });
+        }
+
+        function abrirModalSeguimiento(encabezado_id, tercero_id) {
+            encabezado = encabezado_id;
+            tercero = tercero_id;
+            $('#modalAgregarSeguimiento').modal('show');
+            $.ajax({
+                url: '/carteraCliente/buscarSeguimientoCartera',
+                data: { encabezado },
+                type: 'get',
+                success: function (data) {
+                    $('#tablaPaginadaSeguimiento').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginadaSeguimiento').find('tbody').append('<tr>'
+                            + '<td align="left">' + data[i].nombre_seguimiento + '</td>'
+                            + '<td align="left">' + data[i].nota + '</td>'
+                            + '<td align="center">' + data[i].fecha + '</td>'
+                            + '<td align="left">' + data[i].nombreUsuario + '</td>'
+                            + '</tr>');
+                    }
+                }
+            });
+        }
+
+        $('#cerrarModal').click(function () {
+            $('#modalAgregarSeguimiento').modal('hide');
+        });
+
+        $('#btnAgregarSeguimiento').click(function () {
+            tipo = $('#tipo_seguimiento').val()
+            nota = $('#nota').val()
+            $.ajax({
+                url: '/carteraCliente/agregarSeguimiento',
+                data: {
+                    encabezado,
+                    tercero,
+                    tipo,
+                    nota
+                },
+                type: 'post',
+                success: function (data) {
+                    if (data == true) {
+                        swal('Seguimiento registrado correctamente', "", "success");
+                        $('#modalAgregarSeguimiento').modal('hide');
+                        $('#nota').val('')
+                    } else {
+                        swal('No se pudo realizar el registro', "El campo 'Nota' es obligatorio", "warning");
+                        $('#nota').val('')
+                    }
+                }
+            });
+        });
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+    </script>
+}

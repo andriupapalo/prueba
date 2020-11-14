@@ -1,0 +1,313 @@
+﻿@model Homer_MVC.IcebergModel.vw_operaciones_vh
+
+
+@if (ViewBag.opr_B != null && ViewBag.opr_C != null && ViewBag.accion == "tabla" && Enumerable.Count(ViewBag.opr_B) > 0 && Enumerable.Count(ViewBag.opr_C) > 0)
+{
+
+    <div class="hpanel">
+        <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+            <div class="panel-tools">
+                <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+            </div>
+            <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Operaciones
+        </div>
+        <div class="panel-body">
+            <div class="row text-center">
+                <h4><label class="label label-danger ">Tareas Prioridad Alta</label></h4>
+            </div><br />
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover dataTable no-footer" id="tb_C">
+                    <thead>
+                        <tr>
+                            <th> Sistemas </th>
+                            <th> Operacion </th>
+                            <th> Referencia </th>
+                            <th> Tiempo </th>
+                            @*<th> Repuesto </th>
+                                <th> Cod Mecanico </th>
+                                <th> Cod Servicio Rapido </th>
+                                <th> Mano de Obra </th>*@
+                            <th> Total Facturar </th>
+                            <th> Autorizar </th>
+                            @*<th> Eliminar </th>*@
+                            <th> Enviar SMS </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="button" value="Agregar" class="btn btn-success" onclick="addFill('C')">
+                            </td>
+                            <td colspan="11">
+                                <select class="form-control" id="operacionesC">
+                                    @foreach (var item in ViewBag.operaciones)
+                                    {
+                                        <option value="@item.id">@item.descripcion</option>
+                                    }
+                                </select>
+                                <input type="hidden" value="C" id="estadoVh">
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ string trSucc = "class=success";
+                            string trDang = "class=danger";
+                            string tr, td;
+                            foreach (var item in ViewBag.opr_C)
+                            {
+                                // "Estilos" si el cliente autorizo desde la recepcion
+                                double fec_o = (item.tinsvh_fecenviosms != null) ? (DateTime.Now - DateTime.Parse(item.tinsvh_fecenviosms.ToString())).TotalHours : 0;
+                                string chk = (item.mnobra_id > 0) ? " checked" : "";
+                                string tdChk = "<div class='icheckbox_square-green " + chk + "'> </div>";
+                                // "Estilos" si se valida desde el envio de mensaje de txt
+                                string tdAuto = "<a onclick='modalNotif2(1," + item.tinsvh_id + ")' class='btn btn-success btn-sm'><i class='fa fa-check'></i><b> SI</b></a><a onclick='modalNotif2(0," + item.tinsvh_id + ")' class='btn btn-danger btn-sm'><i class='fa fa-times'></i><b> NO</b></a>";
+
+
+                                string tdSucc = "<i style='font-size:17pt;' class='fa fa-check-circle text-success'></i><a onclick='mostrar_detalle(" + item.tinsvh_id + ")'><i style='margin-left:15px;font-size:17pt;' class='fa fa-file-text text-success'></i></a>";
+                                string tdDang = "<i style='font-size:17pt;' class='fa fa-times-circle text-danger'></i><a onclick='mostrar_detalle(" + item.tinsvh_id + ")'><i style='margin-left:15px;font-size:17pt;' class='fa fa-file-text text-danger'></i></a>";
+                                // Envio de mensaje
+                                double fec = (item.tinsvh_fecenviosms != null) ? (DateTime.Now - DateTime.Parse(item.tinsvh_fecenviosms.ToString())).TotalHours : 0;
+                                string icon_msm = (item.mnobra_id > 0 && item.tinsvh_resp_sms == null) ? " fa-envelope" : (((fec > 0 && fec < 24) || item.tinsvh_resp_sms != null) ? " fa-envelope " : "fa-envelope-o");
+                                string onclick_msm = (item.mnobra_id > 0 || (fec > 0 && fec < 24)) ? " " : " onclick=enviomsm(" + item.tinsvh_id + ") id=msm_envioM" + item.tinsvh_id;
+                                // Condiciones
+                                if (item.mnobra_id > 0)
+                                {
+                                    tr = (item.tinsvh_resp_sms == true) ? trSucc : "";
+                                    td = (item.tinsvh_resp_sms == true) ? tdSucc : tdChk;
+                                }
+                                else
+                                {
+                                    if (item.tinsvh_fecenviosms == null && item.tinsvh_resp_sms != true)
+                                    {
+                                        tr = (item.tinsvh_resp_sms == true) ? trSucc : "";
+                                        td = tdAuto;
+                                    }
+                                    else
+                                    {
+                                        tr = (item.tinsvh_resp_sms == null) ? "" : trDang;
+                                        td = (item.tinsvh_resp_sms == null) ? tdChk : tdDang;
+                                    }
+
+                                }
+                                <tr id="opr_C_@item.tinsvh_id" @Html.Raw(tr)>
+                                    <td> @item.tsis_sistema </td>
+                                    <td> @item.operacion </td>
+                                    <td> @item.referencia </td>
+                                    <td style="align-content:right"> @item.tiempo </td>
+                                    <td style="align-content:right"> @item.precio_total_string </td>
+                                    @*<td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>*@
+                                    <td style="text-align:center" id="td_insp_@item.tinsvh_id"> @Html.Raw(td) </td>
+                                    @*<td> <i style="font-size:17pt;cursor:pointer" class="fa fa-trash text-danger" onclick="elim_op(@item.tinsvh_id, 'C')"></i> </td>*@
+                                    <td style="text-align:center"> <i style="font-size:17pt;cursor:pointer" class="fa @icon_msm text-primary" @onclick_msm></i> </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="row text-center">
+                <h4><label class="label label-warning ">Tareas Prioridad Media</label></h4>
+            </div><br />
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover dataTable no-footer" id="tb_B">
+                    <thead>
+                        <tr>
+                            <th> Sistemas </th>
+                            <th> Operacion </th>
+                            <th> Referencia </th>
+                            <th> Tiempo </th>
+                            @*<th> Repuesto </th>
+                                <th> Cod Mecanico </th>
+                                <th> Cod Servicio Rapido </th>
+                                <th> Mano de Obra </th>*@
+                            <th> Total Facturar </th>
+                            <th> Autorizar </th>
+                            @*<th> Eliminar </th>*@
+                            <th> Enviar SMS </th>
+
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="button" value="Agregar" class="btn btn-success" onclick="addFill('B')">
+                            </td>
+                            <td colspan="9">
+                                <select class="form-control" id="operacionesB">
+                                    @foreach (var item in ViewBag.operaciones)
+                                    {
+                                        <option value="@item.id">@item.descripcion</option>
+                                    }
+                                </select>
+                                <input type="hidden" value="B" id="estadoVh">
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.opr_B)
+                        {
+                            // "Estilos" si el cliente autorizo desde la recepcion
+                            double fec_o = (item.tinsvh_fecenviosms != null) ? (DateTime.Now - DateTime.Parse(item.tinsvh_fecenviosms.ToString())).TotalHours : 0;
+                            string chk = (item.mnobra_id > 0) ? " checked" : "";
+                            string tdChk = "<div class='icheckbox_square-green " + chk + "'> </div>";
+                            // "Estilos" si se valida desde el envio de mensaje de txt
+                            string tdAuto = "<a onclick='modalNotif2(1," + item.tinsvh_id + ")' class='btn btn-success btn-sm'><i class='fa fa-check'></i><b> SI</b></a><a onclick='modalNotif2(0," + item.tinsvh_id + ")' class='btn btn-danger btn-sm'><i class='fa fa-times'></i><b> NO</b></a>";
+
+                            string tdSucc = "<i style='font-size:17pt;' class='fa fa-check-circle text-success'></i><a onclick='mostrar_detalle(" + item.tinsvh_id + ")'><i style='margin-left:15px;font-size:17pt;' class='fa fa-file-text text-success'></i></a>";
+                            string tdDang = "<i style='font-size:17pt;' class='fa fa-times-circle text-danger'></i><a onclick='mostrar_detalle(" + item.tinsvh_id + ")'><i style='margin-left:15px;font-size:17pt;' class='fa fa-file-text text-danger'></i></a>";
+                            // Envio de mensaje
+                            double fec = (item.tinsvh_fecenviosms != null) ? (DateTime.Now - DateTime.Parse(item.tinsvh_fecenviosms.ToString())).TotalHours : 0;
+                            string icon_msm = (item.mnobra_id > 0 && item.tinsvh_resp_sms == null) ? " fa-envelope" : (((fec > 0 && fec < 24) || item.tinsvh_resp_sms != null) ? " fa-envelope " : "fa-envelope-o");
+                            string onclick_msm = (item.mnobra_id > 0 || (fec > 0 && fec < 24)) ? " " : " onclick=enviomsm(" + item.tinsvh_id + ") id=msm_envioM" + item.tinsvh_id;
+                            if (item.mnobra_id > 0)
+                            {
+                                tr = (item.tinsvh_resp_sms == true) ? trSucc : "";
+                                td = (item.tinsvh_resp_sms == true) ? tdSucc : tdChk;
+                            }
+                            else
+                            {
+                                if (item.tinsvh_fecenviosms == null && item.tinsvh_resp_sms != true)
+                                {
+                                    tr = (item.tinsvh_resp_sms == true) ? trSucc : "";
+                                    td = tdAuto;
+                                }
+                                else
+                                {
+                                    tr = (item.tinsvh_resp_sms == null) ? "" : trDang;
+                                    td = (item.tinsvh_resp_sms == null) ? tdChk : tdDang;
+                                }
+                            }
+                            <tr id="opr_B_@item.tinsvh_id">
+                                <td> @item.tsis_sistema </td>
+                                <td> @item.operacion </td>
+                                <td> @item.referencia </td>
+                                <td> @item.tiempo </td>
+                                <td> @item.precio_total_string </td>
+                                @*<td>  </td>
+                                    <td>  </td>
+                                    <td>  </td>
+                                    <td>  </td>*@
+                                <td style="text-align:center" id="td_insp_@item.tinsvh_id"> @Html.Raw(td) </td>
+
+                                @*<td> <i style="font-size:17pt;cursor:pointer" class="fa fa-trash text-danger" onclick="elim_op(@item.tinsvh_id, 'B')"></i> </td>*@
+                                <td> <i style="font-size:17pt;cursor:pointer" class="fa @icon_msm text-primary" @onclick_msm></i> </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+}
+else if (ViewBag.accion == "fila")
+{
+    if (Model.tinsvh_id != null)
+    {
+        var chk = (Model.mnobra_id > 0) ? " checked" : "";
+        var fec = (Model.tinsvh_fecenviosms != null) ? (DateTime.Now - DateTime.Parse(Model.tinsvh_fecenviosms.ToString())).TotalHours : 0;
+        var icon_msm = (Model.mnobra_id > 0) ? " fa-envelope" : ((fec > 0 && fec < 24) ? " fa-check" : "fa-envelope-o");
+        var onclick_msm = (Model.mnobra_id > 0 || (fec > 0 && fec < 24)) ? " " : " onclick=enviomsm(" + Model.tinsvh_id + ") id=msm_envioM" + Model.tinsvh_id;
+        var id = "opr_" + ViewBag.estadoOp + "_" + Model.tinsvh_id;
+        string tdAuto = "<a onclick='modalNotif2(1," + Model.tinsvh_id + ")' class='btn btn-success btn-sm'><i class='fa fa-check'></i><b> SI</b></a><a onclick='modalNotif2(0," + Model.tinsvh_id + ")' class='btn btn-danger btn-sm'><i class='fa fa-times'></i><b> NO</b></a>";
+
+        <tr id=@id>
+            <td> @Model.tsis_sistema </td>
+            <td> @Model.operacion </td>
+            <td> @Model.referencia </td>
+            <td> @Model.tiempo </td>
+            <td> @Model.precio_repuesto </td>
+            @*<td>  </td>
+                <td>  </td>
+                <td>  </td>
+                <td>  </td>*@
+            <td style="text-align:center" id="td_insp_@Model.tinsvh_id"> @Html.Raw(tdAuto) </td>
+            @*@if (ViewBag.estadoOp != "A") { <td style="text-align:center" id="td_insp_@Model.tinsvh_id"> <div class="icheckbox_square-green @chk"> </div> </td>}*@
+            @*<td> <i style="font-size:17pt;cursor:pointer" class="fa fa-trash text-danger" onclick="elim_op(@Model.tinsvh_id,'@ViewBag.estadoOp')"></i> </td>*@
+            @if (ViewBag.estadoOp != "A")
+            {
+                <td> <i style="font-size:17pt;cursor:pointer" class="fa @icon_msm text-primary" @onclick_msm></i> </td>
+}
+        </tr>
+    }
+}
+else if (ViewBag.accion == "combo" && Enumerable.Count(ViewBag.operaciones) > 0)
+{
+    foreach (var item in ViewBag.operaciones)
+    {
+        <option value="@item.id">@item.descripcion</option>
+    }
+}
+
+<div id="modal_confirmar2" class="modal fade " tabindex="-1" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 10px ">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close" style="cursor:pointer"></i></button>
+                <h6 class="modal-title" style="font-size: 25px ">
+                    <i class="fa fa-check"></i> &nbsp;&nbsp;&nbsp; Confirmacion
+                </h6>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="txt_confirmar2" id="txt_confirmar2" value="0">
+                <input type="hidden" name="txt_insp_op2" id="txt_insp_op2" value=''>
+                <div class="row">
+                    <div class="col-md-12">
+                        <textarea id="txt_observacion2" name="txt_observacion2" class="form-control" rows="3" placeholder="Observacion Requerida" required></textarea>
+                    </div>
+                </div>
+                <br>
+                <div id="btns_aut" style="text-align:center" class="row">
+                    <div class="col-sm-12">
+                        <input type="button" value="Enviar Respuesta" class="btn btn-block btn-primary" onclick="confirmar2()">
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function modalNotif2(idn, idope) {
+        $('#modal_confirmar2').modal('show')
+        $('#txt_confirmar2').val(idn);
+        $('#txt_insp_op2').val(idope);
+    }
+    function confirmar2() {
+        debugger;
+        var confirmar = $('#txt_confirmar2').val();
+        var idope = $('#txt_insp_op2').val();
+        var observacion = $('#txt_observacion2').val();
+        if (idope != "" && confirmar != "" && observacion != "") {
+            $.ajax({
+                url: '/SignosVitales/confirmarRespuesto2',
+                type: 'POST',
+                data: {
+                    confirmar: confirmar,
+                    idope: idope,
+                    observacion: observacion
+                },
+                success: function (resp) {
+                    console.log(resp)
+                    if (resp.error == false) {
+                        var resl = resp.resl == true ? 1 : 0;
+                        swal("Guardado!", "Se ha procesado exitosamente.", "success");
+                        $('#modal_confirmar2').modal('hide')
+                        operacionesSlc('C')
+                        operacionesSlc('B')
+                        check_style()
+                        OperacionesSinConfirmacion()
+                        CargarDatosPorOrdenId()
+                    }
+                    else {
+                        swal("Error!", "Error en guardado.", "danger");
+                    }
+                }
+            });
+        }
+        else {
+            swal("Error!", "Debe llenar todos los campos.", "danger");
+        }
+    }
+</script>

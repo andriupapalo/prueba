@@ -1,0 +1,2363 @@
+﻿@using System.Globalization;
+@model Homer_MVC.IcebergModel.v_creditosform
+
+@{
+    ViewBag.Icono = "fa fa-credit-card-alt";
+    ViewBag.Title = "Solicitud Creditos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @*<link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />*@
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-datepicker-master/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+                    <div id="div-mensaje"></div>
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Editar</a></li>
+                <li class="" onclick="buscarDatos();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <a class="btn btn-info" href="../../Creditos?menu=@ViewBag.id_menu"><i class="fa fa-folder-open"></i>&nbsp;&nbsp;&nbsp;Crear nuevo</a>&nbsp;&nbsp;
+                            <button class="btn btn-info" type="button" id="validarform" name="validarform"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                            <button class="btn btn-info" type="submit" style="display:none" disabled="disabled" id="submitform"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Actualizar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.HiddenFor(model => model.financiera_id2)
+                        @Html.HiddenFor(model => model.vehiculo2)
+                        @Html.HiddenFor(model => model.vehiculo)
+                        @Html.HiddenFor(model => model.tercero)
+                        @Html.HiddenFor(model => model.Id)
+                        @Html.HiddenFor(model => model.fec_creacion)
+                        @Html.HiddenFor(model => model.userid_creacion)
+                        @Html.HiddenFor(model => model.asesor_id)
+                        @Html.HiddenFor(model => model.bodegaid)
+                        @Html.HiddenFor(model => model.infocredito_id)
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    Datos del Solicitante
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4 text text-primary">Pedido: #</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("pedido", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    <label id="alertapedido" style="display: none" class="control-label col-md-12 text-warning">No existen pedidos para el cliente.</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cédula / Nit 1:<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("tercero", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @name = "tercero", @disabled = "disabled" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Correo:</label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.correo_tercero, new { htmlAttributes = new { @class = "form-control fecha_a", @readonly = "" } })
+                                                @*<input id="correo" name="correo" class="form-control" />*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Teléfono:</label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.telefono_tercero, new { htmlAttributes = new { @class = "form-control fecha_a", @readonly = "" } })
+                                                @*<input id="telefono" name="telefono" class="form-control" />*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Dirección:</label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.direccion_tercero, new { htmlAttributes = new { @class = "form-control fecha_a", @readonly = "" } })
+                                                @*<input id="direccion" name="direccion" class="form-control" />*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Cédula / Nit 2:</label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("tercero2", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @name = "tercero", @required = "", @disabled = "" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Vehículo:<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("vehiculo", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @disabled = "disabled" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Valor Vehiculo:</label>
+                                            <div class="col-md-7">
+                                                @Html.EditorFor(model => model.precio_vehiculo, new { htmlAttributes = new { @class = "form-control fecha_a", @readonly = "" } })
+                                                @*<input id="tot_vehiculo" name="tot_vehiculo" class="form-control" />*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Salario:</label>
+                                            <div class="col-md-6">
+                                                @*<p class="money"> @ViewBag.salario</p>*@
+                                                <input type="text" readonly id="salarios" class="form-control"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Comisiones:</label>
+                                            <div class="col-md-6">
+                                                <p class="money"> @ViewBag.comisiones</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Arriendo:</label>
+                                            <div class="col-md-6">
+                                                <p class="money"> @ViewBag.arriendo</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Otros:</label>
+                                            <div class="col-md-6">
+                                                <p class="money"> @ViewBag.otros</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6 temproral_oculta">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4 text text-primary">Prestamos:</label>
+                                                <div class="col-md-6">
+                                                     <p class="money">@ViewBag.prestamo</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6 temproral_oculta">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4 text text-primary">Tarjetas:</label>
+                                                <div class="col-md-6">
+                                                     <p class="money">@ViewBag.tarjetas</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6 temproral_oculta">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4 text text-primary">Hipotecas:</label>
+                                                <div class="col-md-6">
+                                                     <p class="money">@ViewBag.hipotecas</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6 temproral_oculta">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4 text text-primary">Sostenimento:</label>
+                                                <div class="col-md-6">
+                                                     <p class="money">@ViewBag.sostenimiento</p>
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                </div>
+                            </div>
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    Datos generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4 text text-primary">Estado Credito:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("estadoc", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                    @Html.ValidationMessageFor(model => model.estadoc, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @* ******************************************** *@
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Financiera: <span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("financiera_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required", @disabled = "disabled" })
+                                                    @Html.ValidationMessageFor(model => model.financiera_id, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @* Agregado  el 04  1 0 2018 *@
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6 desembolso" id="div_fec_desembolso">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Póliza: <span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.poliza, new { htmlAttributes = new { @class = "form-control", @maxLength = "20" } })
+                                                    @Html.ValidationMessageFor(model => model.poliza, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="div_plan_id" @*style="display: none"*@>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Plan:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("plan_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Solicitud: <span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fec_solicitud, new { htmlAttributes = new { @class = "form-control fecha_a", @readonly = "" } })
+                                                @Html.ValidationMessageFor(model => model.fec_solicitud, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="div_fec_envdocumentos">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Envío Documento: <span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fec_envdocumentos, new { htmlAttributes = new { @class = "form-control fecha_a", @readonly = "" /*,@onclick= "return validafecha01()"*/ } })
+                                                @Html.ValidationMessageFor(model => model.fec_envdocumentos, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6" id="div_fec_entdocumentos">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Fecha Entrada Documento:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.fec_entdocumentos, new { htmlAttributes = new { @class = "form-control fecha"} })
+                                                    @Html.ValidationMessageFor(model => model.fec_entdocumentos, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>*@
+
+                                    <div class="col-sm-6 aprobado" id="div_fec_aprobacion">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Aprobación: <span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fec_aprobacion, new { htmlAttributes = new { @class = "form-control fecha_a", @type = "text" } })
+                                                @Html.ValidationMessageFor(model => model.fec_aprobacion, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 negado" id="div_fec_negacion">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Negación: <span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fec_negacion, new { htmlAttributes = new { @class = "form-control fecha_a" } })
+                                                @Html.ValidationMessageFor(model => model.fec_negacion, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 desembolso" id="div_fec_desembolso">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Desembolso: <span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fec_desembolso, new { htmlAttributes = new { @class = "form-control fecha_a" } })
+                                                @Html.ValidationMessageFor(model => model.fec_desembolso, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 confirmacion" id="div_fec_confirmacion">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Confirmación: <span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fec_confirmacion, new { htmlAttributes = new { @class = "form-control fecha_a" } })
+                                                @Html.ValidationMessageFor(model => model.fec_confirmacion, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Valor Solicitado: <span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.vsolicitado, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @readonly = "", @onkeyup = "return miles(this.id)" } })
+                                                @Html.ValidationMessageFor(model => model.vsolicitado, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 plazosol">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Plazo Solicitado:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.plazo, new { htmlAttributes = new { @class = "form-control", @type = "number", @min = 1, @max = 72, @placeholder = "Ingrese el plazo solicitado" } })
+                                                @Html.ValidationMessageFor(model => model.plazo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 cuota_inicialc">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Cuota Inicial:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.cuota_inicial, new { htmlAttributes = new { @class = "form-control", @placeholder = "Ingrese la cuota inicial", @onkeyup = "return miles(this.id)" } })
+                                                @Html.ValidationMessageFor(model => model.cuota_inicial, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 aprobado" id="div_vaprobado">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Valor Aprobado: <span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.vaprobado, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @readonly = "", @onkeyup = "return miles(this.id)" } })
+                                                @Html.ValidationMessageFor(model => model.vaprobado, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 aprobado" id="div_num_aprobacion">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Número de Aprobación: <span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.num_aprobacion, new { htmlAttributes = new { @class = "form-control", @type = "number", @min = "1" } })
+                                                @Html.ValidationMessageFor(model => model.num_aprobacion, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 negado" id="divMotNegacion">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Motivo Negaci&oacute;n: <span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                <select class="form-control js-source-state" name="motNegacion" id="motNegacion">
+                                                    <option></option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Detalle:</label>
+                                            <div class="col-md-6">
+                                                @Html.TextAreaFor(model => model.detalle, new { @class = "form-control", @style = "width: 280px; height: 150px" })
+                                                @Html.ValidationMessageFor(model => model.detalle, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 confirmacion">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Toma Credito:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.toma_credito, new { @class = "i-checks", @checked = "" })
+                                                @Html.ValidationMessageFor(model => model.toma_credito, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 divDesistio">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Fecha Desistimiento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.fec_desistimiento, new { htmlAttributes = new { @class = "form-control fecha_a" } })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 divDesistio">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Motivo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("motivodesiste", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6 confirmacion">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Genera Comisión:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.comison, new { @class = "i-checks", @checked = "" })
+                                                @Html.ValidationMessageFor(model => model.comison, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="panelCredito">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    Referencias Personales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Nombre(s):&nbsp;</label>
+                                            <div class="col-md-7">
+                                                <input type="text" class="form-control" id="nombreref" name="nombreref2" value="" />
+                                                @*@Html.DropDownList("estadoc", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione"})
+                        @Html.ValidationMessageFor(model => model.estadoc, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Apellidos:&nbsp;</label>
+                                            <div class="col-md-7">
+                                                <input type="text" class="form-control" id="apellidoref" name="apellidoref2" value="" />
+                                                @*@Html.DropDownList("financiera_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                        @Html.ValidationMessageFor(model => model.financiera_id, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 text text-primary">Teléfono:&nbsp;</label>
+                                            <div class="col-md-7">
+                                                <input type="number" class="form-control" id="telefonoref" name="telefonoref2" value="" pattern="/^[0-9]*$/" />
+                                                @*@Html.DropDownList("plan_id", null, "Seleccione...", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                        @Html.ValidationMessageFor(model => model.plan_id, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Celular: </label>
+                                            <div class="col-md-7">
+                                                <input type="number" class="form-control" id="celularref" name="celularref2" value="" pattern="/^[0-9]*$/" />
+                                                @*@Html.EditorFor(model => model.fec_solicitud, new { htmlAttributes = new { @class = "form-control fecha", @required = "required", @onchage = "fncio" } })
+                        @Html.ValidationMessageFor(model => model.fec_solicitud, "", new { @class = "text-danger" })*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="button" id="agregarReferencias" class="btn btn-success" style="margin-top:10px; float:right"><i class="fa fa-plus-square"></i>&nbsp;&nbsp;&nbsp;Agregar</button>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-bordered table-hover" id="tabla_referencias">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="text-align:center">Nombre(s)</th>
+                                                            <th style="text-align:center">Apellidos</th>
+                                                            <th style="text-align:center">Teléfono</th>
+                                                            <th style="text-align:center">Celular</th>
+                                                            <th style="text-align:center">Acción</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="3" style="border-left:hidden; border-bottom:hidden"></td>
+                                                            <td style="border-right:hidden; border-bottom:hidden"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                                <input type="hidden" name="listaReferencias" id="listaReferencias" value="" />
+                                                <input type="hidden" name="contador" id="contador" value="" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="fa fa-info-circle"></i>&nbsp;&nbsp;&nbsp;Información
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-3 small">
+                                        <p>Creado por: @ViewBag.user_nombre_cre</p>
+                                    </div>
+
+                                    <div class="col-sm-3 small">
+                                        <p>Fecha creación: @Html.DisplayFor(model => model.fec_creacion)</p>
+                                    </div>
+
+                                    <div class="col-sm-3 small">
+                                        <p>
+                                            Actualizado por:  @{if (ViewBag.user_nombre_act == null)
+                                                {
+                                                <p class="text-danger">no se han realizado actualizaciones</p>}
+                                                @ViewBag.user_nombre_act
+                                            }
+                                            </p>
+                                        </div>
+
+                                        <div class="col-sm-3 small">
+                                            <p>
+                                                Ultima actualización:  @{if (Model.fec_actualizacion == null)
+                                                    {
+                                                    <p class="text-danger">no se han realizado actualizaciones</p>}
+                                                    @Html.DisplayFor(model => model.fec_actualizacion)
+                                                }
+                                                </p>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>}
+                </div>
+            </div>
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div id="div-mensaje-buscar"></div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                @*<label class="control-label col-md-4">Rango Fechas:&nbsp;</label>*@
+                                <div class="col-md-9">
+                                    <div class="input-daterange input-group" id="datepicker">
+                                        <input type="text" class="input-sm form-control" name="fechaDesde" id="fechaDesde" placeholder="Fecha Inicio" autocomplete="off" />
+                                        <span class="input-group-addon">Hasta</span>
+                                        <input type="text" class="input-sm form-control" name="fechaHasta" id="fechaHasta" placeholder="Fecha Fin" autocomplete="off" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="form-control btn btn-primary" onclick="buscarDatos()" type="button"><i class="fa fa-filter"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive col-md-12">
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Pedido</th>
+                                        <th style="text-align:center">Financiera</th>
+                                        <th style="text-align:center">Nombre Cliente</th>
+                                        <th style="text-align:center">Fecha Solicitud</th>
+                                        <th style="text-align:center">Estado Credito</th>
+                                        <th style="text-align:center">Motivo No Comisión</th>
+                                        <th style="text-align:center">Motivo Negación</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade hmodal-info" id="modalReferenciasPer" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Referencias Personales</h4>
+                <small>Editar Referencia Personal</small>
+            </div>
+            <div class="modal-body">
+
+                <input type="hidden" id="idRefPersonal" />
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Nombres:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="text" id="nombresedit" name="nombresedit" class="form-control" placeholder="Digite Nombres" value=""/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Apellidos:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="apellidosedit" name="apellidosedit" placeholder="Digite Apellidos" value=""/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Teléfono:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="telefonoedit" name="telefonoedit" placeholder="Digite Teléfono" value=""/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Celular:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="celularedit" name="celularedit" placeholder="Digite Celular" value=""/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <div class="row" style="display:none" id="alertAgregarRepuesto">
+                            <div class="alert alert-info">
+                                <strong>Informaci&oacute;n!&nbsp;&nbsp;<p id="mensajeAgregarRepuesto"></p></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <label></label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarRef">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade hmodal-info" id="documentoscredito" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Documentos</h4>
+                @*<small class="font-bold">Los documentos son los siguientes</small><br />*@
+            </div>
+            <div class="modal-body">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                        Datos del Credito
+                    </div>
+                    <div class="panel-body">
+                        <input type="hidden" id="idcredito" value="" />
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4 text text-primary">Pedido: #</label>
+                                <div class="col-md-7">
+                                    <input class="form-control" type="text" id="numPedidoModal" value="" readonly />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4 text text-primary">Financiera:</label>
+                                <div class="col-md-7">
+                                    <input class="form-control" type="text" id="financieraModal" value="" readonly />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4">Nombre Cliente:<span class="text-danger">*</span></label>
+                                <div class="col-md-7">
+                                    <input class="form-control" type="text" id="nomClienteModal" value="" readonly />
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4 text text-primary">Fecha Solicitud:</label>
+                                <div class="col-md-7">
+                                    <input class="form-control" type="text" id="fecSolicitudModal" value="" readonly />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label col-md-4 text text-primary">Estado Crédito:</label>
+                                <div class="col-md-7">
+                                    <input class="form-control" type="text" id="estadoCredModal" value="" readonly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                        Cargar Documentos
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <div class="col-md-5">
+                                <select id="documentosSinCargar" class="form-control">
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <input type="file" class="form-control" id="archivo" />
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-success" type="button" id="btnArchivo"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                        </div>
+                        Documentos Cargados
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered table-hover" id="tablaDocumentos">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Fecha</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detalles"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnCerrar" data-dismiss="modal" class="btn btn-danger">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    @if (TempData["mensaje"] != null || TempData["mensaje_error"] != null)
+    {
+        <script type="text/javascript">
+            $(document).ready(function () {
+                //$('.fecha_a').datetimepicker({
+                //    //showTodayButton: true,
+                //    format: 'YYYY/MM/DD HH:mm',
+                //});
+            });
+            console.log("primer document ready");
+        </script>
+    }
+    else
+    {
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('#vaprobado').val(addCommas($('#vaprobado').val()));
+                if($('#cuota_inicial').val()!=""){
+                    var cuotainicial=addCommas(parseInt($('#cuota_inicial').val()));
+                    $('#cuota_inicial').val(addCommas(parseInt($('#cuota_inicial').val())));
+                }
+                var vaprobado=addCommas(parseInt($('#vaprobado').val()));
+                $('#vsolicitado').val(addCommas($('#vsolicitado').val()));
+            });
+            console.log("segundo document ready");
+        </script>
+    }
+
+    <script type="text/javascript">
+        var contador = 0;
+        var lista = 0;
+        $(document).ready(function () {
+            buscarRef();
+            if (@ViewBag.infsalario == 1) {
+                $('#salarios').val('$ ' + addCommas(@ViewBag.salariode) + ' - $ ' + addCommas(@ViewBag.salariohasta));
+            } else if (@ViewBag.infsalario == 2) {
+                $('#salarios').val('$ ' + addCommas(@ViewBag.salario));
+            } else {
+                 $('#salarios').val("");
+            }
+            
+            //$('.fecha_a').datetimepicker({
+            //    //showTodayButton: true,
+            //    format: 'YYYY/MM/DD HH:mm',
+            //});
+            //  $('#fec_envdocumentos').prop('readonly',false);
+            //$('#fec_envdocumentos').datetimepicker({
+            //    defaultDate: new Date(),
+            //    showTodayButton: true,
+            //    format: 'YYYY/MM/DD HH:mm',
+            //    maxDate: new Date(),
+            //    minDate: new Date(),
+            //}).on('dp.change', function(e) {
+            //    $('#fec_aprobacion').data("DateTimePicker").minDate(e.date)
+            //});
+            //$('#fec_aprobacion').datetimepicker({
+            //    //defaultDate: new Date(),
+            //    showTodayButton: true,
+            //    format: 'YYYY/MM/DD HH:mm',
+            //   // minDate: '-' + new Date() + '',
+            //});
+            //    $('#fec_aprobacion').val('');
+            //$('#vehiculo2').val($('#vehiculo').val());
+            var fecha ='@DateTime.Now.AddDays(-30).ToString("yyyy/MM/dd",new CultureInfo("en-US"))';
+            var fecha2 = '@DateTime.Now.ToString("yyyy/MM/dd",new CultureInfo("en-US"))';
+
+            $('#fechaDesde').val(fecha);
+            $('#fechaHasta').val(fecha2);
+            $('#fechaDesde').datetimepicker({
+                format: 'YYYY/MM/DD',
+            });
+            $('#fechaHasta').datetimepicker({
+                format: 'YYYY/MM/DD',
+                maxDate: '-' + new Date() + '',
+            });
+            $('#estadoc').trigger('change');
+            $('.temproral_oculta').hide();
+            console.log("tercer document ready");
+            $('.js-source-states').select2();
+            $('#menu').val(@ViewBag.id_menu);
+
+            $('#fec_aprobacion').attr('autocomplete', 'off');
+            $('#fec_negacion').attr('autocomplete', 'off');
+            $('#fec_desembolso').attr('autocomplete', 'off');
+
+            $('#financiera_id2').val($('#financiera_id').val());
+            $(".money").each(function () {
+                var valor = $(this).text()
+                $(this).text("$"+ valor)
+            })
+
+            ///*********** Inicio Estado del Documento desde Document Ready
+            if ($('#estadoc').val() == "T") {
+                $('.plazosol').show();
+                $('#plazo').prop('required',true);
+                $('#plazo').prop('readonly',true);
+
+                $('.aprobado').hide();
+                $('#vaprobado').prop('required',false);
+
+                $('.negado').hide();
+                $('#fec_negacion').prop('required',false);
+
+                $('.confirmacion').show();
+
+                $('.divDesistio').hide();
+
+                $('.desembolso').hide();
+                $('#vsolicitado').prop('readonly',true);
+                $('#vsolicitado').prop('required',true);
+                $('#cuota_inicial').prop('required',false);
+                $('#cuota_inicial').prop('readonly',true);
+                $('#detalle').prop('readonly',false);
+                $('#financiera_id').prop('disabled', false)
+
+                console.log("Document ready paso por estado T Tramite");
+
+                $("#estadoc").find("option[value='T']").prop("disabled", false); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", false); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", false); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", true); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", false); // Desistio
+            }
+            if ($('#estadoc').val() == "D") {
+                $('.desembolso').show();
+
+                $('#vaprobado').prop('readonly',true);
+                $('#fec_aprobacion').prop('readonly',true);
+                $('#vaprobado').prop('required',false);
+                $('#num_aprobacion').prop('required',true);
+                $('#num_aprobacion').prop('readonly',true);
+                $('#financiera_id').prop('disabled', true);
+                $('#plazo').prop('required',false);
+                $('#plazo').prop('readonly',true);
+
+                //$('#cuota_inicial').prop('required',false);
+                $('#vsolicitado').prop('required',false);
+
+                $('#fec_negacion').prop('required',false);
+
+                $('#cuota_inicial').prop('required',true);
+                $('#cuota_inicial').prop('readonly',true);
+
+                $('.negado').hide();
+                $('.confirmacion').hide();
+                $('.divDesistio').hide();
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", true); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", false); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", false); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", true); // Desistio
+
+                console.log("Document ready paso por estado D Desembolso");
+            }
+            if ($('#estadoc').val() == "A") {
+                $('.desembolso').hide();
+
+                $('#vaprobado').prop('required',true);
+                $('#vaprobado').prop('readonly',true);
+                $('#num_aprobacion').prop('required',true);
+                $('#num_aprobacion').prop('readonly',true);
+                $('#fec_aprobacion').prop('readonly',true);
+
+                $('#cuota_inicial').prop('required',true);
+                $('#cuota_inicial').prop('readonly',true);
+
+                $('.negado').hide();
+                $('#fec_negacion').prop('required',false);
+
+                $('.plazosol').hide();
+                $('#plazo').prop('required',false);
+
+                $('#financiera_id').prop('disabled', true);
+
+                $('.confirmacion').hide();
+                $('.divDesistio').hide();
+
+                $('#detalle').prop( "disabled",true);
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", false); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", false); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", true); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", false); // Desistio
+
+                console.log("Document ready paso por estado A Aprobado");
+            }
+            if ($('#estadoc').val() == "O") {
+                $('.desembolso').hide();
+
+                $('#financiera_id').prop( "disabled",true);
+
+                $('.plazosol').hide();
+                $('#plazo').prop('required',false);
+                //$('#cuota_inicial').prop('required',false);
+                $('#fec_negacion').prop('required',false);
+
+                $('.cuota_inicialc').hide();
+                $('#cuota_inicial').prop('required',false);
+                $('#cuota_inicial').prop('readonly',false);
+
+                $('.div_num_aprobacion').hide();
+                $('#num_aprobacion').prop('readonly',true);
+                $('#vaprobado').prop('required',false);
+
+                $('#motivodesiste').prop( "disabled",true);
+
+                $('#detalle').prop( "disabled",true);
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", true); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", true); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", false); // Desistio
+
+                console.log("Document ready paso por estado O Desistio");
+
+            }
+            if ($('#estadoc').val() == "C") {
+
+                $('.desembolso').hide();
+
+                $('#num_aprobacion').prop('required',true);
+                $('#num_aprobacion').prop('readonly',true);
+                $('#fec_aprobacion').prop('readonly',true);
+
+                $('#cuota_inicial').prop('readonly',true);
+
+                $('#fec_confirmacion').prop('required',true);
+                $('#fec_confirmacion').prop('readonly',true);
+
+                $('#plazo').prop('required',false);
+                $('.plazosol').hide();
+
+                $('.negado').hide();
+                $('.divDesistio').hide();
+                $('#detalle').prop( "disabled",true);
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", true); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", false); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", true); // Desistio
+
+                console.log("Document ready paso por estado C Confirmado");
+                console.log("Confirmado 788 Ready");
+            }
+            ///*********** Fin Estado del Documento desde Document Ready
+
+            if($("#pedido").val() != null && $("#pedido").val() != "" ){
+                $('#pedido').prop('readonly', true)
+                $('#pedido').select2()
+                $('#vehiculo').prop('readonly', true)
+                //$('#vehiculo').select2()   no por estar readonly
+            }
+
+            var cuantospedido=@ViewBag.numeropedidos;
+
+            if(cuantospedido==0){
+                $('#alertapedido').show();
+            }
+            else{
+                $('#alertapedido').hide();
+            }
+            validarEstado();
+            var ter =  $('#tercero').val();
+            //console.log("antes de la funcion datosCliente --" + ter + "--");
+            //debugger;
+            //datosCliente(ter);
+        });
+
+        //$('.fecha_a').datetimepicker({
+        //    //  defaultDate: new Date(),
+        //    //showTodayButton: true,
+        //    format: 'YYYY/MM/DD HH:mm',
+        //    // maxDate: new Date(),
+        //    //  minDate: new Date(),
+        //});
+
+        $('#btnGuardarRef').click(function () {
+            if ($('#nombresedit').val() == "") {
+                swal("El nombre es obligario", "", "warning");
+            } else if ($('#apellidosedit').val() == "") {
+                swal("El apellido es obligatorio", "", "warning");
+            } else if ($('#telefonoedit').val() == "") {
+                swal("El teléfono es obligatorio", "", "warning");
+            } else if ($('#celularedit').val() == "") {
+                swal("El celular es obligatorio", "", "warning");
+            } else {
+                $.ajax({
+                    url: '/v_creditos/EditarRefPer',
+                    data: {
+                        id: $('#idRefPersonal').val(),
+                        nombres: $('#nombresedit').val(),
+                        apellidos: $('#apellidosedit').val(),
+                        telefono: $('#telefonoedit').val(),
+                        celular: $('#celularedit').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        console.log(data)
+                        buscarRef();
+                    },
+                    complete: function () {
+                        $('#nombresedit').val('');
+                        $('#apellidosedit').val('');
+                        $('#telefonoedit').val('');
+                        $('#celularedit').val('');
+                        $('#modalReferenciasPer').modal('hide');
+                    }
+                });
+
+            }
+        });
+
+        $('#agregarReferencias').click(function () {
+            if ($('#nombreref').val() == "") {
+                swal("El nombre es obligario", "", "warning");
+            } else if ($('#apellidoref').val() == "") {
+                swal("El apellido es obligatorio", "", "warning");
+            } else if ($('#telefonoref').val() == "") {
+                swal("El teléfono es obligatorio", "", "warning");
+            } else if ($('#celularref').val() == "") {
+                swal("El celular es obligatorio", "", "warning");
+            } else {
+                $.ajax({
+                    url: '/v_creditos/AgregarRefPer',
+                    data: {
+                        id: $('#Id').val(),
+                        nombres: $('#nombreref').val(),
+                        apellidos: $('#apellidoref').val(),
+                        telefono: $('#telefonoref').val(),
+                        celular: $('#celularref').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        console.log(data)
+                        buscarRef();
+                    },
+                    complete: function () {
+                        $('#nombreref').val('');
+                        $('#apellidoref').val('');
+                        $('#telefonoref').val('');
+                        $('#celularref').val('');                        
+                    }
+                });
+                contador++;
+                lista++;
+                $('#listaReferencias').val(lista);
+                if (contador == 3) {
+                    $('#agregarReferencias').prop('disabled', true);
+                }
+
+            }
+        });
+
+        function buscarRef() {
+            contador = 0;
+            $.ajax({
+                url: '/v_creditos/BuscarReferenciasPer',
+                data: {id: $('#Id').val()},
+                type: 'get',
+                success: function (data) {
+                    console.log(data);
+                    $('#tabla_referencias').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tabla_referencias').find('tbody').append(
+                        '<tr>'
+                        + '<td>'+ data[i].nombres +'</td>'
+                        + '<td>'+ data[i].apellidos +'</td>'
+                        + '<td>'+ data[i].telefono +'</td>'
+                        + '<td>'+ data[i].celular +'</td>'
+                        + '<td><button type="button" class="btn btn-primary btn-xs" onclick="EditarReferencia('
+                                + data[i].id + ')"><i class="fa fa-pencil-square-o"></i>&nbsp;Editar&nbsp;&nbsp;</button>&nbsp;&nbsp;<button type="button" class="btn btn-danger btn-xs" onclick="EliminarReferencia('
+                                + data[i].id + ')"><i class="fa fa-trash"></i>&nbsp;Eliminar&nbsp;&nbsp;</button></td>'
+                        + '</tr>'
+
+                        );
+                        contador++;
+                        lista++;
+                    }
+                    $('#listaReferencias').val(lista);
+                    if (contador == 3) {
+                     $('#agregarReferencias').prop('disabled', true);
+                    }
+                }
+            });
+        }
+
+        function documentos(id) {
+            $.ajax({
+                url: '../v_creditos/BuscarDocumentos',
+                data: { id: id },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data);
+                    $('#tablaDocumentos').find('tbody').empty();
+                    $('#documentosSinCargar').empty();
+                    $('#numPedidoModal').val('');
+                    $('#financieraModal').val('');
+                    $('#nomClienteModal').val('');
+                    $('#fecSolicitudModal').val('');
+                    $('#estadoCredModal').val('');
+                    $('#idcredito').val('');
+                    for (var j = 0; j < data.cargados.length; j++) {
+                        $('#tablaDocumentos').find('tbody').append(
+                            '<tr>'
+                            + '<td align="left">' + data.cargados[j].nombre + '</td>'
+                            + '<td align="left">' + data.cargados[j].fecha + '</td>'
+                            +'<td width="15%" align="center">'
+                               +'<button class="btn btn-danger btn-xs" onclick="eliminarDoc(' + '\'' + data.cargados[j].id + '\')">&nbsp;&nbsp;Eliminar&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                               //+'<button class="btn btn-danger btn-xs">&nbsp;&nbsp;Eliminar&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                               +'<button class="btn btn-info btn-xs" onclick="verArchivo(' + '\'' + data.cargados[j].id + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                            +'</td>'
+                            + '</tr>'
+                        );
+                    }
+                    $('#documentosSinCargar').append(
+                            '<option selected value="0">Seleccione</option>'
+                        );
+                    for (var i = 0; i < data.sincargar.length; i++) {
+                        $('#documentosSinCargar').append(
+                            '<option value="'+ data.sincargar[i].id +'">' + data.sincargar[i].nombre + '</option>'
+                        );
+                    }
+                    $('#numPedidoModal').val(data.info[0].pedido);
+                    $('#financieraModal').val(data.info[0].financiera);
+                    $('#nomClienteModal').val(data.info[0].nombre);
+                    $('#fecSolicitudModal').val(data.info[0].fec_solicitud);
+                    $('#estadoCredModal').val(data.info[0].estadoc);
+                    $('#idcredito').val(data.info[0].id);
+                    $('#documentoscredito').modal('show');
+                }
+            })
+        }
+
+        function verArchivo(id) {
+            $.ajax({
+                url: '/v_creditos/buscarArchivo',
+                type: "post",
+                cache: false,
+                data: {id : id},
+                success: function (data) {
+                    window.open('/Content/'+data, '_blank');
+                }
+            });
+        }
+
+        function eliminarDoc(id) {
+            $.ajax({
+                url: '/v_creditos/eliminarDoc',
+                type: "post",
+                cache: false,
+                data: {id:id},
+                success: function (data) {
+                    if (data.valor == 1) {
+                        swal(data.respuesta, "", "success");
+                        documentos($('#idcredito').val());
+                    } else {
+                        swal(data.respuesta,"","error");
+                    }
+                }
+            });
+        }
+
+        $('#btnArchivo').click(function () {
+            debugger;
+            var id = $('#idcredito').val();
+            var tipo = $("#documentosSinCargar option:selected").val();
+            var file = $('#archivo')[0].files[0];
+            if (id != "" && tipo != "" && file != "" && tipo != 0) {
+                var formData = new FormData();
+                formData.append("observacion", file);
+                formData.append("id", id);
+                formData.append("tipo", tipo);
+                actualizarconsultaob2vehi(formData, id);
+                $('#obs_consulta_placavehi').wrap('<form>').closest('form').get(0).reset();
+                $('#obs_consulta_placavehi').unwrap();
+            }         
+        });
+
+        function actualizarconsultaob2vehi(formData, id) {
+
+            $.ajax({
+                url: '/v_creditos/subirArchivo',
+                type: "post",
+                cache: false,
+                data: formData,
+                dataType: 'json',
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    if (data == 1) {
+                        swal("Exito!", "El archivo ha sido subido con exito!", "success");
+                        documentos(id);
+                        $('#archivo').val('');
+                    } else {
+                        swal("Error!","El archivo no pudo ser subido. Por favor verifique.","error");
+                    }
+                },
+                fail: function (data) {
+
+                }
+            });
+        }
+
+
+        function EditarReferencia(id) {
+            $.ajax({
+                url: '/v_creditos/modalReferencia',
+                data: {id: id},
+                type: 'get',
+                success: function (data) {
+                    console.log(data);
+                    debugger;
+                    $('#nombresedit').val(data[0].nombres);
+                    $('#apellidosedit').val(data[0].apellidos);
+                    $('#telefonoedit').val(data[0].telefono);
+                    $('#celularedit').val(data[0].celular);
+                    $('#idRefPersonal').val(data[0].id);
+                    $('#modalReferenciasPer').modal('show');
+                }
+            });
+        }
+
+        function EliminarReferencia(id) {
+            $.ajax({
+                url: '/v_creditos/eliminarReferenciaPer',
+                data: {id: id},
+                type: 'get',
+                success: function (data) {
+                    debugger;
+                    buscarRef();
+                    contador--;
+                    lista--;
+                    if (contador < 3) {
+                        $('#agregarReferencias').prop('disabled', false);
+                    }
+                }
+            });
+        }
+
+        $('#estadoc').change(function () {
+            $('#motNegacion').val('');
+            $('#motNegacion').empty().select2();
+            if ($('#estadoc').val() == "T") {
+                $('#vsolicitado').prop('readonly',false);
+                $('#vsolicitado').prop('required',true);
+
+                $('.aprobado').hide();
+                $('#fec_aprobacion').prop('required',false);
+                $('#vaprobado').prop('required',false);
+                $('#num_aprobacion').prop('required',false);
+                $('#num_aprobacion').prop('readonly',false);
+                $('.div_fec_aprobacion').hide();
+
+                $('.negado').hide();
+                $('#fec_negacion').prop('required',false);
+                $('.div_fec_negacion').hide();
+
+                //$('.confirmacion').hide();
+                //$('#fec_confirmacion').prop('required',false);
+
+                $('.confirmacion').show();
+                $('#fec_confirmacion').prop('required',false);
+
+                $('.desembolso').hide();
+                $('#fec_desembolso').prop('required',false);
+
+                $('.divDesistio').hide();
+                $('#motivodesiste').prop('required', false);
+                $('#fec_desistimiento').prop('required',false);
+
+                $('.cuota_inicialc').show();
+                $('#cuota_inicial').prop('required',true);
+                //$('#cuota_inicial').prop('required',false);
+                $('#cuota_inicial').prop('readonly',true);
+
+                $('.plazosol').show();
+                $('#plazo').prop('required', true);
+                //$('.plazo').val();
+
+                $('#financiera_id').prop('disabled', false)
+
+                $("#estadoc").find("option[value='T']").prop("disabled", false); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", false); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", false); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", true); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", false); // Desistio
+
+                console.log("paso por estado T _ 2");
+
+            }
+            else if ($('#estadoc').val() == "A") {
+                $('#vsolicitado').prop('readonly',true);
+                $('#vsolicitado').prop('required', false);
+
+                $('#vaprobado').prop('readonly',false);
+                $('.aprobado').show();
+                $('#fec_aprobacion').prop('required',true);
+                $('#fec_aprobacion').prop('readonly',false);
+                $('#num_aprobacion').prop('required',true);
+                $('#num_aprobacion').prop('readonly',false);
+                $('#vaprobado').prop('required',true);
+
+                $('.negado').hide();
+                $('#fec_negacion').prop('required',false);
+                $('#motNegacion').prop('required',false);
+
+                $('.confirmacion').hide();
+                $('#fec_confirmacion').prop('required',false);
+
+                $('.desembolso').hide();
+                $('#fec_desembolso').prop('required',false);
+
+                $('.divDesistio').hide();
+                $('#fec_desistimiento').prop('required',false);
+                $('#motivodesiste').prop('required', false);
+
+                $('.cuota_inicialc').hide();
+                //  $('#cuota_inicial').prop('required',false);
+                $('#cuota_inicial').prop('required',true);
+                $('#cuota_inicial').prop('readonly',true);
+
+                $('.plazosol').hide();
+                $('#plazo').prop('required', false);
+
+                $('#financiera_id').prop('disabled', true)
+
+                $('#fec_envdocumentos').prop('required',true);
+                $('#fec_envdocumentos').prop('readonly',true);
+
+                //   $('#fec_envdocumentos').trigger('click');
+
+                validafecha_para_aprobacion();
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", false); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", false); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", true); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", false); // Desistio
+
+                console.log("paso por estado A _ 2");
+            }
+            else if ($('#estadoc').val() == "N") {
+                $('.aprobado').hide();
+                $('#fec_aprobacion').prop('required',false);
+                $('#num_aprobacion').prop('required',false);
+                $('#num_aprobacion').prop('readonly',false);
+                $('#vaprobado').prop('required',false);
+
+                $('.negado').show();
+
+                $.ajax({
+                    url: '/v_creditos/BuscarMotivosNegacion',
+                    data: {
+                        id : $('#Id').val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        console.log(data)
+                        $('#motNegacion').empty().select2();
+                        $('#motNegacion').append($('<option>', {
+                            value: '',
+                            text: 'Seleccione'
+                        }));
+                        debugger
+                        for (var i = 0; i < data.info.length; i++) {
+                            $('#motNegacion').append($('<option>', {
+                                value: data.info[i].id,
+                                text: data.info[i].descripcion
+                            }));
+                        }
+                        if (data.guardado != false) {
+                            $('#motNegacion').val(data.guardado);
+                            $('#motNegacion').prop('readonly',true);
+                        }
+
+                        $('#motNegacion').select2();
+                    }
+                });
+
+                $('#fec_negacion').prop('required',true);
+                $('#motNegacion').prop('required',true);
+
+                $('.confirmacion').hide();
+                $('#fec_confirmacion').prop('required',false);
+
+                $('.desembolso').hide();
+                $('#fec_desembolso').prop('required',false);
+
+                $('.divDesistio').hide();
+                $('#fec_desistimiento').prop('required',false);
+                $('#motivodesiste').prop('required', false);
+
+                $('.cuota_inicialc').hide();
+                $('#cuota_inicial').prop('required',false);
+                $('#cuota_inicial').prop('readonly',false);
+
+                $('#vsolicitado').prop('required', true);
+
+                $('.plazosol').hide();
+                $('#plazo').prop('required', false);
+                $('#plazo').prop('readonly', true);
+
+
+                $('#financiera_id').prop('disabled', true)
+
+                validafecha_para_Negado();
+
+                console.log("paso por estado N _ 2");
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", true); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", false); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", true); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", true); // Desistio
+
+            }
+            else if ($('#estadoc').val() == "D") {
+                $('#vaprobado').prop('readonly',true);
+                $('#vaprobado').prop('required',false);
+                $('.aprobado').show();
+                $('#fec_aprobacion').prop('required',false);
+                $('#fec_aprobacion').prop('readonly',true);
+                $('#num_aprobacion').prop('required',true);
+                $('#num_aprobacion').prop('readonly',true);
+
+                $('.negado').hide();
+                $('#fec_negacion').prop('required',false);
+                $('#motNegacion').prop('required',false);
+
+                $('.confirmacion').hide();
+                $('#fec_confirmacion').prop('required',false);
+
+                $('.desembolso').show();
+                $('#fec_desembolso').prop('required',true);
+
+                $('.divDesistio').hide();
+                $('#fec_desistimiento').prop('required',false);
+                $('#motivodesiste').prop('required', false);
+
+                $('.cuota_inicialc').hide();
+                $('#cuota_inicial').prop('required',false);
+                $('#cuota_inicial').prop('readonly',false);
+
+                $('#vsolicitado').prop('required', false);
+
+                $('.plazosol').hide();
+                $('#plazo').prop('required', false);
+
+                $('#detalle').prop( "disabled",true);
+
+                $('#financiera_id').prop('disabled', true)
+
+                validafecha_para_Desembolso();
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", true); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", false); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", false); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", true); // Desistio
+
+                console.log("paso por estado D _ 2");
+            }
+            else if ($('#estadoc').val() == "C") {
+                $('.aprobado').show();
+                $('#num_aprobacion').prop('required',false);
+                $('#num_aprobacion').prop('readonly',true);
+                $('#fec_aprobacion').prop('required',true);
+                $('#vaprobado').prop('required',false);
+
+                $('.negado').hide();
+                $('#fec_negacion').prop('required', false);
+                $('#motNegacion').prop('required',false);
+
+                $('.confirmacion').show();
+                $('#fec_confirmacion').prop('required',true);
+
+                $('.desembolso').show();
+                $('#fec_desembolso').prop('readonly',true);
+
+                $('.divDesistio').hide();
+                $('#fec_desistimiento').prop('required',false);
+                $('#motivodesiste').prop('required', false);
+
+                $('#fec_confirmacion').show()
+
+                $('.cuota_inicialc').hide();
+                $('#cuota_inicial').prop('required',false);
+                $('#cuota_inicial').prop('required',true);
+                $('#cuota_inicial').prop('readonly',true);
+
+                $('#vsolicitado').prop('required', false);
+
+                $('.plazosol').hide();
+                $('#plazo').prop('required', false);
+
+                $('#financiera_id').prop('disabled', true)
+                $('#detalle').prop( "disabled",true);
+
+                validafecha_para_Confirmado();
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", true); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", false); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", true); // Desistio
+
+                console.log("paso por estado C _ 2");
+                console.log("Confirmado 1066 Estadodoc-change");
+
+                //// OJO DSDAD
+
+                //  actualizarEstado();
+
+            }
+            else if ($('#estadoc').val() == "O") {
+                $('#financiera_id').prop('disabled', true)
+
+                $('.aprobado').hide();
+                $('#vaprobado').prop('required',false);
+                $('.div_num_aprobacion').hide();
+                $('#fec_aprobacion').prop('required',false);
+                $('#num_aprobacion').prop('readonly',true);
+
+                $('.negado').hide();
+                $('#fec_negacion').prop('required',false);
+                $('#motNegacion').prop('required',false);
+
+                $('.confirmacion').hide();
+                $('#fec_confirmacion').prop('required',false);
+
+                $('.desembolso').hide();
+
+                $('.divDesistio').show();
+                $('#fec_desistimiento').prop('required',true);
+                $('#motivodesiste').prop('required', true);
+
+                $('.cuota_inicialc').hide();
+                $('#cuota_inicial').prop('required',false);
+                $('#cuota_inicial').prop('readonly',false);
+
+                $('#vsolicitado').prop('required', false);
+
+                $('.plazosol').hide();
+                $('#plazo').prop('required', false);
+
+                validafecha_para_Desistio();
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", true); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", true); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", false); // Desistio
+
+                console.log("paso por estado O _ 2");
+
+            }
+            else{
+                $('#motivodesiste').prop('required', false);
+            }
+        });
+
+        $('#financiera_id').change(function () {
+            //buscarTercero();
+            $('#financiera_id2').val($('#financiera_id').val());
+        });
+
+        //if ($('#fec_aprobacion').change)
+        //{
+        //console.log ("Hola para por cange de fecha ");
+        //$('#fec_envdocumentos').datetimepicker({
+        //    showTodayButton: true,
+        //    format: 'YYYY/MM/DD HH:mm',
+        //}).on('dp.change', function(e) {
+        //    $('#fec_aprobacion').data("DateTimePicker").minDate(e.date)
+        //});
+        //$('#fec_aprobacion').datetimepicker({
+        //    defaultDate: new Date(),
+        //    showTodayButton: true,
+        //    format: 'YYYY/MM/DD HH:mm',
+        //    minDate: '-' + new Date(),
+        //    //minDate: 0,
+        //});
+        //}
+
+        $('#validarform').click(function () {
+            var idfinan =  $('#financiera_id').val();
+            var opciondes = $('#estadoc').val();
+            var esDesembolso = false;
+            var idPed =  $('#pedido').val();
+
+            //traer campo valor aprobado, si no es vacio o 0 parsearlo a int o float y comparar que sea mayor a cero
+            //var varaprobado = $(parseInt$('#varaprobado').val());
+            //(varaprobado>0;
+            //traer campo plazo, si no es vacio parsearlo a int y ver que sea menor a cien
+            //si todo esto es true
+
+            $('#submitform').prop('disabled',false);
+            $('#submitform').trigger('click');
+
+            if (opciondes == "D")
+            {
+                esDesembolso = true;
+            }else{
+                esDesembolso = false;
+            }
+
+            if (idPed!=null){
+                if (esDesembolso == true){
+                    console.log("valida forma jsjdfashds");
+                    event.preventDefault();
+                    $.ajax({
+                        url: '/v_creditos/ActualizarV_pedido',
+                        type: 'POST',
+                        data:{
+                            idPed: idPed,
+                            idfinan: idfinan,
+                        },
+                    }).done(function (result) {
+                        //  $('#mensaje_enviando').hide();
+                        if (result == 1) {
+
+                        } else {
+
+                        }
+                    });
+                }
+            }
+
+
+            //si no se cumple
+            $('#submitform').prop('disabled',true);
+
+
+            //buscarTercero();
+            //$('#financiera_id2').val($('#financiera_id').val());
+        });
+
+        $('#pedido').change(function () {
+            $.ajax({
+                url: '/v_creditos/BuscarDatosPedido',
+                data: {
+                    pedido: $('#pedido').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#tercero').prop('readonly', true);
+                    $('#vehiculo').prop('readonly', true);
+                    if ($('#tercero2').val() == null || $('#tercero2').val() == '' || $('#tercero').val() != data[0].nit) {
+                        $('#tercero2').val(data[0].nit)
+                    }
+                    else
+                    {
+                        $('#tercero').val(data[0].nit)
+                    }
+                    //$('#asesor_id').val(data[0].vendedor)
+                    $('#vehiculo').val(data[0].modelo)
+
+                    $('#tercero').select2();
+                    $('#tercero2').select2();
+                    //$('#asesor_id').select2();
+                    $('#vehiculo').select2();
+                    console.log("pedido.change Select2 #vehiculo");
+                    console.log("paso por Select2 #vehiculo 2");
+                }
+            })
+        });
+
+        function datosCliente (ter){
+            if (ter!=null) {
+                $.ajax({
+                    url: '/v_creditos/DatosCliente',
+                    data: {
+                        id: ter
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        $('#correo').val(data.email_tercero);
+                        $('#telefono').val(data.telefono);
+                        $('#direccion').val(data.direccion);
+                    },
+                    complete: function (data) {
+
+                    }
+                });
+            }
+        }
+
+        function validarEstado() {
+            if ($('#estadoc').val() == "T") {
+                $('#financiera_id').prop('disabled', true)
+
+                $('.aprobado').hide();
+                $('.div_fec_aprobacion').hide();
+
+                $('.negado').hide();
+                $('.div_fec_negacion').hide();
+
+                // $('.confirmacion').hide();
+                $('.confirmacion').show();
+
+                $('.desembolso').hide();
+
+                $('.divDesistio').hide();
+
+                //$('#detalle').prop('readonly',true);
+
+                console.log("Estado T");
+
+                $("#estadoc").find("option[value='T']").prop("disabled", false); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", false); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", false); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", true); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", false); // Desistio
+            }
+            else if ($('#estadoc').val() == "A") {
+                //$('#div_fec_aprobacion').show();
+                //$('#div_vaprobado').show();
+                //$('#div_num_aprobacion').show();
+                $('.aprobado').show();
+
+                // $('#fec_aprobacion').attr("readonly", "readonly");
+                //$('#div_fec_negacion').hide();
+
+                $('.divDesistio').hide();
+
+                $('.negado').hide();
+
+                $('.confirmacion').hide();
+
+                $('.desembolso').hide();
+
+                $('.divDesistio').hide();
+
+                // $('.div_fec_aprobacion').show();
+                $('#fec_aprobacion').prop('readonly',true);
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", false); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", false); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", true); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", false); // Desistio
+                console.log("Estado A");
+            }
+            else if ($('#estadoc').val() == "N") {
+                //$('#div_fec_negacion').show();
+                //$('#div_fec_aprobacion').hide();
+                //$('#div_vaprobado').hide();
+                //$('#div_num_aprobacion').hide();
+                $('.aprobado').hide();
+
+                $('.negado').show();
+                $('#fec_negacion').prop('readonly',true);
+
+                $('.confirmacion').hide();
+
+                $('.desembolso').hide();
+
+                $('.divDesistio').hide();
+
+                //   $('#fec_negacion').attr("readonly", "readonly");
+                //$('#fec_negacion').datetimepicker({
+                //    //format: 'DD/MM/YYYY',
+                //    format: 'YYYY/MM/DD HH:mm',
+                //});
+
+                $('#plazo').prop('readonly',true);
+                $('#cuota_inicial').prop('readonly',true);
+                $('#detalle').prop('readonly',true);
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", true); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", false); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", true); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", true); // Desistio
+
+                console.log("Estado N");
+            }
+            else if ($('#estadoc').val() == "D") {
+                //$('#div_fec_desembolso').show();
+                //$('#div_fec_aprobacion').show();
+                //$('#div_vaprobado').show();
+                //$('#div_num_aprobacion').show();
+                $('.aprobado').show();
+                $('#fec_aprobacion').attr("readonly", "readonly");
+                $('#fec_aprobacion').prop('required',false);
+                $('#num_aprobacion').prop('readonly',true);
+
+                $('.negado').hide();
+
+                $('.confirmacion').hide();
+
+                $('.desembolso').show();
+
+                $('.divDesistio').hide();
+
+                $('#fec_desembolso').attr("readonly", "readonly");
+
+                //$('#fec_desembolso').datetimepicker({
+                //    //format: 'DD/MM/YYYY',
+                //    format: 'YYYY/MM/DD HH:mm',
+                //});
+
+                $('#plazo').prop('readonly',true);
+                $('#cuota_inicial').prop('readonly',true);
+                $('#detalle').prop('readonly',true);
+
+                $('#poliza').prop('readonly', true)
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", true); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", false); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", true); // Desistio
+
+                //$('.div_num_aprobacion').hide();
+
+                console.log("Estado D");
+            }
+            else if ($('#estadoc').val() == "C") {
+                //$('#div_fec_confirmacion').show();
+                //$('#div_fec_aprobacion').show();
+                //$('#div_vaprobado').show();
+                //$('#div_num_aprobacion').show();
+                $('.aprobado').show();
+                $('#fec_aprobacion').attr("readonly", "readonly");
+
+                $('.negado').hide();
+
+                $('.confirmacion').show();
+                $('#fec_confirmacion').attr("readonly", "readonly");
+
+                $('.desembolso').show();
+                $('#fec_desembolso').attr("readonly", "readonly");
+
+                $('.divDesistio').hide();
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", true); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", false); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", true); // Desistio
+
+                // confirmado_actualiza();
+                console.log("Paso por Confirmado");
+                console.log("Estado C");
+                console.log("Confirmado 1426 Validar Estado");
+            }
+            else if ($('#estadoc').val() == "O") {
+                $( "#financiera_id" ).prop( "disabled", true);
+
+                $('.aprobado').show();
+                $('#fec_aprobacion').attr("readonly", "readonly");
+                $('.div_num_aprobacion').hide();
+                $('#fec_aprobacion').prop('required',false);
+                $('#num_aprobacion').prop('readonly',true);
+
+                $('.negado').hide();
+
+                $('.confirmacion').hide();
+
+                $('.desembolso').hide();
+
+                $('.divDesistio').show();
+                $('#fec_desistimiento').attr("readonly", "readonly");
+
+                //$('#fec_aprobacion').datetimepicker({
+                //    //format: 'DD/MM/YYYY',
+                //    format: 'YYYY/MM/DD HH:mm',
+                //});
+
+                //$('#fec_desistimiento').datetimepicker({
+                //    //format: 'DD/MM/YYYY',
+                //    format: 'YYYY/MM/DD HH:mm',
+                //});
+
+                $("#estadoc").find("option[value='T']").prop("disabled", true); // Tramite
+                $("#estadoc").find("option[value='A']").prop("disabled", true); // Aprobado
+                $("#estadoc").find("option[value='N']").prop("disabled", true); // Negado
+                $("#estadoc").find("option[value='D']").prop("disabled", true); // Desembolso
+                $("#estadoc").find("option[value='C']").prop("disabled", true); // Confirmado
+                $("#estadoc").find("option[value='O']").prop("disabled", false); // Desistio
+                console.log("Estado O");
+            }
+        }
+
+
+        function validafecha_para_aprobacion(){
+            var fechaAux = $('#fec_envdocumentos').val();
+            var annio = fechaAux.substring(0,4);
+            var mes = fechaAux.substring(5,7);
+            var dia = fechaAux.substring(8,10);
+
+            $('#fec_envdocumentos').datetimepicker({
+                // defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD HH:mm',
+                //maxDate: new Date(),
+                //minDate: new Date(),
+            }).on('dp.change', function(e) {
+                $('#fec_aprobacion').data("DateTimePicker").minDate(e.date)
+            });
+
+            $('#fec_aprobacion').datetimepicker({
+                //defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD HH:mm',
+                // minDate: '-' + new Date(annio,(mes)-1,dia) + '',
+                minDate:'-' + new Date() + '',
+            });
+
+            console.log("valida fecha para Aprobacion: " + fechaAux + " Año: " + fechaAux.substring(0,4)+ " Mes: " + fechaAux.substring(5,7) + " Dia: " + fechaAux.substring(8,10));
+        }
+
+        function validafecha_para_Desembolso(){
+            var fechaAux = $('#fec_aprobacion').val();
+            var annio = fechaAux.substring(0,4);
+            var mes = fechaAux.substring(5,7);
+            var dia = fechaAux.substring(8,10);
+
+            $('#fec_aprobacion').datetimepicker({
+                // defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD HH:mm',
+                //maxDate: new Date(),
+                //minDate: new Date(),
+            }).on('dp.change', function(e) {
+                $('#fec_desembolso').data("DateTimePicker").minDate(e.date)
+            });
+
+            $('#fec_desembolso').datetimepicker({
+                //defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD HH:mm',
+                // minDate: '-' + new Date(annio,(mes)-1,dia) + '',
+                minDate: '-' + new Date() + '',
+            });
+
+            console.log("valida fecha para Desembolso: " + fechaAux + " Año: " + fechaAux.substring(0,4)+ " Mes: " + fechaAux.substring(5,7) + " Dia: " + fechaAux.substring(8,10));
+        }
+
+        function validafecha_para_Confirmado() {
+            var fechaAux = $('#fec_desembolso').val();
+            var annio = fechaAux.substring(0,4);
+            var mes = fechaAux.substring(5,7);
+            var dia = fechaAux.substring(8,10);
+
+            $('#fec_desembolso').datetimepicker({
+                // defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD HH:mm',
+                //maxDate: new Date(),
+                //minDate: new Date(),
+            }).on('dp.change', function(e) {
+                $('#fec_confirmacion').data("DateTimePicker").minDate(e.date)
+            });
+
+            $('#fec_confirmacion').datetimepicker({
+                //defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD HH:mm',
+                //minDate: '-' + new Date(annio,(mes)-1,dia) + '',
+                minDate: '-' + new Date() + '',
+            });
+
+            console.log("valida fecha para Confirmacion: " + fechaAux + " Año: " + fechaAux.substring(0,4)+ " Mes: " + fechaAux.substring(5,7) + " Dia: " + fechaAux.substring(8,10));
+
+        }
+
+        function validafecha_para_Negado(){
+            var fechaAux = $('#fec_envdocumentos').val();
+            var annio = fechaAux.substring(0,4);
+            var mes = fechaAux.substring(5,7);
+            var dia = fechaAux.substring(8,10);
+
+            $('#fec_envdocumentos').datetimepicker({
+                // defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD HH:mm',
+                //maxDate: new Date(),
+                //minDate: new Date(),
+            }).on('dp.change', function(e) {
+                $('#fec_negacion').data("DateTimePicker").minDate(e.date)
+            });
+
+            $('#fec_negacion').datetimepicker({
+                //defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD HH:mm',
+                //minDate: '-' + new Date(annio,(mes)-1,dia) + '',
+                minDate: '-' + new Date() + '',
+            });
+
+            console.log("valida fecha para Negar : " + fechaAux + " Año: " + fechaAux.substring(0,4)+ " Mes: " + fechaAux.substring(5,7) + " Dia: " + fechaAux.substring(8,10));
+
+        }
+
+        function validafecha_para_Desistio(){
+            var fechaAux = $('#fec_envdocumentos').val();
+            var annio = fechaAux.substring(0,4);
+            var mes = fechaAux.substring(5,7);
+            var dia = fechaAux.substring(8,10);
+
+            $('#fec_envdocumentos').datetimepicker({
+                // defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD HH:mm',
+                //maxDate: new Date(),
+                //minDate: new Date(),
+            }).on('dp.change', function(e) {
+                $('#fec_desistimiento').data("DateTimePicker").minDate(e.date)
+            });
+
+            $('#fec_desistimiento').datetimepicker({
+                //defaultDate: new Date(),
+                showTodayButton: true,
+                format: 'YYYY/MM/DD HH:mm',
+                // minDate: '-' + new Date(annio,(mes)-1,dia) + '',
+                minDate: '-' + new Date() + '',
+            });
+
+            console.log("valida fecha para Desistir : " + fechaAux + " Año: " + fechaAux.substring(0,4)+ " Mes: " + fechaAux.substring(5,7) + " Dia: " + fechaAux.substring(8,10));
+
+        }
+
+        function valida(id) {
+            window.location.href = '@Url.Action("Edit", "v_creditos")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        function seguimiento(id) {
+            window.location.href = '@Url.Action("Seguimiento", "v_creditos")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+
+        function buscarDatos() {
+            $('#tablaPaginada').dataTable().fnDestroy();
+            $.ajax({
+                url: '/v_creditos/BuscarDatos',
+                data: {
+                    fecha_inicio: $('#fechaDesde').val(),
+                    fecha_fin: $('#fechaHasta').val()
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append(
+                            '<tr>'
+                                +'<td align="right">' + data[i].pedido + '</td>'
+                                +'<td align="left">' + data[i].financiera + '</td>'
+                                +'<td align="left">' + data[i].nombre + '</td>'
+                                +'<td align="left">' + data[i].fec_solicitud + '</td>'
+                                +'<td align="left">' + data[i].estadoc + '</td>'
+                                +'<td align="left">'+data[i].motivo+'</td>'
+                                +'<td align="left">'+data[i].descripcion+'</td>'
+                                +'<td align="left">' + data[i].fecha_estado + '</td>'
+                                +'<td width="15%" align="center">'
+                                    +'<button class="btn btn-info btn-xs" onclick="valida(' + '\'' + data[i].id + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button>&nbsp;&nbsp;'
+                                    +'<button class="btn btn-primary btn-xs" onclick="seguimiento(' + '\'' + data[i].id + '\')">&nbsp;&nbsp;Seguimiento&nbsp;&nbsp;</button>'
+                                    +'<button class="btn btn-success btn-xs" onclick="documentos(' + '\'' + data[i].id + '\')">&nbsp;&nbsp;Documentos&nbsp;&nbsp;</button>'
+
+                                +'</td>'
+                             +'</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        }
+
+        function actualizarEstado(){
+            $.ajax({
+                url: '/v_creditos/fueConfirmado',
+                data: {
+                    ped: $('#pedido').val(),
+                    no_mod: id2,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#tercero').prop('readonly', true);
+                    $('#vehiculo').prop('readonly', true);
+
+                    if ($('#tercero2').val() == null || $('#tercero2').val() == '' || $('#tercero').val() != data[0].nit) {
+                        $('#tercero2').val(data[0].nit)
+                    }
+                    else
+                    {
+                        $('#tercero').val(data[0].nit)
+                    }
+
+                    //$('#asesor_id').val(data[0].vendedor)
+                    $('#vehiculo').val(data[0].modelo)
+
+                    $('#tercero').select2();
+                    $('#tercero2').select2();
+                    //$('#asesor_id').select2();
+                    $('#vehiculo').select2();
+                }
+            });
+        }
+
+        var numero_miles = "";
+        function formatNumber(n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles(id) {
+
+            numero_miles = formatNumber($('#' + id + '').val());
+            $('#' + id + '').val(numero_miles);
+            //console.log($('#'+id+'').val);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr += '';
+            x = nStr.split(',');
+            x1 = x[0];
+            x2 = x.length > 1 ? ',' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+    </script>
+
+}

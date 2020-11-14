@@ -1,0 +1,934 @@
+﻿@{
+    ViewBag.Title = "Informe Auditoría";
+    ViewBag.Icono = "fa fa-align-left";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i>  @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-bloquear" class="nav nav-tabs">
+                <li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Auditorías</a></li>
+                <li class="active"><a data-toggle="tab" href="#encabezado"><i class="fa fa-align-left"></i>&nbsp;&nbsp;Informe Auditoría</a></li>
+            </ul>
+
+            <div id="encabezado" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="alert alert-danger" id="errorPermiso" style="display:none" role="alert">El usuario no tiene permiso de bloquear el inventario</div>
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Auditoría</label>
+                                                <div class="col-md-8">
+                                                    <input class="form-control" type="text" name="encabezado_input" id="encabezado_input" readonly value="" />
+                                                    <input type="hidden" name="id_encabezado" id="id_encabezado" value="@ViewBag.id_encabezado" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="col-md-3">
+                                                <button type="button" class="form-control btn-warning" id="verParejas" onclick="buscarParejas()">Parejas</button>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <button type="button" class="form-control btn-danger" id="controlCambios" onclick="control()">Control Cambios</button>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <button type="button" class="form-control btn-success" id="diferencias" onclick="cargarDatosInforme(1)">Calcular Diferencias</button>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="form-control btn-circle btn-info" onclick="informer()" title="Información"><i class="fa fa-info"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row" hidden>
+                                        
+                                    </div>
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table class="table table-striped table-bordered table-hover" id="tablaInforme">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Repuestos</th>
+                                                        <th style="text-align:center">Ubicaciones</th>
+                                                        <th style="text-align:center">Stock</th>
+                                                        <th style="text-align:center">Conteo 1</th>
+                                                        <th style="text-align:center">Conteo 2</th>
+                                                        <th style="text-align:center">Diferencias</th>
+                                                        <th style="text-align:center">Conteo Extra</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Conteos Extra Asignados
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table class="table table-striped table-bordered table-hover" id="tabla_conteos_extra">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Referencia</th>
+                                                        <th style="text-align:center">Ubicaciones</th>
+                                                        <th style="text-align:center">Pareja</th>
+
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-5">
+                                        <button class="form-control btn btn-info" type="button" id="crear_nuevo_btn">Crear nueva auditoría</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Fecha Inicio</th>
+                                        <th style="text-align:center">Fecha Fin</th>
+                                        <th style="text-align:center">Tipo Conteo</th>
+                                        <th style="text-align:center">Conteo 1</th>
+                                        <th style="text-align:center">Conteo 2</th>
+                                        <th style="text-align:center">Bodega</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal hmodal-info" id="modal_parejas" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Estado Parejas</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_parejas">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Número</th>
+                                <th style="text-align:center">Pareja</th>
+                                <th style="text-align:center">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade hmodal-primary" id="modal_editar_progreso" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Edición de Conteo</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Parejas:&nbsp;</label>
+                            <div class="col-md-8">
+                                <select class="form-control" id="select_parejas_modal" name="select_parejas_modal"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="table_editar_progreso">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Ubicación</th>
+                                <th style="text-align:center">Referencia</th>
+                                <th style="text-align:center">Conteo 1</th>
+                                <th style="text-align:center">Conteo 2</th>
+                                <th style="text-align:center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <h3>Conteo Extra</h3>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="table_editar_progreso_extra">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Ubicación</th>
+                                <th style="text-align:center">Referencia</th>
+                                <th style="text-align:center">Conteo Extra</th>
+                                <th style="text-align:center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal hmodal-info" id="modal_control_cambios" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Control De Cambios</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tabla_cambios">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Referencia</th>
+                                <th style="text-align:center">Pareja Solicita</th>
+                                <th style="text-align:center">Anterior Valor Conteo 1</th>
+                                <th style="text-align:center">Nuevo Valor Conteo 1</th>
+                                <th style="text-align:center">Anterior Valor Conteo 2</th>
+                                <th style="text-align:center">Nuevo Valor Conteo 2</th>
+                                <th style="text-align:center">Usuario Modifica</th>
+                                <th style="text-align:center">Fecha Modifica</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal hmodal-info" id="modal_informativo" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog ">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Información</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <h3>Forma de cálculo de diferencias</h3>
+                    <p id="informer"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal hmodal-info" id="modal_conteo_final" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog ">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Asignación de Conteo Extra</h4>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="input_conteo_extra_hidden" value="" />
+                <input type="hidden" id="ubicaciones_conteo_extra_hidden" value="" />
+                <input type="hidden" id="id_referencia_hidden" value="" />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Contar Referencia</label>
+                            <div class="col-md-8">
+                                <input readonly id="input_conteo_extra" class="form-control" value="" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Ubicaciones a Asignar</label>
+                            <div class="col-md-8">
+                                <textarea readonly id="ubicaciones_conteo_extra" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="control-label col-md-4">Parejas</label>
+                            <div class="col-md-8">
+                                <select class="form-control parejas_select" id="parejas_conteo_extra" name="parejas_conteo_extra"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-9"></div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <button type="button" class="form-control btn btn-success" id="btn_asignar" onclick="asignar_extra()">Asignar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/moment/min/moment-with-locales.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            browser()
+            cargarDatosInforme()
+            cargarListaAsignada()
+            $('.parejas_select').select2()
+            $('#select_parejas_modal').select2()
+
+
+        });
+
+        $('#crear_nuevo_btn').click(function () {
+            window.location.href = '@Url.Action("encabezado", "InventarioFisico")'
+        })
+
+        $('#select_parejas_modal').change(function () {
+            $('#table_editar_progreso').dataTable().fnDestroy();
+            $('#table_editar_progreso').find('tbody').empty();
+            $('#table_editar_progreso_extra').dataTable().fnDestroy();
+            $('#table_editar_progreso_extra').find('tbody').empty();
+            $.ajax({
+                url: '/InventarioFisico/CargarTablaDatos',
+                data: {
+                    id: $('#select_parejas_modal').val()
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    var arreglo = [data.buscar.length]
+                    for (var i = 0; i < data.buscar.length; i++) {
+
+                        $('#table_editar_progreso').find('tbody').append(
+                                '<tr>'
+                                    + '<td>' + data.buscar[i].ubicacion + '</td>'
+                                    + '<td>' + data.buscar[i].referencia + '</td>'
+                                    + '<td style="width: 10%">'
+                                        + '<input id="inputConteo1' + i + '" style="text-align:right" class="form-control col-md-3" value="' + data.buscar[i].conteo_1 + '"/>'
+                                        + '<input id="inputConteo1Hidden' + i + '" type="hidden" style="text-align:right" class="form-control col-md-3" value="' + data.buscar[i].conteo_1 + '"/>'
+                                    + '</td>'
+                                    + '<td>'
+                                        + '<input id="inputConteo2' + i + '" style="text-align:right" class="form-control col-md-3" value="' + data.buscar[i].conteo_2 + '"/>'
+                                        + '<input id="inputConteo2Hidden' + i + '" type="hidden" style="text-align:right" class="form-control col-md-3" value="' + data.buscar[i].conteo_2 + '"/>'
+                                    + '</td>'
+                                    + '<td align="center" style="width: 5%">'
+                                        + '<button type="button" class="btn btn-info btn-sm form-control" onclick="guardarCambios(' + data.buscar[i].id + ',' + i + ')" title="Guardar Cambios"><i class="fa fa-save"></i></button>'
+                                    + '</td>'
+                                + '</tr>'
+                            )
+                        if (data.buscar[i].conteo_1 == 0) {
+                            $('#inputConteo1' + i).prop('disabled', true)
+                            $('#inputConteo1Hidden' + i).prop('disabled', true)
+                        }
+                        if (data.buscar[i].conteo_2 == 0) {
+                            $('#inputConteo2' + i).prop('disabled', true)
+                            $('#inputConteo2Hidden' + i).prop('disabled', true)
+                        }
+                        arreglo[i] = {
+                            id: data.buscar[i].id,
+                            input1: $('#inputConteo1' + i).val(),
+                            inputH1: $('#inputConteo1Hidden' + i).val(),
+                            input2: $('#inputConteo2' + i).val(),
+                            inputH2: $('#inputConteo2Hidden' + i).val(),
+                        }
+
+                    }
+                    for (var i = 0; i < data.extra.length; i++) {
+
+                        $('#table_editar_progreso_extra').find('tbody').append(
+                                '<tr>'
+                                    + '<td>' + data.extra[i].ubicacion + '</td>'
+                                    + '<td>' +'('+ data.extra[i].ref_codigo +')' + data.extra[i].referencia + '</td>'
+                                    + '<td style="width: 10%">'
+                                        + '<input id="inputConteo3' + i + '" style="text-align:right" class="form-control col-md-3" value="' + data.extra[i].conteo3 + '"/>'
+                                        + '<input id="inputConteo3Hidden' + i + '" type="hidden" style="text-align:right" class="form-control col-md-3" value="' + data.extra[i].conteo3 + '"/>'
+                                    + '</td>'
+                                    + '<td align="center" style="width: 5%">'
+                                        + '<button type="button" class="btn btn-info btn-sm form-control" onclick="guardarCambios2(' + data.extra[i].id_conteo + ',' + i + ')" title="Guardar Cambios"><i class="fa fa-save"></i></button>'
+                                    + '</td>'
+                                + '</tr>'
+                            )
+                        //if (data.extra[i].conteo3 == 0) {
+                        //    $('#inputConteo3' + i).prop('disabled', true)
+                        //    $('#inputConteo3Hidden' + i).prop('disabled', true)
+                        //}
+
+                        arreglo[i] = {
+                            id: data.extra[i].id,
+                            input1: $('#inputConteo3' + i).val(),
+                            inputH1: $('#inputConteo3Hidden' + i).val(),
+                        }
+
+                    }
+
+                },
+                complete: function (data) {
+                    $('#table_editar_progreso').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[5, 10, 15, -1], [5, 10, 15, "All"]],
+                        buttons: []
+                    });
+                    $('#table_editar_progreso_extra').dataTable({
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[5, 10, 15, -1], [5, 10, 15, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        })
+
+        function generarExcel(id){
+            $.ajax({
+                url:'/InventarioFisico/generarExcel',
+                data:{
+                    id_encab :id
+                },
+                success: function(data){
+                    if (data.carga == 1) {
+                        var link = "/Informes Inventario/"+ data.nombre
+                        window.location.href = link;
+                    }
+                    else {
+                        swal("Error","No fue posible generar el archivo, valide que si hay información en el inventario","error")    
+                    }
+                }
+            })
+        }
+
+        function guardarCambios2(id, i) {
+            var conteo3 = $('#inputConteo3' + i).val();
+            var conteo3_hiden = $('#inputConteo3Hidden' + i).val();
+            $.ajax({
+                url: '/InventarioFisico/guardarCambios2',
+                data: {
+                    id: id,
+                    conteo_3_nuevo: conteo3,
+                    conteo_3_antiguo: conteo3_hiden,
+                    pareja: $('#select_parejas_modal').val()
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    if (data == true) {
+                        swal("Modificación realizada con éxito", "", "success")
+                        setTimeout(function(){
+                            location.reload()
+                        },1000)
+                    }
+                    else {
+                        swal("No hizo modificaciones para actualizar", "", "error")
+                    }
+                }
+            })
+        }
+
+        function browser() {
+            $.ajax({
+                url: '/InventarioFisico/browserEncabezado',
+                data: {},
+                type: 'POST',
+                cache: false,
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+
+                        $('#tablaPaginada').find('tbody').append(
+                                '<tr>'
+                                    + '<td align="left">' + data[i].encabezado + '</td>'
+                                    + '<td align="right">' + data[i].fechaInicia + '</td>'
+                                    + '<td align="right">' + data[i].fechaFinal + '</td>'
+                                    + '<td align="left">' + data[i].tipo + '</td>'
+                                    + '<td align="right">' + data[i].progreso_1 + '%</td>'
+                                    + '<td align="right">' + data[i].progreso_2 + '%</td>'
+                                    + '<td align="left">' + data[i].bodega + '</td>'
+                                    + '<td align="left">' + data[i].estado + '</td>'
+                                    + '<td align="center">'
+                                        + '<button type="button" class="btn btn-xs btn-success" id="asig_parejas' + i + '" title="Asignar Parejas" onclick="parejas(' + data[i].id_encabezado + ')"><i class="fa fa-male"></i>&nbsp;<i class="fa fa-male"></i></button>&nbsp;'
+                                        + '<button type="button" class="btn btn-xs btn-info" onclick="valida(' + data[i].id_encabezado + ')">Ver</button>&nbsp;'
+                                        + '<button type="button" class="btn btn-xs btn-warning" id="editarProgreso' + i + '" style="display:none" title="Editar Progreso" onclick="cargarLista(' + data[i].id_encabezado + ')"><i class="fa fa-pencil"></i></button>&nbsp;'
+                                        + '<button type="button" class="btn btn-xs btn-primary" id="informe' + i + '" style="display:none" title="Informe" onclick="Informe(' + data[i].id_encabezado + ')"><i class="fa fa-align-left"></i></button>&nbsp;'
+                                        + '<button type="button" class="btn btn-xs btn-success" id="excel' + i + '" style="display:none" title="Informe Excel" onclick="generarExcel(' + data[i].id_encabezado + ')"><i class="fa fa-file-excel-o"></i></button>'
+                                   + '</td>'
+                                + '</tr>'
+                            )
+                        if (data[i].estado == "Activo") {
+                            $('#editarProgreso' + i).show()
+                            $('#informe' + i).show()
+                            $('#asig_parejas' + i).hide()
+                            $('#informe' + i).show()
+                        }
+                        if (data[i].estado == "Finalizado") {
+                            $('#editarProgreso' + i).hide()
+                            $('#asig_parejas' + i).hide()
+                            $('#excel' + i).show()
+                            $('#informe' + i).hide()
+                        }
+                        var fechaHoy = '@DateTime.Now.Date.ToString("yyyy/MM/dd")';
+                        if (data[i].fechaFinal <= fechaHoy) {
+                            if (data[i].fechaFinal < fechaHoy && data[i].estado == "Inactivo") {
+                                $('#informe' + i).hide()
+                                $('#asig_parejas' + i).hide()
+                            }
+                        }
+                    }
+                }
+            })
+        };
+
+        function Informe(id) {
+            window.location.href = '@Url.Action("Informe", "InventarioFisico")?id=' + id;
+        };
+
+        function cargarLista(id) {
+            $.ajax({
+                url: '/InventarioFisico/cargarListaPareja',
+                data: {
+                    id_encab: id,
+                },
+                cache: false,
+                type: 'post',
+                success: function (data) {
+                    $('#select_parejas_modal').empty()
+                    for (var i = 0; i < data.length; i++) {
+                        $('#select_parejas_modal').append('<option value="' + data[i].value + '">' + data[i].text + '')
+                    }
+                    $('#modal_editar_progreso').modal('show')
+                    //$('body').removeClass('modal-open')
+                    $('body').attr('style', 'width:100%')
+                    $('#select_parejas_modal').val('').trigger('change')
+                }
+            })
+        };
+
+        function guardarCambios(id, i) {
+            var conteo1 = $('#inputConteo1' + i).val();
+            var conteo1_hiden = $('#inputConteo1Hidden' + i).val();
+            var conteo2 = $('#inputConteo2' + i).val();
+            var conteo2_hiden = $('#inputConteo2Hidden' + i).val();
+            $.ajax({
+                url: '/InventarioFisico/guardarCambios',
+                data: {
+                    id: id,
+                    conteo_1_nuevo: conteo1,
+                    conteo_1_antiguo: conteo1_hiden,
+                    conteo_2_nuevo: conteo2,
+                    conteo_2_antiguo: conteo2_hiden
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    if (data == true) {
+                        swal("Modificación realizada con éxito", "", "success")
+                    }
+                    else {
+                        swal("No hizo modificaciones para actualizar", "", "error")
+                    }
+                }
+            })
+        };
+
+        function valida(id) {
+            window.location.href = '@Url.Action("edit", "InventarioFisico")?id=' + id;
+        };
+
+        function parejas(id) {
+            window.location.href = '@Url.Action("asignacionParejas", "InventarioFisico")?id=' + id;
+        };
+
+        function buscarParejas() {
+            $('#tabla_parejas').dataTable().fnDestroy();
+
+            $.ajax({
+                url: '/InventarioFisico/estadoParejas',
+                data: {
+                    id_encabezado: $('#id_encabezado').val()
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    $('#tabla_parejas').find('tbody').empty()
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tabla_parejas').find('tbody').append(
+                                '<tr>'
+                                    + '<td align="right">' + data[i].numero + '</td>'
+                                    + '<td>' + data[i].pareja + '</td>'
+                                    + '<td>' + data[i].estado + '</td>'
+                                + '</tr>'
+                            )
+                    }
+                    $('#modal_parejas').modal('show')
+                },
+                complete: function () {
+                    $('#tabla_parejas').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        }
+
+        function cargarDatosInforme(boton) {
+            $('#tablaInforme').dataTable().fnDestroy();
+            $('#tablaInforme').find('tbody').empty()
+            $.ajax({
+                url: '/InventarioFisico/cargarDatosInforme',
+                data: {
+                    id_encabezado: $('#id_encabezado').val(),
+                    boton: boton
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    var diferencias = '';
+                    if (data.mensaje == 0) {
+                        swal("Error en las diferencias", "Aún no se pueden calcular las diferencias, la totalidad de las parejas no ha terminado sus respectivos conteos", "error");
+                        diferencias = '<td></td>'
+                    }
+                    $("#encabezado_input").val(data.data.encabezado)
+                    for (var i = 0; i < data.data.datos2.length; i++) {
+
+                        if (data.mensaje == 1) {
+                            if (data.data.datos2[i].diferencias == "0" ) {
+                                diferencias = '<td></td>'
+                            }
+                            else {
+                                if (data.data.datos2[i].conteo3 != "") {
+                                    diferencias = '<td align="center"><button type="button" id="asignarConteoFinal'+i+'" class="btn btn-danger btn-xs" title="Este botón está deshabilitado porque \n'
+                                                    +'ya se le asignó un conteo extra y ya está en curso" onclick="swalError()" >' + data.data.datos2[i].diferencias + '</button></td>'
+                                } else{
+                                    diferencias = '<td align="center"><button type="button" id="asignarConteoFinal'+i+'" class="btn btn-danger btn-xs" title="Asignación Conteo Final" onclick="asignarConteoFinal(\'' + data.data.datos2[i].ubicaciones_id + '\',\'' + data.data.datos2[i].ubicaciones + '\',\'' + data.data.datos2[i].referencia + '\',\'' + data.data.datos2[i].id_referencia + '\''+ ')">' + data.data.datos2[i].diferencias + '</button></td>'
+                                }
+
+                            }
+
+                        }
+                        $('#tablaInforme').find('tbody').append(
+                                '<tr>'
+                                    + '<td>' + data.data.datos2[i].referencia + '</td>'
+                                    + '<td><input type="hidden" id="id_ubi_' + i + '" value="' + data.data.datos2[i].ubicaciones_id + '" />' + data.data.datos2[i].ubicaciones + '</td>'
+                                    + '<td align="right">' + data.data.datos2[i].stock + '</td>'
+                                    + '<td align="right">' + data.data.datos2[i].conteo1 + '</td>'
+                                    + '<td align="right">' + data.data.datos2[i].conteo2 + '</td>'
+                                    + diferencias
+                                    + '<td align="right">' + data.data.datos2[i].conteo3 + '</td>'
+                                + '</tr>'
+                            )
+                    }
+
+                },
+                complete: function () {
+                    $('#tablaInforme').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+
+                        ]
+                    });
+                }
+            })
+        };
+
+        function swalError(){
+            swal("No se puede asignar un conteo extra","Ya está iniciado esté conteo","error")
+        }
+
+        function control() {
+            $('#tabla_cambios').dataTable().fnDestroy();
+            $.ajax({
+                url: '/InventarioFisico/controlCambios',
+                data: {
+                    id_encabezado: $('#id_encabezado').val()
+                },
+                type: 'post',
+                cache: false,
+                success: function (data) {
+                    $('#tabla_cambios').find('tbody').empty()
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tabla_cambios').find('tbody').append(
+                                '<tr>'
+                                    + '<td>' + data[i].referencia + '</td>'
+                                    + '<td>' + data[i].pareja + '</td>'
+                                    + '<td align="right">' + data[i].conteo_1_anterior + '</td>'
+                                    + '<td align="right">' + data[i].conteo_1_nuevo + '</td>'
+                                    + '<td align="right">' + data[i].conteo_2_anterior + '</td>'
+                                    + '<td align="right">' + data[i].conteo_2_nuevo + '</td>'
+                                    + '<td>' + data[i].usuario + '</td>'
+                                    + '<td align="right" >' + data[i].fecha + '</td>'
+                                + '</tr>'
+                            )
+                    }
+                    $('#modal_control_cambios').modal('show')
+                },
+                complete: function () {
+                    $('#tabla_cambios').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: []
+                    });
+                }
+            })
+        }
+
+        function asignarConteoFinal(ubi_id, ubica, refer, id_refer) {
+            cargarLista2()
+            $('#ubicaciones_conteo_extra').text(ubica)
+            $('#input_conteo_extra').val(refer)
+            $('#id_referencia_hidden').val(id_refer)
+            $('#ubicaciones_conteo_extra_hidden').val(ubi_id)
+            $('#modal_conteo_final').modal('show')
+        }
+
+        function cargarListaAsignada(){
+            $('#tabla_conteos_extra').dataTable().fnDestroy()
+            $('#tabla_conteos_extra').find('tbody').empty()
+            $.ajax({
+                url:'/InventarioFisico/cargarListaAsignada',
+                data:{
+                    id_encab :$('#id_encabezado').val(),
+                },
+                type: 'post',
+                cache: false,
+                success: function(data){
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tabla_conteos_extra').find('tbody').append(
+                                '<tr>'
+                                    +'<td>'+data[i].referencia+'</td>'
+                                    +'<td>'+data[i].ubicaciones+'</td>'
+                                    +'<td>'+data[i].grupo+'</td>'
+                                +'</tr>'
+                            )
+                    }
+                },
+                complete: function(){
+                    $('#tabla_conteos_extra').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'csv', title: 'ExampleFile', className: 'btn-sm' },
+
+                        ]
+                    });
+                }
+            })
+        }
+
+        function informer() {
+            if (@ViewBag.tipo == 0) {
+                $('#informer').text('El cálculo que genera este informe es de la columna conteo 1 vs stock, '
+                    +'en caso de que el resultado de estos dos valores sea diferente de 0 aparecera un botón en la columna diferencias con el resultado dentro de el. '
+                    +'Este botón servirá para asignar un conteo extra a una pareja, donde la pareja solo deberá contar la referencia en las ubicaciones donde fue encontrada.')
+                $('#modal_informativo').modal('show')
+            }
+            if (@ViewBag.tipo == 1) {
+                $('#informer').text('El cálculo que genera este informe es de la columna conteo 1 vs conteo 2, '
+                    +'en caso de que el resultado de estos dos valores sea diferente de 0 aparecera un botón en la columna diferencias con el resultado dentro de el. '
+                    +'Este botón servirá para asignar un conteo extra a una pareja, donde la pareja solo deberá contar la referencia en las ubicaciones donde fue encontrada.')
+                $('#modal_informativo').modal('show')
+            }
+        }
+
+        function cargarLista2() {
+            $('#parejas_conteo_extra').empty()
+            $.ajax({
+                url: '/InventarioFisico/cargarListaPareja',
+                data: {
+                    id_encab: $('#id_encabezado').val(),
+                },
+                cache: false,
+                type: 'post',
+                success: function (data) {
+                    $('#parejas_conteo_extra').append('<option>')
+                    for (var i = 0; i < data.length; i++) {
+                        $('#parejas_conteo_extra').append('<option value="' + data[i].value + '">' + data[i].text + '')
+                    }
+                    $('body').attr('style', 'width:100%')
+                    $('#select_parejas_modal').val('').trigger('change')
+                }
+            })
+        };
+
+        function asignar_extra(){
+
+            if ($('#parejas_conteo_extra').val() == "" || $('#parejas_conteo_extra').val() == null) {
+                swal("Error","","error")
+            }
+            else {
+                $.ajax({
+                    url:'/InventarioFisico/asignarConteo3',
+                    data:{
+                        id_encab : $('#id_encabezado').val(),
+                        ubicaciones : $('#ubicaciones_conteo_extra_hidden').val(),
+                        referencia : $('#id_referencia_hidden').val(),
+                        pareja : $('#parejas_conteo_extra').val()
+                    },
+                    type:'post',
+                    cache: false,
+                    success: function(data){
+                        if (data == 1) {
+                            $('#modal_conteo_final').modal('hide')
+                            swal("Asignación correcta","","success")
+                            cargarListaAsignada()
+                        }
+                        if (data == 0) {
+                            swal("Asignación incorrecta","Esta referencia ya fue asignada para un conteo extra ","error")
+                        }
+                    }
+                })
+
+            }
+        }
+
+
+    </script>
+
+}
+
+

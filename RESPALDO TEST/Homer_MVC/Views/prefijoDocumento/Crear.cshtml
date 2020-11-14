@@ -1,0 +1,754 @@
+﻿@model Homer_MVC.Models.TpDocRegistroModel
+
+@{
+    ViewBag.Title = "Prefijo Documento";
+    ViewBag.Icono = "fa fa-folder-open-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class="" onclick="buscarAjaxTipos();"><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm("Crear", "prefijoDocumento", FormMethod.Post))
+                    {
+
+                        <div class="panel-body-btns text-right">
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Código SW:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.sw, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.sw, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.tipo, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.tipo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Prefijo Documento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.prefijo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Prefijo", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.prefijo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Nombre Documento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.tpdoc_nombre, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Nombre", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.tpdoc_nombre, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">Bodega(s):&nbsp;<span class="text-danger">*</span></label>
+                <div class="col-md-6">
+                    <select id="bodccs_cod" name="bodccs_cod" multiple="multiple">
+                        @foreach (var item in ViewBag.bodccs_cod)
+                        {
+                            <option value="@item.id">@item.bodccs_nombre</option>
+                        }
+                    </select>
+                    @Html.ValidationMessageFor(model => model.bodega, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>*@
+
+                                    @*<div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">% Retención:&nbsp;<span class="text-danger"></span></label>
+                <div class="col-md-6">
+                    @Html.EditorFor(model => model.retencion, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Porcentaje Retención" } })
+                    @Html.ValidationMessageFor(model => model.retencion, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">Base Retención:&nbsp;<span class="text-danger"></span></label>
+                <div class="col-md-6">
+                    @Html.EditorFor(model => model.baseretencion, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Base Retención", @type = "text" } })
+                    @Html.ValidationMessageFor(model => model.baseretencion, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">% ReteICA:&nbsp;<span class="text-danger"></span></label>
+                <div class="col-md-6">
+                    @Html.EditorFor(model => model.retica, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Porcentaje Rete ICA" } })
+                    @Html.ValidationMessageFor(model => model.retica, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">Base ICA:&nbsp;<span class="text-danger"></span></label>
+                <div class="col-md-6">
+                    @Html.EditorFor(model => model.baseica, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Base ICA", @type = "text" } })
+                    @Html.ValidationMessageFor(model => model.baseica, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">% ReteIVA:&nbsp;<span class="text-danger"></span></label>
+                <div class="col-md-6">
+                    @Html.EditorFor(model => model.retiva, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Porcentaje Rete IVA" } })
+                    @Html.ValidationMessageFor(model => model.retiva, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="control-label col-md-4">Base IVA:&nbsp;<span class="text-danger"></span></label>
+                <div class="col-md-6">
+                    @Html.EditorFor(model => model.baseiva, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Base IVA", @type = "text" } })
+                    @Html.ValidationMessageFor(model => model.baseiva, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>*@
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Texto 1:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.texto1, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Texto 1" } })
+                                                @Html.ValidationMessageFor(model => model.texto1, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Texto 2:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.texto2, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Texto 2" } })
+                                                @Html.ValidationMessageFor(model => model.texto2, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Texto 3:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.texto3, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Texto 3" } })
+                                                @Html.ValidationMessageFor(model => model.texto3, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Texto 4:&nbsp;<span class="text-danger"></span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.texto4, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Texto 4" } })
+                                                @Html.ValidationMessageFor(model => model.texto4, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Consecutivo Por Año:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.consecano, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Consecutivo Por Mes:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.consecmes, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Aplica Niif:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.CheckBoxFor(model => model.aplicaniff, new { @data_toggle = "toggle", @data_size = "mini" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo de Documento:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @*<label class="control-label col-md-8">
+                    <span class="text-danger">*&nbsp;</span>&nbsp;&nbsp;*@
+                                                @*<span class="text-danger">*&nbsp;</span>Selección (activo)&nbsp;&nbsp;&nbsp;&nbsp;*@
+                                                @Html.CheckBoxFor(model => model.interno, new { @data_toggle = "toggle", @data_size = "mini", @data_on = "Mov. Inventario", @data_off = "Documento" })
+                                                @*</label>*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="internoasociado" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Movimiento Interno Asociado:&nbsp;</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownListFor(model => model.doc_interno_asociado, null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                @Html.ValidationMessageFor(model => model.doc_interno_asociado, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="entradasalida" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo de Movimiento Inventario:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @*<label class="control-label col-md-8">
+                                                <span class="text-danger">*&nbsp;</span>&nbsp;&nbsp;*@
+                                                @*<span class="text-danger">*&nbsp;</span>Selección (activo)&nbsp;&nbsp;&nbsp;&nbsp;*@
+                                                @Html.CheckBoxFor(model => model.entrada_salida, new { @data_toggle = "toggle", @data_size = "small", @data_on = "Entrada", @data_off = "Salida" })
+                                                @*</label>*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Estado:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @*<label class="control-label col-md-8">
+                    <span class="text-danger">*&nbsp;</span>&nbsp;&nbsp;*@
+                                                @*<span class="text-danger">*&nbsp;</span>Selección (activo)&nbsp;&nbsp;&nbsp;&nbsp;*@
+                                                @Html.CheckBoxFor(model => model.tpdoc_estado, new { @data_toggle = "toggle", @data_size = "mini", data_on = "Activo", @data_off = "Inactivo" })
+                                                @*</label>*@
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6" id="inactividad" style="display:none">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Razón Inactividad:&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.tpdocrazoninactivo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite Razón Inactividad", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.tpdocrazoninactivo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<input type="hidden" id="numeroConcepto1" name="numeroConcepto1" value="0" />
+        <input type="hidden" id="numeroConcepto2" name="numeroConcepto2" value="0" />*@
+
+                                    @*<div class="row col-md-12">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="control-label col-md-4">Concepto 1&nbsp;<span class="text-danger"></span></label>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-primary" id="btnconceptoUno"><i class="fa fa-plus" aria-hidden="true"></i>&nbsp; Agregar Conceptos</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="control-label col-md-4">Concepto 2&nbsp;<span class="text-danger"></span></label>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-primary" id="conceptoDos"><i class="fa fa-plus" aria-hidden="true"></i>&nbsp; Agregar Conceptos</button>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+
+                                    @*<div class="row">
+            <div class="col-md-6">
+                <h4 class="text-center">Conceptos 1</h4>
+                <div class="table-responsive" style="padding:20px;">
+                    <div id="div-mensaje-buscar"></div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaConceptos1">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Concepto</th>
+                                <th style="text-align:center">Eliminar</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h4 class="text-center">Conceptos 2</h4>
+                <div class="table-responsive" style="padding:20px;">
+                    <div id="div-mensaje-buscar"></div>
+                    <table class="table table-striped table-bordered table-hover" id="tablaConceptos2">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Concepto</th>
+                                <th style="text-align:center">Eliminar</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>*@
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                    }
+
+                </div>
+            </div>
+
+
+
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table id="tablaPaginada" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Prefijo</th>
+                                        <th style="text-align:center">Nombre</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<div id="modalConceptos1" class="modal fade hmodal-info" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Conceptos 1</h4>
+                <small>Lista de conceptos</small>
+            </div>
+            <div class="modal-body">
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Concepto 1:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="text" id="concepto1" class="form-control" placeholder="Digite Concepto" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">&nbsp;<span class="text-danger"></span></label>
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-primary" id="agregarConcepto1"><i class="fa fa-plus" aria-hidden="true"></i>&nbsp; Agregar Concepto</button>
+                        </div>
+                    </div>
+                </div>
+                <label></label>
+            </div>
+            <div class="modal-footer">
+                @*<button type="button" class="btn btn-default" data-dismiss="modal" id="AceptarModal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="modalConceptos2" class="modal fade hmodal-info" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Conceptos 2</h4>
+                <small>Lista de conceptos</small>
+            </div>
+            <div class="modal-body">
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Concepto 2:&nbsp;<span class="text-danger">*</span></label>
+                        <div class="col-md-8">
+                            <input type="text" id="concepto2" class="form-control" placeholder="Digite Concepto" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">&nbsp;<span class="text-danger"></span></label>
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-primary" id="agregarConcepto2"><i class="fa fa-plus" aria-hidden="true"></i>&nbsp; Agregar Concepto</button>
+                        </div>
+                    </div>
+                </div>
+                <label></label>
+            </div>
+            <div class="modal-footer">
+                @*<button type="button" class="btn btn-default" data-dismiss="modal" id="AceptarModal">Aceptar</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+    <script type="text/javascript">
+
+        $('#consecano').change(function(){
+            if($('#consecano').prop('checked')){
+                $('#consecmes').attr('checked',false).change();
+            }
+        });
+
+        $('#consecmes').change(function(){
+            if($('#consecmes').prop('checked')){
+                $('#consecano').attr('checked',false).change();
+            }
+        });
+
+        $('form select').each(function (i) {
+            this.addEventListener('invalid', function (e) {
+                var _s2Id = 's2id_' + e.target.id; //s2 autosuggest html ul li element id
+                var _posS2 = $('#' + _s2Id).position();
+                //get the current position of respective select2
+                $('#' + _s2Id + ' ul').addClass('_invalid'); //add this class with border:1px solid red;
+                //this will reposition the hidden select2 just behind the actual select2 autosuggest field with z-index = -1
+                $('#' + e.target.id).attr('style', 'display:block !important;position:absolute;z-index:-1;top:' + (0 - $('#' + _s2Id).outerHeight() + 30) + 'px;left:' + (15 - ($('#' + _s2Id).width() / 10)) + 'px;');
+                /*
+                //Adjust the left and top position accordingly
+                */
+                //remove invalid class after 3 seconds
+                setTimeout(function () {
+                    $('#' + _s2Id + ' ul').removeClass('_invalid');
+                }, 3000);
+                return true;
+            }, false);
+        });
+
+        function eliminarConcepto1(id) {
+            $('#rowConcepto' + id + '').remove();
+        }
+
+        $('#btnconceptoUno').click(function () {
+            $('#modalConceptos1').modal('show');
+            //$('#numeroConcepto1').val(parseInt($('#numeroConcepto1').val())+1);
+            //$('#conceptosUno').append('<div class="col-sm-12" id="areaConcepto' + $('#numeroConcepto1').val() + '"><div class="form-group"><label class="control-label col-md-4">Concepto 1:&nbsp;<span class="text-danger">*</span></label><div class="col-md-6"><input type="text" class="form-control"/></div><div class="col-md-2"><button type="button" class="btn btn-danger" id="conceptoUno" onclick="eliminarConcepto1(' + $('#numeroConcepto1').val() + ')"><i class="fa fa-times" aria-hidden="true"></i></button></div></div></div>');
+        });
+
+        $('#agregarConcepto1').click(function () {
+            if ($.trim($('#concepto1').val()) != '') {
+                $('#numeroConcepto1').val(parseInt($('#numeroConcepto1').val()) + 1);
+                $('#tablaConceptos1').append('<tr id="rowConcepto' + $('#numeroConcepto1').val() + '"><td align="center"><input type="hidden" name="conceptoUno'
+                    + $('#numeroConcepto1').val() + '" id="conceptoUno' + $('#numeroConcepto1').val()
+                    + '" value="' + $('#concepto1').val() + '"/>' + $('#concepto1').val() + '</td><td width="5%" align="center"><button class="btn btn-danger btn-xs" onclick="eliminarConcepto1('
+                                           + $('#numeroConcepto1').val() + ')">&nbsp;&nbsp;Eliminar&nbsp;&nbsp;</button></td></tr>');
+                $('#concepto1').val('');
+                $('#modalConceptos1').modal('hide');
+            }
+        });
+
+            function eliminarConcepto2(id) {
+                $('#rowConcepto2' + id + '').remove();
+            }
+
+            $('#conceptoDos').click(function () {
+                $('#modalConceptos2').modal('show');
+            });
+
+            $('#agregarConcepto2').click(function () {
+                if ($.trim($('#concepto2').val()) != '') {
+                    $('#numeroConcepto2').val(parseInt($('#numeroConcepto2').val()) + 1);
+                    $('#tablaConceptos2').find('tbody').append('<tr id="rowConcepto2' + $('#numeroConcepto2').val() + '"><td align="center"><input type="text" style="display:none" name="conceptoDos'
+                        + $('#numeroConcepto2').val() + '" id="conceptoDos' + $('#numeroConcepto2').val()
+                        + '" value="' + $('#concepto2').val() + '"/>' + $('#concepto2').val() + '</td><td width="5%" align="center"><button class="btn btn-danger btn-xs" onclick="eliminarConcepto2('
+                                               + $('#numeroConcepto2').val() + ')">&nbsp;&nbsp;Eliminar&nbsp;&nbsp;</button></td></tr>');
+                    $('#concepto2').val('');
+                    $('#modalConceptos2').modal('hide');
+                }
+            });
+
+            $(document).ready(function () {
+                $('#baseretencion').val(0);
+                $('#baseica').val(0);
+                $('#baseiva').val(0);
+                $('#menu').val(@ViewBag.id_menu);
+                $('.js-source-states').select2();
+                var bodegas = '@ViewBag.bodegasSeleccionadas';
+                var res = bodegas.split(",");
+                $('#bodccs_cod').val(res);
+                $('#bodccs_cod').multiselect({
+                    includeSelectAllOption: true,
+                    maxHeight: 400,
+                    //dropUp: true
+                });
+
+                setTimeout(function () {
+                    $("#mensaje").fadeOut(1500);
+                }, 3000);
+                setTimeout(function () {
+                    $("#mensaje_error").fadeOut(1500);
+                }, 3000);
+
+                if (!$('#tpdoc_estado').prop('checked')) {
+                    $('#tpdocrazoninactivo').val('');
+                    $('#inactividad').show();
+                }
+                if (!$('#interno').prop('checked')) {
+                    console.log('documento');
+                    $('#doc_interno_asociado').val('').trigger('change');
+                    buscarDocumentos()
+                    $('#internoasociado').show();
+                    $('#entradasalida').hide();
+                }
+                else {
+                    $('#entradasalida').show();
+                     console.log('documento');
+                    $('#internoasociado').hide();
+
+                }
+            });
+
+            $('#tpdoc_estado').change(function () {
+                if ($('#tpdoc_estado').prop('checked')) {
+                    $('#inactividad').hide();
+                    $('#tpdocrazoninactivo').val('No aplica');
+                } else {
+                    $('#tpdocrazoninactivo').val('');
+                    $('#inactividad').show();
+                }
+            });
+
+        
+            $('#interno').change(function () {
+                if (!$('#interno').prop('checked')) {
+                    $('#internoasociado').show();
+                     $('#entradasalida').hide();
+                    buscarDocumentos();
+                    $('#doc_interno_asociado').val('').trigger('change');
+                } else {
+                    $('#doc_interno_asociado').val('').trigger('change');
+                    $('#internoasociado').hide();
+                     $('#entradasalida').show();
+                }
+            });
+
+            function buscarDocumentos() {
+                $('#doc_interno_asociado').empty();
+                $.ajax({
+                    url: '/prefijoDocumento/traerDocumentosInternos',
+                    data: {
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                         $('#doc_interno_asociado').append($('<option>', {
+                        value: '',
+                        text: 'Seleccione'
+                         }));
+
+                        for (var i = 0; i < data.length; i++) {
+                            $('#doc_interno_asociado').append($('<option>', {
+                                value: data[i].id,
+                                text: data[i].nombre
+                            }));
+                        }
+                    },
+                });
+            }
+
+            function valida(id) {
+                window.location.href = '@Url.Action("update", "prefijoDocumento")?menu='+@ViewBag.id_menu+'&&id=' + id;
+            }
+
+            function buscarAjaxTipos() {
+                $('#tablaPaginada').dataTable().fnDestroy();
+                $.ajax({
+                    url: '/prefijoDocumento/GetTiposJson',
+                    data: {
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        $('#tablaPaginada').find('tbody').empty();
+                        for (var i = 0; i < data.length; i++) {
+                            $('#tablaPaginada').find('tbody').append('<tr><td align="left">'
+                                + data[i].prefijo + '</td><td align="left">'
+                                + data[i].tpdoc_nombre + '</td><td align="left">'
+                                + data[i].tpdoc_estado + '</td><td width="5%" align="center"><button class="btn btn-info btn-xs" onclick="valida('
+                                + '\'' + data[i].tpdoc_id
+                                + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                        }
+                    },
+                    complete: function (data) {
+
+                        $('#tablaPaginada').dataTable({
+                            //"ajax": 'api/datatables.json',
+                            //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                            dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                            buttons: [
+                                //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                                //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                                //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                            ]
+                        });
+                    }
+                });
+            }
+
+            function AgregarQuitarFavorito(){
+                $.ajax({
+                    url: '/Inicio/AgregarQuitarFavorito',
+                    data: {
+                        id_menu: @ViewBag.id_menu,
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        if (data.esFavorito == true) {
+                            $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                        } else {
+                            $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                        }
+                    }
+                });
+            }
+
+    </script>
+
+}

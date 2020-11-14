@@ -1,0 +1,640 @@
+﻿@model Homer_MVC.IcebergModel.kitsaccesorios
+@using System.Globalization;
+
+@{
+    ViewBag.Icono = "fa fa-cogs";
+    ViewBag.Title = "Kit Accesorios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    CultureInfo elGR = CultureInfo.CreateSpecificCulture("el-GR");
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Vendor/sweetalert/lib/sweet-alert.css" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.min.css" rel="stylesheet" />
+    <link href="~/Vendor/EasyAutocomplete-1.3.5/easy-autocomplete.themes.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro de @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <br />
+            <div class="alert alert-success  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-check fa-2x"></i> @TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <br />
+            <div class="alert alert-danger  alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p><i class="fa fa-times fa-2x"></i> @TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;Editar</a></li>
+                <li class=""><a href="@Url.Action("Browser","kitsaccesorios", new { menu = @ViewBag.id_menu })"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <a class="btn btn-info" href="../kitsaccesorios?menu=@ViewBag.id_menu"><i class="fa fa-folder-o"></i>&nbsp;&nbsp;&nbsp;Crear Nuevo</a>
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("menu")
+                        @Html.HiddenFor(x => x.id)
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Descripción:</label>
+                                            <div class="col-md-6">
+                                                @Html.EditorFor(model => model.Descripcion, new { htmlAttributes = new { @class = "form-control", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Tipo:</label>
+                                            <div class="col-md-2">
+                                                @Html.EditorFor(model => model.tipo, new { htmlAttributes = new { @class = "form-control", @maxlength = "1", @required = "required" } })
+                                                @Html.ValidationMessageFor(model => model.tipo, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>*@
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Modelo:</label>
+                                            <div class="col-md-6">
+                                                @Html.DropDownList("modelokit", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "required" })
+                                                @Html.ValidationMessageFor(model => model.modelokit, "", new { @class = "text-danger" })
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Precio sin Iva:</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" type="text" name="valorSinIva" id="valorSinIva" value="" onkeyUp="return miles(this.id)" readonly />
+                                                <span style="display:none; color:red" id="errorPrecio" name="errorPrecio">El valor no puede ir 0 o vacio</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Iva:</label>
+                                            <div class="col-md-6">
+                                                <input class="form-control" type="text" name="valorIva" id="valorIva" value="" onkeyUp="return miles(this.id)" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Precio con Iva:</label>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" name="precioInput" id="precioInput" value="" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="display:none">
+                                        @Html.EditorFor(model => model.precio, new { htmlAttributes = new { @class = "form-control", @required = "required", @readonly = "" } })
+                                        @Html.ValidationMessageFor(model => model.precio, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <h3>Accesorios</h3>
+                            <hr />
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Referencia:</label>
+                                    <div class="col-md-6">
+                                        <input type="hidden" name="banderaCodigo" id="banderaCodigo" value="" />
+                                        <input id="referenciarep" name="referenciarep" placeholder="Seleccione" class="form-control" onkeyup="traerReferencias(this.id)" />
+                                        @*@Html.DropDownList("referenciarep", null, "", htmlAttributes: new { @class = "form-control js-source-states referencia", @placeholder = "Seleccione" })*@
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label col-md-4">Precio:</label>
+                                    <div class="col-md-4">
+                                        <input class="form-control" value="" name="precio_ref" id="precio_ref" onkeyUp="return miles(this.id)" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-success btn-sm" type="button" onclick="agregarAccesorio()"><i class="fa fa-plus"></i> Agregar</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 form-group">
+                                <label class="control-label col-md-4">IVA (Informativo):</label>
+                                <div class="col-md-6">
+                                    <input class="form-control" type="text" id="ivaInformativo" name="ivaInformativo" value="" readonly />
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 form-group">
+                                <label class="control-label col-md-4">Cantidad:</label>
+                                <div class="col-md-6">
+                                    <input class="form-control" type="number" id="cantidad" name="cantidad" value="" onkeyUp="return miles(this.id)" min="1" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="lista_accesorios" id="lista_accesorios" value="" />
+                        <table class="table table-striped table-bordered table-hover" id="tablaAccesorios">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Referencia</th>
+                                    <th style="text-align:center">Precio Unitario</th>
+                                    <th style="text-align:center">Cantidad</th>
+                                    <th style="text-align:center">IVA</th>
+                                    <th style="text-align:center">Precio IVA</th>
+                                    <th style="text-align:center">Precio Total</th>
+                                    <th style="text-align:center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/EasyAutocomplete-1.3.5/jquery.easy-autocomplete.min.js"></script>
+
+    <script type="text/javascript">
+        var i = 0;
+        var contador_id = 0;
+
+        $(document).ready(function () {
+            addCommas($('#precio').val())
+            $('#menu').val(@ViewBag.id_menu);
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000);
+            buscarDatoskits()
+            $('form input').on('keypress', function (e) {
+                return e.which !== 13;
+            });
+            $('#valorSinIva').val(addCommas(parseInt($('#precio').val())))
+
+            var referencias = {
+                data: []
+            };
+            $("#referenciarep").easyAutocomplete(referencias);
+        });
+
+        $('#validarBoton').click(function(){
+            if ($('#valorSinIva').val() == 0 || $('#valorSinIva').val() == "") {
+                $('#errorPrecio').show()
+                $('#errorPrecio').fadeOut(4000)
+            }else {
+                $('#submitButton').trigger('click')
+            }
+        })
+
+        $('#valorIva').change(function(){
+            var inputIva = parseInt(quitCommas($('#valorIva').val()))
+            var inputsinIva = parseInt(quitCommas($('#valorSinIva').val()))
+            var inputvalorTotal = inputIva + inputsinIva
+            if (inputIva == 0 && inputsinIva == 0) {
+                $('#precioInput').val('0')
+            }else{            
+                $('#precioInput').val(addCommas(inputvalorTotal))
+            }
+        })
+
+        $('#valorSinIva').change(function(){
+            var inputIva = parseInt(quitCommas($('#valorIva').val()))
+            var inputsinIva = parseInt(quitCommas($('#valorSinIva').val()))
+            var inputvalorTotal = inputIva + inputsinIva
+            if (inputIva == 0 && inputsinIva == 0) {
+                $('#precioInput').val('0')
+            }else{            
+                $('#precioInput').val(addCommas(inputvalorTotal))
+            }
+        })
+
+        $('#referenciarep').change(function (event) {
+            setTimeout(function(event){
+                buscarIva();
+                buscarPrecio();
+            }, 100);
+        });
+
+        function buscarIva(){
+            $('#ivaInformativo').val('');
+            var code=$('#referenciarep').val();
+            if ((code.indexOf('|') > -1) || (j!=="" && j!==undefined))
+            {
+                var codigo="";
+                if(code!=""){
+                    var codigo_arr = $('#referenciarep').val().split("|");
+                    codigo = codigo_arr[0].trim();
+                }
+                $.ajax({
+                    url: '/kitsaccesorios/buscarIva',
+                    data: {
+                        id: codigo
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        $('#ivaInformativo').val(data)
+                    }
+                })
+            }
+            
+        }
+
+        function buscarPrecio(){
+            $('#precio_ref').val('');
+            var code=$('#referenciarep').val();
+            if ((code.indexOf('|') > -1) || (j!=="" && j!==undefined))
+            {
+                var codigo="";
+                if(code!=""){
+                    var codigo_arr = $('#referenciarep').val().split("|");
+                    codigo = codigo_arr[0].trim();
+                }
+                $.ajax({
+                    url: '/kitsaccesorios/BuscarPrecio',
+                    data: {
+                        codigo : codigo
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        $('#precio_ref').val(addCommas(data.buscar));
+                    },
+                })
+            }           
+        }
+
+        //$('#referenciarep').change(function(){
+        //    $('#ivaInformativo').val('')
+        //    $.ajax({
+        //        url: '/kitsaccesorios/buscarIva',
+        //        data: {
+        //            id: $('#referenciarep').val()
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //            $('#ivaInformativo').val(data)
+        //        }
+        //    })
+        //})
+
+        //$('#referenciarep').change(function () {
+        //    $('#precio_ref').val('');
+        //    $.ajax({
+        //        url: '/kitsaccesorios/BuscarPrecio',
+        //        data: {
+        //            codigo : $('#referenciarep').val()
+        //        },
+        //        type: "post",
+        //        cache: false,
+        //        success: function (data) {
+        //            $('#precio_ref').val(addCommas(data.buscar));
+        //        },
+        //    })
+        //})
+
+
+        function traerReferencias(id) {
+            var conteo_caracteres = $('#'+id).val().length;
+
+            if (conteo_caracteres==2) {
+                $.ajax({
+                    url: '/kardex/traerReferencias',
+                    data: {
+                        referencia: $('#' + id).val()
+                    },
+                    type: "post",
+                    cache: false,
+                    success: function (data) {
+                        var referencias = {
+                            data: data,
+                            list: {
+                                match: {
+                                    enabled: true
+                                }
+                            }
+                        };
+                        $("#referenciarep").easyAutocomplete(referencias);
+                        $("#referenciarep").focus();
+                    }
+                });
+            }
+
+        }
+
+        $('#valorSinIva').change(function(){
+            $('#precio').val(parseInt(quitCommas($('#valorSinIva').val())))
+        })
+
+        function sumarValores(){
+            var valor_iva_total = 0;
+            var subtotal = 0;
+            $(".valorIvaclass" ).each( function( index, element ){
+                valor_iva_total += parseInt($( this ).val());
+                if (valor_iva_total == 0) 
+                {
+                    $('#valorIva').val('0')
+                }else{
+                    $('#valorIva').val(addCommas(valor_iva_total));
+                }
+                
+            });
+            $(".valorTotalClass" ).each( function( index, element ){
+                subtotal += parseInt($( this ).val());
+                if(subtotal == 0)
+                {
+                    $('#valorSinIva').val('0')
+                }else{
+                    $('#valorSinIva').val(addCommas(subtotal))
+                }
+                $('#valorSinIva').trigger('change')
+                
+            });
+            $('#valorSinIva').trigger('change')
+            $('#valorIva').trigger('change')
+        }
+
+        var numero_miles = "";
+
+        function formatNumber (n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles (id) {
+            numero_miles = formatNumber($('#'+id+'').val());
+            $('#'+id+'').val(numero_miles);
+            //console.log($('#'+id+'').val);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            //console.log(nStr);
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+        function buscarDatoskits() {
+            $.ajax({
+                url: '/kitsaccesorios/buscarReferencias',
+                data: {
+                    id: '@ViewBag.idKit'
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    $('#tablaAccesorios').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaAccesorios').find('tbody').append(
+                            '<tr>'
+                                +'<td align="left">' + data[i].referencia + '</td>'
+                                +'<td align="right">$' + addComas(data[i].precio) + '</td>'
+                                +'<td align="right">' + data[i].cantidad + '</td>'
+                                +'<td align="right">%' + addComas(data[i].porcentaje) + '</td>'
+                                +'<td align="right">' 
+                                    +'<input type="hidden" class="valorIvaclass" name="precioIvaTableP' + i + '" id="precioIvaTableP' + i + '" value="' + ((data[i].precio * data[i].cantidad)*data[i].porcentaje)/100 +'"  />$'+ addComas(((data[i].precio * data[i].cantidad)*data[i].porcentaje)/100) + '</td>'
+                                +'<td align="right">'+'<input type="hidden" class="valorTotalClass" value="' + data[i].cantidad * data[i].precio + '"/>' + addCommas(data[i].precio * data[i].cantidad) + '</td>'
+                                +'<td align="center">'
+                                    +'<button type="button" class="btn btn-danger btn-sm" onclick="eliminarAccesorioBD('+ '\'' + data[i].id + '\')"><i class="fa fa-times"></i></button>'
+                                +'</td>'
+                            +'</tr>');
+
+                        sumarValores()
+                    }
+                },
+                //complete: function (data) {
+                //    $('#tablaAccesorios').dataTable({
+                //        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                //        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                //        buttons: [
+                //           //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                //        ]
+                //    });
+                //}
+            })
+        }
+
+        $('.js-source-states').select2();
+
+
+        function agregarAccesorio() {
+            if ($('#precio_ref').val() != ""  && $('#cantidad').val() != "" && $('#referenciarep').val() != ""  && $('#cantidad').val() != "0") {
+                contador_id++;
+                $('#lista_accesorios').val(contador_id);
+                if ($('#ivaInformativo').val() == "") {
+                    var iva = 0
+                }else {
+                    var iva =  $('#ivaInformativo').val();
+                }
+                var cantidad = $('#cantidad').val();
+                var precio_ref = quitCommas($('#precio_ref').val());
+
+                var precioIva = ((cantidad * precio_ref) * iva ) / 100 ;
+                var codigo_arr = $('#referenciarep').val().split("|");
+                var codigo = codigo_arr[0].trim();
+                var codigonombre = codigo_arr[1].trim();
+
+                var html = '<tr style="text-align:center" id="item'+contador_id+'">'
+                                + '<td align="left">'
+                                    +'<input type="hidden" name="codigoTable' + contador_id + '" id="codigoTable' + contador_id + '" value="' + codigo + '" />' + codigonombre
+                                + '</td>'
+                                + '<td align="right">'
+                                    +'<input type="hidden" name="precioTable' + contador_id + '" id="precioTable' + contador_id + '" value="' + precio_ref + '" />$' + addCommas(precio_ref)
+                                + '</td>'
+                                + '<td align="right">'
+                                    +'<input type="hidden" name="cantidadTable' + contador_id + '" id="cantidadTable' + contador_id + '" value="' + cantidad + '" />' + cantidad
+                                + '</td>'
+                                + '<td align="right">'
+                                    +'<input type="hidden" name="ivaTable' + contador_id + '" id="ivaTable' + contador_id + '" value="' + iva + '" />' + iva +'%'
+                                + '</td>'
+                                + '<td align="right">'
+                                    +'<input type="hidden" class="valorIvaclass" name="precioIvaTable' + contador_id + '" id="precioIvaTable' + contador_id + '" value="' + precioIva +'"  />$'+ addCommas(precioIva)
+                                + '</td>'
+                                + '<td align="right">'
+                                    +'<input type="hidden" class="valorTotalClass" name="valorTotalTable' + contador_id + '" id="valorTotalTable' + contador_id + '" value="' + cantidad * precio_ref + '" />$' + addCommas(cantidad * precio_ref)
+                                + '</td>'
+                                + '<td>'
+                                    +'<button type="button" class=" btn btn-circle btn-danger btn-sm" onclick="eliminarAccesorio(' + contador_id + ')"><i class="fa fa-times"></contador_id></button>'
+                                +'</td>'
+                            +'</tr>'
+                $('#tablaAccesorios').append(html);
+                $('#precio_ref').val('');
+                $('#cantidad').val('');
+                $('#ivaInformativo').val('');
+                //$('#referenciarep').val('').select2();
+                $('#referenciarep').val('');
+                sumarValores();
+
+            } else {
+
+
+                 swal("","No puede existir campos en blanco o en cero","warning");
+          
+            }
+        }
+
+        function eliminarAccesorio(id) {
+            $('#item' + id + '').remove();
+            sumarValores()
+        }
+
+        function eliminarAccesorioBD(id) {
+            swal({
+                title: "Esta seguro que desea eliminar?",
+                text: "El registro se eliminara de la base de datos",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Si, Eliminar!",
+                cancelButtonText: "No, cancelar!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        $.ajax({
+                            url: '/kitsaccesorios/EliminarAccesorio',
+                            data: {id: id},
+                            type: "post",
+                            cache: false,
+                            success: function () {
+                                swal("Eliminado!", "El registro se ha eliminado correctamente.", "success");
+                                location.reload(true);
+                            }
+                        });
+
+                    } else {
+                        swal("Cancelado", "Se ha cancelado la operación", "error");
+                    }
+                });
+        }
+
+   
+
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar a Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+    </script>
+
+}

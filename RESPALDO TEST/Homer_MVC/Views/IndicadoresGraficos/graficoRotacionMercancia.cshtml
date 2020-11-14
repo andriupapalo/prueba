@@ -1,0 +1,360 @@
+﻿
+@{
+    ViewBag.Title = "Grafico Rotacion de Mercancia";
+        ViewBag.Icono = "fa fa-bar-chart";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+}
+
+<!-- App styles -->
+<link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+<link href="~/Vendor/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/vendor/chartist/custom/chartist.css" />
+<link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>@ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+
+        <div id="tabs" class="tab-content">
+            <div id="principal" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="col-sm-2"><label class="control-label">Año:&nbsp;</label></div>
+
+                            <div class="col-sm-4">
+                                <div class="input-append date" id="anio" data-date="10-2018" data-date-format="yyyy">
+                                    <input type="text" class="form-control" name="date" size="4" data-date="10-2018" required="required">
+                                    <span class="add-on"><i class="icon-th"></i></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="col-sm-2"><label class="control-label">Mes:&nbsp;</label></div>
+
+                            <div class="col-sm-4">
+                                <select class="form-control js-source-states" id="mes" name="mes" required="required">
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="col-sm-2"><label>Bodega(s)</label></div>
+                            <div class="col-sm-4">
+                                <select id="listar_bodegas" name="listar_bodegas" multiple="multiple" required></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <button type="button" class="btn btn-primary" id="btnFiltrar"><i class="fa fa-filter" aria-hidden="true"></i>&nbsp;&nbsp;Filtrar</button>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div id="tortanivel" style="width: 100%;height: 400px"></div>
+                    </div>
+
+
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal_rotacion" class="modal fade bd-example-modal-lg" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="color-line"></div>
+            <div class="modal-header text-center">
+                <h4 class="modal-title">Clasifi</h4>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tablareferencias">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">Bodega </th>
+                                <th style="text-align:center">Mes </th>
+                                <th style="text-align:center">Costo venta</th>
+                                <th style="text-align:center">Valor Inventario</th>
+                                <th style="text-align:center">Rotacion</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModalExito">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Vendor scripts -->
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js">
+        <</script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Ven-ew3dor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <!-- App scripts -->
+    <script src="~/Scripts/homer.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+
+    <script src="~/Vendor/AmCharts/lib/3/amchart2.js"></script>
+    <script src="~/Vendor/AmCharts/lib/3/pie.js"></script>
+    <script src="~/Scripts/graficos.js?hora=@ViewBag.horas"></script>
+    <script src="~/Vendor/AmCharts/lib/3/themes/light.js"></script>
+
+    <script type="text/javascript">
+
+            $(document).ready(function () {
+         
+           $('.js-source-states').select2();
+            var fecha = '@DateTime.Now.Year';
+            var mesActual = '@DateTime.Now.Month';
+            $("#anio").val(fecha);
+            $("#mes").val(mesActual).select2();
+            $('#anio').find('input').val(fecha);
+            $("#anio").datepicker({
+                format: "yyyy",
+                viewMode: "years",
+                minViewMode: "years",
+                autoclose: true
+            });
+            buscarBodegas();
+        });
+
+
+
+
+        function buscarBodegas() {
+            $.ajax({
+                url: '/kardex/BuscarBodegas',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#listar_bodegas').append($('<option>', {
+                            value: data[i].id,
+                            text: data[i].bodccs_nombre
+                        }));
+                    }
+                     $('#listar_bodegas').multiselect("destroy").multiselect({
+                        includeSelectAllOption: true,
+                        maxHeight: 800,
+                    });
+
+                    $('#listar_bodegas').multiselect('refresh');
+
+                }
+            })
+        }
+
+
+        $('#btnFiltrar').click(function () {
+            var anio = $('#anio').val();
+            var mes = $('#mes').val();
+            var bodegas = $('#listar_bodegas').val()
+            console.log(bodegas)
+                 tortaClasificacionRepuestos(anio, mes, bodegas)
+
+        });
+
+
+
+
+
+        function tortaClasificacionRepuestos(anio, mes, bodegas) {
+
+    $.ajax({
+        url: '/IndicadoresGraficos/graficoRotacion',
+        data: {
+            anio: anio,
+            mes: mes,
+            bodegasin: bodegas
+
+        },
+        type: 'post',
+        cache: false,
+        success: function (data) {
+
+            var datos = [];
+            console.log(data);
+            for (var i = 0; i < data.length; i++) {
+                datos[i] = {
+                    "title": data[i].nombre_bodega,
+                    "valor": parseInt(data[i].indicador),
+                    "descripcion": data[i].indicador
+                }
+            }
+
+            var chart = AmCharts.makeChart("tortanivel", {
+                "type": "pie",
+                "theme": "light",
+                "dataProvider": datos,
+                "valueField": "valor",
+                "titleField": "title",
+                "descriptionField": "descripcion",
+                "outlineAlpha": 0.4,
+                "depth3D": 15,
+                "balloonText": "[[title]]<br><span style='font-size:14px'><b>[[description]]</b> ([[percents]]%)</span>",
+                "angle": 30,
+                "legend": {
+                    "useGraphSettings": false,
+                    "valueText": ""
+                },
+                "export": {
+                    "enabled": false
+                }
+            });
+
+            chart.addListener("clickSlice", function (event, index) {
+                var posicion = event.dataItem.index;
+
+                for (var x = 0; x < data.length; x++) {
+
+                    if (x == posicion) {
+                        buscarrotacion(data[x].idbodega);
+                    }
+                }
+            });
+        }
+    })
+}
+
+        function buscarrotacion(id) {
+
+            if (id == "Sin Clasificación") { id = null };
+             var anio = $('#anio').val();
+
+
+               $('#modal_rotacion').modal('show');
+                       $.ajax({
+                url: '/IndicadoresGraficos/DatosNivelServicioBod',
+                data: {
+              anio: anio,      
+            bodega: id
+                },
+                type: 'post',
+                cache: false,
+                           success: function (data) {
+
+                               for (var i = 0; i < data.ListaBodegasRotacion.length; i++) {
+var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+                 var   mesv = meses[data.valor[i].mes- 1];         
+                    $('#tablareferencias').dataTable().fnDestroy();
+                    $('#tablareferencias').find('tbody').empty();
+
+
+                        $('#tablareferencias').find('tbody').empty();
+
+                            $('#tablareferencias').find('tbody').append(
+                                '<tr align="center">'
+                                    + '<td align="left">'+ data.ListaBodegasRotacion[i].nombre_bodega + '</td>'
+                                    + '<td align="left">' + data.mesv + '</td>'
+                                + '<td align="right">' + data.Costo_prom2[1].indicador + '</td>'
+                                 + '<td align="right">' + data.valor[i].Total + '</td>'
+                                + '<td align="right">' + data.ListaBodegasRotacion[i].indicador + '</td>'
+
+                                +'</tr>'
+
+
+                        );
+
+
+   }
+                },
+                complete: function (data) {
+                    $('#tablareferencias').dataTable({
+
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            { extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+
+                        ]
+                    });
+                }
+            })
+
+
+
+        }
+
+
+
+
+    </script>
+}

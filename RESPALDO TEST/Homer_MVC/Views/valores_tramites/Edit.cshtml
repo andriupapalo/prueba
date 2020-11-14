@@ -1,0 +1,697 @@
+﻿@model Homer_MVC.IcebergModel.valoresTramiteModel
+
+@{
+    ViewBag.Icono = "fa fa-usd";
+    ViewBag.Title = "Valor Tramites";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#crear"><i class="@ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title</a></li>
+                <li class=""><a data-toggle="tab" href="#buscar"><i class="fa fa-search"></i>&nbsp;&nbsp;Búsquedas</a></li>
+            </ul>
+
+            <div id="crear" class="tab-pane active">
+                <div class="panel-body">
+
+                    @using (Html.BeginForm())
+                    {
+                        <div class="panel-body-btns text-right">
+                            <a href="@Url.Action("Create", "valores_tramites", new { menu = @ViewBag.id_menu })" class="btn btn-info"><i class="fa fa-folder-open"></i>&nbsp;&nbsp;&nbsp;Crear Nuevo</a>
+                            <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        </div>
+
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(x => x.idvalor)
+                        @Html.HiddenFor(x => x.bodega)
+                        @Html.HiddenFor(model => model.fecha_creacion)
+                        @Html.HiddenFor(model => model.user_creacion)
+                        @Html.HiddenFor(model => model.user_actualizacion)
+                        @Html.HiddenFor(model => model.fecha_actualizacion)
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Datos generales
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodega(s):&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    <select id="bodccs_cod" name="bodccs_cod" multiple="multiple">
+                                                        @foreach (var item in ViewBag.bodccs_cod)
+                                                        {
+                                                            <option value="@item.id">@item.bodccs_nombre</option>
+                                                        }
+                                                    </select>
+                                                    @Html.ValidationMessageFor(model => model.bodega, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Pais:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("pais_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @name = "pais_id" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Departamento:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("dpto_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Ciudad:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("ciudad_id", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione", @required = "" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Sijin:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.sijin, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor sijin", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.sijin, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Traspaso:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.traspaso, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor traspaso", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.traspaso, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tarjeta:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.tarjeta, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor tarjeta", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.tarjeta, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Runt:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.runt, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor runt", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.runt, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Traslado Cuenta:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.traslado_cuenta, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor traslado", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.traslado_cuenta, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Radicación Cuenta:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.radicacion_cuenta, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor radicacion", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.radicacion_cuenta, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Consignación Minist. TTE:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.consig_minist_tte, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor consignacion", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.consig_minist_tte, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Ins. / Levt. Prenda:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.prenda, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor prenda", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.prenda, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Serv. Tramitador:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.serv_tramitador, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor servicio", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.serv_tramitador, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Rev. Antec. / Tradición Paz y Salvo:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.antec_pazysalvo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor paz y salvo", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.antec_pazysalvo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Estampillas:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.estampillas, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor estampillas", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.estampillas, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Semaforización:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.semaforizacion, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor semaforizacion", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.semaforizacion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Tradición:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.tradicion, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor tradicion", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.tradicion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Copia Factura y Manifiesto:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.copia_factura, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor copia factura", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.copia_factura, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Sistematización Impuestos:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.sistematizacion_impuestos, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor sistematizacion", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.sistematizacion_impuestos, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Derechos Transito:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.derechos_transito, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor derechos", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.derechos_transito, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Sistematización 2:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.sistematizacion, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor sistematizacion", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.sistematizacion, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Certificado de Transito:</label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.cert_transito, new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor certificado", @onkeyUp = "return miles(this.id)" } })
+                                                    @Html.ValidationMessageFor(model => model.cert_transito, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Estado:&nbsp;</label>
+                                                <div class="col-md-6">
+                                                    <label class="control-label col-md-3" style="margin:0; padding:0">
+                                                        @Html.CheckBoxFor(model => model.estado, new { @data_toggle = "toggle", @data_size = "mini" })
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6" id="inactividad" style="display:none">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Razón Inactividad:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.EditorFor(model => model.razon_inactivo, new { htmlAttributes = new { @class = "form-control" } })
+                                                    @Html.ValidationMessageFor(model => model.razon_inactivo, "", new { @class = "text-danger" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel-body-btns text-right">
+                                        <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    }
+                </div>
+            </div>
+            <div id="buscar" class="tab-pane">
+                <div class="panel-body">
+                    <div class="panel-body-busqueda">
+                        <div class="table-responsive">
+                            <div id="div-mensaje-buscar"></div>
+                            <table class="table table-striped table-bordered table-hover" id="tablaValoresTramites">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center">Ciudad</th>
+                                        <th style="text-align:center">Sijin</th>
+                                        <th style="text-align:center">Traspaso</th>
+                                        <th style="text-align:center">Tarjeta</th>
+                                        <th style="text-align:center">RUNT</th>
+                                        <th style="text-align:center">Traslado Cuenta</th>
+                                        <th style="text-align:center">Radicación Cuenta</th>
+                                        <th style="text-align:center">Consig. Minis. TTE</th>
+                                        <th style="text-align:center">Prenda</th>
+                                        <th style="text-align:center">Serv. Tramitaor</th>
+                                        <th style="text-align:center">Antec. Paz / Salvo</th>
+                                        <th style="text-align:center">Estampillas</th>
+                                        <th style="text-align:center">Semaforización</th>
+                                        <th style="text-align:center">Tradición</th>
+                                        <th style="text-align:center">Copia Factura</th>
+                                        <th style="text-align:center">Sistematización Impuestos</th>
+                                        <th style="text-align:center">Derechos Tránsito</th>
+                                        <th style="text-align:center">Sistematización</th>
+                                        <th style="text-align:center">Cert. Tránsito</th>
+                                        <th style="text-align:center">Estado</th>
+                                        <th style="text-align:center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/pdfmake.min.js"></script>
+    <script src="~/Vendor/pdfmake/build/vfs_fonts.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val(@ViewBag.id_menu);
+            $('.js-source-states').select2();
+            buscarAjaxCiudades();
+            buscarValoresPaginados()
+            setTimeout(function () {
+                $("#mensaje").fadeOut(1500);
+            }, 3000);
+            setTimeout(function () {
+                $("#mensaje_error").fadeOut(1500);
+            }, 3000);
+            var bodegas = '@ViewBag.bodegasSeleccionadas';
+            var res = bodegas.split(",");
+            $('#bodccs_cod').val(res);
+            $('#bodccs_cod').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400,
+                dropUp: false
+            });
+            if (!$('#estado').prop('checked')) {
+                $('#inactividad').show();
+            } else {
+                $('#inactividad').hide();
+            }
+            $('#sijin').val($('#sijin').val())
+            $('#traspaso').val($('#traspaso').val())
+            $('#tarjeta').val($('#tarjeta').val())
+            $('#runt').val($('#runt').val())
+            $('#traslado_cuenta').val($('#traslado_cuenta').val())
+            $('#radicacion_cuenta').val($('#radicacion_cuenta').val())
+            $('#consig_minist_tte').val($('#consig_minist_tte').val())
+            $('#prenda').val($('#prenda').val())
+            $('#serv_tramitador').val($('#serv_tramitador').val())
+            $('#antec_pazysalvo').val($('#antec_pazysalvo').val())
+            $('#estampillas').val($('#estampillas').val())
+            $('#semaforizacion').val($('#semaforizacion').val())
+            $('#tradicion').val($('#tradicion').val())
+            $('#copia_factura').val($('#copia_factura').val())
+            $('#sistematizacion_impuestos').val($('#sistematizacion_impuestos').val())
+            $('#derechos_transito').val($('#derechos_transito').val())
+            $('#sistematizacion').val($('#sistematizacion').val())
+            $('#cert_transito').val($('#cert_transito').val())
+        });
+        $('#estado').change(function () {
+            if ($('#estado').prop('checked')) {
+                $('#inactividad').hide();
+            } else {
+                $('#razon_inactivo').val();
+                $('#inactividad').show();
+                if ($('#razon_inactivo').val() == "") {
+                    $('#razon_inactivo').prop('required', true)
+                }
+            }
+        });
+
+        $('#pais_id').change(function () {
+            $.ajax({
+                url: '/nom_ciudad/BuscarDeptoPorPais',
+                data: {
+                    paisId: $('#pais_id').val()
+                },
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                success: function (data) {
+                    $('#dpto_id').empty();
+                    $('#dpto_id').append($('<option>', {
+                        value: '',
+                        text: 'Seleccione'
+                    }));
+                    for (var i = 0; i < data.length; i++) {
+                        $('#dpto_id').append($('<option>', {
+                            value: data[i].dpto_id,
+                            text: data[i].dpto_nombre
+                        }));
+                    }
+                },
+            })
+        });
+        function valida(id) {
+            window.location.href = '@Url.Action("edit", "valores_tramites")?menu='+@ViewBag.id_menu+'&&id=' + id;
+        }
+        function buscarValoresPaginados() {
+
+            if ($.fn.dataTable.isDataTable('#tablaValoresTramites')) {
+                $("#tablaValoresTramites").dataTable().fnDestroy();
+            }
+            $.ajax({
+                url: '/valores_tramites/BuscarValoresPaginados',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+                    $('#tablaValoresTramites').find('tbody').empty();
+                    for (var i = 0; i < data.paginarDatos.length; i++) {
+                        if(data.paginarDatos[i].estado == true){
+                            var estado = "Activo"
+                        }else{
+                            var estado = "Inactivo"
+                        }
+                        $('#tablaValoresTramites').find('tbody').append(
+                            '<tr>'
+                            +'<td align="left">' + data.paginarDatos[i].ciudad + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].sijin) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].traspaso) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].tarjeta) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].runt) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].traslado_cuenta) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].radicacion_cuenta) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].consig_minist_tte) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].prenda) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].serv_tramitador) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].antec_pazysalvo)+ '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].estampillas) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].semaforizacion) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].tradicion) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].copia_factura) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].sistematizacion_impuestos) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].derechos_transito) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].sistematizacion) + '</td>'
+                            +'<td align="right">' + addCommas(data.paginarDatos[i].cert_transito) + '</td>'
+                            +'<td align="right">' + estado + '</td>'
+                            +'<td width="5%"><button class="btn btn-info btn-xs" onclick="valida(' + data.paginarDatos[i].id + ')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td>'
+                            +'</tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaValoresTramites').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+
+                }
+            })
+        }
+
+
+        $('#dpto_id').change(function () {
+            $.ajax({
+                url: '/icb_terceros/buscarCiudades',
+                data: {
+                    idDepto: $('#dpto_id').val(),
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    var option = "<option>Seleccione</option>";
+                    for (var j = 0; j < data.length; j++) {
+                        option += ' <option value="' + data[j].id + '">' + data[j].nombre + '</option>'
+                    }
+                    $('#ciudad_id').empty();
+                    $('#ciudad_id').append(option);
+                },
+                complete: function (data) {
+
+                }
+            })
+        });
+
+        function buscarAjaxCiudades() {
+            var parametros = null;
+            if ($('#selectBusquedasParametros').val() != null) {
+                parametros = $('#selectBusquedasParametros').val().toString();
+            }
+
+            $.ajax({
+                url: '/nom_ciudad/BuscarCiudadesPaginadas',
+                data: {
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+
+                    $('#tablaPaginada').find('tbody').empty();
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tablaPaginada').find('tbody').append('<tr><td align="center">' + data[i].codigo + '</td><td align="center">' + data[i].ciu_nombre + '</td><td align="center">'
+                                       + data[i].dpto_nombre + '</td><td align="center">'
+                                       + data[i].pais_nombre + '</td><td align="center">'
+                                       + data[i].ciu_estado + '</td><td width="5%"><button class="btn btn-info btn-xs" onclick="valida('
+                                       + '\'' + data[i].ciu_id
+                                       + '\')">&nbsp;&nbsp;Ver&nbsp;&nbsp;</button></td></tr>');
+                    }
+                },
+                complete: function (data) {
+                    $('#tablaPaginada').dataTable({
+                        //"ajax": 'api/datatables.json',
+                        //dom: "<''<'col-sm-4'l><'col-sm-4 text-center'B><'col-sm-4'f>>t<'col-sm-4'i>p",
+                        dom: "<''<'col-md-6'l><'col-md-6'f>>t<'col-md-4'i><'col-md-8 text-right'pB>",
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                        buttons: [
+                            //{ extend: 'excel', className: 'btn-sm', text: 'Exportar a Excel' },
+                            //{ extend: 'pdf', title: 'ExampleFile', className: 'btn-sm', text: 'PDF' },
+                            //{ extend: 'print', className: 'btn-sm', text: 'Imprimir' }
+                        ]
+                    });
+
+                }
+            })
+        }
+
+        var numero_miles = "";
+
+        function formatNumber (n) {
+            n = String(n).replace(/\D/g, "");
+            return n === '' ? n : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function miles (id) {
+            numero_miles = formatNumber($('#'+id+'').val());
+            $('#'+id+'').val(numero_miles);
+            //console.log($('#'+id+'').val);
+        }
+
+        function addCommas(nStr) {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function quitCommas(nStr) {
+            nStr.toString();
+            //console.log(nStr);
+            var s = nStr.replace(/\./g, "");
+            return s;
+        }
+
+
+
+        function AgregarQuitarFavorito(){
+            $.ajax({
+                url: '/Inicio/AgregarQuitarFavorito',
+                data: {
+                    id_menu: @ViewBag.id_menu,
+                },
+                type: "post",
+                cache: false,
+                success: function (data) {
+                    if(data.esFavorito == true){
+                        $('#areaFavoritos').html("<i class='fa fa-close'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Quitar de Favoritos</a>");
+                    }else{
+                        $('#areaFavoritos').html("<i class='fa fa-check'></i>&nbsp;&nbsp;<a href='#' onclick='AgregarQuitarFavorito();return false;'>Agregar de Favoritos</a>");
+                    }
+                }
+            })
+        }
+
+
+
+    </script>
+}

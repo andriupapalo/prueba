@@ -1,0 +1,511 @@
+﻿@model Homer_MVC.IcebergModel.icb_doc_consecutivos
+
+@{
+    ViewBag.Title = "Administración de Cajas";
+    ViewBag.Icono = "fa fa-folder-open-o";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    @Styles.Render("~/bundles/select2/css")
+    <link href="~/Vendor/BootstrapMultiselect/multiselect.css" rel="stylesheet" />
+    <link href="~/Vendor/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Vendor/bootstrap-toggle-master/css/bootstrap-toggle.min.css" rel="stylesheet" />
+}
+
+<div class="panel-body">
+    <div class="panel-heading" style="background-color:white;  border:solid 1px; border-color:#e4e5e7">
+        <div class="panel-body">
+
+            <div id="hbreadcrumb" class="pull-right">
+
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Enlaces" data-content="<ul>@ViewBag.nombreEnlaces</ul>" data-html="true">
+                    <i class="text-info fa fa-tags"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Documentos" data-content="<ul></i><a href=''>Documento 1</a></ul>  <ul></i><a href=''>Documento 2</a></ul> <ul></i><a href=''>Documento 3</a></ul>" data-html="true">
+                    <i class="text-primary fa fa-files-o"></i>
+                </button>
+                <button type="button" class="btn btn-mini btn-default" style="border-radius:25px" data-container="body" data-toggle="popover" data-placement="left" data-title="Favoritos" data-content="@ViewBag.Favoritos" data-html="true">
+                    <i class="text-warning fa fa-star"></i>
+                </button>
+
+            </div>
+            <h3 class="font-light m-b-xs">
+                <i class="text-info @ViewBag.Icono"></i>&nbsp;&nbsp;@ViewBag.Title
+            </h3>
+            <small>Registro @ViewBag.Title</small>
+        </div>
+    </div>
+</div>
+
+<div class="panel-body" style="padding-top:0px;">
+    <div class="hpanel">
+        @if (TempData["mensaje"] != null)
+        {
+            <div class="alert alert-success  alert-dismissible" id="mensaje">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje"]</p>
+            </div>
+        }
+
+        @if (TempData["mensaje_error"] != null)
+        {
+            <div class="alert alert-danger  alert-dismissible" id="mensaje_error">
+                <button type="button" class="close" data-dismiss="alert" arial-label="close"><span aria-hidden="true">&times;</span></button>
+                <p>@TempData["mensaje_error"]</p>
+            </div>
+        }
+
+
+        <div id="tabs" class="tab-content">
+
+            <div class="m float-e-margins text-right">
+                <div class="tooltip-demo">
+
+                    <div id="div-mensaje"></div>
+
+                </div>
+            </div>
+
+            <ul id="tabs-crear" class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#actualizar"><i class="fa fa-search" onclick="actualizarCaja();"></i>&nbsp;&nbsp;Actualizar</a></li>
+            </ul>
+
+            <div id="actualizar" class="tab-pane active">
+                <div class="panel-body">
+
+
+                    @using (Html.BeginForm("CuadreCajaUpdate", "CentralAtencion"))
+                    {
+                    <div class="panel-body-btns text-right">
+                        <button class="btn btn-info" type="submit"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp;Guardar</button>
+                        @*<button class="btn btn-success" type="button" onclick="cerrarCaja()"><i class="fa fa-calculator"></i>&nbsp;&nbsp;&nbsp;Cerrar</button>*@
+                    </div>
+
+                        @Html.Hidden("menu")
+
+                        <div class="form-horizontal">
+
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                            <div class="hpanel" id="panelHabeasData">
+                                <div class="panel-heading hbuilt" style="background-color:#e4e5e7">
+                                    <div class="panel-tools">
+                                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+
+                                    </div>
+                                    <i class="@ViewBag.Icono"></i>&nbsp;&nbsp;&nbsp;Formulario de Cuadre de Caja
+                                </div>
+                                <div class="panel-body">
+
+                                    <div class="row">
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Bodega:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("bodega", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                    <input type="hidden" name="id" value="" id="id" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Caja:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.DropDownList("nombre", null, "", htmlAttributes: new { @class = "form-control js-source-states", @placeholder = "Seleccione" })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="row">
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Fecha:&nbsp;<span class="text-danger">*</span></label>
+                                                <div class="col-md-6">
+                                                    @Html.Editor("fecha", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite fecha", @required = "required", @readonly = "readonly" } })
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="panel-body-busqueda">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Resultado Según Arqueo</th>
+                                                        <th style="text-align:center">Resultado Según Sistema</th>
+                                                        <th style="text-align:center">Diferencia Arqueo/Sistema</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <th style="text-align:center">@Html.Editor("efectivo", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor efectivo", @min = "1", @required = "required" } })</th>
+                                                        <th style="text-align:center">@Html.Editor("sistema_efectivo", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required", @readonly = "readonly" } })</th>
+                                                        <th style="text-align:center">@Html.Editor("diferencia_efectivo", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required", @readonly = "readonly" } })</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th style="text-align:center">@Html.Editor("tarjetas", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor tarjetas", @min = "1", @required = "required" } })</th>
+                                                        <th style="text-align:center">@Html.Editor("sistema_tarjetas", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required", @readonly = "readonly" } })</th>
+                                                        <th style="text-align:center">@Html.Editor("diferencia_tarjetas", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required", @readonly = "readonly" } })</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th style="text-align:center">@Html.Editor("cheques", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor cheques", @min = "1", @required = "required" } })</th>
+                                                        <th style="text-align:center">@Html.Editor("sistema_cheques", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required", @readonly = "readonly" } })</th>
+                                                        <th style="text-align:center">@Html.Editor("diferencia_cheques", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required", @readonly = "readonly" } })</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th style="text-align:center">@Html.Editor("recibos", new { htmlAttributes = new { @class = "form-control", @placeholder = "Digite valor recibos", @min = "1", @required = "required" } })</th>
+                                                        <th style="text-align:center">@Html.Editor("sistema_recibos", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required", @readonly = "readonly" } })</th>
+                                                        <th style="text-align:center">@Html.Editor("diferencia_recibos", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required", @readonly = "readonly" } })</th>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="panel-body-busqueda">
+                                        <div class="table-responsive">
+                                            <div id="div-mensaje-buscar"></div>
+                                            <table class="table table-striped table-bordered table-hover" id="tablaPaginada2">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align:center">Total Ingresos</th>
+                                                        <th style="text-align:center">Total Egresos</th>
+                                                        <th style="text-align:center">Nuevo Saldo Sistema</th>
+                                                        <th style="text-align:center">Faltante</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <th style="text-align:center">@Html.Editor("total_ingresos", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required" ,@readonly = "readonly"} })</th>
+                                                        <th style="text-align:center">@Html.Editor("total_egresos", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required" ,@readonly = "readonly"} })</th>
+                                                        <th style="text-align:center">@Html.Editor("total_sistema", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required" ,@readonly = "readonly"} })</th>
+                                                        <th style="text-align:center">@Html.Editor("total", new { htmlAttributes = new { @class = "form-control", @min = "1", @required = "required" ,@readonly = "readonly"} })</th>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                    }
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/select2/js")
+    <script src="~/Vendor/datatables/media/js/jquery.dataTables.min.js"></script>
+    <script src="~/Vendor/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="~/Vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/dataTable1.4.0-buttons.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/JSZip3.1.3.min.js"></script>
+    <script src="~/Vendor/moment/min/moment.min.js"></script>
+    <script src="~/Vendor/BootstrapMultiselect/multiselect.js"></script>
+    <script src="~/Vendor/bootstrap-datepicker-master/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Vendor/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Vendor/datatablesExcelExport/jsZipDataTables.js"></script>
+    <script src="~/Vendor/fullcalendar/dist/fullcalendar.min.js"></script>
+    <script src="~/Vendor/fullcalendar/dist/lang-all.js"></script>
+    <script src="~/Vendor/bootstrap-toggle-master/js/bootstrap-toggle.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#menu').val('@ViewBag.id_menu');
+            var bodegas = '@ViewBag.bodegasSeleccionadas';
+            var res = bodegas.split(",");
+            $('#bodccs_cod').val(res);
+            $('#bodccs_cod').multiselect({
+                includeSelectAllOption: true,
+                maxHeight: 400,
+            });
+
+            $("#desde").datetimepicker({
+                format: 'YYYY-MM-DD',
+            });
+
+            $("#hasta").datetimepicker({
+                format: 'YYYY-MM-DD',
+            });
+
+            $("#fecha").datetimepicker({
+                format: 'YYYY-MM-DD',
+            });
+
+            $("#id").val('@ViewBag.id')
+
+            $("#bodega").val('@ViewBag.bodega1')
+            $("#nombre").val('@ViewBag.nombre1')
+            $("#fecha").val('@ViewBag.fecha1')
+
+            $("#efectivo").val('@ViewBag.efectivo')
+            $("#sistema_efectivo").val('@ViewBag.sistema_efectivo')
+            $("#diferencia_efectivo").val('@ViewBag.diferencia_efectivo')
+
+            $("#tarjetas").val('@ViewBag.tarjetas')
+            $("#sistema_tarjetas").val('@ViewBag.sistema_tarjetas')
+            $("#diferencia_tarjetas").val('@ViewBag.diferencia_tarjetas')
+
+            $("#cheques").val('@ViewBag.cheques')
+            $("#sistema_cheques").val('@ViewBag.sistema_cheques')
+            $("#diferencia_cheques").val('@ViewBag.diferencia_cheques')
+
+            $("#recibos").val('@ViewBag.recibos')
+            $("#sistema_recibos").val('@ViewBag.sistema_recibos')
+            $("#diferencia_recibos").val('@ViewBag.diferencia_recibos')
+
+            $("#total_ingresos").val(addCommas('@ViewBag.total_ingresos'))
+            $("#total_egresos").val(addCommas('@ViewBag.total_egresos'))
+            $("#total_sistema").val(addCommas('@ViewBag.total_sistema'))
+            $("#total").val(addCommas('@ViewBag.total1'))
+
+        });
+
+        function actualizarCaja() {
+            $('#actualizar').show();
+        }
+
+        function addCommas(nStr) {
+
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? `,${x[1]}` : '';
+            const rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + '.' + '$2');
+            }
+            return x1 + x2;
+
+        }
+
+        $('#total').change(function () {
+            debugger;
+            var valor = $('#total').val();
+            debugger;
+            var valord = addCommas(valor);
+            $('#total').val(valord);
+        });
+
+        $('#nombre').change(function () {
+            var caja = $('#nombre').val();
+
+             debugger;
+                $.ajax({
+                url: '/CentralAtencion/traerTotales',
+                data: {
+                    caja: caja,
+                },
+                type: "post",
+                cache: false,
+                success: function (datos) {
+
+                    $('#sistema_efectivo').val(addCommas(datos.efectivo));
+                    $('#sistema_tarjetas').val(addCommas(datos.tarjetas));
+                    $('#sistema_cheques').val(addCommas(datos.cheques));
+                    $('#sistema_recibos').val(addCommas(datos.recibos));
+
+                }, complete: function (data) {
+                    debugger;
+                    total_egresos();
+                }
+            });
+            
+            
+        });
+
+        $('#efectivo').change(function () {
+            var valor = $('#efectivo').val();
+            var valor2 =$('#sistema_efectivo').val();
+            var valor1 = addCommas(valor);
+            $('#efectivo').val(valor1);
+
+            $.ajax({
+                url: '/CentralAtencion/diferenciaArqueo',
+                data: {
+                    valor1: valor1,
+                    valor2:valor2
+
+                },
+                type: "post",
+                cache: false,
+                success: function (resultado) {
+                    $('#diferencia_efectivo').val(addCommas(resultado));
+                },complete:function (resultado) {
+                    total_ingresos();
+                }
+            })
+            
+        });
+
+        $('#tarjetas').change(function () {
+            var valor = $('#tarjetas').val();
+            var valor2 =$('#sistema_tarjetas').val();
+            var valor1= addCommas(valor);
+            $('#tarjetas').val(valor1);
+
+            $.ajax({
+                url: '/CentralAtencion/diferenciaArqueo',
+                data: {
+                    valor1: valor1,
+                    valor2:valor2
+
+                },
+                type: "post",
+                cache: false,
+                success: function (resultado) {
+                    $('#diferencia_tarjetas').val(addCommas(resultado));
+                },complete:function (resultado) {
+                    total_ingresos();
+                }
+            })
+            
+        });
+
+        $('#cheques').change(function () {
+            var valor = $('#cheques').val();
+            var valor2 =$('#sistema_cheques').val();
+            var valor1 = addCommas(valor);
+            $('#cheques').val(valor1);
+
+            $.ajax({
+                url: '/CentralAtencion/diferenciaArqueo',
+                data: {
+                    valor1: valor1,
+                    valor2:valor2
+
+                },
+                type: "post",
+                cache: false,
+                success: function (resultado) {
+                    $('#diferencia_cheques').val(addCommas(resultado));
+                },complete:function (resultado) {
+                    total_ingresos();
+                }
+            })
+            
+        });
+
+        $('#recibos').change(function () {
+            var valor = $('#recibos').val();
+            var valor2 =$('#sistema_recibos').val();
+            var valor1 = addCommas(valor);
+            $('#recibos').val(valor1);
+
+            $.ajax({
+                url: '/CentralAtencion/diferenciaArqueo',
+                data: {
+                    valor1: valor1,
+                    valor2:valor2
+
+                },
+                type: "post",
+                cache: false,
+                success: function (resultado) {
+                    $('#diferencia_recibos').val(addCommas(resultado));
+                },complete:function (resultado) {
+                    total_ingresos();
+                }
+            })
+            
+
+        });
+
+        function total_ingresos() {
+
+            var efectivo=$('#efectivo').val();
+            var tarjetas=$('#tarjetas').val();
+            var cheques=$('#cheques').val();
+            var recibos = $('#recibos').val();
+
+            $.ajax({
+                url: '/CentralAtencion/total_ingresos',
+                data: {
+                    efectivo: efectivo,
+                    tarjetas: tarjetas,
+                    cheques: cheques,
+                    recibos:recibos
+
+                },
+                type: "post",
+                cache: false,
+                success: function (resultado) {
+                    $('#total_ingresos').val(addCommas(resultado));
+                }, complete:function (resultado) {
+                    total_sistema();
+                }
+
+            })
+        }
+
+        function total_egresos() {
+
+            var efectivo=$('#sistema_efectivo').val();
+            var tarjetas=$('#sistema_tarjetas').val();
+            var cheques=$('#sistema_cheques').val();
+            var recibos = $('#sistema_recibos').val();
+
+            debugger;
+
+            $.ajax({
+                url: '/CentralAtencion/total_egresos',
+                data: {
+                    efectivo: efectivo,
+                    tarjetas: tarjetas,
+                    cheques: cheques,
+                    recibos:recibos
+
+                },
+                type: "post",
+                cache: false,
+                success: function (resultado) {
+                    $('#total_egresos').val(addCommas(resultado));
+                }, complete:function (resultado) {
+                    total_sistema();
+                }
+            })
+        }
+
+        function total_sistema() {
+            var total_ingresos=$('#total_ingresos').val();
+            var total_egresos = $('#total_egresos').val();
+
+            $.ajax({
+                url: '/CentralAtencion/total_sistema',
+                data: {
+                    total_ingresos: total_ingresos,
+                    total_egresos: total_egresos,
+                },
+                type: "post",
+                cache: false,
+                success: function (resultado) {
+
+                    $('#total_sistema').val(addCommas(resultado));
+                    $('#total').val(addCommas(resultado));
+                }
+            })
+        }
+
+    </script>
+
+}
